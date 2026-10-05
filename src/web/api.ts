@@ -171,3 +171,55 @@ export async function wandleLehrplanUm(
 
 export const ordneLehrplanZu = (name: string, klassen: string[]) => post<{ ok: true }>("/api/lehrplan/zuordnen", { name, klassen });
 export const entferneLehrplan = (name: string) => fetch(`/api/lehrplan/${encodeURIComponent(name)}`, { method: "DELETE" });
+
+// ---------- Stundenplan und Woche ----------
+
+export interface PlanMeta { quelle: "datei" | "link"; name?: string; aktualisiert: string; von: string; bis: string; anzahl: number }
+export interface PlanStatus { vorhanden: boolean; meta?: PlanMeta; hatLink: boolean }
+export type Zuordnung = { klasse: string; fach: string } | null;
+export interface TitelInfo { titel: string; anzahl: number; beispiel?: string; zuordnung?: Zuordnung; vorschlag?: Zuordnung }
+export interface Zustand { zustand: "nicht-zugeordnet" | "nicht-geplant" | "geplant" | "material-fertig" | "gehalten" }
+export interface WochenStunde extends Zustand {
+  uid: string; datum: string; von: string; bis: string; titel: string; ort?: string; beschreibung?: string;
+  klasse?: string; fach?: string; reihe?: string; thema?: string; material?: string;
+}
+export interface Wochenansicht {
+  montag: string;
+  tage: { datum: string; tag: string; stunden: WochenStunde[] }[];
+  fehlt: number; nichtGeplant: number; nichtZugeordnet: number;
+}
+export interface WocheAntwort { heute: string; woche?: Wochenansicht; zurueck: string; weiter: string }
+
+const errorOf = async (res: Response) => ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Das hat nicht geklappt.";
+
+export const getPlanStatus = async (): Promise<PlanStatus> => (await fetch("/api/stundenplan")).json();
+export const getWoche = async (datum?: string): Promise<WocheAntwort> => (await fetch(`/api/woche${datum ? `?datum=${datum}` : ""}`)).json();
+export const getTitel = async (): Promise<{ titel: TitelInfo[]; klassen: { name: string; faecher: string[] }[] }> => (await fetch("/api/stundenplan/titel")).json();
+
+/** Each call returns an error text, or null on success. */
+export async function ladePlanHoch(file: File): Promise<string | null> {
+  const form = new FormData();
+  form.set("file", file);
+  const res = await fetch("/api/stundenplan/datei", { method: "POST", body: form });
+  return res.ok ? null : errorOf(res);
+}
+export async function ladePlanVonLink(url: string): Promise<string | null> {
+  const res = await fetch("/api/stundenplan/link", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url }) });
+  return res.ok ? null : errorOf(res);
+}
+export async function aktualisierePlan(): Promise<string | null> {
+  const res = await fetch("/api/stundenplan/aktualisieren", { method: "POST" });
+  return res.ok ? null : errorOf(res);
+}
+export const entfernePlan = () => fetch("/api/stundenplan", { method: "DELETE" });
+export async function speichereZuordnung(zuordnung: Record<string, Zuordnung>): Promise<string | null> {
+  const res = await fetch("/api/stundenplan/zuordnung", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ zuordnung }) });
+  return res.ok ? null : errorOf(res);
+}
+export async function legeAb(l: { klasse: string; fach: string; datum: string; von: string }, file: File): Promise<{ error: string } | { datei: string; reihe: string }> {
+  const form = new FormData();
+  for (const [k, v] of Object.entries(l)) form.set(k, v);
+  form.set("file", file);
+  const res = await fetch("/api/woche/ablegen", { method: "POST", body: form });
+  return res.ok ? res.json() : { error: await errorOf(res) };
+}

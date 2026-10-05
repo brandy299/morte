@@ -69,10 +69,10 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 4: Dashboard
 
-- [ ] Stundenplan per iCal-Synchronisierung (UNTIS), grafisch aufbereitet
-- [ ] Wochenübersicht: Was steht an, wo fehlt Material
-- [ ] Drag-and-Drop: Material auf eine Stunde ziehen, Datei landet im Reihen-Ordner und in der Stundentabelle
-- [ ] Startseite "Start" mit Überblick über alle Klassen
+- [x] Stundenplan per iCal (Datei oder Link), grafisch aufbereitet (mit eigener Beispieldatei getestet, noch nicht mit einem echten UNTIS-Export)
+- [x] Wochenübersicht: Was steht an, wo fehlt Material
+- [x] Drag-and-Drop: Material auf eine Stunde ziehen, Datei landet im Reihen-Ordner und in der Stundentabelle
+- [x] Startseite "Start" mit Überblick über alle Klassen
 
 ## Phase 5: Erweiterungen
 

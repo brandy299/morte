@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
+import { Start } from "./Start.tsx";
+import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -29,6 +31,10 @@ export function App() {
   const [setupOpen, setSetupOpen] = useState(false);
   const [newClassOpen, setNewClassOpen] = useState(false);
   const [lehrplanOpen, setLehrplanOpen] = useState(false);
+  const [stundenplanOpen, setStundenplanOpen] = useState(false);
+  // Which screen the chat area starts with: the week when a timetable exists, otherwise the chat.
+  const [startView, setStartView] = useState<"chat" | "start" | null>(null);
+  const [planVersion, setPlanVersion] = useState(0);
   const [tree, setTree] = useState<KlasseInfo[]>([]);
   const refreshTree = () => getTree().then(setTree).catch(() => {});
   const [history, setHistory] = useState<ConversationInfo[]>([]);
@@ -42,7 +48,10 @@ export function App() {
       .catch(() => {});
   // A new key rebuilds the chat, with the messages of the conversation that was opened (or none).
   const [chat, setChat] = useState<{ key: number; messages: Message[] }>({ key: 0, messages: [] });
-  const show = (anzeige: StoredMessage[]) => setChat((c) => ({ key: c.key + 1, messages: anzeige.map((m) => ({ ...m, materials: m.materials })) }));
+  const show = (anzeige: StoredMessage[]) => {
+    setStartView("chat");
+    setChat((c) => ({ key: c.key + 1, messages: anzeige.map((m) => ({ ...m, materials: m.materials })) }));
+  };
   const open = async (id: string) => {
     const result = await openHistory(id);
     if (result) show(result.anzeige);
@@ -63,9 +72,10 @@ export function App() {
     void refresh();
     void refreshTree();
     void refreshHistory();
+    getPlanStatus().then((p) => setStartView((v) => v ?? (p.vorhanden ? "start" : "chat"))).catch(() => setStartView((v) => v ?? "chat"));
   }, []);
 
-  if (!status) return null;
+  if (!status || !startView) return null;
   // First start: only the setup. Afterwards the chat stays mounted behind the other screens,
   // so an answer that is still being written and the conversation on screen are not lost.
   if (!status.configured) {
@@ -80,13 +90,16 @@ export function App() {
       />
     );
   }
-  const overlay = setupOpen || newClassOpen || lehrplanOpen;
+  const overlay = setupOpen || newClassOpen || lehrplanOpen || stundenplanOpen;
   return (
     <>
       <div className="chat-layer" hidden={overlay}>
         <Chat
           key={chat.key}
           initialMessages={chat.messages}
+          initialView={startView}
+          planVersion={planVersion}
+          onStundenplan={() => setStundenplanOpen(true)}
           tree={tree}
           refreshTree={refreshTree}
           history={history}
@@ -113,6 +126,15 @@ export function App() {
           }}
         />
       )}
+      {stundenplanOpen && (
+        <Stundenplan
+          onClose={() => {
+            setStundenplanOpen(false);
+            setPlanVersion((v) => v + 1);
+            void refreshTree();
+          }}
+        />
+      )}
       {lehrplanOpen && (
         <Lehrplan
           onClose={() => {
@@ -136,6 +158,10 @@ export function App() {
 
 interface ChatProps {
   initialMessages: Message[];
+  initialView: "chat" | "start";
+  /** Changes when the timetable was edited, so the week reloads. */
+  planVersion: number;
+  onStundenplan: () => void;
   history: ConversationInfo[];
   currentId?: string;
   refreshHistory: () => void;
@@ -151,8 +177,9 @@ interface ChatProps {
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
-function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onSettings }: ChatProps) {
+function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onSettings }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [view, setView] = useState<"chat" | "start">(initialView);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
   const [thinking, setThinking] = useState(false);
@@ -278,6 +305,13 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
     }
   };
 
+  /** Puts a question into the input field and shows the chat, so the teacher can read it and send it. */
+  const ask = (text: string) => {
+    setInput(text);
+    setView("chat");
+    inputRef.current?.focus();
+  };
+
   const newChat = async () => {
     abortRef.current?.abort();
     await resetChat();
@@ -315,7 +349,14 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
             ×
           </button>
         </div>
-        <button className="new-chat" onClick={newChat}>
+        <button type="button" className={view === "start" ? "nav-item on" : "nav-item"} onClick={() => setView("start")}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+            <path d="M3.5 10h17M8 3v4M16 3v4" />
+          </svg>
+          Start
+        </button>
+        <button className="new-chat" onClick={() => { setView("chat"); void newChat(); }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
             <path d="M12 5v14M5 12h14" />
           </svg>
@@ -348,12 +389,12 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
           {tree.length === 0 && <p className="side-note">Noch keine Klasse. Lege die erste an, dann kann ich mit ihr arbeiten.</p>}
           {tree.map((k) => (
             <div key={k.name} className="tree-klasse">
-              <button type="button" className="tree-node k" onClick={() => setInput(`Wo stehen wir in ${k.name}?`)}>
+              <button type="button" className="tree-node k" onClick={() => ask(`Wo stehen wir in ${k.name}?`)}>
                 {k.name}
               </button>
               {k.faecher.map((f) => (
                 <div key={f.name}>
-                  <button type="button" className="tree-node f" onClick={() => setInput(`Wo stehen wir in ${k.name}, ${f.name}?`)}>
+                  <button type="button" className="tree-node f" onClick={() => ask(`Wo stehen wir in ${k.name}, ${f.name}?`)}>
                     {f.name}
                   </button>
                   {f.reihen.map((r) => (
@@ -362,7 +403,7 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
                       key={r.name}
                       className="tree-node r"
                       title={`${r.gehalten} von ${r.stunden} Stunden gehalten`}
-                      onClick={() => setInput(`Wie weit sind wir in der Reihe „${r.name.replace(/^\d+\s+/, "")}“ in ${k.name}, ${f.name}?`)}
+                      onClick={() => ask(`Wie weit sind wir in der Reihe „${r.name.replace(/^\d+\s+/, "")}“ in ${k.name}, ${f.name}?`)}
                     >
                       {r.name}
                       {r.ohneMaterial > 0 && <span className="badge">{r.ohneMaterial} ohne Material</span>}
@@ -402,6 +443,12 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
           </button>
           <span className="brand-small">morte</span>
         </div>
+        {view === "start" ? (
+          <div className="scroll">
+            <Start key={planVersion} tree={tree} onSetup={onStundenplan} onAsk={ask} onChanged={refreshTree} />
+          </div>
+        ) : (
+          <>
         <div className="scroll">
           <div className="column">
             {messages.length === 0 && (
@@ -551,6 +598,8 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
             </div>
           </div>
         </form>
+          </>
+        )}
       </main>
 
       {building && (

@@ -23,3 +23,7 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+## Hinweis zu Bibliotheken
+
+Der Stundenplan wird mit [ical.js](https://github.com/kewisch/ical.js) gelesen (MPL-2.0), unverändert als Abhängigkeit eingebunden.
