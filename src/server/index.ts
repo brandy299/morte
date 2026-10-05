@@ -6,6 +6,7 @@ import { streamSSE } from "hono/streaming";
 import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { createClass, initWorkspace, listTree, UserError } from "../core/workspace/index.ts";
+import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
@@ -14,6 +15,8 @@ export interface AppState {
   secrets: SecretStore;
   session: ChatSession | undefined;
   configured: { provider: string; model: string } | undefined;
+  /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
+  choice?: { provider: string; model?: string };
 }
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -24,8 +27,10 @@ const keyName = (provider: string) => `apikey:${provider}`;
 
 async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
   const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
+  state.choice = choice;
   state.session?.abort();
-  state.session = createChatSession({ ...choice, apiKey }, { onUsage: (d) => void addUsage(d).catch(() => {}) });
+  const { skills } = await listSkills();
+  state.session = createChatSession({ ...choice, apiKey }, { skills, onUsage: (d) => void addUsage(d).catch(() => {}) });
 }
 
 export async function loadState(secrets: SecretStore): Promise<AppState> {
@@ -121,8 +126,8 @@ export function createApp(state: AppState) {
     }
   });
 
-  app.post("/api/chat/reset", (c) => {
-    state.session?.reset();
+  app.post("/api/chat/reset", async (c) => {
+    if (state.choice) await buildSession(state, state.choice);
     return c.json({ ok: true });
   });
 

@@ -37,7 +37,7 @@ Lehrer-Harness/
 ├── Vorlagen/                      (Arbeitsblatt, Klausur, Merkblatt, Erklärvideo)
 │   └── Designvorgaben.md
 │
-├── Skills/                        (die mitgelieferten Lehrer-Skills)
+├── Skills/                        (eigene Skills der Lehrkraft; die mitgelieferten liegen im Programm unter skills/)
 │
 └── Exporte/                       (fertige PDFs und Videos zum Herunterladen)
 ```

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
@@ -66,5 +66,28 @@ describe("workspace tools in the chat", () => {
       if (e.type === "confirm") s.answer(e.id, false);
     });
     expect(await readFile(standFile(), "utf8")).not.toContain("01 Bewerbung");
+  });
+});
+
+describe("skills in the chat", () => {
+  it("loads a skill on request and reports the step in German", async () => {
+    const skills = join(home, "Skills", "arbeitsblatt");
+    await mkdir(skills, { recursive: true });
+    await writeFile(join(skills, "SKILL.md"), "---\nname: arbeitsblatt\ndescription: Arbeitsblatt bauen.\n---\nSchritt 1");
+    const faux = fauxProvider();
+    faux.setResponses([
+      fauxAssistantMessage([fauxToolCall("skill_laden", { name: "arbeitsblatt" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const models = createModels();
+    models.setProvider(faux.provider);
+    const s = createChatSession(
+      { provider: "x" },
+      { resolve: () => ({ models, model: faux.getModel() }), skills: [{ name: "arbeitsblatt", description: "Arbeitsblatt bauen." }] },
+    );
+    const events: ChatEvent[] = [];
+    await s.send("Bau ein Arbeitsblatt", (e) => events.push(e));
+    expect(events).toContainEqual(expect.objectContaining({ type: "step_start", label: "Anleitung laden" }));
+    expect(events).toContainEqual({ type: "step_end", id: expect.any(String), ok: true });
   });
 });

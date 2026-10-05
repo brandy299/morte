@@ -1,5 +1,6 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
+import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
   createReihe, listTree, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
@@ -151,6 +152,30 @@ const stundeEintragen = defineTool({
   },
 });
 
+const skillLaden = defineTool({
+  name: "skill_laden",
+  label: "Anleitung laden",
+  description:
+    "Loads the full instructions of one skill from the list in the system prompt. Call it as soon as a request fits a skill, before you start the work. The result also lists extra files you can read with skill_datei_lesen.",
+  parameters: Type.Object({ name: Type.String({ description: "Skill name from the list" }) }),
+  async execute(_id, { name }) {
+    const { body, files } = await loadSkill(name);
+    const extra = files.length ? `\n\nWeitere Dateien (nur bei Bedarf lesen):\n${files.join("\n")}` : "";
+    return text(body + extra);
+  },
+});
+
+const skillDateiLesen = defineTool({
+  name: "skill_datei_lesen",
+  label: "Hilfsdatei lesen",
+  description: "Reads one extra file of a skill, e.g. references/operatoren.md. Only read what the instructions tell you to.",
+  parameters: Type.Object({ name: Type.String(), datei: Type.String({ description: "Path inside the skill, e.g. references/regeln.md" }) }),
+  async execute(_id, { name, datei }) {
+    return text(await readSkillFile(name, datei));
+  },
+});
+
 export const tools: TeacherTool[] = [
+  skillLaden, skillDateiLesen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

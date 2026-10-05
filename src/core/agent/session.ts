@@ -15,9 +15,20 @@ Arbeitsordner: Du kennst die Klassen der Lehrkraft nur über deine Werkzeuge.
 - Wenn die Lehrkraft eine Arbeitssitzung beendet oder etwas Wichtiges entschieden wurde, halte den Stand mit stand_schreiben fest. Lies vorher den alten Stand und übernimm, was noch stimmt. Halte ihn kurz, es steht dort nie ein Schülername.
 - Fehlt eine Angabe (zum Beispiel ein Datum), frag nach. Trage nichts ein, was du nicht weißt.`;
 
+function buildPrompt(skills: { name: string; description: string }[]): string {
+  if (skills.length === 0) return SYSTEM_PROMPT;
+  const list = skills.map((s) => `- ${s.name}: ${s.description}`).join("\n");
+  return `${SYSTEM_PROMPT}
+
+Anleitungen (Skills): Passt eine Anfrage zu einer dieser Anleitungen, lade sie zuerst mit skill_laden und folge ihr. Lade nie mehrere gleichzeitig, wenn eine reicht. Erwähne gegenüber der Lehrkraft nie Dateinamen oder Werkzeugnamen, sag nur, was sie bekommt.
+${list}`;
+}
+
 export interface SessionDeps {
   resolve?: typeof resolveModel;
   /** Called after every answer with what it used, e.g. to add it to the monthly total. */
+  /** Name and description of every available skill. Only these short texts go into the prompt. */
+  skills?: { name: string; description: string }[];
   onUsage?: (delta: { input: number; output: number; cost: number }) => void;
 }
 
@@ -35,7 +46,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   });
 
   const agent = new Agent({
-    initialState: { systemPrompt: SYSTEM_PROMPT, model, tools },
+    initialState: { systemPrompt: buildPrompt(deps.skills ?? []), model, tools },
     streamFn: models.streamSimple.bind(models),
     getApiKey: async () => settings.apiKey,
     beforeToolCall: async ({ toolCall, args }, signal) => {
