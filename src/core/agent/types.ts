@@ -4,7 +4,8 @@
  */
 export type ChatEvent =
   | { type: "text"; delta: string }
-  | { type: "step_start"; id: string; label: string }
+  /** `material`: this step builds a file, so the preview can show that something is coming. */
+  | { type: "step_start"; id: string; label: string; material?: boolean }
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
   | { type: "usage"; usage: UsageSnapshot }

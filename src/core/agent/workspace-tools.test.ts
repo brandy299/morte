@@ -112,6 +112,7 @@ describe("worksheet tool", () => {
       events.push(e);
       if (e.type === "confirm") s.answer(e.id, true);
     });
+    expect(events).toContainEqual(expect.objectContaining({ type: "step_start", label: "Arbeitsblatt erstellen", material: true }));
     const material = events.find((e) => e.type === "material");
     expect(material).toMatchObject({ title: "Interview Basics", path: expect.stringContaining("01 Bewerbung/Material/") });
     expect(await readFile(join(home, (material as { path: string }).path))).toBeInstanceOf(Buffer);

@@ -16,7 +16,7 @@ export const getUsage = async (): Promise<UsageInfo> => (await fetch("/api/usage
 
 export type ChatEvent =
   | { type: "text"; delta: string }
-  | { type: "step_start"; id: string; label: string }
+  | { type: "step_start"; id: string; label: string; material?: boolean }
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
   | { type: "usage"; usage: UsageSnapshot }

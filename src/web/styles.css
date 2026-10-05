@@ -185,6 +185,18 @@ button:disabled { cursor: default; }
 .preview-head .ghost { padding: 7px 14px; font-size: 14.5px; }
 .preview iframe { flex: 1; border: 0; background: #fff; }
 
+.preview-wait { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; }
+.preview-wait p { margin: 0; color: var(--ink-soft); }
+.sheet-skeleton { width: min(300px, 70%); aspect-ratio: 1 / 1.414; background: #fff; border-radius: 4px; box-shadow: var(--shadow); padding: 9% 9%; display: flex; flex-direction: column; gap: 4.5%; }
+.sheet-skeleton .b { display: block; border-radius: 3px; background: linear-gradient(100deg, #e8e2d4 30%, #f6f2ea 50%, #e8e2d4 70%); background-size: 250% 100%; animation: shimmer 1.6s ease-in-out infinite; }
+.sheet-skeleton .title { height: 7%; width: 62%; }
+.sheet-skeleton .line { height: 3%; width: 100%; }
+.sheet-skeleton .line.short { width: 70%; }
+.sheet-skeleton .box { height: 11%; width: 100%; }
+.sheet-skeleton .num { height: 5%; width: 8%; }
+.sheet-skeleton .rule { height: 1.6%; width: 88%; align-self: flex-end; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
 /* ---------- Setup and class wizard ---------- */
 .setup { min-height: 100%; display: grid; place-items: center; padding: 32px 16px; }
 .setup-card { width: 100%; max-width: 540px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 38px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 2px rgba(35, 32, 27, 0.05); }
@@ -251,7 +263,7 @@ button:disabled { cursor: default; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 0%, 100% { transform: scale(0.7); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .pulse, .steps .running .tick { animation: none; }
+  .pulse, .steps .running .tick, .sheet-skeleton .b { animation: none; }
   * { transition: none !important; }
 }
 

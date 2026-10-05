@@ -15,11 +15,11 @@ import {
  * `label` is German and shown in the progress display.
  * `ask` marks a tool that changes files: the teacher is asked first, in plain language.
  */
-export type TeacherTool = AgentTool<any> & { ask?: (args: any) => string };
+export type TeacherTool = AgentTool<any> & { ask?: (args: any) => string; producesMaterial?: boolean };
 
 type Params = Tool["parameters"];
 /** Keeps the argument types of each tool while the list below holds them as one type. */
-const defineTool = <P extends Params>(tool: AgentTool<P> & { ask?: (args: any) => string }): TeacherTool => tool as TeacherTool;
+const defineTool = <P extends Params>(tool: AgentTool<P> & { ask?: (args: any) => string; producesMaterial?: boolean }): TeacherTool => tool as TeacherTool;
 
 const text = (t: string) => ({ content: [{ type: "text" as const, text: t }], details: undefined });
 
@@ -163,6 +163,7 @@ const stundeEintragen = defineTool({
 
 const lernsituationErstellen = defineTool({
   name: "lernsituation_erstellen",
+  producesMaterial: true,
   label: "Lernsituation anlegen",
   description:
     "Plans a new series for a class and subject in one step: creates the Reihe with situation, goals and every planned lesson (status geplant) in the lesson table, and builds a print-ready PDF (page 1: the situation for the students, then the plan for the teacher). Use it for a Lernsituation at a Berufskolleg and for any other planned series. Only fill fields the teacher told you or that you wrote yourself as content; leave lernfeld, zeitraum, dates and leistungsnachweis empty when unknown.",
@@ -242,6 +243,7 @@ const skillDateiLesen = defineTool({
 
 const arbeitsblattErstellen = defineTool({
   name: "arbeitsblatt_erstellen",
+  producesMaterial: true,
   label: "Arbeitsblatt erstellen",
   description:
     "Builds a print-ready worksheet as PDF (gray only, fixed layout) from structured content and shows it in the preview. You write only the content, never the layout. Keep it short: aim for one page, two at most. Give klasse, fach and reihe to file it in that series; add datum and stunde to also enter it in the lesson table. Returns the page count.",
@@ -331,6 +333,7 @@ const bewertungSpeichern = defineTool({
 
 const klausurErstellen = defineTool({
   name: "klausur_erstellen",
+  producesMaterial: true,
   label: "Klausur und Erwartungshorizont erstellen",
   description:
     "Builds an exam and its answer key (Erwartungshorizont) as two print-ready gray PDFs from structured content. You write only the content; layout, sums, shares per area and grade limits are calculated by the program. Every sub-task needs points (half steps) and the expected answer. If the class has assessment rules, its areas of demand and grading scale are used automatically and every sub-task must name one of those areas. Pass bereiche or notenschluessel only to override once. Give klasse, fach and reihe to file it in that series; add datum and stunde to also enter it in the lesson table.",

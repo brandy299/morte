@@ -64,7 +64,11 @@ export function localOnly(): MiddlewareHandler {
       } catch {
         return c.json({ error: "Nicht erlaubt." }, 403);
       }
-      if (!LOCAL_HOSTS.has(hostnameOf(originHost)) || (host && originHost.toLowerCase() !== host.toLowerCase())) {
+      // The page must be this app: same address, or in development the Vite dev server (MORTE_DEV_PORT) that forwards to us.
+      const devPort = process.env.MORTE_DEV_PORT;
+      const fromDevServer = Boolean(devPort) && originHost.toLowerCase().endsWith(`:${devPort}`);
+      const sameAddress = !host || originHost.toLowerCase() === host.toLowerCase();
+      if (!LOCAL_HOSTS.has(hostnameOf(originHost)) || !(sameAddress || fromDevServer)) {
         return c.json({ error: "Nicht erlaubt." }, 403);
       }
     }

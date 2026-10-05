@@ -144,7 +144,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
       }
       case "tool_execution_start": {
         const tool = tools.find((t) => t.name === event.toolName);
-        emit({ type: "step_start", id: event.toolCallId, label: tool?.label ?? "Arbeite weiter" });
+        emit({ type: "step_start", id: event.toolCallId, label: tool?.label ?? "Arbeite weiter", material: tool?.producesMaterial });
         break;
       }
       case "tool_execution_end": {

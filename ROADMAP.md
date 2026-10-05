@@ -34,7 +34,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 ## Phase 1: Chat-Kern
 
 - [x] Oberfläche mit Chat, großem Eingabefeld und Streaming
-- [~] Fortschrittsanzeige bei der Arbeit (Statuspunkt, aktuelle Zeile und Schrittliste stehen, Live-Vorschau folgt in Phase 3): pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
+- [x] Fortschrittsanzeige bei der Arbeit (Statuspunkt, aktuelle Zeile, Schrittliste und ein Platzhalter-Blatt in der Vorschau, bis das Material fertig ist; kein echter Live-Aufbau): pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
 - [x] Verbrauch (Tokens, geschätzte Kosten, Monatssumme), Kontext-Füllstand und Guthaben (nur wo der Anbieter es hergibt: DeepSeek) versteckt hinter einem kleinen Ring am Eingabefeld
 - [x] Bilder anhängen (Büroklammer, Ziehen, Einfügen) mit Datenschutz-Hinweis. PDF und Word folgen in Phase 3
 - [x] Gesprächsverlauf: frühere Gespräche in der Seitenleiste, wieder öffnen (mit Schritten, Dateien und Verbrauch) und löschen. Gespeichert unter `Gespräche/` im Datenordner, nur auf diesem Computer

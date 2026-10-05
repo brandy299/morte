@@ -161,6 +161,9 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
   const [dragging, setDragging] = useState(false);
   const [usage, setUsage] = useState<UsageSnapshot | undefined>();
   const [preview, setPreview] = useState<Material | null>(null);
+  // A material step is running: the preview opens at once with a placeholder and is replaced by the file.
+  const [building, setBuilding] = useState<{ id: string; label: string } | null>(null);
+  const held = useRef<{ id: string; label: string } | null>(null);
   const [navOpen, setNavOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -212,18 +215,26 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
         const m = { title: e.title, name: e.name, path: e.path };
         patchLast((x) => ({ ...x, materials: [...(x.materials ?? []), m] }));
         if (e.preview !== false) setPreview(m);
+        setBuilding(null);
         break;
       }
       case "step_start":
         patchLast((m) => ({ ...m, steps: [...m.steps, { id: e.id, label: e.label, state: "running" }] }));
+        if (e.material) setBuilding({ id: e.id, label: e.label });
         break;
       case "step_end":
+        setBuilding((b) => (b?.id === e.id ? null : b));
         patchLast((m) => ({
           ...m,
           steps: m.steps.map((s) => (s.id === e.id ? { ...s, state: e.ok ? "done" : "failed" } : s)),
         }));
         break;
       case "confirm":
+        // While the question is open the placeholder waits: nothing is being built yet.
+        setBuilding((b) => {
+          held.current = b;
+          return null;
+        });
         patchLast((m) => ({ ...m, confirm: { id: e.id, question: e.question } }));
         break;
       case "error":
@@ -234,6 +245,8 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
 
   const decide = (id: string, allow: boolean) => {
     patchLast((m) => ({ ...m, confirm: undefined }));
+    if (allow && held.current) setBuilding(held.current);
+    held.current = null;
     void answerConfirm(id, allow);
   };
 
@@ -259,6 +272,7 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
     } finally {
       setWorking(false);
       setThinking(false);
+      setBuilding(null);
       refreshTree();
       refreshHistory();
     }
@@ -285,7 +299,7 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
           : "Einen Moment …";
 
   return (
-    <div className={`shell${preview ? " with-preview" : ""}${navOpen ? " nav-open" : ""}`}>
+    <div className={`shell${preview || building ? " with-preview" : ""}${navOpen ? " nav-open" : ""}`}>
       <aside
         className="side"
         onClick={(e) => {
@@ -539,7 +553,30 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
         </form>
       </main>
 
-      {preview && (
+      {building && (
+        <aside className="preview" aria-label="Vorschau" aria-busy="true">
+          <div className="preview-head">
+            <strong>Dein Material entsteht …</strong>
+          </div>
+          <div className="preview-wait" role="status">
+            <div className="sheet-skeleton" aria-hidden>
+              <span className="b title" />
+              <span className="b line" />
+              <span className="b box" />
+              <span className="b num" />
+              <span className="b line" />
+              <span className="b rule" />
+              <span className="b rule" />
+              <span className="b num" />
+              <span className="b line short" />
+              <span className="b rule" />
+              <span className="b rule" />
+            </div>
+            <p>{building.label} …</p>
+          </div>
+        </aside>
+      )}
+      {!building && preview && (
         <aside className="preview" aria-label="Vorschau">
           <div className="preview-head">
             <strong>{preview.title}</strong>

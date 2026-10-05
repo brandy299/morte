@@ -34,7 +34,18 @@ describe("only this computer may use the API", () => {
 
   it("accepts the app's own page", async () => {
     expect((await post({ host: "localhost:3001", origin: "http://localhost:3001" })).status).toBe(200);
-    expect((await post({ host: "localhost:5173", origin: "http://localhost:5173" })).status).toBe(200); // dev server
+  });
+
+  it("accepts the development server only when it is announced", async () => {
+    const viaDev = { host: "127.0.0.1:3001", origin: "http://localhost:5173" }; // Vite forwards with the server's own Host
+    expect((await post(viaDev)).status).toBe(403);
+    process.env.MORTE_DEV_PORT = "5173";
+    try {
+      expect((await post(viaDev)).status).toBe(200);
+      expect((await post({ host: "127.0.0.1:3001", origin: "https://evil.example:5173" })).status).toBe(403);
+    } finally {
+      delete process.env.MORTE_DEV_PORT;
+    }
   });
 });
 
