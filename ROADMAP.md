@@ -52,7 +52,8 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 - [ ] Vorschau rechts, Download als PDF, Graustufen-tauglich, wenige Seiten
 - [ ] Skill-Lader nach Agent-Skills-Spezifikation (wie Claude-App und Pi), drei Ebenen: mitgeliefert, Schule, persönlich. Siehe `docs/skills.md`
-- [ ] Mitgelieferte Skills und Vorlagen: Arbeitsblatt, Klausur mit Erwartungshorizont, Merkblatt, Lernsituation (aus Yanniks bestehenden Skills verallgemeinert)
+- [ ] Mitgelieferte Skills neu schreiben, Bauweise nach `anthropics/k12-teacher-skills`, Inhalt für deutsche Schulen und Berufskollegs: Stunde planen, Lernsituation, Arbeitsblatt, Klausur mit EHZ, Differenzieren, Stunde vorbereiten, Verständnis-Check
+- [ ] Qualitätsprüfung: Kriterienlisten (P/R/O/M) und Testsätze pro Skill, Auswertung durch ein KI-Modell als Prüfer, bei jeder Skill-Änderung und jedem Modellwechsel
 - [ ] Skill-Builder: geführt per Fragen, Beispiel hochladen, Probelauf, Nachschärfen; dazu "Daraus eine Vorlage machen" nach einem guten Chat-Ergebnis
 - [ ] Geführter Fragenkatalog für Material (Bildungsgang, Lernfeld, Bewertung, Anzahl Klausuren)
 - [ ] Bildungsgang hinterlegen: Bewertung, schulinterne Hinweise
