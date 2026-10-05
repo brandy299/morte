@@ -119,6 +119,36 @@ describe("worksheet tool", () => {
     expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/\| 14\.10\. \| Mi 3 \| Interview Basics \| .*Arbeitsblatt-Interview-Basics\.pdf \| Material fertig \|/);
   });
 
+  it("makes a teacher's copy with the answers, keeps several versions on one lesson and can read them back", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const call = (niveau: string) =>
+      fauxToolCall("arbeitsblatt_erstellen", {
+        titel: "Interview Basics", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3", niveau,
+        aufgaben: [{ text: "Nenne eine typische Frage im Interview.", zeilen: 2, loesung: "Zum Beispiel: Tell me about yourself." }],
+      });
+    const s = session([
+      fauxAssistantMessage([call("Basis")], { stopReason: "toolUse" }),
+      fauxAssistantMessage([call("Erweiterung")], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("material_lesen", { klasse: "11a", fach: "Business English", reihe: "Bewerbung" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Zwei Niveaus bitte", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    const materials = events.filter((e) => e.type === "material") as { title: string; path: string }[];
+    expect(materials.map((m) => m.title)).toEqual(["Interview Basics", "Interview Basics (Lösung)", "Interview Basics", "Interview Basics (Lösung)"]);
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("Arbeitsblatt-Interview-Basics-Basis.pdf, ");
+    expect(md).toContain("Arbeitsblatt-Interview-Basics-Erweiterung.pdf");
+    expect(md).not.toContain("Loesung"); // the teacher's copy is not a student material
+    const pdf = materials[1]!.path;
+    expect(pdf).toContain("Loesung-Interview-Basics-Basis");
+    const listing = JSON.stringify(s.history().messages);
+    expect(listing).toContain("Loesung-Interview-Basics-Basis.pdf");
+  });
+
   it("saves the teacher's rules, then builds exam and answer key with them and files the exam in the Reihe", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     const ask = (s: ReturnType<typeof session>) => (e: ChatEvent) => {

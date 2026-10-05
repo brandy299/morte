@@ -153,6 +153,28 @@ export async function readReihe(klasse: string, fach: string, reihe: string): Pr
   return readText(join(dir, r, "Reihe.md"));
 }
 
+/** Names of the files in the Material folder of a series. */
+export async function listMaterial(klasse: string, fach: string, reihe: string): Promise<string[]> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  try {
+    return (await readdir(join(dir, r, "Material"))).filter((n) => materialType(n)).sort();
+  } catch {
+    return [];
+  }
+}
+
+/** Full path of one file in the Material folder of a series. Only the file name counts, never a path. */
+export async function materialDatei(klasse: string, fach: string, reihe: string, datei: string): Promise<string> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  const name = datei.split(/[\\/]/).pop() ?? "";
+  if (!name || name !== datei.trim() || !materialType(name) || !(await exists(join(dir, r, "Material", name)))) {
+    throw new UserError(`Die Datei „${datei}“ gibt es in dieser Reihe nicht.`);
+  }
+  return join(dir, r, "Material", name);
+}
+
 async function resolveFach(klasse: string, fach: string) {
   const k = await resolveDir(klassenDir(), klasse, "Die Klasse");
   const f = await resolveDir(join(klassenDir(), k), fach, "Das Fach");
@@ -365,7 +387,7 @@ export async function attachMaterial(
     ...(old ? { nr: rows.indexOf(old) + 1 } : { datum: stunde.datum }),
     stunde: old?.stunde || stunde.stunde,
     thema: old?.thema ? undefined : stunde.thema, // a planned topic stays, the file title only fills an empty one
-    material: opts.append && old?.material ? `${old.material}, ${datei}` : datei,
+    material: opts.append && old?.material ? (old.material.split(", ").includes(datei) ? old.material : `${old.material}, ${datei}`) : datei,
     status: old?.status === "gehalten" ? "gehalten" : "Material fertig",
   });
 }

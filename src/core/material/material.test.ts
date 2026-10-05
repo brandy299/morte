@@ -117,3 +117,18 @@ describe("renderArbeitsblatt", () => {
     expect(colored).toBe(0);
   });
 });
+
+describe("teacher's copy", () => {
+  it.skipIf(!hasPoppler)("shows the answers instead of writing lines, and marks the page", async () => {
+    const sheet = parseArbeitsblatt({ ...sample, niveau: "Basis", aufgaben: [{ text: "Nenne eine Frage.", zeilen: 2, loesung: "Tell me about yourself." }] });
+    const student = await toFile((await renderArbeitsblatt(sheet)).pdf);
+    const teacher = await toFile((await renderArbeitsblatt(sheet, { lehrerexemplar: true })).pdf);
+    const read = (f: string) => execFileSync("pdftotext", ["-layout", f, "-"]).toString();
+    expect(read(student)).toContain("BASIS");
+    expect(read(student)).toContain("Name:");
+    expect(read(student)).not.toContain("Tell me about yourself");
+    expect(read(teacher)).toContain("Tell me about yourself.");
+    expect(read(teacher)).toContain("LÖSUNG FÜR DIE LEHRKRAFT");
+    expect(read(teacher)).not.toContain("Name:");
+  });
+});

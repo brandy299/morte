@@ -1,13 +1,14 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
+import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
+import { readMaterialText } from "../material/read.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
-  attachMaterial, UserError, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
+  attachMaterial, UserError, createReihe, hasLehrplan, listMaterial, listTree, materialDatei, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
 
 /**
@@ -80,6 +81,26 @@ const reiheLesen = defineTool({
   parameters: Type.Object({ klasse: Type.String(), fach: Type.String(), reihe: Type.String({ description: "Name, with or without number" }) }),
   async execute(_id, { klasse, fach, reihe }) {
     return text(await readReihe(klasse, fach, reihe));
+  },
+});
+
+const materialLesen = defineTool({
+  name: "material_lesen",
+  label: "Material nachlesen",
+  description:
+    "Without datei: lists the files in the Material folder of a series. With datei: reads the text of that file (PDF or text). Use it to build on existing material, for example to differentiate a worksheet or prepare a lesson.",
+  parameters: Type.Object({
+    klasse: Type.String(),
+    fach: Type.String(),
+    reihe: Type.String({ description: "Name, with or without number" }),
+    datei: Type.Optional(Type.String({ description: "File name from the list" })),
+  }),
+  async execute(_id, { klasse, fach, reihe, datei }) {
+    if (!datei) {
+      const files = await listMaterial(klasse, fach, reihe);
+      return text(files.length ? files.join("\n") : "In dieser Reihe liegt noch kein Material.");
+    }
+    return text(await readMaterialText(await materialDatei(klasse, fach, reihe, datei)));
   },
 });
 
@@ -262,6 +283,7 @@ const arbeitsblattErstellen = defineTool({
     titel: Type.String(),
     fach: Type.Optional(Type.String()),
     klasse: Type.Optional(Type.String()),
+    niveau: Type.Optional(Type.String({ description: "Level of a differentiated version, e.g. Basis, Standard, Erweiterung" })),
     einleitung: Type.Optional(Type.String({ description: "Short intro or instruction for students" })),
     merkkasten: Type.Optional(Type.Object({ titel: Type.Optional(Type.String()), text: Type.String() })),
     aufgaben: Type.Array(
@@ -270,6 +292,7 @@ const arbeitsblattErstellen = defineTool({
         hilfe: Type.Optional(Type.String({ description: "Short hint for students" })),
         punkte: Type.Optional(Type.Number()),
         zeilen: Type.Optional(Type.Number({ description: "Writing lines under the task, 0 to 15" })),
+        loesung: Type.Optional(Type.String({ description: "Expected answer. If any task has one, a second PDF for the teacher is made" })),
       }),
       { description: "1 to 20 tasks" },
     ),
@@ -288,14 +311,23 @@ const arbeitsblattErstellen = defineTool({
       // Honest note instead of invented curriculum references (see docs/skills.md).
       fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
     });
+    const where = { klasse: content.klasse, fach: content.fach, reihe, datum, stunde };
+    const label = sheet.niveau ? `${sheet.titel}-${sheet.niveau}` : sheet.titel;
     const { pdf, pages } = await renderArbeitsblatt(sheet);
-    const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: sheet.titel, klasse: content.klasse, fach: content.fach, reihe, datum, stunde });
+    const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: label, ...where });
+    const key = hasLoesungen(sheet) ? await renderArbeitsblatt(sheet, { lehrerexemplar: true }) : undefined;
+    const savedKey = key ? await saveMaterial(key.pdf, { art: "Loesung", titel: label, ...where }) : undefined;
     const entered = content.klasse && content.fach && reihe && datum
-      ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: sheet.titel }, saved.name)
+      ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: sheet.titel }, saved.name, { append: true })
       : "fehlt klasse, fach, reihe oder datum";
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft eine Seite wollte oder sich etwas kürzen lässt, erstelle es kürzer neu." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
-      details: { material: { title: sheet.titel, name: saved.name, path: saved.path } },
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft eine Seite wollte oder sich etwas kürzen lässt, erstelle es kürzer neu." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      details: {
+        materials: [
+          { title: sheet.titel, name: saved.name, path: saved.path },
+          ...(savedKey ? [{ title: `${sheet.titel} (Lösung)`, name: savedKey.name, path: savedKey.path }] : []),
+        ],
+      },
     };
   },
 });
@@ -466,5 +498,5 @@ export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
   arbeitsblattErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen,
-  dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
+  dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];
