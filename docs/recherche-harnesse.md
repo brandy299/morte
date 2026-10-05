@@ -2,13 +2,13 @@
 
 Stand: 2026-10-05 · Quelle: GitHub-Suche und README-Seiten. Lizenzen laut GitHub-Angabe, vor einer Übernahme jeweils in der `LICENSE`-Datei prüfen. Ideen dürfen übernommen werden, Code nur aus Apache-2.0, MIT und ähnlichen Lizenzen mit Namensnennung, nie aus AGPL (siehe `CLAUDE.md`).
 
-Nicht erreichbar in dieser Sitzung (Netzsperre): skills.sh, opencode.ai. Was dort steht, ist hier nicht belegt.
+Zweite Runde am 2026-10-05: skills.sh und opencode.ai waren jetzt erreichbar und sind unten ausgewertet. Nicht gelesen wurde der Quelltext von OpenCode (GitHub-Zugriff in dieser Sitzung nur für morte). Was nur aus dem Quelltext hervorginge, ist als "nicht belegt" markiert.
 
 ## Harnesse und Agenten-Apps
 
 | Projekt | Lizenz | Was es ist | Nutzen für morte |
 |---|---|---|---|
-| anomalyco/opencode | MIT | Quelloffener Coding-Agent (TypeScript), sehr verbreitet | Vorbild für Anzeige von Verbrauch und Kontext, Skills und Konfiguration. Wie genau, ist noch nicht geprüft |
+| anomalyco/opencode | MIT (LICENSE geprüft) | Quelloffener Coding-Agent (TypeScript), Oberfläche im Terminal, als Desktop-App und im Browser | Siehe Abschnitt "OpenCode, ausgewertet". Zwei Ideen sind brauchbar: automatisches Zusammenfassen bei vollem Kontext und der Skill-Aufbau |
 | nexu-io/open-design | Apache-2.0 | Design-Arbeitsplatz für Agenten, Skills im `SKILL.md`-Format, Gestaltungsregeln als `DESIGN.md`, Export HTML, PDF, PPTX | Idee der portablen Designvorgaben als Markdown-Datei passt zu `Vorlagen/Designvorgaben.md`. Technik passt nicht: braucht installierte Agenten-Programme, Node 24, pnpm |
 | wshobson/agents | MIT | Sammlung von Plugins und Skills für viele Agenten-Programme | Ideen für Skill-Zuschnitt, nicht verwendbar ohne Prüfung |
 | shichenzhe/Tianshu | MIT | Lokaler Electron-Arbeitsplatz mit Chat, Skills, Gedächtnis, MCP | Sehr klein (0 Sterne), nur als Ideengeber für Electron-Aufbau |
@@ -27,8 +27,63 @@ Nicht erreichbar in dieser Sitzung (Netzsperre): skills.sh, opencode.ai. Was dor
 - **anthropics/skills:** Lizenz je Ordner verschieden. `frontend-design` und `canvas-design` stehen unter Apache-2.0 (Lizenzdatei geprüft). `pdf` steht unter einer geschlossenen Anthropic-Lizenz (kein Kopieren, keine abgeleiteten Werke) und braucht Python, Tesseract und poppler. Das passt weder zur Lizenzregel noch zu "Alles in der App".
 - **awesome-claude-skills (ComposioHQ), awesome-opencode:** Verzeichnisse. Lizenzen der einzelnen Skills sind einzeln zu prüfen.
 
+## OpenCode, ausgewertet
+
+Quelle: opencode.ai/docs und opencode.ai/v2/docs, Stand 2026-10-05. Es ist ein Coding-Agent mit Terminal-Oberfläche, Befehlen wie `/undo` und `/export`, Git-Verwaltung und freier Shell. Für Lehrkräfte ist das die falsche Oberfläche. Die Technik dahinter liefert aber Ideen.
+
+- **Verbrauch und Kontext-Anzeige:** In den Docs steht dazu nichts. Es gibt nur eine Tastenkombination, die eine Seitenleiste ein- und ausblendet, und eine Statusansicht. Was dort genau steht (Tokens, Kosten, Füllstand), ist nur aus dem Quelltext zu erfahren und hier **nicht belegt**. morte hat die Anzeige ohnehin schon gebaut (Commit "Verbrauch, Kontext-Füllstand und Bildanhänge im Chat"), der Bedarf ist also gedeckt.
+- **Automatisches Zusammenfassen ("Compaction"):** Nähert sich ein Gespräch dem Limit des Modells, ersetzt OpenCode den älteren Teil durch eine Zusammenfassung und behält die letzten rund 15.000 Tokens wörtlich. Spätere Zusammenfassungen aktualisieren dieselbe Zusammenfassung. Wenn der Anbieter eine Anfrage als zu lang ablehnt, versucht es OpenCode einmal erneut. Docs-Hinweis: das Zusammenfassen verliert Einzelheiten. **Für morte nützlich**, denn lange Planungsgespräche füllen den Kontext, und die Lehrkraft soll nie eine Fehlermeldung zu "zu langer Eingabe" sehen. In morte kommt noch dazu, dass wichtige Dinge ohnehin in `Stand.md` und `Reihe.md` stehen, die Zusammenfassung muss also wenig tragen.
+- **Zwischenspeicher halten ("Warming"):** Optionale Keep-alive-Anfragen alle vier Minuten, damit der Zwischenspeicher des Anbieters nicht verfällt. Kostet selbst Tokens, standardmäßig aus. Für morte nicht nötig.
+- **Skills:** Gleiches Format wie bei uns (`SKILL.md` mit `name`, `description`, optional `license`, `compatibility`, `metadata`). Name nur Kleinbuchstaben, Ziffern und Bindestriche, höchstens 64 Zeichen, gleich dem Ordnernamen. Beschreibung höchstens 1024 Zeichen. Der Agent sieht nur Name und Beschreibung und lädt den Rest über ein Werkzeug `skill`. OpenCode liest auch `.claude/skills` und `.agents/skills`. Das bestätigt unser Vorgehen in `docs/skills.md`. **Übernehmen:** diese Längenregeln und die Namensprüfung in den Skill-Lader und in die Checkliste des Skill-Builders.
+- **Rechte pro Skill:** `allow`, `deny` und `ask`, mit Platzhaltern (`internal-*`). Eine Idee für die spätere Schulebene (Phase 6), zum Beispiel um mitgelieferte Skills auszublenden. Vorher nicht nötig.
+- **Eigene Befehle, Plugins, MCP:** Für morte nicht vorgesehen. Der Agent bekommt feste Werkzeuge.
+
+## skills.sh, ausgewertet
+
+Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheitsprüfungen und Dokumentation. Betreiber ist Vercel. Die Rangliste beruht auf anonymen Installationszahlen der `skills`-Befehlszeile (`npx skills add owner/repo`). Es ist ein Verzeichnis, kein Prüfsiegel: Vercel schreibt selbst, dass es Qualität und Sicherheit der Skills nicht garantiert. Die Sicherheitsseite fasst Prüfungen von drei Diensten zusammen, bei etlichen Skills mit "Med Risk" oder "High Risk".
+
+**Ergebnis der Suche nach Schul-Skills** (Begriffe: teacher, lesson, education, worksheet, quiz, k12, curriculum, unterricht, lehrer, klausur, arbeitsblatt, schule): Es gibt dort nichts, das wir für deutsche Schulen übernehmen könnten.
+
+| Fund | Installationen | Bewertung |
+|---|---|---|
+| anthropics/k12-teacher-skills (vier Skills) und die Kopie learning-commons-org/agent-skills | 14 bis 135 | Schon ausgewertet in `docs/skills.md`. Die Kopie ist Apache-2.0 (LICENSE geprüft) |
+| garethmanning/education-agent-skills | unter 200 | Lizenz **CC BY-SA 4.0** (LICENSE geprüft). Die Share-Alike-Bedingung verträgt sich nicht mit Apache-2.0 für abgeleitete Texte. Nur Ideen, kein Text. Inhalt auf Englisch, mit Verweisen auf Fachliteratur |
+| jamesrochabrun/skills (math-teacher, reading-teacher) | 276 bis 854 | Lizenz und Inhalt nicht geprüft, nur die Namen und Zahlen aus der Suche |
+| googleworkspace/cli (gws-classroom) | 28.526 | Anbindung an Google Classroom. Nicht nötig, morte bindet keine Schülerplattform an |
+| darius-theodor/klausur-lerncoach, klotzkette/arbeitsblatt-perspektiven-definieren | 1 bis 4 | Deutsche Namen, aber praktisch ungenutzt. Inhalt nicht gelesen. Der zweite gehört laut Ordnername zu einer Sammlung für deutsches Recht, also kein erkennbarer Schulbezug |
+
+**Brauchbar als Vorbild für die Skill-Bauweise:**
+
+- **mattpocock/skills** (MIT, LICENSE geprüft): `writing-great-skills`, `write-a-skill`, `writing-for-agents`. Kernaussage: Ein Skill soll den Ablauf vorhersehbar machen, nicht den Text gleich. Die Beschreibung steht in jedem Gespräch im Kontext und kostet daher Platz. Das deckt sich mit "feste Teile als Skript" und "klare Abgrenzung in der Beschreibung" in `docs/skills.md`. **Übernehmen als Idee** für die Checkliste im Skill-Builder, besonders: wann eine Vorlage nur von Hand gestartet wird und wann der Agent sie selbst wählt.
+- **anthropics/skills:** Siehe oben (`frontend-design` und `canvas-design` Apache-2.0, `pdf` geschlossen). `skill-creator` und `pptx` wurden hier nicht auf ihre Lizenz geprüft.
+
+**Für Phase 5 (Erklärvideos):**
+
+- **heygen-com/hyperframes** (Apache-2.0, LICENSE geprüft): Eine Sammlung von Skills, die aus Text ein Erklärvideo bauen, Bild für Bild als HTML, mit eigenem Skill `faceless-explainer` ("faceless" heißt: nur Grafik, kein Sprecher). Das passt zu unserem Standard "Erklärvideo ohne Stimme". Vorgehen dort: Gestaltungssystem wählen, Lerngeschichte planen, Szenen bauen, jeden Schritt vor dem nächsten prüfen. **Bewertung:** Als Vorbild für den Ablauf gut. Als Baustein vorerst ungeeignet, denn die Skills rufen eigene Befehle (`npx hyperframes ...`) auf, ziehen Musik und Bilder aus dem HeyGen-Katalog und fragen vor dem Aktualisieren nach. Das widerspricht "Alles in der App" (Entscheidung 002) und dem Verzicht auf eine freie Shell. Vor einer Übernahme müsste geklärt werden, was davon ohne HeyGen-Konto und ohne Netz läuft und welche Lizenz der Musik- und Bildkatalog hat.
+- Außerdem aufgefallen: `remotion-dev/skills`, `remotion-best-practices` (575.000 Installationen). Remotion ist ein Video-Baukasten mit React. Lizenz und Kosten wurden hier **nicht geprüft**.
+
+## Was schon dazu in morte steht
+
+- Verbrauch, Kontext-Füllstand: gebaut (`src/core/usage`, `src/web/UsageMeter.tsx`).
+- Skill-Lader mit stufenweisem Laden: gebaut (`src/core/skills`).
+- Zusammenfassen bei vollem Kontext: **fehlt noch** (siehe oben).
+
 ## Folgerungen
 
 1. Kein Projekt liefert fertigen Code, den wir direkt brauchen. Der Agentenkern (pi) und die eigene Schicht bleiben.
 2. Übernehmbar als Idee: Designvorgaben als Markdown-Datei, Skill-Aufbau nach `SKILL.md`.
-3. Offen: Wie OpenCode Verbrauch und Kontext zeigt, und was skills.sh an Skills bietet. Dafür braucht die Sitzung Zugriff auf diese Seiten.
+3. skills.sh bietet nichts für deutsche Schulen. Die Skills für Arbeitsblatt, Klausur mit Erwartungshorizont, Lernsituation und Differenzieren schreiben wir selbst, wie in `docs/skills.md` geplant. Eine Suche dort ersetzt das nicht.
+4. Von OpenCode übernehmen wir als Idee das automatische Zusammenfassen bei vollem Kontext und die Regeln für Skill-Namen und Beschreibungslänge. Beides ist ein eigener, kleiner Schritt (siehe Vorschlag unten).
+5. Für Erklärvideos (Phase 5) ist `heygen-com/hyperframes` die beste Vorlage für den Ablauf. Ein Baustein wird es erst, wenn die offenen Punkte zu Netz, Konto und Lizenzen des Medienkatalogs geklärt sind.
+
+## Vorschläge zur Entscheidung
+
+1. **Zusammenfassen bei vollem Kontext** als Aufgabe in Phase 1 aufnehmen: Ab etwa 80 Prozent Füllstand den älteren Teil des Gesprächs zusammenfassen, die letzten Beiträge behalten, der Lehrkraft nur "Ich fasse das bisherige Gespräch kurz zusammen, damit wir weiterarbeiten können" zeigen. Sie wird nicht um eine Entscheidung gebeten.
+2. **Skill-Prüfung** im Lader: Name nach Muster `^[a-z0-9]+(-[a-z0-9]+)*$`, höchstens 64 Zeichen, gleich dem Ordnernamen, Beschreibung höchstens 1024 Zeichen. Gleiche Regeln wie OpenCode und die Claude-App, damit Skills austauschbar bleiben.
+3. **Nichts von skills.sh installieren.** Die Installation läuft über eine Befehlszeile mit Telemetrie und lädt Fremdtexte ohne Prüfung. Falls ein Skill von dort gewünscht wird, lesen wir ihn vorher vollständig und schreiben ihn neu.
+
+## Noch offen
+
+- Wie die Seitenleiste von OpenCode Verbrauch und Kontext genau zeigt (nur aus dem Quelltext zu erfahren, nicht belegt).
+- Lizenz und Kosten von Remotion, Lizenz des Medienkatalogs von HyperFrames.
+- Lizenz von `skill-creator` und `pptx` aus anthropics/skills.
