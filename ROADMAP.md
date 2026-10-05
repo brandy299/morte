@@ -8,6 +8,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 - **Einfach vor mächtig.** Jede Funktion muss ohne Fachvokabular bedienbar sein. Technik wie Terminal, Diffs oder Berechtigungsdialoge in Entwicklersprache sieht man nirgends.
 - **Geführt statt frei.** Material entsteht über Fragen, Vorlagen und Skills, nicht über leere Eingabefelder.
+- **Skills sind das Herzstück.** Qualität wie in der Claude-App, gleiches Skill-Format, und Lehrkräfte bauen eigene Skills mit dem Skill-Builder.
 - **Ein Agent, viele Ordner.** Ein zentraler Agent liest zur richtigen Zeit die richtigen Dateien aus einer klaren Ordnerstruktur (Ansatz: Interpretable Context Methodology, ICM). Keine Multi-Agent-Orchestrierung. Siehe `docs/ordnerstruktur.md`.
 - **Provider austauschbar.** Claude, OpenAI und OpenAI-kompatible Anbieter (z. B. DeepSeek). Mindestanforderung für das Hauptmodell: Tool-Calling und Vision. Das wird beim Einrichten per Test geprüft, nicht abgefragt.
 - **Version 1 nur für eine Person.** Lokal, kein Login-Backend, keine Schülerdaten. Mehrbenutzerbetrieb und DSGVO-Backend sind eine spätere Phase.
@@ -50,7 +51,9 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 ## Phase 3: Materialerstellung
 
 - [ ] Vorschau rechts, Download als PDF, Graustufen-tauglich, wenige Seiten
-- [ ] Mitgelieferte Skills und Vorlagen: Arbeitsblatt, Klausur mit Erwartungshorizont, Merkblatt, Lernsituation
+- [ ] Skill-Lader nach Agent-Skills-Spezifikation (wie Claude-App und Pi), drei Ebenen: mitgeliefert, Schule, persönlich. Siehe `docs/skills.md`
+- [ ] Mitgelieferte Skills und Vorlagen: Arbeitsblatt, Klausur mit Erwartungshorizont, Merkblatt, Lernsituation (aus Yanniks bestehenden Skills verallgemeinert)
+- [ ] Skill-Builder: geführt per Fragen, Beispiel hochladen, Probelauf, Nachschärfen; dazu "Daraus eine Vorlage machen" nach einem guten Chat-Ergebnis
 - [ ] Geführter Fragenkatalog für Material (Bildungsgang, Lernfeld, Bewertung, Anzahl Klausuren)
 - [ ] Bildungsgang hinterlegen: Bewertung, schulinterne Hinweise
 - [ ] Bildungsplan-Import: PDF per OCR in Markdown umwandeln, Material passt zum Plan
