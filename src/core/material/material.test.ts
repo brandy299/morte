@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MaterialError, parseArbeitsblatt, printable, renderArbeitsblatt } from "./arbeitsblatt.ts";
+import { SANS_BOLD, SERIF, displayFont } from "./layout.ts";
 
 const sample = {
   titel: "Job Interview <Basics>",
@@ -44,10 +45,39 @@ describe("parseArbeitsblatt", () => {
 });
 
 describe("printable", () => {
-  it("keeps German text and replaces what the standard fonts cannot draw", () => {
-    expect(printable("Größe, Übung, Straße „ja“ – 5 €")).toBe("Größe, Übung, Straße „ja“ - 5 €");
-    expect(printable("A → B • C")).toBe("A -> B - C");
+  it("keeps text from many languages and signs", () => {
+    for (const text of ["Größe, Übung, Straße „ja“ – 5 €", "A → B • C ✓", "ğşıİ ąęł őű čž", "α β γ Δ Ω ≤ ≥ ≠ ∞ √", "Привет, мир", "½ ² ³ ± ×"]) expect(printable(text)).toBe(text);
+  });
+  it("cleans up what disturbs the layout and marks what no font can draw", () => {
+    expect(printable("a\u00a0b\tc\u200bd")).toBe("a b cd");
     expect(printable("Hi 😀")).toBe("Hi ?");
+  });
+});
+
+describe("fonts", () => {
+  it("picks the title font only when it can draw the title", () => {
+    expect(displayFont("Vorstellungsgespräch")).toBe(SERIF);
+    expect(displayFont("Größe, çğş")).toBe(SERIF);
+    expect(displayFont("Grundlagen der Δ-Rechnung")).toBe(SANS_BOLD);
+    expect(displayFont("Привет")).toBe(SANS_BOLD);
+  });
+
+  it.skipIf(!hasPoppler)("embeds the bundled fonts and prints Greek, Cyrillic and Turkish letters", async () => {
+    const { pdf } = await renderArbeitsblatt(
+      parseArbeitsblatt({
+        titel: "Übung zu Größen",
+        aufgaben: [{ text: "Berechne α + β ≤ π. Привет! ğşıİ → ✓" }],
+      }),
+    );
+    const file = await toFile(pdf);
+    const fonts = execFileSync("pdffonts", [file]).toString();
+    expect(fonts).toMatch(/Fraunces/);
+    expect(fonts).toMatch(/SourceSans3/);
+    expect(fonts).not.toMatch(/Helvetica|Times/);
+    const text = execFileSync("pdftotext", [file, "-"]).toString();
+    expect(text).toContain("α + β ≤ π");
+    expect(text).toContain("Привет");
+    expect(text).toContain("ğşıİ → ✓");
   });
 });
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
@@ -126,7 +126,9 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
   const [dragging, setDragging] = useState(false);
   const [usage, setUsage] = useState<UsageSnapshot | undefined>();
   const [preview, setPreview] = useState<Material | null>(null);
+  const [navOpen, setNavOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -146,6 +148,14 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
     }
   };
   const endRef = useRef<HTMLDivElement>(null);
+
+  // The input grows with the text, up to about eight lines.
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [input]);
 
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), [messages, thinking]);
 
@@ -240,18 +250,29 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
           : "Einen Moment …";
 
   return (
-    <div className={preview ? "shell with-preview" : "shell"}>
-      <aside className="side">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          morte
+    <div className={`shell${preview ? " with-preview" : ""}${navOpen ? " nav-open" : ""}`}>
+      <aside
+        className="side"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button")) setNavOpen(false);
+        }}
+      >
+        <div className="side-top">
+          <div className="brand">
+            <span className="brand-mark" aria-hidden />
+            morte
+          </div>
+          <button type="button" className="side-close" aria-label="Menü schließen">
+            ×
+          </button>
         </div>
-        <button className="new" onClick={newChat}>
+        <button className="new-chat" onClick={newChat}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M12 5v14M5 12h14" />
+          </svg>
           Neues Gespräch
         </button>
-        <button className="new" onClick={onSettings}>
-          Einstellungen
-        </button>
+        <div className="side-scroll">
         {history.length > 0 && (
           <nav className="tree history" aria-label="Frühere Gespräche">
             <div className="tree-head">
@@ -303,9 +324,28 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
             </div>
           ))}
         </nav>
+        </div>
+        <div className="side-foot">
+          <button type="button" className="foot-btn" onClick={onSettings}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" />
+            </svg>
+            Einstellungen
+          </button>
+        </div>
       </aside>
+      <div className="scrim" onClick={() => setNavOpen(false)} />
 
       <main className="main">
+        <div className="topbar">
+          <button type="button" className="menu-btn" aria-label="Menü öffnen" aria-expanded={navOpen} onClick={() => setNavOpen(true)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+          <span className="brand-small">morte</span>
+        </div>
         <div className="scroll">
           <div className="column">
             {messages.length === 0 && (
@@ -396,33 +436,29 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
             void addFiles(e.dataTransfer.files);
           }}
         >
-          {attachments.length > 0 && (
-            <div className="attached">
-              <ul>
-                {attachments.map((a) => (
-                  <li key={a.id}>
-                    <img src={a.preview} alt={a.name} />
-                    <button type="button" aria-label={`${a.name} entfernen`} onClick={() => setAttachments(attachments.filter((x) => x.id !== a.id))}>
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <p>Bitte keine Namen von Schülerinnen und Schülern und keine Klassenarbeiten mit Namen. Das Bild geht an deinen KI-Anbieter.</p>
-            </div>
-          )}
-          {attachProblem && <p className="error">{attachProblem}</p>}
-          <div className="composer-row">
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }} />
-            <button type="button" className="clip" title="Bild anhängen" aria-label="Bild anhängen" onClick={() => fileRef.current?.click()}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
-              </svg>
-            </button>
+          <div className="composer-box">
+            {attachments.length > 0 && (
+              <div className="attached">
+                <ul>
+                  {attachments.map((a) => (
+                    <li key={a.id}>
+                      <img src={a.preview} alt={a.name} />
+                      <button type="button" aria-label={`${a.name} entfernen`} onClick={() => setAttachments(attachments.filter((x) => x.id !== a.id))}>
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p>Bitte keine Namen von Schülerinnen und Schülern und keine Klassenarbeiten mit Namen. Das Bild geht an deinen KI-Anbieter.</p>
+              </div>
+            )}
+            {attachProblem && <p className="error">{attachProblem}</p>}
             <textarea
+              ref={inputRef}
               value={input}
-              rows={2}
+              rows={1}
               placeholder="Schreib hier, was du brauchst …"
+              aria-label="Deine Nachricht"
               onChange={(e) => setInput(e.target.value)}
               onPaste={(e) => {
                 const files = [...e.clipboardData.files].filter((f) => f.type.startsWith("image/"));
@@ -438,16 +474,25 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
                 }
               }}
             />
-            {working ? (
-              <button type="button" onClick={() => abortRef.current?.abort()}>
-                Anhalten
+            <div className="composer-bar">
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }} />
+              <button type="button" className="icon-btn" title="Bild anhängen" aria-label="Bild anhängen" onClick={() => fileRef.current?.click()}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
+                </svg>
               </button>
-            ) : (
-              <button type="submit" disabled={!input.trim()}>
-                Senden
-              </button>
-            )}
-            <UsageMeter usage={usage} />
+              <span className="grow" />
+              <UsageMeter usage={usage} />
+              {working ? (
+                <button type="button" className="stop" onClick={() => abortRef.current?.abort()}>
+                  Anhalten
+                </button>
+              ) : (
+                <button type="submit" className="send" disabled={!input.trim()}>
+                  Senden
+                </button>
+              )}
+            </div>
           </div>
         </form>
       </main>
@@ -463,7 +508,7 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
               Schließen
             </button>
           </div>
-          <iframe title={preview.title} src={`${materialUrl(preview)}#toolbar=0&navpanes=0`} />
+          <iframe title={preview.title} src={`${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} />
         </aside>
       )}
     </div>

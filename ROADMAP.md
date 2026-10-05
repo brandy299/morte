@@ -65,6 +65,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [ ] Bildungsplan-Import: PDF per OCR in Markdown umwandeln, Material passt zum Plan
 - [ ] Foto oder Screenshot hochladen mit "Bau mir so etwas" (Vision), mit Hinweis zu Namen und Klassenarbeiten
 - [~] Gesamtes Material einheitlich in eigener, besonderer Optik (gemeinsame Zeichenschicht `src/core/material/layout.ts`, Arbeitsblatt, Klausur, Erwartungshorizont und Lernsituation stehen, weitere Materialarten folgen)
+- [x] Eigene Schriften für Oberfläche und PDF (Fraunces und Source Sans 3, mitgeliefert, mit Griechisch, Kyrillisch und Sonderbuchstaben), Oberfläche überarbeitet: Eingabefeld als eine Karte, ruhige Seitenleiste, Menü auf schmalen Fenstern
 
 ## Phase 4: Dashboard
 

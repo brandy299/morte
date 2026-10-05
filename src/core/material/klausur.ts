@@ -5,7 +5,7 @@
  */
 import { grenzen, type Bereich, type Note } from "../workspace/bewertung.ts";
 import {
-  BOX, INK, LINE, MaterialError, SANS, SANS_BOLD, SERIF, SOFT, mm, newSheet, num, printable, str, table, type Sheet,
+  BOX, INK, LINE, MaterialError, SANS, SANS_BOLD, SERIF, SOFT, displayFont, mm, newSheet, num, printable, str, table, type Sheet,
 } from "./layout.ts";
 
 export interface Teilaufgabe {
@@ -173,7 +173,7 @@ export async function renderKlausur(k: Klausur): Promise<{ pdf: Buffer; pages: n
     let y = sheet.y;
     doc.save().roundedRect(left, y, numW, numW, mm(2.2)).fill(INK).restore();
     doc.font(SANS_BOLD).fontSize(11).fillColor("#ffffff").text(String(i + 1), left, y + numW / 2 - 6, { width: numW, align: "center", lineBreak: false });
-    if (a.titel) doc.font(SERIF).fontSize(13).fillColor(INK).text(printable(a.titel), textX, y + 4, { width: textW - 60, lineBreak: false, ellipsis: true });
+    if (a.titel) doc.font(displayFont(a.titel)).fontSize(13).fillColor(INK).text(printable(a.titel), textX, y + 4, { width: textW - 60, lineBreak: false, ellipsis: true });
     doc.font(SANS).fontSize(9).fillColor(SOFT).text(`${num(punkteAufgabe(a))} P.`, left + width - 56, y + 6, { width: 56, align: "right", lineBreak: false });
     sheet.y = y + numW + mm(3);
 
