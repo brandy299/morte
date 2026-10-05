@@ -6,16 +6,41 @@ import type { AgentSettings, ChatEvent, ChatSession } from "./types.ts";
 const SYSTEM_PROMPT = `Du bist morte, ein ruhiger Arbeitsassistent für Lehrkräfte.
 Antworte auf Deutsch, in einfacher Sprache ohne Fachbegriffe.
 Erfinde nichts: Fehlt eine Angabe, frag kurz nach.
-Bitte nie um Schülernamen, Noten oder Fotos von Klassenarbeiten. Es gibt nur Klassen und Kurse.`;
+Bitte nie um Schülernamen, Noten oder Fotos von Klassenarbeiten. Es gibt nur Klassen und Kurse.
 
-export function createChatSession(settings: AgentSettings): ChatSession {
-  const { models, model, onTurnEnd } = resolveModel(settings);
+Arbeitsordner: Du kennst die Klassen der Lehrkraft nur über deine Werkzeuge.
+- Lesereihenfolge pro Klasse und Fach: erst klasse_lesen, dann stand_lesen, und reihe_lesen nur bei Bedarf.
+- Bei "Wo stehen wir in 11a?" lies Klasse und Stand und fasse kurz zusammen. Bei "Wo fehlt noch Material?" nutze material_luecken.
+- Statuswörter einer Stunde sind fest: geplant, Material fertig, gehalten.
+- Wenn die Lehrkraft eine Arbeitssitzung beendet oder etwas Wichtiges entschieden wurde, halte den Stand mit stand_schreiben fest. Lies vorher den alten Stand und übernimm, was noch stimmt. Halte ihn kurz, es steht dort nie ein Schülername.
+- Fehlt eine Angabe (zum Beispiel ein Datum), frag nach. Trage nichts ein, was du nicht weißt.`;
+
+export function createChatSession(settings: AgentSettings, resolve: typeof resolveModel = resolveModel): ChatSession {
+  const { models, model, onTurnEnd } = resolve(settings);
 
   const agent = new Agent({
     initialState: { systemPrompt: SYSTEM_PROMPT, model, tools },
     streamFn: models.streamSimple.bind(models),
     getApiKey: async () => settings.apiKey,
+    beforeToolCall: async ({ toolCall, args }, signal) => {
+      const tool = tools.find((t) => t.name === toolCall.name);
+      if (!tool?.ask) return undefined;
+      const allowed = await askTeacher(toolCall.id, tool.ask(args), signal);
+      return allowed ? undefined : { block: true, reason: "Die Lehrkraft möchte das nicht. Frag nach, was stattdessen gewünscht ist." };
+    },
   });
+
+  const pending = new Map<string, (allow: boolean) => void>();
+  const askTeacher = (id: string, question: string, signal?: AbortSignal) =>
+    new Promise<boolean>((resolve) => {
+      pending.set(id, resolve);
+      signal?.addEventListener("abort", () => answer(id, false), { once: true });
+      emit({ type: "confirm", id, question });
+    });
+  const answer = (id: string, allow: boolean) => {
+    pending.get(id)?.(allow);
+    pending.delete(id);
+  };
 
   let emit: (event: ChatEvent) => void = () => {};
   let thinking = false;
@@ -63,7 +88,11 @@ export function createChatSession(settings: AgentSettings): ChatSession {
         emit = () => {};
       }
     },
-    abort: () => agent.abort(),
+    answer,
+    abort: () => {
+      for (const id of [...pending.keys()]) answer(id, false);
+      agent.abort();
+    },
     reset: () => agent.reset(),
   };
 }

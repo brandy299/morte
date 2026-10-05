@@ -42,12 +42,12 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 2: Ordnerstruktur und Klassen
 
-- [ ] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen
-- [ ] Seitenleiste als Baum: Klasse, Fach, Reihe (ohne Dateipfade)
-- [ ] Assistent "Neue Klasse anlegen" (Fragenkatalog)
-- [ ] `Stand.md` pro Klasse und Fach, wird nach jeder Sitzung kurz überschrieben
-- [ ] `Reihe.md` mit Stundentabelle und festen Status-Wörtern (`geplant`, `Material fertig`, `gehalten`)
-- [ ] Abfragen wie "Wo stehen wir in 11a?" und "Wo fehlt noch Material?"
+- [x] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen (`~/morte-daten`, beim Start)
+- [x] Seitenleiste als Baum: Klasse, Fach, Reihe (ohne Dateipfade)
+- [x] Assistent "Neue Klasse anlegen" (Fragenkatalog)
+- [~] `Stand.md` pro Klasse und Fach, wird nach jeder Sitzung kurz überschrieben (Werkzeug und Anweisung stehen, mit echtem Modell noch nicht erprobt)
+- [x] `Reihe.md` mit Stundentabelle und festen Status-Wörtern (`geplant`, `Material fertig`, `gehalten`)
+- [~] Abfragen wie "Wo stehen wir in 11a?" und "Wo fehlt noch Material?"
 
 ## Phase 3: Materialerstellung
 

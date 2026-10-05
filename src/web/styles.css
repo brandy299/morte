@@ -81,3 +81,41 @@ body { background: var(--paper); color: var(--ink); font-family: var(--sans); fo
 .result li.failed .tick { background: var(--accent); border-color: var(--accent); }
 .result p { margin: 0; }
 .side .new + .new { margin-top: -8px; }
+
+.step-count { margin: 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.setup-card input.big, .setup-card textarea { padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: 18px; color: var(--ink); width: 100%; }
+.setup-card input.big:focus, .setup-card textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row { display: flex; gap: 10px; }
+.ghost { padding: 12px 18px; border: 1px solid var(--line); border-radius: 12px; background: transparent; font: inherit; color: var(--ink); cursor: pointer; }
+.ghost:hover:not(:disabled) { border-color: var(--accent); }
+.ghost:disabled { opacity: 0.45; cursor: default; }
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice { text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: 17px; color: var(--ink); cursor: pointer; }
+.choice:hover { border-color: var(--accent); }
+.choice.on { border-color: var(--accent); background: #f3dfd3; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 14px; border-radius: 999px; background: var(--paper-deep); }
+.chips button { border: 0; background: none; font-size: 18px; line-height: 1; color: var(--ink-soft); cursor: pointer; padding: 0 6px; }
+.summary { display: grid; grid-template-columns: auto 1fr; gap: 8px 18px; margin: 0; }
+.summary dt { color: var(--ink-soft); }
+.summary dd { margin: 0; }
+
+.side { overflow-y: auto; }
+.tree { display: flex; flex-direction: column; gap: 10px; }
+.tree-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.tree-head button { border: 0; background: none; font: inherit; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--accent); cursor: pointer; padding: 0; }
+.tree-node { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; width: 100%; text-align: left; border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; border-radius: 8px; padding: 4px 8px; }
+.tree-node:hover { background: var(--paper); }
+.tree-node.k { font-weight: 600; margin-top: 4px; }
+.tree-node.f { padding-left: 20px; font-size: 15px; }
+.tree-node.r { flex-direction: column; align-items: flex-start; gap: 3px; padding-left: 34px; font-size: 14px; color: var(--ink-soft); }
+.badge { font-size: 11px; background: #f3dfd3; color: #8a2d12; border-radius: 999px; padding: 1px 8px; }
+
+.suggest { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.suggest button { padding: 10px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font: inherit; font-size: 15px; color: var(--ink); cursor: pointer; }
+.suggest button:hover { border-color: var(--accent); }
+
+.confirm { font-family: var(--sans); font-size: 16px; border: 1px solid var(--accent); background: var(--card); border-radius: 14px; padding: 14px 16px; margin-top: 12px; }
+.confirm p { margin: 0 0 12px; }
+.confirm div { display: flex; gap: 10px; }
+.confirm .primary, .confirm .ghost { padding: 9px 16px; }

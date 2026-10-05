@@ -7,12 +7,16 @@ export type ChatEvent =
   | { type: "step_start"; id: string; label: string }
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
+  /** The teacher must say yes or no before a tool changes files. Answer with ChatSession.answer(id, allow). */
+  | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
   | { type: "done" };
 
 export interface ChatSession {
   /** Sends one user message and streams events until the answer is complete. */
   send(text: string, onEvent: (event: ChatEvent) => void): Promise<void>;
+  /** Answers a `confirm` event. */
+  answer(id: string, allow: boolean): void;
   abort(): void;
   reset(): void;
 }

@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { createChatSession, listProviders, testConnection, type ChatSession } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
+import { createClass, initWorkspace, listTree, UserError } from "../core/workspace/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
 /** Holds the current chat session; it is rebuilt after the setup changes provider, model or key. */
@@ -81,6 +82,24 @@ export function createApp(state: AppState) {
     });
   });
 
+  app.post("/api/chat/confirm", async (c) => {
+    const { id, allow } = await c.req.json<{ id: string; allow: boolean }>();
+    state.session?.answer(id, Boolean(allow));
+    return c.json({ ok: true });
+  });
+
+  app.get("/api/workspace/tree", async (c) => c.json({ klassen: await listTree() }));
+
+  app.post("/api/workspace/klasse", async (c) => {
+    try {
+      const name = await createClass(await c.req.json());
+      return c.json({ name });
+    } catch (err) {
+      if (err instanceof UserError) return c.json({ error: err.message }, 400);
+      throw err;
+    }
+  });
+
   app.post("/api/chat/reset", (c) => {
     state.session?.reset();
     return c.json({ ok: true });
@@ -98,6 +117,7 @@ const MIME: Record<string, string> = {
 };
 
 if (process.argv[1]?.endsWith("server/index.ts") || process.argv[1]?.endsWith("server/index.js")) {
+  await initWorkspace();
   const app = createApp(await loadState(await createSecretStore()));
   const webDir = join(process.cwd(), "dist", "web");
   // Production: serve the built UI. In development Vite serves it and proxies /api here.

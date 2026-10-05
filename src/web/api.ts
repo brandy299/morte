@@ -3,6 +3,7 @@ export type ChatEvent =
   | { type: "step_start"; id: string; label: string }
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
+  | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
   | { type: "done" };
 
@@ -62,3 +63,22 @@ export const getOptions = async (): Promise<ProviderOption[]> => (await (await f
 export const testSetup = (b: { provider: string; model: string; apiKey: string }) => post<ConnectionResult>("/api/setup/test", b);
 export const saveSetup = (b: { provider: string; model: string; apiKey: string }) => post<{ ok: true }>("/api/setup/save", b);
 export const startDemo = () => post<{ ok: true }>("/api/setup/demo");
+
+export interface ReiheInfo { name: string; stunden: number; gehalten: number; ohneMaterial: number }
+export interface FachInfo { name: string; reihen: ReiheInfo[] }
+export interface KlasseInfo { name: string; faecher: FachInfo[] }
+export interface NewClass { name: string; schulform: string; stufe: string; kursniveau: string; faecher: string[]; besonderheiten: string }
+
+export const getTree = async (): Promise<KlasseInfo[]> => (await (await fetch("/api/workspace/tree")).json()).klassen;
+export const answerConfirm = (id: string, allow: boolean) => post<{ ok: true }>("/api/chat/confirm", { id, allow });
+
+/** Returns an error message in plain German, or null on success. */
+export async function createClass(input: NewClass): Promise<string | null> {
+  const res = await fetch("/api/workspace/klasse", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (res.ok) return null;
+  return (await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.";
+}
