@@ -5,11 +5,12 @@ import { Hono, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
-import { createClass, initWorkspace, listTree, materialFile, UserError } from "../core/workspace/index.ts";
+import { createClass, initWorkspace, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { lehrplanRoutes } from "./lehrplan.ts";
+import { stundenplanRoutes } from "./stundenplan.ts";
 import { keyName, type AppState } from "./state.ts";
 
 export type { AppState };
@@ -185,10 +186,12 @@ export function createApp(state: AppState) {
     const file = await materialFile(c.req.query("path") ?? "");
     if (!file) return c.notFound();
     const name = encodeURIComponent(file.split(/[\\/]/).pop()!);
-    const disposition = c.req.query("download") ? "attachment" : "inline";
+    // PDFs and pictures open in the preview. Everything else is a download, so nothing runs in the browser.
+    const inline = materialInline(file) && !c.req.query("download");
     return c.body(await readFile(file), 200, {
-      "content-type": "application/pdf",
-      "content-disposition": `${disposition}; filename*=UTF-8''${name}`,
+      "content-type": materialType(file) ?? "application/octet-stream",
+      "content-disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${name}`,
+      "x-content-type-options": "nosniff",
     });
   });
 
@@ -220,6 +223,7 @@ export function createApp(state: AppState) {
   });
 
   lehrplanRoutes(app, state);
+  stundenplanRoutes(app, state);
 
   return app;
 }

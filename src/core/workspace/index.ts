@@ -275,6 +275,7 @@ export async function materialLuecken(klasse?: string): Promise<Luecke[]> {
 
 /** "14.10." becomes "2026-10-14" (current year). Anything else falls back to today. */
 function isoDate(datum?: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test((datum ?? "").trim())) return datum!.trim();
   const m = /^(\d{1,2})\.(\d{1,2})\.?(\d{4})?$/.exec((datum ?? "").trim());
   if (!m) return today();
   const year = m[3] ?? today().slice(0, 4);
@@ -316,12 +317,37 @@ export async function saveMaterial(
 }
 
 /**
+ * Puts a file the teacher brought (worksheet from a colleague, slides, picture) into the Material folder of a series.
+ * The name keeps the original, with the date in front: 2026-10-14_Mi0945_Arbeitsblatt-Lebenslauf.docx.
+ */
+export async function saveMaterialFile(
+  klasse: string, fach: string, reihe: string,
+  file: { name: string; data: Buffer }, prefix: { datum: string; stunde?: string },
+): Promise<SavedMaterial> {
+  const ext = extensionOf(file.name);
+  if (!ext || !MATERIAL_TYPES[ext]) throw new UserError(`Diesen Dateityp nehme ich nicht an. Erlaubt sind: ${MATERIAL_ENDUNGEN.join(", ")}.`);
+  if (file.data.length > 25 * 1024 * 1024) throw new UserError("Die Datei ist größer als 25 MB.");
+  if (file.data.length === 0) throw new UserError("Die Datei ist leer.");
+  const f = await resolveFach(klasse, fach);
+  const r = await resolveDir(f.dir, reihe, "Die Reihe", stripNumber);
+  const dir = join(f.dir, r, "Material");
+  await mkdir(dir, { recursive: true });
+  const stem = file.name.replace(/\.[^.]+$/, "");
+  const base = [isoDate(prefix.datum), prefix.stunde && slug(prefix.stunde), slug(stem)].filter(Boolean).join("_");
+  let name = `${base}.${ext}`;
+  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.${ext}`;
+  await writeFile(join(dir, name), file.data);
+  return { name, path: `Klassen/${f.klasse}/${f.fach}/${r}/Material/${name}` };
+}
+
+/**
  * Enters a file in the lesson table. A lesson that is already "gehalten" keeps that status,
  * otherwise it becomes "Material fertig".
  */
 export async function attachMaterial(
   klasse: string, fach: string, reihe: string,
   stunde: { datum: string; stunde: string; thema?: string }, datei: string,
+  opts: { append?: boolean } = {},
 ): Promise<void> {
   const { dir } = await resolveFach(klasse, fach);
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
@@ -332,16 +358,42 @@ export async function attachMaterial(
     datum: stunde.datum,
     stunde: stunde.stunde,
     thema: old?.thema ? undefined : stunde.thema, // a planned topic stays, the file title only fills an empty one
-    material: datei,
+    material: opts.append && old?.material ? `${old.material}, ${datei}` : datei,
     status: old?.status === "gehalten" ? "gehalten" : "Material fertig",
   });
 }
 
-/** Resolves a download path from the browser to a real PDF file inside Klassen/ or Exporte/. */
+/** File types a teacher may put on a lesson, with the type the browser needs. Nothing that could run. */
+const MATERIAL_TYPES: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  odt: "application/vnd.oasis.opendocument.text",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  odp: "application/vnd.oasis.opendocument.presentation",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ods: "application/vnd.oasis.opendocument.spreadsheet",
+  txt: "text/plain; charset=utf-8",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+};
+export const MATERIAL_ENDUNGEN = Object.keys(MATERIAL_TYPES);
+const extensionOf = (file: string) => /\.([A-Za-z0-9]+)$/.exec(file)?.[1]?.toLowerCase();
+/** Content type of a material file by its ending, or undefined when the type is not allowed. */
+export const materialType = (file: string): string | undefined => MATERIAL_TYPES[extensionOf(file) ?? ""];
+/** Only PDFs and pictures are shown inline in the preview, everything else is a download. */
+export const materialInline = (file: string) => /^(application\/pdf|image\/)/.test(materialType(file) ?? "");
+
+/** Resolves a download path from the browser to a real file inside Klassen/ or Exporte/. */
 export async function materialFile(relative: string): Promise<string | undefined> {
   const { realpath } = await import("node:fs/promises");
   const [top] = relative.split("/");
-  if (!["Klassen", "Exporte"].includes(top ?? "") || !relative.toLowerCase().endsWith(".pdf")) return undefined;
+  if (!["Klassen", "Exporte"].includes(top ?? "") || !materialType(relative)) return undefined;
   try {
     const base = await realpath(root());
     const target = await realpath(join(base, relative));
