@@ -24,6 +24,11 @@ morte ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materi
 
 ## Architektur-Grundsätze
 
+- Agentenkern: `@earendil-works/pi-ai` und `@earendil-works/pi-agent-core`, Versionen exakt gepinnt. Nur `src/core/agent` importiert pi direkt, der Rest der App spricht mit dieser Schicht. Begründung in `docs/entscheidungen/001-agentenkern.md`.
+- Der Agent bekommt nur feste, lehrerspezifische Werkzeuge, keine freie Shell. Rückfragen vor Aktionen laufen über `beforeToolCall`, in einfacher Sprache.
+- Die Fortschrittsanzeige wird aus den Agenten-Ereignissen gespeist (`tool_execution_start/end`, `message_update`). Jedes Werkzeug hat ein deutsches `label` für die Anzeige.
+- Vision und Tool-Calling eines Modells werden über den pi-Modellkatalog geprüft (`model.input`) und beim Einrichten zusätzlich getestet.
+- Neue Grundsatzentscheidungen kommen als nummerierte Datei nach `docs/entscheidungen/`.
 - Ein zentraler Agent liest zur richtigen Zeit die richtigen Dateien aus der Ordnerstruktur. Keine Multi-Agent-Orchestrierung.
 - Lesereihenfolge pro Klasse und Fach: `Klasse.md`, dann `Stand.md`, dann nur bei Bedarf die passende `Reihe.md`. Das hält den Kontext klein.
 - `Stand.md` wird nach jeder Arbeitssitzung kurz überschrieben, nicht verlängert. Details stehen in `Reihe.md`.

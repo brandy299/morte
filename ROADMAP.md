@@ -22,9 +22,9 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 0: Entscheidungen und Fundament
 
-- [ ] Tech-Stack festlegen (Vorschlag: lokale Web-App mit Node/TypeScript, Start im Browser auf localhost, Verpackung als Desktop-Programm erst in Phase 6)
-- [ ] Agentenkern wählen: eigene schlanke Schleife oder offener Kern als Basis (Optionen vorher prüfen, inkl. Multi-Provider-Fähigkeit)
-- [ ] Lizenzfrage klären: Dieses Repo steht unter Apache-2.0. Code aus AGPL-Projekten (z. B. Odysseus) wird nicht übernommen, nur Ideen und Vorgehen.
+- [x] Agentenkern gewählt: `pi-ai` + `pi-agent-core` (MIT) als Bibliothek, eigene Oberfläche und eigene feste Werkzeuge. Siehe `docs/entscheidungen/001-agentenkern.md`
+- [ ] Tech-Stack bestätigen (Vorschlag: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6)
+- [x] Lizenzfrage geklärt: Repo bleibt Apache-2.0. pi ist MIT und passt. Kein Code aus AGPL- oder LGPL-Projekten (Odysseus, pi-desktop), nur Ideen.
 - [ ] Plattform: Mac zuerst, Windows von Anfang an mitdenken (viele Schulen nutzen Windows)
 - [ ] Projektname, Logo und Designrichtung festlegen
 - [ ] `CLAUDE.md` und `docs/ordnerstruktur.md` im Repo (angelegt)
@@ -33,7 +33,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 - [ ] Oberfläche mit Chat, großem Eingabefeld und Streaming
 - [ ] Fortschrittsanzeige bei der Arbeit: pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
-- [ ] Provider-Schicht: Adapter für Claude und für das OpenAI-Format
+- [ ] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent` (Claude, OpenAI, DeepSeek, OpenAI-kompatibel)
 - [ ] API-Keys im Schlüsselbund, nie im Code oder im Repo
 - [ ] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
 - [ ] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
@@ -80,7 +80,6 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Offene Fragen
 
-- Welcher Agentenkern passt (eigene Schleife oder bestehendes Projekt)?
 - Wie wird das Fähigkeits-Testbild beim Provider-Test gestaltet?
 - Welche Lizenz soll der Harness langfristig haben, falls Teile aus anderen Projekten dazukommen?
 - Wie viel vom Video-Baukasten der Lernapp lässt sich als Skill übernehmen?
