@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
@@ -222,7 +222,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [input]);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), [messages, thinking]);
+  // Scroll only the message list, never the whole page (scrollIntoView would also move the sidebar).
+  useEffect(() => {
+    const list = endRef.current?.closest(".scroll");
+    list?.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+  }, [messages, thinking]);
 
   const patchLast = (fn: (m: Message) => Message) =>
     setMessages((all) => all.map((m, i) => (i === all.length - 1 ? fn(m) : m)));
@@ -333,7 +337,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           : "Einen Moment …";
 
   return (
-    <div className={`shell${preview || building ? " with-preview" : ""}${navOpen ? " nav-open" : ""}`}>
+    <div className={`shell${statusLine ? " is-busy" : ""}${preview || building ? " with-preview" : ""}${navOpen ? " nav-open" : ""}`}>
       <aside
         className="side"
         onClick={(e) => {
@@ -456,8 +460,8 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 <h1>Woran arbeiten wir heute?</h1>
                 <p>Schreib einfach, was du brauchst. Ich frage nach, wenn mir etwas fehlt.</p>
                 <div className="suggest">
-                  {SUGGESTIONS.map((q) => (
-                    <button key={q} type="button" onClick={() => void submit(q)}>
+                  {SUGGESTIONS.map((q, qi) => (
+                    <button key={q} type="button" style={{ "--i": qi } as CSSProperties} onClick={() => void submit(q)}>
                       {q}
                     </button>
                   ))}
@@ -514,7 +518,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             ))}
             {statusLine && (
               <div className="status" role="status" aria-live="polite">
-                <span className="pulse" aria-hidden />
+                <span className="dots" aria-hidden><i /><i /><i /></span>
                 {statusLine}
               </div>
             )}

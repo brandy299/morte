@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { getWoche, legeAb, type KlasseInfo, type WocheAntwort, type WochenStunde } from "./api.ts";
 
 const long = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long" });
@@ -119,9 +119,9 @@ export function Start({ tree, onSetup, onAsk, onChanged }: StartProps) {
             )}
           </ul>
 
-          <div className="week" style={{ gridTemplateColumns: `repeat(${w.tage.length}, minmax(176px, 1fr))` }}>
-            {w.tage.map((t) => (
-              <section key={t.datum} className={isToday(t.datum) ? "day today" : "day"} aria-label={`${t.tag} ${dm(t.datum)}`}>
+          <div className="week" key={w.montag} style={{ gridTemplateColumns: `repeat(${w.tage.length}, minmax(176px, 1fr))` }}>
+            {w.tage.map((t, di) => (
+              <section key={t.datum} style={{ "--i": di } as CSSProperties} className={isToday(t.datum) ? "day today" : "day"} aria-label={`${t.tag} ${dm(t.datum)}`}>
                 <h3>
                   <span>{t.tag}</span> {dm(t.datum)}
                 </h3>
