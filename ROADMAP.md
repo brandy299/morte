@@ -56,8 +56,8 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [ ] Mitgelieferte Skills neu schreiben, Bauweise nach `anthropics/k12-teacher-skills`, Inhalt für deutsche Schulen und Berufskollegs: Stunde planen, Lernsituation, Arbeitsblatt, Klausur mit EHZ, Differenzieren, Stunde vorbereiten, Verständnis-Check
 - [ ] Qualitätsprüfung: Kriterienlisten (P/R/O/M) und Testsätze pro Skill, Auswertung durch ein KI-Modell als Prüfer, bei jeder Skill-Änderung und jedem Modellwechsel
 - [ ] Skill-Builder: geführt per Fragen, Beispiel hochladen, Probelauf, Nachschärfen; dazu "Daraus eine Vorlage machen" nach einem guten Chat-Ergebnis
-- [ ] Geführter Fragenkatalog für Material (Bildungsgang, Lernfeld, Bewertung, Anzahl Klausuren)
-- [ ] Bildungsgang hinterlegen: Bewertung, schulinterne Hinweise
+- [ ] Geführter Fragenkatalog für Material (Schulform, Bildungsgang oder Fach und Stufe, Lernfeld, Kursniveau, Bewertung, Anzahl Klausuren)
+- [ ] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise
 - [ ] Bildungsplan-Import: PDF per OCR in Markdown umwandeln, Material passt zum Plan
 - [ ] Foto oder Screenshot hochladen mit "Bau mir so etwas" (Vision), mit Hinweis zu Namen und Klassenarbeiten
 - [ ] Gesamtes Material einheitlich in eigener, besonderer Optik
