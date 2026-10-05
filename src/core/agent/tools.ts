@@ -4,6 +4,7 @@ import { parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
 import { readBewertung, writeBewertung } from "../workspace/bewertung.ts";
+import { outline, planFor, search, section } from "../lehrplan/store.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
   attachMaterial, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
@@ -405,7 +406,47 @@ const klausurErstellen = defineTool({
   },
 });
 
+const NO_PLAN = "Für diese Klasse ist kein Lehrplan hinterlegt. Arbeite ohne und sag der Lehrkraft ehrlich, dass dir der Plan fehlt. Sie kann ihn links unter „Lehrpläne“ hinzufügen.";
+
+const lehrplanLesen = defineTool({
+  name: "lehrplan_lesen",
+  label: "Lehrplan nachlesen",
+  description:
+    "Reads the curriculum (Lehrplan) of a class in small steps. Without `abschnitt` you get the outline (numbered headings with sizes). Then read only the section you need with `abschnitt` = its number. Long sections continue with `ab`. Never read everything: the plan can be very long.",
+  parameters: Type.Object({
+    klasse: Type.String(),
+    abschnitt: Type.Optional(Type.Number({ description: "Number from the outline" })),
+    ab: Type.Optional(Type.Number({ description: "Character offset to continue a long section" })),
+  }),
+  async execute(_id, { klasse, abschnitt, ab }) {
+    const plan = await planFor(klasse);
+    if (!plan) return text(NO_PLAN);
+    if (abschnitt === undefined) {
+      const heads = outline(plan.markdown);
+      const shown = heads.length > 120 ? heads.filter((h) => h.level <= 3) : heads;
+      const list = shown.map((h) => `${h.id}. ${"  ".repeat(Math.max(0, h.level - 1))}${h.title} (${h.length} Zeichen)`).join("\n");
+      return text(`Lehrplan „${plan.name}“, Gliederung:\n${list}\n\nLies einen Abschnitt mit abschnitt=<Nummer>. Mit lehrplan_suchen findest du Stellen nach Stichwort.`);
+    }
+    return text(section(plan.markdown, abschnitt, ab ?? 0));
+  },
+});
+
+const lehrplanSuchen = defineTool({
+  name: "lehrplan_suchen",
+  label: "Im Lehrplan suchen",
+  description: "Searches the curriculum of a class for words (all must appear in a paragraph). Returns up to 8 paragraphs with the heading path and the section number for lehrplan_lesen.",
+  parameters: Type.Object({ klasse: Type.String(), suche: Type.String({ description: "One to four keywords, e.g. 'Bewerbung Interview'" }) }),
+  async execute(_id, { klasse, suche }) {
+    const plan = await planFor(klasse);
+    if (!plan) return text(NO_PLAN);
+    const hits = search(plan.markdown, suche);
+    if (hits.length === 0) return text("Dazu steht nichts im Lehrplan. Versuche ein anderes Stichwort.");
+    return text(hits.map((h) => `[Abschnitt ${h.id ?? "-"}: ${h.path || "Anfang"}]\n${h.text}`).join("\n\n"));
+  },
+});
+
 export const tools: TeacherTool[] = [
+  lehrplanLesen, lehrplanSuchen,
   arbeitsblattErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,

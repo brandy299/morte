@@ -25,6 +25,24 @@ export type ChatEvent =
   | { type: "error"; message: string }
   | { type: "done" };
 
+/** Reads server-sent events from a response stream and hands each one to `onEvent`. */
+async function readEvents<T>(body: ReadableStream<Uint8Array<ArrayBuffer>>, onEvent: (e: T) => void) {
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+    let end: number;
+    while ((end = buffer.indexOf("\n\n")) >= 0) {
+      const block = buffer.slice(0, end);
+      buffer = buffer.slice(end + 2);
+      const data = block.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join("");
+      if (data) onEvent(JSON.parse(data) as T);
+    }
+  }
+}
+
 /** Sends a message and reads the server-sent events from the response stream. */
 export async function sendMessage(text: string, images: ImageAttachment[], onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
   const res = await fetch("/api/chat", {
@@ -37,20 +55,7 @@ export async function sendMessage(text: string, images: ImageAttachment[], onEve
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? "Keine Verbindung zum Assistenten.");
   }
-  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
-  let buffer = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += value;
-    let end: number;
-    while ((end = buffer.indexOf("\n\n")) >= 0) {
-      const block = buffer.slice(0, end);
-      buffer = buffer.slice(end + 2);
-      const data = block.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join("");
-      if (data) onEvent(JSON.parse(data) as ChatEvent);
-    }
-  }
+  await readEvents(res.body, onEvent);
 }
 
 export async function resetChat() {
@@ -120,3 +125,48 @@ export const openHistory = async (id: string): Promise<{ anzeige: StoredMessage[
   return res.ok ? res.json() : null;
 };
 export const deleteHistory = (id: string) => fetch(`/api/history/${id}`, { method: "DELETE" });
+
+// ---------- Lehrpläne ----------
+
+export interface LehrplanInfo { name: string; hasPlan: boolean; hasBewertung: boolean; abschnitte: number; klassen: string[] }
+export interface LehrplaeneData { lehrplaene: LehrplanInfo[]; klassen: string[] }
+export interface PruefErgebnis {
+  token: string;
+  dateiname: string;
+  art: "pdf" | "text";
+  seiten?: number;
+  bilder?: number;
+  anfragen?: number;
+  kostenUsd?: number;
+  minuten?: number;
+  zeichen?: number;
+}
+export type UmwandelEvent =
+  | { type: "fortschritt"; done: number; total: number; label: string }
+  | { type: "fertig"; name: string; warnungen: string[]; abschnitte: number; gliederung: { ebene: number; titel: string }[] }
+  | { type: "fehler"; message: string };
+
+export const getLehrplaene = async (): Promise<LehrplaeneData> => (await fetch("/api/lehrplan")).json();
+
+export async function pruefeLehrplan(file: File): Promise<PruefErgebnis | { error: string }> {
+  const form = new FormData();
+  form.set("file", file);
+  const res = await fetch("/api/lehrplan/pruefen", { method: "POST", body: form }).catch(() => undefined);
+  if (!res) return { error: "Keine Verbindung zu morte." };
+  return res.json().catch(() => ({ error: "Das hat nicht geklappt." }));
+}
+
+/** Returns an error text when the conversion could not start, `{ existiert: true }` when the name is taken, otherwise null after the stream ended. */
+export async function wandleLehrplanUm(
+  b: { token: string; name: string; ersetzen?: boolean },
+  onEvent: (e: UmwandelEvent) => void,
+  signal: AbortSignal,
+): Promise<{ error: string; existiert?: boolean } | null> {
+  const res = await fetch("/api/lehrplan/umwandeln", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b), signal });
+  if (!res.ok || !res.body) return res.json().catch(() => ({ error: "Das hat nicht geklappt." }));
+  await readEvents(res.body, onEvent);
+  return null;
+}
+
+export const ordneLehrplanZu = (name: string, klassen: string[]) => post<{ ok: true }>("/api/lehrplan/zuordnen", { name, klassen });
+export const entferneLehrplan = (name: string) => fetch(`/api/lehrplan/${encodeURIComponent(name)}`, { method: "DELETE" });

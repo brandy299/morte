@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
+import { Lehrplan } from "./Lehrplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -27,6 +28,7 @@ export function App() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
   const [newClassOpen, setNewClassOpen] = useState(false);
+  const [lehrplanOpen, setLehrplanOpen] = useState(false);
   const [tree, setTree] = useState<KlasseInfo[]>([]);
   const refreshTree = () => getTree().then(setTree).catch(() => {});
   const [history, setHistory] = useState<ConversationInfo[]>([]);
@@ -60,6 +62,7 @@ export function App() {
   }, []);
 
   if (!status) return null;
+  if (lehrplanOpen) return <Lehrplan onClose={() => { setLehrplanOpen(false); void refreshTree(); }} />;
   if (newClassOpen) {
     return (
       <NewClass
@@ -95,6 +98,7 @@ export function App() {
       onDelete={remove}
       onNew={() => show([])}
       onNewClass={() => setNewClassOpen(true)}
+      onLehrplan={() => setLehrplanOpen(true)}
       onSettings={() => setSetupOpen(true)}
     />
   );
@@ -111,12 +115,13 @@ interface ChatProps {
   tree: KlasseInfo[];
   refreshTree: () => void;
   onNewClass: () => void;
+  onLehrplan: () => void;
   onSettings: () => void;
 }
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
-function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onSettings }: ChatProps) {
+function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onSettings }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
@@ -326,6 +331,13 @@ function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onD
         </nav>
         </div>
         <div className="side-foot">
+          <button type="button" className="foot-btn" onClick={onLehrplan}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M4 5.5A2.5 2.5 0 016.5 3H20v16H6.5A2.5 2.5 0 004 21.5z" />
+              <path d="M4 21.5V5.5M8 7h8" />
+            </svg>
+            Lehrpläne
+          </button>
           <button type="button" className="foot-btn" onClick={onSettings}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="12" cy="12" r="3" />

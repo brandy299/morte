@@ -9,24 +9,16 @@ import { createClass, initWorkspace, listTree, materialFile, UserError } from ".
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
-import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
+import { lehrplanRoutes } from "./lehrplan.ts";
+import { keyName, type AppState } from "./state.ts";
 
-/** Holds the current chat session; it is rebuilt after the setup changes provider, model or key. */
-export interface AppState {
-  secrets: SecretStore;
-  session: ChatSession | undefined;
-  configured: { provider: string; model: string } | undefined;
-  /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
-  choice?: { provider: string; model?: string };
-  /** The conversation on screen. Saved after every answer, so it can be reopened later. */
-  conversation?: { id: string; titel: string; anzeige: StoredMessage[] };
-}
+export type { AppState };
+import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_IMAGES = 4;
 const MAX_IMAGE_BASE64 = 7_000_000; // about 5 MB of image
 
-const keyName = (provider: string) => `apikey:${provider}`;
 
 async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
   const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
@@ -172,6 +164,8 @@ export function createApp(state: AppState) {
     if (state.choice) await buildSession(state, state.choice);
     return c.json({ ok: true });
   });
+
+  lehrplanRoutes(app, state);
 
   return app;
 }
