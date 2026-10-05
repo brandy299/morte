@@ -85,7 +85,8 @@ Was die Schulformen für die Skills verändert:
 | Unterrichtsstunde planen | lesson-plan-creation | Verlaufsplan, Phasen, Handlungsorientierung, Bezug Lernfeld |
 | Lernsituation / Reihe planen | (keins) | Handlungssituation, Lernfeldbezug, Stundentabelle in `Reihe.md` |
 | Arbeitsblatt | Teile aus lesson-plan-creation | Graustufen, wenige Seiten, Operatoren |
-| Klausur mit Erwartungshorizont | (keins) | Anforderungsbereiche I–III, Operatoren, Punkte, Notenschlüssel aus `Bewertung.md` |
+| Klausur mit Erwartungshorizont | (keins) | Bereiche und Notenschlüssel stammen von der Lehrkraft (`Bewertung.md`, Entscheidung 003), Punkte und Grenzen rechnet das Programm. Fertig |
+| Bewertungsregeln festhalten | (keins) | Ablauf-Skill: Bereiche und Notenschlüssel im Gespräch eintragen. Fertig |
 | Differenzieren | lesson-differentiation | drei Niveaus, Sprachförderung (DaZ), gleicher Kerninhalt |
 | Stunde vorbereiten | lesson-prep | kurze Vorbereitungsnotiz für die Lehrkraft |
 | Verständnis-Check | check-for-understanding | auf alle Fächer erweitert, Distraktoren aus typischen Fehlern |

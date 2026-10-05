@@ -13,8 +13,8 @@ export const SCHULFORMEN = ["Berufskolleg", "Gymnasium", "Gesamtschule"] as cons
 
 export class UserError extends Error {}
 
-const root = () => dataDir();
-const klassenDir = () => join(root(), "Klassen");
+export const root = () => dataDir();
+export const klassenDir = () => join(root(), "Klassen");
 
 export async function initWorkspace(): Promise<void> {
   for (const f of TOP_FOLDERS) await mkdir(join(root(), f), { recursive: true });
@@ -24,7 +24,7 @@ export async function initWorkspace(): Promise<void> {
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
 
 /** Names become folder names, so only plain characters are allowed. */
-function cleanName(raw: string, what: string): string {
+export function cleanName(raw: string, what: string): string {
   const name = raw.trim().replace(/\s+/g, " ");
   if (!name) throw new UserError(`Bitte gib ${what} an.`);
   if (name.length > 60 || !/^[\p{L}\p{N}][\p{L}\p{N} ._\-()&+]*$/u.test(name)) {
@@ -42,11 +42,11 @@ async function subdirs(dir: string): Promise<string[]> {
   }
 }
 
-const exists = (p: string) => stat(p).then(() => true, () => false);
-const readText = (p: string) => readFile(p, "utf8").catch(() => "");
+export const exists = (p: string) => stat(p).then(() => true, () => false);
+export const readText = (p: string) => readFile(p, "utf8").catch(() => "");
 
 /** Matches a name case-insensitively against existing folders. Only existing names are ever used as paths. */
-async function resolveDir(parent: string, query: string, what: string, strip?: (n: string) => string): Promise<string> {
+export async function resolveDir(parent: string, query: string, what: string, strip?: (n: string) => string): Promise<string> {
   const q = query.trim().toLowerCase();
   const names = await subdirs(parent);
   const hit =
@@ -343,10 +343,16 @@ export async function materialFile(relative: string): Promise<string | undefined
   }
 }
 
-/** True when Klasse.md names a Lehrplan. Without it, material carries an honest note. */
+/**
+ * True when Klasse.md names a Lehrplan folder that really holds a Plan.md.
+ * Without it, material carries an honest note instead of invented curriculum references.
+ */
 export async function hasLehrplan(klasse: string): Promise<boolean> {
   try {
-    return Boolean(/^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse)));
+    const name = /^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse))?.[1]?.trim();
+    if (!name) return false;
+    const dir = await resolveDir(join(root(), "Lehrpläne"), name, "Der Lehrplan");
+    return (await readText(join(root(), "Lehrpläne", dir, "Plan.md"))).trim().length > 0;
   } catch {
     return false;
   }

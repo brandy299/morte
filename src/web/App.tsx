@@ -118,7 +118,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
       case "material": {
         const m = { title: e.title, name: e.name, path: e.path };
         patchLast((x) => ({ ...x, materials: [...(x.materials ?? []), m] }));
-        setPreview(m);
+        if (e.preview !== false) setPreview(m);
         break;
       }
       case "step_start":

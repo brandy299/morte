@@ -20,7 +20,7 @@ export type ChatEvent =
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
   | { type: "usage"; usage: UsageSnapshot }
-  | { type: "material"; title: string; name: string; path: string }
+  | { type: "material"; title: string; name: string; path: string; preview?: boolean }
   | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
   | { type: "done" };

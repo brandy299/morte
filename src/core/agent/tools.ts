@@ -1,6 +1,8 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
+import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
+import { readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
   attachMaterial, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
@@ -223,8 +225,127 @@ const arbeitsblattErstellen = defineTool({
   },
 });
 
+const bereichSchema = Type.Object({
+  kurz: Type.String({ description: "Short label as the school calls it, e.g. AFB I or I" }),
+  name: Type.Optional(Type.String({ description: "Name, e.g. Wiedergeben" })),
+  anteil: Type.Optional(Type.Number({ description: "Intended share of the points in percent" })),
+});
+const noteSchema = Type.Object({
+  note: Type.String({ description: "Grade label as on the school's reports, e.g. 1, 2+, sehr gut" }),
+  abProzent: Type.Number({ description: "From this percent of the points on, 0 to 100" }),
+});
+
+const bewertungLesen = defineTool({
+  name: "bewertung_lesen",
+  label: "Bewertungsregeln nachlesen",
+  description:
+    "Reads the teacher's own assessment rules for a class: areas of demand (Anforderungsbereiche) and grading scale. Nothing is built in, every school and teacher has their own. If it says there are none, ask the teacher; never invent a scale.",
+  parameters: Type.Object({ klasse: Type.String() }),
+  async execute(_id, { klasse }) {
+    const found = await readBewertung(klasse);
+    if (!found) return text("Für diese Klasse sind noch keine Bewertungsregeln hinterlegt.");
+    return text(`Bewertung aus „${found.ordner}“:\n${found.markdown}`);
+  },
+});
+
+const bewertungSpeichern = defineTool({
+  name: "bewertung_speichern",
+  label: "Bewertungsregeln speichern",
+  description:
+    "Saves the teacher's assessment rules (areas of demand and grading scale) so they are used for every later exam. Only save what the teacher told you. The scale goes from the best to the worst grade with falling percent limits. Replaces earlier rules of that name.",
+  parameters: Type.Object({
+    lehrplan: Type.String({ description: "Name for the rules, e.g. the Bildungsgang or subject and level: Höhere Handelsschule, Englisch Sek I" }),
+    klassen: Type.Array(Type.String(), { description: "Classes that use these rules" }),
+    bereiche: Type.Optional(Type.Array(bereichSchema)),
+    notenschluessel: Type.Optional(Type.Array(noteSchema)),
+    hinweise: Type.Optional(Type.String({ description: "School-specific notes, e.g. weighting of exams" })),
+  }),
+  ask: (a) => `Darf ich die Bewertungsregeln „${a.lehrplan}“ für ${(a.klassen ?? []).join(", ") || "die Klasse"} speichern? Frühere Regeln mit diesem Namen werden ersetzt.`,
+  async execute(_id, { lehrplan, klassen, bereiche, notenschluessel, hinweise }) {
+    const ordner = await writeBewertung(lehrplan, klassen, { bereiche: bereiche ?? [], notenschluessel: notenschluessel ?? [], hinweise });
+    return text(`Die Bewertungsregeln „${ordner}“ sind gespeichert.`);
+  },
+});
+
+const klausurErstellen = defineTool({
+  name: "klausur_erstellen",
+  label: "Klausur und Erwartungshorizont erstellen",
+  description:
+    "Builds an exam and its answer key (Erwartungshorizont) as two print-ready gray PDFs from structured content. You write only the content; layout, sums, shares per area and grade limits are calculated by the program. Every sub-task needs points (half steps) and the expected answer. If the class has assessment rules, its areas of demand and grading scale are used automatically and every sub-task must name one of those areas. Pass bereiche or notenschluessel only to override once. Give klasse, fach and reihe to file it in that series; add datum and stunde to also enter it in the lesson table.",
+  parameters: Type.Object({
+    titel: Type.String(),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    datum: Type.Optional(Type.String({ description: "Date of the exam, e.g. 04.11." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+    dauer: Type.Optional(Type.String({ description: "e.g. 90 Minuten" })),
+    hilfsmittel: Type.Optional(Type.String()),
+    hinweise: Type.Optional(Type.String({ description: "Instructions for the students" })),
+    aufgaben: Type.Array(
+      Type.Object({
+        titel: Type.Optional(Type.String()),
+        einstieg: Type.Optional(Type.String({ description: "Situation, text or data the sub-tasks refer to" })),
+        teile: Type.Array(
+          Type.Object({
+            text: Type.String({ description: "The task for the students, starting with a clear verb" }),
+            punkte: Type.Number({ description: "Points, half steps allowed" }),
+            bereich: Type.Optional(Type.String({ description: "Area of demand, one of the teacher's labels" })),
+            zeilen: Type.Optional(Type.Number({ description: "Writing lines, 0 to 25" })),
+            erwartung: Type.String({ description: "What a good answer contains and what earns which points" }),
+          }),
+          { description: "1 to 8 sub-tasks" },
+        ),
+      }),
+      { description: "1 to 12 tasks" },
+    ),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    bereiche: Type.Optional(Type.Array(bereichSchema)),
+    notenschluessel: Type.Optional(Type.Array(noteSchema)),
+  }),
+  ask: (a) =>
+    a.klasse && a.reihe
+      ? `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
+      : `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und speichern?`,
+  async execute(_id, args) {
+    const { reihe, stunde, bereiche, notenschluessel, ...content } = args;
+    const own = content.klasse ? await readBewertung(content.klasse).catch(() => undefined) : undefined;
+    const rules = {
+      bereiche: bereiche ?? own?.bewertung.bereiche,
+      notenschluessel: notenschluessel ?? own?.bewertung.notenschluessel,
+    };
+    const exam = parseKlausur(
+      { ...content, fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt" },
+      rules,
+    );
+    const where = { klasse: content.klasse, fach: content.fach, reihe, datum: content.datum, stunde };
+    const klausur = await renderKlausur(exam);
+    const ehz = await renderErwartungshorizont(exam);
+    const savedK = await saveMaterial(klausur.pdf, { art: "Klausur", titel: exam.titel, ...where });
+    const savedE = await saveMaterial(ehz.pdf, { art: "Erwartungshorizont", titel: exam.titel, ...where });
+    if (content.klasse && content.fach && reihe && content.datum && stunde) {
+      await attachMaterial(content.klasse, content.fach, reihe, { datum: content.datum, stunde, thema: exam.titel }, savedK.name);
+    }
+    const notes = [
+      `Die Klausur ist fertig (${klausur.pages} ${klausur.pages === 1 ? "Seite" : "Seiten"}, ${gesamtpunkte(exam)} Punkte) und der Erwartungshorizont dazu (${ehz.pages} ${ehz.pages === 1 ? "Seite" : "Seiten"}). Beides ist in der Vorschau zu sehen.`,
+      exam.notenschluessel.length
+        ? `Der Notenschlüssel stammt ${notenschluessel ? "aus dieser Anfrage" : `aus den Bewertungsregeln „${own?.ordner}“`}.`
+        : "Es ist kein Notenschlüssel hinterlegt, im Erwartungshorizont steht deshalb keiner. Frag die Lehrkraft danach und biete an, ihn zu speichern.",
+      exam.bereiche.length ? "" : "Es sind keine Bereiche hinterlegt, deshalb gibt es keine Verteilung auf Bereiche.",
+    ].filter(Boolean);
+    return {
+      content: [{ type: "text" as const, text: notes.join("\n") }],
+      details: {
+        materials: [
+          { title: exam.titel, name: savedK.name, path: savedK.path },
+          { title: `Erwartungshorizont: ${exam.titel}`, name: savedE.name, path: savedE.path, preview: false },
+        ],
+      },
+    };
+  },
+});
+
 export const tools: TeacherTool[] = [
-  arbeitsblattErstellen,
+  arbeitsblattErstellen, klausurErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

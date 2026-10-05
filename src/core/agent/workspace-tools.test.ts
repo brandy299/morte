@@ -117,4 +117,78 @@ describe("worksheet tool", () => {
     expect(await readFile(join(home, (material as { path: string }).path))).toBeInstanceOf(Buffer);
     expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/\| 14\.10\. \| Mi 3 \| Interview Basics \| .*Arbeitsblatt-Interview-Basics\.pdf \| Material fertig \|/);
   });
+
+  it("saves the teacher's rules, then builds exam and answer key with them and files the exam in the Reihe", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const ask = (s: ReturnType<typeof session>) => (e: ChatEvent) => {
+      if (e.type === "confirm") s.answer(e.id, true);
+    };
+    const rules = session([
+      fauxAssistantMessage(
+        [
+          fauxToolCall("bewertung_speichern", {
+            lehrplan: "Höhere Handelsschule", klassen: ["11a"],
+            bereiche: [{ kurz: "I", name: "Wiedergeben" }, { kurz: "II", name: "Anwenden" }],
+            notenschluessel: [{ note: "1", abProzent: 90 }, { note: "2", abProzent: 75 }, { note: "3", abProzent: 0 }],
+          }),
+        ],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxText("Gespeichert.")]),
+    ]);
+    await rules.send("Unser Notenschlüssel", ask(rules));
+    expect(await readFile(join(home, "Lehrpläne", "Höhere Handelsschule", "Bewertung.md"), "utf8")).toContain("- 2: ab 75 %");
+
+    const exam = session([
+      fauxAssistantMessage(
+        [
+          fauxToolCall("klausur_erstellen", {
+            titel: "Klausur Bewerbung", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "04.11.", stunde: "Mi 1", dauer: "45 Minuten",
+            aufgaben: [{ teile: [
+              { text: "Nenne zwei Bestandteile einer Bewerbung.", punkte: 2, bereich: "I", zeilen: 2, erwartung: "Je 1 P.: Anschreiben, Lebenslauf." },
+              { text: "Begründe, warum ein Anschreiben individuell sein sollte.", punkte: 4, bereich: "II", zeilen: 4, erwartung: "2 P. Bezug zur Firma, 2 P. Begründung." },
+            ] }],
+          }),
+        ],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await exam.send("Klausur zur Bewerbung", (e) => {
+      events.push(e);
+      ask(exam)(e);
+    });
+    const files = events.filter((e) => e.type === "material") as Extract<ChatEvent, { type: "material" }>[];
+    expect(files.map((f) => [f.title, f.preview])).toEqual([["Klausur Bewerbung", undefined], ["Erwartungshorizont: Klausur Bewerbung", false]]);
+    for (const f of files) expect((await readFile(join(home, f.path))).subarray(0, 5).toString()).toBe("%PDF-");
+    expect(files[1]!.name).toContain("Erwartungshorizont-");
+    // Only the exam, not the answer key, goes into the lesson table.
+    const reihe = await readReihe("11a", "Business English", "Bewerbung");
+    expect(reihe).toMatch(/\| 04\.11\. \| Mi 1 \| Klausur Bewerbung \| .*Klausur-Klausur-Bewerbung\.pdf \| Material fertig \|/);
+    expect(reihe).not.toContain("Erwartungshorizont-");
+    expect(events.some((e) => e.type === "error")).toBe(false);
+  });
+
+  it("tells the model when an area is not in the teacher's rules, so it can fix the exam", async () => {
+    const rules = session([
+      fauxAssistantMessage([fauxToolCall("bewertung_speichern", { lehrplan: "HH", klassen: ["11a"], bereiche: [{ kurz: "I" }] })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("ok")]),
+    ]);
+    await rules.send("Regeln", (e) => e.type === "confirm" && rules.answer(e.id, true));
+    const exam = session([
+      fauxAssistantMessage(
+        [fauxToolCall("klausur_erstellen", { titel: "K", klasse: "11a", aufgaben: [{ teile: [{ text: "Nenne eins.", punkte: 1, bereich: "AFB IX", erwartung: "x" }] }] })],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxText("ok")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await exam.send("Klausur", (e) => {
+      events.push(e);
+      if (e.type === "confirm") exam.answer(e.id, true);
+    });
+    expect(events.find((e) => e.type === "step_end")).toMatchObject({ ok: false });
+    expect(events.some((e) => e.type === "material")).toBe(false);
+  });
 });

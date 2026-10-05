@@ -140,8 +140,9 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
       }
       case "tool_execution_end": {
         emit({ type: "step_end", id: event.toolCallId, ok: !event.isError });
-        const material = event.result?.details?.material;
-        if (!event.isError && material) emit({ type: "material", ...material });
+        const details = event.result?.details;
+        const files = details?.materials ?? (details?.material ? [details.material] : []);
+        if (!event.isError) for (const file of files) emit({ type: "material", ...file });
         break;
       }
     }

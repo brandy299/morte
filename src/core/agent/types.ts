@@ -8,8 +8,8 @@ export type ChatEvent =
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
   | { type: "usage"; usage: UsageSnapshot }
-  /** A finished file for the preview. `path` is relative to the working folder. */
-  | { type: "material"; title: string; name: string; path: string }
+  /** A finished file for the preview. `path` is relative to the working folder. `preview: false` lists it without opening it. */
+  | { type: "material"; title: string; name: string; path: string; preview?: boolean }
   /** The teacher must say yes or no before a tool changes files. Answer with ChatSession.answer(id, allow). */
   | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
