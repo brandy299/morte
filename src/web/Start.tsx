@@ -146,7 +146,7 @@ const isTodayInWeek = (w: NonNullable<WocheAntwort["woche"]>, heute: string) => 
 
 function LessonCard({ s, past, onOpen, onDrop }: { s: WochenStunde; past: boolean; onOpen: () => void; onDrop: (files: FileList) => void }) {
   const [over, setOver] = useState(false);
-  const title = s.klasse ? `${s.klasse} · ${s.fach}` : s.titel;
+  const title = s.klasse ?? ([s.titel, s.gruppe].filter(Boolean).join(" · ") || "Ohne Titel");
   return (
     <button
       type="button"
@@ -168,6 +168,7 @@ function LessonCard({ s, past, onOpen, onDrop }: { s: WochenStunde; past: boolea
         {s.ort && <span className="room">{s.ort}</span>}
       </span>
       <strong className="lesson-title">{title}</strong>
+      {s.klasse && <span className="lesson-fach">{s.fach}</span>}
       {s.klasse && <span className={s.thema ? "lesson-topic" : "lesson-topic none"}>{s.thema ?? "Noch nichts geplant"}</span>}
       <span className="lesson-foot">
         <span className={`pill ${s.zustand}`}>{LABEL[s.zustand]}</span>
@@ -195,7 +196,7 @@ function Details({ s, onClose, onAsk, onFiles }: { s: WochenStunde; onClose: () 
           ×
         </button>
         <p className="muted">{when}{s.ort ? ` · Raum ${s.ort}` : ""}</p>
-        <h2>{s.klasse ? `${s.klasse} · ${s.fach}` : s.titel}</h2>
+        <h2>{s.klasse ? `${s.klasse} · ${s.fach}` : [s.titel, s.gruppe].filter(Boolean).join(" · ") || "Ohne Titel"}</h2>
         {s.klasse ? (
           <dl className="facts-list">
             <dt>Thema</dt>

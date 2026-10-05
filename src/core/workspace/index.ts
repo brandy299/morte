@@ -353,10 +353,17 @@ export async function attachMaterial(
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
   const file = join(dir, r, "Reihe.md");
   const markdown = await readText(file);
-  const old = parseStunden(markdown).find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
+  const rows = parseStunden(markdown);
+  let old = rows.find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
+  // Without a lesson name the date alone decides, as long as it is clear which row is meant.
+  if (!old && !stunde.stunde) {
+    const sameDate = rows.filter((s) => s.datum.toLowerCase() === stunde.datum.toLowerCase());
+    if (sameDate.length === 1) old = sameDate[0];
+  }
   await setStunde(klasse, fach, reihe, {
-    datum: stunde.datum,
-    stunde: stunde.stunde,
+    // A planned row is addressed by its number, so rows without a lesson name work too.
+    ...(old ? { nr: rows.indexOf(old) + 1 } : { datum: stunde.datum }),
+    stunde: old?.stunde || stunde.stunde,
     thema: old?.thema ? undefined : stunde.thema, // a planned topic stays, the file title only fills an empty one
     material: opts.append && old?.material ? `${old.material}, ${datei}` : datei,
     status: old?.status === "gehalten" ? "gehalten" : "Material fertig",

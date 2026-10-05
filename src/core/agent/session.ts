@@ -121,13 +121,24 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
     emit({ type: "thinking", active });
   };
 
+  // Text from a later step of the same answer would stick to the earlier text ("angelegt.Perfekt!"), so it starts a new paragraph.
+  let wroteText = false;
+  let freshMessage = false;
+
   agent.subscribe((event) => {
     switch (event.type) {
+      case "message_start":
+        if (event.message.role === "assistant") freshMessage = true;
+        break;
       case "message_update": {
         const e = event.assistantMessageEvent;
         if (e.type === "thinking_start") setThinking(true);
         else if (e.type === "thinking_end") setThinking(false);
-        else if (e.type === "text_delta") emit({ type: "text", delta: e.delta });
+        else if (e.type === "text_delta") {
+          emit({ type: "text", delta: (freshMessage && wroteText ? "\n\n" : "") + e.delta });
+          freshMessage = false;
+          wroteText = true;
+        }
         break;
       }
       case "message_end": {
@@ -161,6 +172,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   return {
     async send(text, onEvent, images = []) {
       emit = onEvent;
+      wroteText = false;
       try {
         if (images.length > 0 && !vision) {
           onEvent({ type: "error", message: "Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern." });

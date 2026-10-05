@@ -2,12 +2,14 @@ import { createModels, type Api, type Model, type Provider, fauxAssistantMessage
 import { anthropicProvider } from "@earendil-works/pi-ai/providers/anthropic";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
 import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
+import { openrouterProvider } from "@earendil-works/pi-ai/providers/openrouter";
 import { CUSTOM_ID, customProvider } from "./custom.ts";
 import type { AgentSettings } from "./types.ts";
 
 export const PROVIDERS: Record<string, { name: string; make: () => Provider; recommended: string[] }> = {
   anthropic: { name: "Claude (Anthropic)", make: anthropicProvider, recommended: ["claude-sonnet-5-5", "claude-haiku-4-5"] },
   openai: { name: "OpenAI (ChatGPT)", make: openaiProvider, recommended: ["gpt-5.4", "gpt-5.4-mini"] },
+  openrouter: { name: "OpenRouter (viele Modelle, ein Zugang)", make: openrouterProvider, recommended: ["anthropic/claude-haiku-4.5", "google/gemini-2.5-flash"] },
   deepseek: { name: "DeepSeek", make: deepseekProvider, recommended: ["deepseek-flash"] },
 };
 

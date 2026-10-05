@@ -55,6 +55,11 @@ describe("fetchBalance", () => {
     const b = await fetchBalance("deepseek", "key", ok({ balance_infos: [{ currency: "CNY", total_balance: "4.2" }] }));
     expect(b?.text).toBe("4,20 CNY");
   });
+  it("reads what is left of an OpenRouter key limit", async () => {
+    const b = await fetchBalance("openrouter", "key", ok({ data: { limit_remaining: 49.5 } }));
+    expect(b?.text).toBe("49,50 USD");
+    expect(await fetchBalance("openrouter", "key", ok({ data: { limit_remaining: null } }))).toBeUndefined();
+  });
   it("has nothing to show for providers without a balance query", async () => {
     expect(await fetchBalance("anthropic", "key", ok({}))).toBeUndefined();
   });

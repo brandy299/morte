@@ -7,7 +7,7 @@ import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewe
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
-  attachMaterial, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
+  attachMaterial, UserError, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
 
 /**
@@ -136,6 +136,17 @@ const reiheAnlegen = defineTool({
   },
 });
 
+/** Enters a file in the lesson table. Returns true, or the reason in plain words when that was not possible. */
+async function tryAttach(...args: Parameters<typeof attachMaterial>): Promise<true | string> {
+  try {
+    await attachMaterial(...args);
+    return true;
+  } catch (err) {
+    if (err instanceof UserError) return err.message;
+    throw err;
+  }
+}
+
 const stundeEintragen = defineTool({
   name: "stunde_eintragen",
   label: "Stunde eintragen",
@@ -246,7 +257,7 @@ const arbeitsblattErstellen = defineTool({
   producesMaterial: true,
   label: "Arbeitsblatt erstellen",
   description:
-    "Builds a print-ready worksheet as PDF (gray only, fixed layout) from structured content and shows it in the preview. You write only the content, never the layout. Keep it short: aim for one page, two at most. Give klasse, fach and reihe to file it in that series; add datum and stunde to also enter it in the lesson table. Returns the page count.",
+    "Builds a print-ready worksheet as PDF (gray only, fixed layout) from structured content and shows it in the preview. You write only the content, never the layout. Keep it short: aim for one page, two at most. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table. Returns the page count.",
   parameters: Type.Object({
     titel: Type.String(),
     fach: Type.Optional(Type.String()),
@@ -279,11 +290,11 @@ const arbeitsblattErstellen = defineTool({
     });
     const { pdf, pages } = await renderArbeitsblatt(sheet);
     const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: sheet.titel, klasse: content.klasse, fach: content.fach, reihe, datum, stunde });
-    if (content.klasse && content.fach && reihe && datum && stunde) {
-      await attachMaterial(content.klasse, content.fach, reihe, { datum, stunde, thema: sheet.titel }, saved.name);
-    }
+    const entered = content.klasse && content.fach && reihe && datum
+      ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: sheet.titel }, saved.name)
+      : "fehlt klasse, fach, reihe oder datum";
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft eine Seite wollte oder sich etwas kürzen lässt, erstelle es kürzer neu." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: { material: { title: sheet.titel, name: saved.name, path: saved.path } },
     };
   },
@@ -336,7 +347,7 @@ const klausurErstellen = defineTool({
   producesMaterial: true,
   label: "Klausur und Erwartungshorizont erstellen",
   description:
-    "Builds an exam and its answer key (Erwartungshorizont) as two print-ready gray PDFs from structured content. You write only the content; layout, sums, shares per area and grade limits are calculated by the program. Every sub-task needs points (half steps) and the expected answer. If the class has assessment rules, its areas of demand and grading scale are used automatically and every sub-task must name one of those areas. Pass bereiche or notenschluessel only to override once. Give klasse, fach and reihe to file it in that series; add datum and stunde to also enter it in the lesson table.",
+    "Builds an exam and its answer key (Erwartungshorizont) as two print-ready gray PDFs from structured content. You write only the content; layout, sums, shares per area and grade limits are calculated by the program. Every sub-task needs points (half steps) and the expected answer. If the class has assessment rules, its areas of demand and grading scale are used automatically and every sub-task must name one of those areas. Pass bereiche or notenschluessel only to override once. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
   parameters: Type.Object({
     titel: Type.String(),
     fach: Type.Optional(Type.String()),
@@ -389,14 +400,15 @@ const klausurErstellen = defineTool({
     const ehz = await renderErwartungshorizont(exam);
     const savedK = await saveMaterial(klausur.pdf, { art: "Klausur", titel: exam.titel, ...where });
     const savedE = await saveMaterial(ehz.pdf, { art: "Erwartungshorizont", titel: exam.titel, ...where });
-    if (content.klasse && content.fach && reihe && content.datum && stunde) {
-      await attachMaterial(content.klasse, content.fach, reihe, { datum: content.datum, stunde, thema: exam.titel }, savedK.name);
-    }
+    const entered = content.klasse && content.fach && reihe && content.datum
+      ? await tryAttach(content.klasse, content.fach, reihe, { datum: content.datum, stunde: stunde ?? "", thema: exam.titel }, savedK.name)
+      : "fehlt klasse, fach, reihe oder datum";
     const notes = [
       `Die Klausur ist fertig (${klausur.pages} ${klausur.pages === 1 ? "Seite" : "Seiten"}, ${gesamtpunkte(exam)} Punkte) und der Erwartungshorizont dazu (${ehz.pages} ${ehz.pages === 1 ? "Seite" : "Seiten"}). Beides ist in der Vorschau zu sehen.`,
       exam.notenschluessel.length
         ? `Der Notenschlüssel stammt ${notenschluessel ? "aus dieser Anfrage" : `aus den Bewertungsregeln „${own?.ordner}“`}.`
         : "Es ist kein Notenschlüssel hinterlegt, im Erwartungshorizont steht deshalb keiner. Frag die Lehrkraft danach und biete an, ihn zu speichern.",
+      entered === true ? `Die Klausur ist in der Stundentabelle am ${content.datum} eingetragen.` : `Die Klausur ist NICHT in die Stundentabelle eingetragen (${entered}).`,
       exam.bereiche.length ? "" : "Es sind keine Bereiche hinterlegt, deshalb gibt es keine Verteilung auf Bereiche.",
     ].filter(Boolean);
     return {

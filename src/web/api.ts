@@ -180,7 +180,7 @@ export type Zuordnung = { klasse: string; fach: string } | null;
 export interface TitelInfo { schluessel: string; titel: string; gruppe?: string; anzahl: number; beispiel?: string; zuordnung?: Zuordnung; vorschlag?: Zuordnung }
 export interface Zustand { zustand: "nicht-zugeordnet" | "nicht-geplant" | "geplant" | "material-fertig" | "gehalten" }
 export interface WochenStunde extends Zustand {
-  uid: string; datum: string; von: string; bis: string; titel: string; ort?: string; beschreibung?: string;
+  uid: string; datum: string; von: string; bis: string; titel: string; gruppe?: string; ort?: string; beschreibung?: string;
   klasse?: string; fach?: string; reihe?: string; thema?: string; material?: string;
 }
 export interface Wochenansicht {
