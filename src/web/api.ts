@@ -1,18 +1,35 @@
+export interface UsageSnapshot {
+  inputTokens: number;
+  outputTokens: number;
+  cost: number;
+  contextTokens: number;
+  contextWindow: number;
+  vision: boolean;
+}
+export interface ImageAttachment { data: string; mimeType: string }
+export interface UsageInfo {
+  session?: UsageSnapshot;
+  month: { input: number; output: number; cost: number };
+  balance?: { text: string };
+}
+export const getUsage = async (): Promise<UsageInfo> => (await fetch("/api/usage")).json();
+
 export type ChatEvent =
   | { type: "text"; delta: string }
   | { type: "step_start"; id: string; label: string }
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
+  | { type: "usage"; usage: UsageSnapshot }
   | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
   | { type: "done" };
 
 /** Sends a message and reads the server-sent events from the response stream. */
-export async function sendMessage(text: string, onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
+export async function sendMessage(text: string, images: ImageAttachment[], onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, images }),
     signal,
   });
   if (!res.ok || !res.body) {

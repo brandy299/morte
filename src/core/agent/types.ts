@@ -7,14 +7,34 @@ export type ChatEvent =
   | { type: "step_start"; id: string; label: string }
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
+  | { type: "usage"; usage: UsageSnapshot }
   /** The teacher must say yes or no before a tool changes files. Answer with ChatSession.answer(id, allow). */
   | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
   | { type: "done" };
 
+/** Running numbers of the current conversation. Cost is an estimate in US dollars. */
+export interface UsageSnapshot {
+  inputTokens: number;
+  outputTokens: number;
+  cost: number;
+  /** How much of the model's memory the conversation fills right now. */
+  contextTokens: number;
+  contextWindow: number;
+  /** Model understands images. */
+  vision: boolean;
+}
+
+export interface ImageAttachment {
+  /** Base64 without the data: prefix. */
+  data: string;
+  mimeType: string;
+}
+
 export interface ChatSession {
   /** Sends one user message and streams events until the answer is complete. */
-  send(text: string, onEvent: (event: ChatEvent) => void): Promise<void>;
+  send(text: string, onEvent: (event: ChatEvent) => void, images?: ImageAttachment[]): Promise<void>;
+  usage(): UsageSnapshot;
   /** Answers a `confirm` event. */
   answer(id: string, allow: boolean): void;
   abort(): void;

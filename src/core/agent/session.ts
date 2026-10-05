@@ -1,7 +1,7 @@
 import { Agent } from "@earendil-works/pi-agent-core";
 import { resolveModel } from "./models.ts";
 import { tools } from "./tools.ts";
-import type { AgentSettings, ChatEvent, ChatSession } from "./types.ts";
+import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
 
 const SYSTEM_PROMPT = `Du bist morte, ein ruhiger Arbeitsassistent für Lehrkräfte.
 Antworte auf Deutsch, in einfacher Sprache ohne Fachbegriffe.
@@ -15,8 +15,24 @@ Arbeitsordner: Du kennst die Klassen der Lehrkraft nur über deine Werkzeuge.
 - Wenn die Lehrkraft eine Arbeitssitzung beendet oder etwas Wichtiges entschieden wurde, halte den Stand mit stand_schreiben fest. Lies vorher den alten Stand und übernimm, was noch stimmt. Halte ihn kurz, es steht dort nie ein Schülername.
 - Fehlt eine Angabe (zum Beispiel ein Datum), frag nach. Trage nichts ein, was du nicht weißt.`;
 
-export function createChatSession(settings: AgentSettings, resolve: typeof resolveModel = resolveModel): ChatSession {
-  const { models, model, onTurnEnd } = resolve(settings);
+export interface SessionDeps {
+  resolve?: typeof resolveModel;
+  /** Called after every answer with what it used, e.g. to add it to the monthly total. */
+  onUsage?: (delta: { input: number; output: number; cost: number }) => void;
+}
+
+export function createChatSession(settings: AgentSettings, deps: SessionDeps = {}): ChatSession {
+  const { models, model, onTurnEnd } = (deps.resolve ?? resolveModel)(settings);
+  const vision = model.input.includes("image");
+  const totals = { input: 0, output: 0, cost: 0, context: 0 };
+  const snapshot = (): UsageSnapshot => ({
+    inputTokens: totals.input,
+    outputTokens: totals.output,
+    cost: totals.cost,
+    contextTokens: totals.context,
+    contextWindow: model.contextWindow,
+    vision,
+  });
 
   const agent = new Agent({
     initialState: { systemPrompt: SYSTEM_PROMPT, model, tools },
@@ -59,6 +75,19 @@ export function createChatSession(settings: AgentSettings, resolve: typeof resol
         else if (e.type === "text_delta") emit({ type: "text", delta: e.delta });
         break;
       }
+      case "message_end": {
+        const m = event.message;
+        if (m.role === "assistant" && m.usage.totalTokens > 0) {
+          const input = m.usage.input + m.usage.cacheRead + m.usage.cacheWrite;
+          totals.input += input;
+          totals.output += m.usage.output;
+          totals.cost += m.usage.cost.total;
+          totals.context = m.usage.totalTokens;
+          deps.onUsage?.({ input, output: m.usage.output, cost: m.usage.cost.total });
+          emit({ type: "usage", usage: snapshot() });
+        }
+        break;
+      }
       case "tool_execution_start": {
         const tool = tools.find((t) => t.name === event.toolName);
         emit({ type: "step_start", id: event.toolCallId, label: tool?.label ?? "Arbeite weiter" });
@@ -71,10 +100,14 @@ export function createChatSession(settings: AgentSettings, resolve: typeof resol
   });
 
   return {
-    async send(text, onEvent) {
+    async send(text, onEvent, images = []) {
       emit = onEvent;
       try {
-        await agent.prompt(text);
+        if (images.length > 0 && !vision) {
+          onEvent({ type: "error", message: "Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern." });
+          return;
+        }
+        await agent.prompt(text, images.map((i) => ({ type: "image" as const, data: i.data, mimeType: i.mimeType })));
         const last = agent.state.messages.at(-1);
         if (last?.role === "assistant" && last.stopReason === "error") {
           onEvent({ type: "error", message: friendlyError(last.errorMessage) });
@@ -89,11 +122,15 @@ export function createChatSession(settings: AgentSettings, resolve: typeof resol
       }
     },
     answer,
+    usage: snapshot,
     abort: () => {
       for (const id of [...pending.keys()]) answer(id, false);
       agent.abort();
     },
-    reset: () => agent.reset(),
+    reset: () => {
+      agent.reset();
+      Object.assign(totals, { input: 0, output: 0, cost: 0, context: 0 });
+    },
   };
 }
 

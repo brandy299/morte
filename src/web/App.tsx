@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, getStatus, getTree, resetChat, sendMessage, type ChatEvent, type KlasseInfo, type SetupStatus } from "./api.ts";
+import { answerConfirm, getStatus, getTree, getUsage, resetChat, sendMessage, type ChatEvent, type KlasseInfo, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
+import { UsageMeter } from "./UsageMeter.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -12,6 +14,7 @@ interface Step {
 interface Message {
   role: "user" | "assistant";
   text: string;
+  images?: string[];
   steps: Step[];
   confirm?: { id: string; question: string };
   error?: string;
@@ -69,7 +72,29 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
   const [thinking, setThinking] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachProblem, setAttachProblem] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [usage, setUsage] = useState<UsageSnapshot | undefined>();
+  const fileRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    getUsage().then((u) => setUsage(u.session)).catch(() => {});
+  }, []);
+
+  const addFiles = async (files: FileList | File[]) => {
+    setAttachProblem(null);
+    const list = [...files];
+    if (usage && !usage.vision) return setAttachProblem("Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern.");
+    const room = MAX_IMAGES - attachments.length;
+    if (list.length > room) setAttachProblem(`Es passen höchstens ${MAX_IMAGES} Bilder in eine Nachricht.`);
+    for (const file of list.slice(0, Math.max(0, room))) {
+      const result = await readImage(file);
+      if (typeof result === "string") setAttachProblem(result);
+      else setAttachments((a) => [...a, result]);
+    }
+  };
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), [messages, thinking]);
@@ -84,6 +109,9 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
         break;
       case "thinking":
         setThinking(e.active);
+        break;
+      case "usage":
+        setUsage(e.usage);
         break;
       case "step_start":
         patchLast((m) => ({ ...m, steps: [...m.steps, { id: e.id, label: e.label, state: "running" }] }));
@@ -111,13 +139,20 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
   const submit = async (override?: string) => {
     const text = (override ?? input).trim();
     if (!text || working) return;
+    const sent = attachments;
     setInput("");
+    setAttachments([]);
+    setAttachProblem(null);
     setWorking(true);
-    setMessages((all) => [...all, { role: "user", text, steps: [] }, { role: "assistant", text: "", steps: [] }]);
+    setMessages((all) => [
+      ...all,
+      { role: "user", text, images: sent.map((a) => a.preview), steps: [] },
+      { role: "assistant", text: "", steps: [] },
+    ]);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      await sendMessage(text, handleEvent, ctrl.signal);
+      await sendMessage(text, sent.map(({ data, mimeType }) => ({ data, mimeType })), handleEvent, ctrl.signal);
     } catch (err) {
       if (!ctrl.signal.aborted) patchLast((m) => ({ ...m, error: err instanceof Error ? err.message : "Das hat nicht geklappt." }));
     } finally {
@@ -131,6 +166,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
     abortRef.current?.abort();
     await resetChat();
     setMessages([]);
+    setUsage((u) => (u ? { ...u, inputTokens: 0, outputTokens: 0, cost: 0, contextTokens: 0 } : u));
     refreshTree();
   };
 
@@ -226,6 +262,13 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
                     ))}
                   </ul>
                 )}
+                {m.images && m.images.length > 0 && (
+                  <div className="thumbs">
+                    {m.images.map((src, j) => (
+                      <img key={j} src={src} alt="Angehängtes Bild" />
+                    ))}
+                  </div>
+                )}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
                 {m.confirm && (
                   <div className="confirm" role="alertdialog" aria-label="Rückfrage">
@@ -254,33 +297,75 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
         </div>
 
         <form
-          className="composer"
+          className={dragging ? "composer drop" : "composer"}
           onSubmit={(e) => {
             e.preventDefault();
             void submit();
           }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            void addFiles(e.dataTransfer.files);
+          }}
         >
-          <textarea
-            value={input}
-            rows={2}
-            placeholder="Schreib hier, was du brauchst …"
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                void submit();
-              }
-            }}
-          />
-          {working ? (
-            <button type="button" onClick={() => abortRef.current?.abort()}>
-              Anhalten
-            </button>
-          ) : (
-            <button type="submit" disabled={!input.trim()}>
-              Senden
-            </button>
+          {attachments.length > 0 && (
+            <div className="attached">
+              <ul>
+                {attachments.map((a) => (
+                  <li key={a.id}>
+                    <img src={a.preview} alt={a.name} />
+                    <button type="button" aria-label={`${a.name} entfernen`} onClick={() => setAttachments(attachments.filter((x) => x.id !== a.id))}>
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p>Bitte keine Namen von Schülerinnen und Schülern und keine Klassenarbeiten mit Namen. Das Bild geht an deinen KI-Anbieter.</p>
+            </div>
           )}
+          {attachProblem && <p className="error">{attachProblem}</p>}
+          <div className="composer-row">
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }} />
+            <button type="button" className="clip" title="Bild anhängen" aria-label="Bild anhängen" onClick={() => fileRef.current?.click()}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
+              </svg>
+            </button>
+            <textarea
+              value={input}
+              rows={2}
+              placeholder="Schreib hier, was du brauchst …"
+              onChange={(e) => setInput(e.target.value)}
+              onPaste={(e) => {
+                const files = [...e.clipboardData.files].filter((f) => f.type.startsWith("image/"));
+                if (files.length) {
+                  e.preventDefault();
+                  void addFiles(files);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  void submit();
+                }
+              }}
+            />
+            {working ? (
+              <button type="button" onClick={() => abortRef.current?.abort()}>
+                Anhalten
+              </button>
+            ) : (
+              <button type="submit" disabled={!input.trim()}>
+                Senden
+              </button>
+            )}
+            <UsageMeter usage={usage} />
+          </div>
         </form>
       </main>
     </div>

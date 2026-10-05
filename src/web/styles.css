@@ -50,7 +50,8 @@ body { background: var(--paper); color: var(--ink); font-family: var(--sans); fo
 .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
 .error { font-family: var(--sans); font-size: 15px; color: #8a2d12; background: #f6e3d9; border-radius: 8px; padding: 8px 12px; }
 
-.composer { max-width: 720px; width: 100%; margin: 0 auto; padding: 0 24px 24px; display: flex; gap: 10px; align-items: flex-end; }
+.composer { max-width: 720px; width: 100%; margin: 0 auto; padding: 0 24px 24px; display: flex; flex-direction: column; gap: 10px; }
+.composer-row { display: flex; gap: 10px; align-items: flex-end; position: relative; }
 .composer textarea { flex: 1; resize: none; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); font: inherit; color: var(--ink); }
 .composer textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .composer button { padding: 12px 20px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; }
@@ -119,3 +120,33 @@ body { background: var(--paper); color: var(--ink); font-family: var(--sans); fo
 .confirm p { margin: 0 0 12px; }
 .confirm div { display: flex; gap: 10px; }
 .confirm .primary, .confirm .ghost { padding: 9px 16px; }
+
+.composer .clip { padding: 12px; background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.composer .clip:hover { color: var(--accent); border-color: var(--accent); }
+.composer.drop textarea { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.attached ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+.attached li { position: relative; }
+.attached img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.attached li button { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 14px; line-height: 1; }
+.attached p { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); }
+.thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.thumbs img { width: 120px; height: 90px; object-fit: cover; border-radius: 10px; }
+
+.meter { position: relative; align-self: center; }
+.composer .ring { padding: 6px; background: transparent; border-radius: 50%; display: grid; place-items: center; }
+.ring-bg { fill: none; stroke: var(--line); stroke-width: 2.5; }
+.ring-fg { fill: none; stroke: var(--ink-soft); stroke-width: 2.5; stroke-linecap: round; transition: stroke-dasharray 0.4s; }
+.ring.warn .ring-fg { stroke: var(--accent); }
+.pop { position: absolute; right: 0; bottom: 44px; width: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(35, 32, 27, 0.14); font-size: 14px; z-index: 5; }
+.pop p { margin: 0; }
+.pop-title { font-weight: 600; margin-bottom: 8px !important; }
+.bar { height: 6px; background: var(--paper-deep); border-radius: 3px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--ink-soft); }
+.bar span.warn { background: var(--accent); }
+.pop-line { color: var(--ink-soft); margin: 6px 0 10px !important; }
+.pop-warn { background: #f6e3d9; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px !important; }
+.pop dl { display: grid; grid-template-columns: 1fr; gap: 2px; margin: 0; }
+.pop dt { color: var(--ink-soft); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 10px; }
+.pop dd { margin: 0; }
+.muted { color: var(--ink-soft); }
+.pop-note { margin-top: 12px !important; font-size: 12px; color: var(--ink-soft); }

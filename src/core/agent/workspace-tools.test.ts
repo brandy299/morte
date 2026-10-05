@@ -19,7 +19,7 @@ function session(responses: ReturnType<typeof fauxAssistantMessage>[]) {
   faux.setResponses(responses);
   const models = createModels();
   models.setProvider(faux.provider);
-  return createChatSession({ provider: "x" }, () => ({ models, model: faux.getModel() }));
+  return createChatSession({ provider: "x" }, { resolve: () => ({ models, model: faux.getModel() }) });
 }
 
 const standCall = fauxToolCall("stand_schreiben", {

@@ -3,9 +3,10 @@ import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { createChatSession, listProviders, testConnection, type ChatSession } from "../core/agent/index.ts";
+import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { createClass, initWorkspace, listTree, UserError } from "../core/workspace/index.ts";
+import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
 /** Holds the current chat session; it is rebuilt after the setup changes provider, model or key. */
@@ -15,12 +16,16 @@ export interface AppState {
   configured: { provider: string; model: string } | undefined;
 }
 
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BASE64 = 7_000_000; // about 5 MB of image
+
 const keyName = (provider: string) => `apikey:${provider}`;
 
 async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
   const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
   state.session?.abort();
-  state.session = createChatSession({ ...choice, apiKey });
+  state.session = createChatSession({ ...choice, apiKey }, { onUsage: (d) => void addUsage(d).catch(() => {}) });
 }
 
 export async function loadState(secrets: SecretStore): Promise<AppState> {
@@ -63,19 +68,35 @@ export function createApp(state: AppState) {
     return c.json({ ok: true });
   });
 
+  app.get("/api/usage", async (c) => {
+    const provider = state.configured?.provider;
+    const key = provider ? await state.secrets.get(keyName(provider)) : undefined;
+    return c.json({
+      session: state.session?.usage(),
+      month: await monthUsage(),
+      balance: provider ? await fetchBalance(provider, key) : undefined,
+    });
+  });
+
   app.post("/api/chat", async (c) => {
     const session = state.session;
     if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
-    const { text } = await c.req.json<{ text?: string }>();
+    const { text, images = [] } = await c.req.json<{ text?: string; images?: ImageAttachment[] }>();
     if (!text?.trim()) return c.json({ error: "Bitte schreibe zuerst etwas." }, 400);
+    const bad = images.length > MAX_IMAGES || images.some((i) => !IMAGE_TYPES.includes(i.mimeType) || i.data.length > MAX_IMAGE_BASE64);
+    if (bad) return c.json({ error: "Bilder gehen nur als JPG, PNG, WebP oder GIF, höchstens vier Stück und jeweils unter 5 MB." }, 400);
     if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
     busy = true;
     return streamSSE(c, async (stream) => {
       stream.onAbort(() => session.abort());
       try {
-        await session.send(text, (event) => {
-          void stream.writeSSE({ data: JSON.stringify(event) });
-        });
+        await session.send(
+          text,
+          (event) => {
+            void stream.writeSSE({ data: JSON.stringify(event) });
+          },
+          images,
+        );
       } finally {
         busy = false;
       }
