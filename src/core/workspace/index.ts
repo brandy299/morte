@@ -1,10 +1,10 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, sep } from "node:path";
 import { dataDir } from "../paths.ts";
-import { newReiheMarkdown, parseStunden, STATUS, upsertStunde, writeStunden, type Stunde } from "./reihe.ts";
+import { newReiheMarkdown, parseStunden, STATUS, upsertStunde, writeStunden, type AblaufSchritt, type Stunde } from "./reihe.ts";
 
 export { STATUS } from "./reihe.ts";
-export type { Stunde } from "./reihe.ts";
+export type { AblaufSchritt, Stunde } from "./reihe.ts";
 
 /** Top-level folders of the working folder, see docs/ordnerstruktur.md. */
 const TOP_FOLDERS = ["Einstellungen", "Lehrpläne", "Klassen", "Stundenplan", "Vorlagen", "Skills", "Exporte"];
@@ -196,8 +196,13 @@ export interface NewReihe {
   thema: string;
   lernfeld?: string;
   zeitraum?: string;
+  ziele?: string[];
   leistungsnachweis?: string;
   szenario?: string;
+  handlungssituation?: string;
+  handlungsprodukt?: string;
+  /** Planned lessons in order. Each becomes a row with status "geplant"; date and period may still be empty. */
+  ablauf?: (AblaufSchritt & { datum?: string; stunde?: string })[];
 }
 
 export async function createReihe(klasse: string, fach: string, input: NewReihe): Promise<string> {
@@ -210,40 +215,41 @@ export async function createReihe(klasse: string, fach: string, input: NewReihe)
   const next = Math.max(0, ...existing.map((n) => Number(/^(\d+)\s/.exec(n)?.[1] ?? 0))) + 1;
   const name = `${String(next).padStart(2, "0")} ${thema}`;
   await mkdir(join(dir, name, "Material"), { recursive: true });
-  const oneLine = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim();
+  const ablauf = input.ablauf ?? [];
   await writeFile(
     join(dir, name, "Reihe.md"),
     newReiheMarkdown({
+      ...input,
       thema,
-      lernfeld: oneLine(input.lernfeld),
-      zeitraum: oneLine(input.zeitraum),
-      leistungsnachweis: oneLine(input.leistungsnachweis),
-      szenario: oneLine(input.szenario),
+      ablauf,
+      stunden: ablauf.map((s) => ({ datum: s.datum ?? "", stunde: s.stunde ?? "", thema: s.thema, material: "", status: "geplant" })),
     }),
   );
   return name;
 }
-
 export async function setStunde(
   klasse: string,
   fach: string,
   reihe: string,
-  patch: { datum: string; stunde: string; thema?: string; material?: string; status?: string },
+  patch: { nr?: number; datum?: string; stunde?: string; thema?: string; material?: string; status?: string },
 ): Promise<Stunde[]> {
   if (patch.status && !(STATUS as readonly string[]).includes(patch.status)) {
     throw new UserError(`Der Status muss einer dieser Werte sein: ${STATUS.join(", ")}.`);
   }
-  if (!patch.datum.trim() || !patch.stunde.trim()) throw new UserError("Datum und Stunde müssen angegeben sein.");
   const { dir } = await resolveFach(klasse, fach);
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
   const file = join(dir, r, "Reihe.md");
   const markdown = await readText(file);
-  const stunden = upsertStunde(parseStunden(markdown), patch);
+  const old = parseStunden(markdown);
+  if (patch.nr !== undefined) {
+    if (!Number.isInteger(patch.nr) || patch.nr < 1 || patch.nr > old.length) throw new UserError(`Die Reihe hat ${old.length} Stunden, eine Stunde ${patch.nr} gibt es nicht.`);
+  } else if (!patch.datum?.trim() || !patch.stunde?.trim()) {
+    throw new UserError("Datum und Stunde müssen angegeben sein, oder die Nummer der Stunde in der Reihe.");
+  }
+  const stunden = upsertStunde(old, patch);
   await writeFile(file, writeStunden(markdown, stunden));
   return stunden;
 }
-
-// ---------- "Where is material missing?" ----------
 
 export interface Luecke { klasse: string; fach: string; reihe: string; datum: string; stunde: string; thema: string }
 

@@ -102,12 +102,21 @@ Zeitraum: 12.10. – 04.11.
 Kompetenzen / Ziele: (aus dem Bildungsplan übernommen)
 Leistungsnachweis: Klausur 04.11. (siehe Bewertung.md)
 Szenario: (zum Beispiel das Unternehmen, an dem die Reihe aufgehängt ist)
+Handlungsprodukt: (was am Ende vorliegt)
+
+## Handlungssituation
+(nur wenn die Reihe als Lernsituation geplant wurde: der Text für die Schülerinnen und Schüler)
+
+## Ablauf
+1. Stellenanzeige auswerten (Informieren): Anforderungen markieren. Ergebnis: Liste
+2. Interview (Durchführen): Rollenspiel in Paaren.
 
 ## Stunden
 | Datum | Stunde | Thema | Material | Status |
 |---|---|---|---|---|
 | 12.10. | Mo 1 | Lebenslauf | Arbeitsblatt-Lebenslauf.pdf | gehalten |
 | 14.10. | Mi 3 | Interview | | geplant |
+|  |  | Rückblick | | geplant |
 
 ## Notizen
 (Was gut lief, was angepasst werden muss)
@@ -118,5 +127,6 @@ Szenario: (zum Beispiel das Unternehmen, an dem die Reihe aufgehängt ist)
 - **Lesereihenfolge:** `Klasse.md`, dann `Stand.md`, dann nur bei Bedarf die passende `Reihe.md`.
 - **Aktualisieren:** Nach jeder Arbeitssitzung `Stand.md` kurz und überschreibend neu schreiben, Details in `Reihe.md`.
 - **Status-Wörter fest:** `geplant`, `Material fertig`, `gehalten`. So lassen sich Abfragen zuverlässig beantworten.
+- **Geplante Stunden ohne Termin** haben leere Felder für Datum und Stunde. Der Termin wird später über die Nummer der Zeile eingetragen.
 - **Nichts erfinden:** Fehlt eine Angabe, bleibt das Feld leer, und der Agent fragt nach.
 - **Datenschutz:** In `Stand.md` und `Reihe.md` stehen keine Schülernamen, nur Klassen- und Gruppenbeobachtungen.

@@ -59,17 +59,21 @@ export function writeStunden(markdown: string, stunden: Stunde[]): string {
   return lines.join("\n");
 }
 
-/** Inserts or updates a row, keyed by date and period. Empty fields in `patch` keep the old value. */
-export function upsertStunde(stunden: Stunde[], patch: Partial<Stunde> & Pick<Stunde, "datum" | "stunde">): Stunde[] {
-  const key = (s: { datum: string; stunde: string }) => `${cell(s.datum)}|${cell(s.stunde)}`.toLowerCase();
-  const i = stunden.findIndex((s) => key(s) === key(patch));
-  if (i < 0) {
-    return [...stunden, { thema: "", material: "", status: "geplant", ...patch }];
+/**
+ * Inserts or updates a row. With `nr` (1-based) that row is updated, which is how a planned lesson
+ * without a date gets its date. Otherwise the row is found by date and period.
+ * Empty fields in `patch` keep the old value.
+ */
+export function upsertStunde(stunden: Stunde[], patch: Partial<Stunde> & { nr?: number }): Stunde[] {
+  const key = (s: { datum?: string; stunde?: string }) => `${cell(s.datum ?? "")}|${cell(s.stunde ?? "")}`.toLowerCase();
+  const i = patch.nr !== undefined ? patch.nr - 1 : stunden.findIndex((s) => key(s) === key(patch));
+  if (i < 0 || i >= stunden.length) {
+    return [...stunden, { datum: patch.datum ?? "", stunde: patch.stunde ?? "", thema: patch.thema ?? "", material: patch.material ?? "", status: patch.status || "geplant" }];
   }
   const old = stunden[i]!;
   const merged: Stunde = {
-    datum: old.datum,
-    stunde: old.stunde,
+    datum: patch.datum || old.datum,
+    stunde: patch.stunde || old.stunde,
     thema: patch.thema || old.thema,
     material: patch.material || old.material,
     status: patch.status || old.status,
@@ -77,26 +81,49 @@ export function upsertStunde(stunden: Stunde[], patch: Partial<Stunde> & Pick<St
   return stunden.map((s, j) => (j === i ? merged : s));
 }
 
+export interface AblaufSchritt {
+  thema: string;
+  /** e.g. a phase of the complete action (Informieren, Planen, ...) or any label the teacher uses. */
+  phase?: string;
+  /** What happens in this lesson. */
+  inhalt?: string;
+  /** What the students produce. */
+  produkt?: string;
+}
+
+const line = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim();
+
 export function newReiheMarkdown(f: {
   thema: string;
   lernfeld?: string;
   lehrplan?: string;
   zeitraum?: string;
+  ziele?: string[];
   leistungsnachweis?: string;
   szenario?: string;
+  handlungssituation?: string;
+  handlungsprodukt?: string;
+  ablauf?: AblaufSchritt[];
+  stunden?: Stunde[];
 }): string {
-  return `# Reihe: ${f.thema}
+  const ziele = (f.ziele ?? []).map(line).filter(Boolean);
+  const situation = f.handlungssituation?.trim();
+  const ablauf = (f.ablauf ?? []).map((s, i) => {
+    const extra = [s.inhalt && line(s.inhalt), s.produkt && `Ergebnis: ${line(s.produkt)}`].filter(Boolean).join(" ");
+    return `${i + 1}. ${line(s.thema)}${s.phase ? ` (${line(s.phase)})` : ""}${extra ? `: ${extra}` : ""}`;
+  });
+  return `# Reihe: ${line(f.thema)}
 
-Lernfeld: ${f.lernfeld ?? ""}
-Lehrplan: ${f.lehrplan ?? ""}
-Zeitraum: ${f.zeitraum ?? ""}
-Kompetenzen / Ziele:
-Leistungsnachweis: ${f.leistungsnachweis ?? ""}
-Szenario: ${f.szenario ?? ""}
-
+Lernfeld: ${line(f.lernfeld)}
+Lehrplan: ${line(f.lehrplan)}
+Zeitraum: ${line(f.zeitraum)}
+Kompetenzen / Ziele:${ziele.length ? `\n${ziele.map((z) => `- ${z}`).join("\n")}` : ""}
+Leistungsnachweis: ${line(f.leistungsnachweis)}
+Szenario: ${line(f.szenario)}
+Handlungsprodukt: ${line(f.handlungsprodukt)}
+${situation ? `\n## Handlungssituation\n${situation.replace(/\r?\n/g, "\n").replace(/^#+\s*/gm, "")}\n` : ""}${ablauf.length ? `\n## Ablauf\n${ablauf.join("\n")}\n` : ""}
 ## Stunden
-${HEADER}
-${SEPARATOR}
+${[HEADER, SEPARATOR, ...(f.stunden ?? []).map(row)].join("\n")}
 
 ## Notizen
 `;

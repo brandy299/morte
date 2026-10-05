@@ -1,6 +1,7 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
+import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
 import { readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
@@ -137,21 +138,81 @@ const reiheAnlegen = defineTool({
 const stundeEintragen = defineTool({
   name: "stunde_eintragen",
   label: "Stunde eintragen",
-  description: `Adds or updates one lesson row in a Reihe, found by date and period. Status must be one of: ${STATUS.join(", ")}. Empty fields keep their old value.`,
+  description: `Adds or updates one lesson row in a Reihe. Give nr (1-based row number) to update a planned lesson, e.g. to set its date and period. Without nr, the row is found by date and period, or added. Status must be one of: ${STATUS.join(", ")}. Empty fields keep their old value.`,
   parameters: Type.Object({
     klasse: Type.String(),
     fach: Type.String(),
     reihe: Type.String(),
-    datum: Type.String({ description: "e.g. 14.10." }),
-    stunde: Type.String({ description: "e.g. Mi 3" }),
+    nr: Type.Optional(Type.Number({ description: "Row number in the Reihe, 1-based" })),
+    datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
     thema: Type.Optional(Type.String()),
     material: Type.Optional(Type.String({ description: "File name in the Material folder" })),
     status: Type.Optional(StringEnum([...STATUS])),
   }),
-  ask: (a) => `Darf ich die Stunde am ${a.datum} (${a.stunde}) in ${a.klasse}, ${a.fach} eintragen oder ändern?`,
+  ask: (a) =>
+    a.nr !== undefined
+      ? `Darf ich Stunde ${a.nr} der Reihe ${a.reihe} in ${a.klasse}, ${a.fach} ändern?`
+      : `Darf ich die Stunde am ${a.datum ?? ""} (${a.stunde ?? ""}) in ${a.klasse}, ${a.fach} eintragen oder ändern?`,
   async execute(_id, { klasse, fach, reihe, ...patch }) {
     await setStunde(klasse, fach, reihe, patch);
     return text("Die Stunde ist eingetragen.");
+  },
+});
+
+const lernsituationErstellen = defineTool({
+  name: "lernsituation_erstellen",
+  label: "Lernsituation anlegen",
+  description:
+    "Plans a new series for a class and subject in one step: creates the Reihe with situation, goals and every planned lesson (status geplant) in the lesson table, and builds a print-ready PDF (page 1: the situation for the students, then the plan for the teacher). Use it for a Lernsituation at a Berufskolleg and for any other planned series. Only fill fields the teacher told you or that you wrote yourself as content; leave lernfeld, zeitraum, dates and leistungsnachweis empty when unknown.",
+  parameters: Type.Object({
+    klasse: Type.String(),
+    fach: Type.String(),
+    titel: Type.String({ description: "Short name of the series, becomes the folder name" }),
+    lernfeld: Type.Optional(Type.String({ description: "Only if known, e.g. LF 3 Werteströme erfassen" })),
+    zeitraum: Type.Optional(Type.String()),
+    handlungssituation: Type.String({ description: "The situation, written for the students. Paragraphs separated by a blank line" }),
+    auftrag: Type.Optional(Type.String({ description: "The task for the students that follows from the situation" })),
+    handlungsprodukt: Type.Optional(Type.String({ description: "What the students produce or present at the end" })),
+    ziele: Type.Optional(Type.Array(Type.String(), { description: "Goals or competences, short, at most 10" })),
+    leistungsnachweis: Type.Optional(Type.String()),
+    ablauf: Type.Array(
+      Type.Object({
+        thema: Type.String({ description: "Topic of the lesson, short" }),
+        phase: Type.Optional(Type.String({ description: "e.g. Informieren, Planen, Durchführen" })),
+        inhalt: Type.Optional(Type.String({ description: "What happens, one or two sentences" })),
+        produkt: Type.Optional(Type.String({ description: "What the students produce in this lesson" })),
+        datum: Type.Optional(Type.String()),
+        stunde: Type.Optional(Type.String()),
+      }),
+      { description: "Planned lessons in order, 1 to 40" },
+    ),
+  }),
+  ask: (a) => `Darf ich in ${a.klasse}, ${a.fach} die neue Reihe „${a.titel}“ mit ${(a.ablauf ?? []).length} geplanten Stunden anlegen und das Blatt dazu erstellen?`,
+  async execute(_id, { klasse, fach, ...content }) {
+    const plan = parseLernsituation({
+      ...content,
+      fach,
+      klasse,
+      fuss: (await hasLehrplan(klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
+    });
+    // Render first: if the content is broken, no half-made Reihe stays behind.
+    const { pdf, pages } = await renderLernsituation(plan);
+    const reihe = await createReihe(klasse, fach, {
+      thema: plan.titel,
+      lernfeld: plan.lernfeld,
+      zeitraum: plan.zeitraum,
+      ziele: plan.ziele,
+      leistungsnachweis: plan.leistungsnachweis,
+      handlungssituation: [plan.handlungssituation, plan.auftrag && `Auftrag: ${plan.auftrag}`].filter(Boolean).join("\n\n"),
+      handlungsprodukt: plan.handlungsprodukt,
+      ablauf: plan.ablauf,
+    });
+    const saved = await saveMaterial(pdf, { art: "Lernsituation", titel: plan.titel, klasse, fach, reihe });
+    return {
+      content: [{ type: "text" as const, text: `Die Reihe „${reihe}“ ist angelegt, mit ${plan.ablauf.length} geplanten Stunden. Das Blatt zur Lernsituation hat ${pages} Seiten und ist in der Vorschau zu sehen.` }],
+      details: { material: { title: plan.titel, name: saved.name, path: saved.path } },
+    };
   },
 });
 
@@ -345,7 +406,7 @@ const klausurErstellen = defineTool({
 });
 
 export const tools: TeacherTool[] = [
-  arbeitsblattErstellen, klausurErstellen, bewertungLesen, bewertungSpeichern,
+  arbeitsblattErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

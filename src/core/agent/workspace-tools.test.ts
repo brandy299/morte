@@ -192,3 +192,68 @@ describe("worksheet tool", () => {
     expect(events.some((e) => e.type === "material")).toBe(false);
   });
 });
+
+describe("lernsituation tool", () => {
+  it("creates the Reihe with all planned lessons after one question, and the plan works with the other tools", async () => {
+    const yes = (s: ReturnType<typeof session>, events: ChatEvent[] = []) => (e: ChatEvent) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    };
+    const s = session([
+      fauxAssistantMessage(
+        [
+          fauxToolCall("lernsituation_erstellen", {
+            klasse: "11a", fach: "Business English", titel: "Bewerbung", lernfeld: "LF 3",
+            handlungssituation: "Die Nordlicht GmbH sucht eine Assistenz.\n\nIhr bewerbt euch.",
+            auftrag: "Erstellt eine Bewerbung.",
+            ziele: ["Anzeigen verstehen", "CV schreiben"],
+            ablauf: [
+              { thema: "Stellenanzeige", phase: "Informieren", inhalt: "Anforderungen markieren.", datum: "12.10.", stunde: "Mo 1" },
+              { thema: "Lebenslauf", phase: "Planen", produkt: "Entwurf CV" },
+              { thema: "Anschreiben", phase: "Durchführen" },
+            ],
+          }),
+        ],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxToolCall("material_luecken", { klasse: "11a" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("stunde_eintragen", { klasse: "11a", fach: "Business English", reihe: "Bewerbung", nr: 2, datum: "14.10.", stunde: "Mi 3" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Plan mir eine Lernsituation Bewerbung", yes(s, events));
+
+    expect(events.filter((e) => e.type === "confirm")).toHaveLength(2); // one for the whole plan, one for the date
+    expect(events.find((e) => e.type === "material")).toMatchObject({ title: "Bewerbung", path: expect.stringMatching(/01 Bewerbung\/Material\/.*Lernsituation-Bewerbung\.pdf$/) });
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("Lernfeld: LF 3");
+    expect(md).toContain("- CV schreiben");
+    expect(md).toContain("## Handlungssituation\nDie Nordlicht GmbH sucht eine Assistenz.\n\nIhr bewerbt euch.\n\nAuftrag: Erstellt eine Bewerbung.");
+    expect(md).toContain("2. Lebenslauf (Planen): Ergebnis: Entwurf CV");
+    expect(md).toContain("| 12.10. | Mo 1 | Stellenanzeige |  | geplant |");
+    expect(md).toContain("| 14.10. | Mi 3 | Lebenslauf |  | geplant |");
+    expect(md).toContain("|  |  | Anschreiben |  | geplant |");
+    const gaps = events.filter((e) => e.type === "step_end");
+    expect(gaps.every((e) => e.type === "step_end" && e.ok)).toBe(true);
+  });
+
+  it("refuses a second Reihe with the same name and leaves the first one alone", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const s = session([
+      fauxAssistantMessage(
+        [fauxToolCall("lernsituation_erstellen", { klasse: "11a", fach: "Business English", titel: "Bewerbung", handlungssituation: "x", ablauf: [{ thema: "a" }] })],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxText("ok")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Lernsituation", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    expect(events.find((e) => e.type === "step_end")).toMatchObject({ ok: false });
+    expect(events.some((e) => e.type === "material")).toBe(false);
+    expect(await readReihe("11a", "Business English", "Bewerbung")).not.toContain("## Handlungssituation");
+  });
+});
+

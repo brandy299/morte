@@ -83,7 +83,7 @@ Was die Schulformen für die Skills verändert:
 | Skill | Vorbild | Neu für Deutschland/Berufskolleg |
 |---|---|---|
 | Unterrichtsstunde planen | lesson-plan-creation | Verlaufsplan, Phasen, Handlungsorientierung, Bezug Lernfeld |
-| Lernsituation / Reihe planen | (keins) | Handlungssituation, Lernfeldbezug, Stundentabelle in `Reihe.md` |
+| Lernsituation / Reihe planen | (keins) | Handlungssituation, Lernfeldbezug, Stundentabelle in `Reihe.md`. Legt Reihe und alle Stunden mit einer Rückfrage an, Blatt mit Schülerseite und Planung. Fertig |
 | Arbeitsblatt | Teile aus lesson-plan-creation | Graustufen, wenige Seiten, Operatoren |
 | Klausur mit Erwartungshorizont | (keins) | Bereiche und Notenschlüssel stammen von der Lehrkraft (`Bewertung.md`, Entscheidung 003), Punkte und Grenzen rechnet das Programm. Fertig |
 | Bewertungsregeln festhalten | (keins) | Ablauf-Skill: Bereiche und Notenschlüssel im Gespräch eintragen. Fertig |
