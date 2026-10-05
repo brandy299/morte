@@ -1,5 +1,6 @@
 ---
 name: differenzieren
+title: Differenzieren
 description: Macht aus einem Arbeitsblatt oder einer Aufgabenidee drei Fassungen auf unterschiedlichen Niveaus (Basis, Standard, Erweiterung) mit gleichem Kerninhalt, jeweils als druckfertiges Blatt mit Lösungen für die Lehrkraft. Nutze es bei Wünschen wie "differenzieren", "leichtere Version", "für schwächere Schüler", "Zusatzaufgaben für Schnelle", "in drei Niveaus", "Sprachförderung", "Grund- und Erweiterungskurs". Nicht für ein neues Blatt von Grund auf (dafür Arbeitsblatt) und nicht für Klausuren.
 ---
 

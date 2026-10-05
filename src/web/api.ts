@@ -223,3 +223,9 @@ export async function legeAb(l: { klasse: string; fach: string; datum: string; v
   const res = await fetch("/api/woche/ablegen", { method: "POST", body: form });
   return res.ok ? res.json() : { error: await errorOf(res) };
 }
+
+// ---------- Vorlagen ----------
+
+export interface VorlageInfo { name: string; titel: string; beschreibung: string; eigene: boolean }
+export const getVorlagen = async (): Promise<VorlageInfo[]> => (await (await fetch("/api/vorlagen")).json()).vorlagen;
+export const entferneVorlage = (name: string) => fetch(`/api/vorlagen/${encodeURIComponent(name)}`, { method: "DELETE" });

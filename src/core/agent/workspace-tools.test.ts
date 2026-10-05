@@ -138,7 +138,7 @@ describe("worksheet tool", () => {
       if (e.type === "confirm") s.answer(e.id, true);
     });
     const materials = events.filter((e) => e.type === "material") as { title: string; path: string }[];
-    expect(materials.map((m) => m.title)).toEqual(["Interview Basics", "Interview Basics (Lösung)", "Interview Basics", "Interview Basics (Lösung)"]);
+    expect(materials.map((m) => m.title)).toEqual(["Interview Basics · Basis", "Interview Basics · Basis (Lösung)", "Interview Basics · Erweiterung", "Interview Basics · Erweiterung (Lösung)"]);
     const md = await readReihe("11a", "Business English", "Bewerbung");
     expect(md).toContain("Arbeitsblatt-Interview-Basics-Basis.pdf, ");
     expect(md).toContain("Arbeitsblatt-Interview-Basics-Erweiterung.pdf");

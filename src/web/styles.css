@@ -357,6 +357,11 @@ button:disabled { cursor: default; }
 .guess { font-size: 12.5px; font-weight: 600; color: var(--accent); white-space: nowrap; }
 @media (max-width: 700px) { .assign li { grid-template-columns: 1fr; } }
 
+/* Vorlagen */
+.group { font-family: var(--serif); font-weight: 400; font-size: 21px; margin: 18px 0 0; }
+.make-template { margin-top: 10px; padding: 6px 2px; border: 0; background: none; color: var(--accent); font-family: var(--sans); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--accent-wash); }
+.make-template:hover { text-decoration-color: var(--accent); }
+
 /* ---------- Motion ----------
    Calm and short. Things rise a few pixels and fade in, a finished step pops once, and the brand mark nods when you hover it.
    Everything stops for people who ask their system for less motion. */

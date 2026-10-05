@@ -4,6 +4,7 @@ import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, get
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
+import { Vorlagen } from "./Vorlagen.tsx";
 import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
@@ -32,6 +33,7 @@ export function App() {
   const [newClassOpen, setNewClassOpen] = useState(false);
   const [lehrplanOpen, setLehrplanOpen] = useState(false);
   const [stundenplanOpen, setStundenplanOpen] = useState(false);
+  const [vorlagenOpen, setVorlagenOpen] = useState(false);
   // Which screen the chat area starts with: the week when a timetable exists, otherwise the chat.
   const [startView, setStartView] = useState<"chat" | "start" | null>(null);
   const [planVersion, setPlanVersion] = useState(0);
@@ -47,10 +49,10 @@ export function App() {
       })
       .catch(() => {});
   // A new key rebuilds the chat, with the messages of the conversation that was opened (or none).
-  const [chat, setChat] = useState<{ key: number; messages: Message[] }>({ key: 0, messages: [] });
-  const show = (anzeige: StoredMessage[]) => {
+  const [chat, setChat] = useState<{ key: number; messages: Message[]; startText?: string }>({ key: 0, messages: [] });
+  const show = (anzeige: StoredMessage[], startText?: string) => {
     setStartView("chat");
-    setChat((c) => ({ key: c.key + 1, messages: anzeige.map((m) => ({ ...m, materials: m.materials })) }));
+    setChat((c) => ({ key: c.key + 1, startText, messages: anzeige.map((m) => ({ ...m, materials: m.materials })) }));
   };
   const open = async (id: string) => {
     const result = await openHistory(id);
@@ -90,7 +92,7 @@ export function App() {
       />
     );
   }
-  const overlay = setupOpen || newClassOpen || lehrplanOpen || stundenplanOpen;
+  const overlay = setupOpen || newClassOpen || lehrplanOpen || stundenplanOpen || vorlagenOpen;
   return (
     <>
       <div className="chat-layer" hidden={overlay}>
@@ -109,6 +111,8 @@ export function App() {
           onDelete={remove}
           onNew={() => show([])}
           onNewClass={() => setNewClassOpen(true)}
+          startText={chat.startText}
+          onVorlagen={() => setVorlagenOpen(true)}
           onLehrplan={() => setLehrplanOpen(true)}
           onSettings={() => setSetupOpen(true)}
         />
@@ -132,6 +136,17 @@ export function App() {
             setStundenplanOpen(false);
             setPlanVersion((v) => v + 1);
             void refreshTree();
+          }}
+        />
+      )}
+      {vorlagenOpen && (
+        <Vorlagen
+          onClose={() => setVorlagenOpen(false)}
+          onBuild={async () => {
+            // A fresh conversation, in which the assistant starts guiding right away.
+            await resetChat();
+            setVorlagenOpen(false);
+            show([], "Ich möchte eine eigene Vorlage bauen.");
           }}
         />
       )}
@@ -172,12 +187,15 @@ interface ChatProps {
   refreshTree: () => void;
   onNewClass: () => void;
   onLehrplan: () => void;
+  onVorlagen: () => void;
+  /** Sent as the first message when the conversation opens, e.g. to start the template builder. */
+  startText?: string;
   onSettings: () => void;
 }
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
-function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onSettings }: ChatProps) {
+function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [view, setView] = useState<"chat" | "start">(initialView);
   const [input, setInput] = useState("");
@@ -310,6 +328,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   };
 
   /** Puts a question into the input field and shows the chat, so the teacher can read it and send it. */
+  const started = useRef(false);
+  useEffect(() => {
+    if (startText && !started.current) {
+      started.current = true;
+      void submit(startText);
+    }
+    // Only once when the conversation opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const ask = (text: string) => {
     setInput(text);
     setView("chat");
@@ -420,6 +448,13 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         </nav>
         </div>
         <div className="side-foot">
+          <button type="button" className="foot-btn" onClick={onVorlagen}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="4" y="3" width="16" height="18" rx="2.5" />
+              <path d="M8 8h8M8 12h8M8 16h5" />
+            </svg>
+            Vorlagen
+          </button>
           <button type="button" className="foot-btn" onClick={onLehrplan}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M4 5.5A2.5 2.5 0 016.5 3H20v16H6.5A2.5 2.5 0 004 21.5z" />
@@ -500,6 +535,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                     </span>
                   </button>
                 ))}
+                {m.role === "assistant" && (m.materials?.length ?? 0) > 0 && !working && i === messages.length - 1 && (
+                  <button type="button" className="make-template" onClick={() => void submit("Ich möchte aus diesem Ergebnis eine eigene Vorlage machen.")}>
+                    Daraus eine Vorlage machen
+                  </button>
+                )}
                 {m.confirm && (
                   <div className="confirm" role="alertdialog" aria-label="Rückfrage">
                     <p>{m.confirm.question}</p>

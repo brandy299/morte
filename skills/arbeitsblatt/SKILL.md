@@ -1,5 +1,6 @@
 ---
 name: arbeitsblatt
+title: Arbeitsblatt
 description: Erstellt ein druckfertiges Arbeitsblatt als PDF (Graustufen, kurz) zu einem Thema für eine Klasse oder einen Kurs. Nutze es bei Wünschen wie "Arbeitsblatt", "Übungsblatt", "Aufgabenblatt", "Material für die Stunde", "ein Blatt zum Thema ...". Nicht für Klausuren und Tests mit Bewertung, nicht für kurze Verständnis-Checks (dafür Verständnis-Check), nicht für mehrere Niveaus eines Blattes (dafür Differenzieren), nicht für die Planung einer ganzen Stunde oder Reihe und nicht für Präsentationen.
 ---
 

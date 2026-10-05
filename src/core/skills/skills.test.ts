@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { listSkills, loadSkill, parseSkillFile, readSkillFile, SkillError } from "./index.ts";
+import { checkVorlage, deleteVorlage, readVorlage, saveVorlage, vorlagenName } from "./personal.ts";
 
 let bundled: string;
 let home: string;
@@ -75,5 +76,48 @@ describe("bundled skills", () => {
     expect(problems).toEqual([]);
     expect(skills.map((s) => s.name)).toContain("arbeitsblatt");
     for (const s of skills) expect(s.description).toMatch(/[Nn]icht für/);
+  });
+});
+
+describe("personal templates", () => {
+  const draft = {
+    titel: "Vokabeltest für die 11a",
+    beschreibung: "Erstellt einen kurzen Vokabeltest mit Lösungsblatt im Aufbau unserer Fachschaft. Nutze es bei Wünschen wie „Vokabeltest“ oder „Vokabeln abfragen“. Nicht für Klausuren.",
+    anleitung: "# Vokabeltest\n\n1. Frag nach der Unit und der Anzahl der Wörter, höchstens zwei Rückfragen.\n2. Schreibe zehn Aufgaben: fünf Übersetzungen, drei Lückensätze, zwei Zuordnungen.\n3. Erstelle den Test mit `arbeitsblatt_erstellen` und gib bei jeder Aufgabe die Lösung an.\n4. Sag in einem Satz, was die Lehrkraft bekommt.\nDie Aufgaben gehen von leicht nach schwer und passen auf eine Seite.",
+  };
+  const tools = ["arbeitsblatt_erstellen", "skill_laden"];
+
+  it("makes a safe name from a title with umlauts", () => {
+    expect(vorlagenName("Vokabeltest für die 11a!")).toBe("vokabeltest-fuer-die-11a");
+    expect(vorlagenName("***")).toBe("");
+  });
+
+  it("saves a good template that is found and loaded like any other, and can be changed and deleted", async () => {
+    expect(await saveVorlage(draft, tools)).toEqual({ name: "vokabeltest-fuer-die-11a", art: "neu" });
+    const found = (await listSkills()).skills.find((s) => s.name === "vokabeltest-fuer-die-11a");
+    expect(found).toMatchObject({ level: "persönlich", description: expect.stringContaining("Nicht für Klausuren") });
+    expect((await loadSkill("vokabeltest-fuer-die-11a")).body).toContain("Schreibe zehn Aufgaben");
+    expect((await saveVorlage({ ...draft, anleitung: `${draft.anleitung}\nNeue Regel.` }, tools)).art).toBe("geaendert");
+    expect(await readVorlage("vokabeltest-fuer-die-11a")).toContain("Neue Regel.");
+    expect(await readVorlage("Vokabeltest für die 11a")).toContain("Neue Regel."); // the title works as well as the name
+    await deleteVorlage("vokabeltest-fuer-die-11a");
+    expect((await listSkills()).skills.find((s) => s.name === "vokabeltest-fuer-die-11a")).toBeUndefined();
+  });
+
+  it("names every rule that is broken, in plain words", async () => {
+    const problems = checkVorlage({ titel: "x", beschreibung: "Zu kurz", anleitung: "Kurz. Nutze `gibt_es_nicht`." }, tools);
+    expect(problems.join(" ")).toMatch(/Beschreibung ist zu kurz/);
+    expect(problems.join(" ")).toMatch(/Anleitung ist zu kurz/);
+    expect(problems.join(" ")).toMatch(/gibt_es_nicht/);
+    await expect(saveVorlage({ ...draft, beschreibung: draft.beschreibung.replace("Nicht für Klausuren.", "") }, tools)).rejects.toThrow(/wofür die Vorlage nicht gedacht ist/);
+  });
+
+  it("only deletes the teacher's own templates, and a copy of a bundled one gives way again", async () => {
+    await skill(bundled, "arbeitsblatt");
+    await expect(deleteVorlage("arbeitsblatt")).rejects.toThrow(/nicht deine eigene/);
+    expect((await saveVorlage({ ...draft, titel: "arbeitsblatt" }, tools)).art).toBe("ersetzt-mitgelieferte");
+    expect((await listSkills()).skills.find((s) => s.name === "arbeitsblatt")?.level).toBe("persönlich");
+    await deleteVorlage("arbeitsblatt");
+    expect((await listSkills()).skills.find((s) => s.name === "arbeitsblatt")?.level).toBe("mitgeliefert");
   });
 });

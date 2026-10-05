@@ -1,5 +1,6 @@
 ---
 name: bewertung
+title: Bewertungsregeln festhalten
 description: Hält die eigenen Bewertungsregeln einer Lehrkraft fest, nämlich Anforderungsbereiche (so wie die Schule sie nennt) und Notenschlüssel, damit sie bei jeder Klausur automatisch genutzt werden. Nutze es bei Wünschen wie "Notenschlüssel eintragen", "Bewertungsraster festlegen", "Anforderungsbereiche hinterlegen", "so bewerten wir bei uns", "Punkte in Noten umrechnen". Nicht für das Erstellen einer Klausur selbst (dafür Klausur) und nicht für das Bewerten einzelner Arbeiten.
 ---
 

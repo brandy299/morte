@@ -8,6 +8,7 @@ import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewe
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
 import { readMaterialText } from "../material/read.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
+import { deleteVorlage, readVorlage, saveVorlage } from "../skills/personal.ts";
 import {
   attachMaterial, notePlannedLesson, UserError, createReihe, hasLehrplan, listMaterial, listTree, materialDatei, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
@@ -314,6 +315,7 @@ const arbeitsblattErstellen = defineTool({
     });
     const where = { klasse: content.klasse, fach: content.fach, reihe, datum, stunde };
     const label = sheet.niveau ? `${sheet.titel}-${sheet.niveau}` : sheet.titel;
+    const shown = sheet.niveau ? `${sheet.titel} · ${sheet.niveau}` : sheet.titel;
     const { pdf, pages } = await renderArbeitsblatt(sheet);
     const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: label, ...where });
     const key = hasLoesungen(sheet) ? await renderArbeitsblatt(sheet, { lehrerexemplar: true }) : undefined;
@@ -322,11 +324,11 @@ const arbeitsblattErstellen = defineTool({
       ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: sheet.titel }, saved.name, { append: true })
       : "fehlt klasse, fach, reihe oder datum";
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft eine Seite wollte oder sich etwas kürzen lässt, erstelle es kürzer neu." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft wenige Seiten wollte, kürze zuerst Schreibzeilen, Tipps und die Einleitung. Streiche nie Aufgaben, die die Lehrkraft ausdrücklich verlangt hat. Passt es dann nicht, sag es ehrlich." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: {
         materials: [
-          { title: sheet.titel, name: saved.name, path: saved.path },
-          ...(savedKey ? [{ title: `${sheet.titel} (Lösung)`, name: savedKey.name, path: savedKey.path }] : []),
+          { title: shown, name: saved.name, path: saved.path },
+          ...(savedKey ? [{ title: `${shown} (Lösung)`, name: savedKey.name, path: savedKey.path }] : []),
         ],
       },
     };
@@ -388,6 +390,46 @@ const stundenverlaufErstellen = defineTool({
       content: [{ type: "text" as const, text: `Die Stundenplanung ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen. ${note}` }],
       details: { material: { title: plan.titel, name: saved.name, path: saved.path } },
     };
+  },
+});
+
+const vorlageSpeichern = defineTool({
+  name: "vorlage_speichern",
+  label: "Vorlage speichern",
+  description:
+    "Saves a template (personal skill) of the teacher, or changes one that exists. The instructions are checked first and every problem is returned in plain words: fix them and call again. Afterwards the template can be loaded with skill_laden under the returned name and used right away to test it.",
+  parameters: Type.Object({
+    titel: Type.String({ description: "Short name in plain words, e.g. Vokabeltest 11a" }),
+    beschreibung: Type.String({ description: "One line: what it does, with which requests it applies (words teachers use), and 'Nicht für ...' for what it is not for" }),
+    anleitung: Type.String({ description: "The instructions as Markdown: steps, rules, what to ask, what the result looks like" }),
+  }),
+  ask: (a) => `Darf ich die Vorlage „${a.titel}“ speichern?`,
+  async execute(_id, args) {
+    const saved = await saveVorlage(args, tools.map((t) => t.name));
+    const how = { neu: "Die Vorlage ist neu angelegt.", geaendert: "Die Vorlage wurde geändert.", "ersetzt-mitgelieferte": "Die Vorlage ersetzt eine mitgelieferte mit demselben Namen. Löscht die Lehrkraft sie, gilt wieder die mitgelieferte." }[saved.art];
+    return text(`${how} Für den Probelauf: lade sie jetzt mit skill_laden (Name: ${saved.name}) und folge ihr genau.`);
+  },
+});
+
+const vorlageLesen = defineTool({
+  name: "vorlage_lesen",
+  label: "Vorlage nachlesen",
+  description: "Reads the full text of a template (name as in the list of instructions), e.g. to improve it after a test run.",
+  parameters: Type.Object({ name: Type.String() }),
+  async execute(_id, { name }) {
+    return text(await readVorlage(name));
+  },
+});
+
+const vorlageEntfernen = defineTool({
+  name: "vorlage_entfernen",
+  label: "Vorlage löschen",
+  description: "Deletes one of the teacher's own templates. Bundled templates cannot be deleted.",
+  parameters: Type.Object({ name: Type.String() }),
+  ask: (a) => `Darf ich deine Vorlage „${a.name}“ löschen?`,
+  async execute(_id, { name }) {
+    await deleteVorlage(name);
+    return text("Die Vorlage ist gelöscht.");
   },
 });
 
@@ -556,6 +598,6 @@ const lehrplanSuchen = defineTool({
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
   arbeitsblattErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
-  skillLaden, skillDateiLesen,
+  skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

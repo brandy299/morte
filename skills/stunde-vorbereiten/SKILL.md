@@ -1,5 +1,6 @@
 ---
 name: stunde-vorbereiten
+title: Stunde vorbereiten
 description: Bereitet eine bereits geplante Stunde vor: sagt kurz, wo die Klasse steht, was heute dran ist, welches Material fertig ist und was noch fehlt, und gibt eine knappe Vorbereitungsnotiz mit den wichtigsten Punkten. Nutze es bei Wünschen wie "Stunde vorbereiten", "was steht morgen an", "Vorbereitung für die 11a", "was muss ich für Mittwoch noch machen", "kurzer Überblick vor der Stunde". Nicht für das Planen einer neuen Stunde (dafür Stunde planen) und nicht für das Erstellen von Material.
 ---
 

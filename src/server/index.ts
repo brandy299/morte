@@ -9,6 +9,7 @@ import { createClass, initWorkspace, listTree, materialFile, materialInline, mat
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
+import { vorlagenRoutes } from "./vorlagen.ts";
 import { lehrplanRoutes } from "./lehrplan.ts";
 import { stundenplanRoutes } from "./stundenplan.ts";
 import { keyName, type AppState } from "./state.ts";
@@ -224,6 +225,7 @@ export function createApp(state: AppState) {
 
   lehrplanRoutes(app, state);
   stundenplanRoutes(app, state);
+  vorlagenRoutes(app);
 
   return app;
 }

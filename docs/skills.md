@@ -116,6 +116,10 @@ Ziel: Eine Lehrkraft ohne Technikkenntnisse baut in zehn Minuten einen eigenen S
 - Er prüft jeden neuen Skill gegen eine Checkliste: Beschreibung nennt Zweck und Auslöser, keine Schülerdaten, keine widersprüchlichen Regeln, Layout über Vorlage statt Prosa.
 - Später (optional): kleine Testfälle pro Skill, die bei Modellwechsel zeigen, ob der Skill noch gut funktioniert.
 
+### Stand der Umsetzung
+
+Der Skill-Builder steht: Skill `vorlage-bauen` führt durch die Fragen, `vorlage_speichern` prüft die Prüfliste (Beschreibung nennt Zweck und Abgrenzung, Anleitung hat Schritte, nennt nur vorhandene Werkzeuge, keine Namen von Lernenden) und legt die Vorlage unter `Skills/<name>/SKILL.md` im Datenordner ab. Der Probelauf lädt die neue Vorlage sofort. Nachschärfen geht über `vorlage_lesen` und erneutes Speichern. Eine neue Vorlage greift von selbst ab dem nächsten neuen Gespräch. Offen: Beispiel als PDF oder Word (bisher nur als Foto), Schul-Ebene, Teilen unter Kolleginnen und Kollegen.
+
 ## Qualitätsprüfung (nach Vorbild der k12-Evals)
 
 Anthropic prüft die k12-Skills mit Kriterienlisten, die ein KI-Modell als Prüfer abarbeitet. Jedes Kriterium wird einzeln mit bestanden oder nicht bestanden bewertet. Das übernehmen wir:
@@ -128,6 +132,6 @@ Anthropic prüft die k12-Skills mit Kriterienlisten, die ein KI-Modell als Prüf
 
 ## Offene Fragen
 
-- Welches Wort sehen Lehrkräfte in der Oberfläche: "Vorlage", "Fähigkeit" oder "Skill"?
+- Wort in der Oberfläche: vorerst "Vorlage" (Seite "Vorlagen", Skill `vorlage-bauen`). Mit Lehrkräften prüfen.
 - Wie werden Skills geteilt (Datei exportieren, Schulordner, später ein Katalog)?
 - Sollen persönliche Skills beim Update eines mitgelieferten Skills einen Hinweis bekommen?

@@ -1,5 +1,6 @@
 ---
 name: verstaendnis-check
+title: Verständnis-Check
 description: Erstellt einen kurzen Verständnis-Check (drei bis sechs Fragen, etwa fünf Minuten, zum Beispiel am Ende der Stunde) als druckfertiges Blatt mit Lösungen und typischen Fehlvorstellungen für die Lehrkraft. Nutze es bei Wünschen wie "Verständnis-Check", "Exit Ticket", "kurzer Test am Ende", "Blitzabfrage", "Lernstandskontrolle", "Quiz zum Thema", "Multiple Choice". Nicht für benotete Klausuren (dafür Klausur) und nicht für ein Übungsblatt mit vielen Aufgaben (dafür Arbeitsblatt).
 ---
 

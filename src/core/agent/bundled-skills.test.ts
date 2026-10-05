@@ -11,7 +11,7 @@ describe("bundled skills", () => {
     const { skills, problems } = await listSkills();
     expect(problems).toEqual([]);
     expect(skills.filter((s) => s.level === "mitgeliefert").map((s) => s.name).sort()).toEqual(
-      ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check"],
+      ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"],
     );
   });
 

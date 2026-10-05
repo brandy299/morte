@@ -1,5 +1,6 @@
 ---
 name: lernsituation
+title: Lernsituation planen
 description: Plant eine Lernsituation oder Unterrichtsreihe über mehrere Stunden für eine Klasse und legt sie im Arbeitsordner an, mit Handlungssituation, Zielen und allen Stunden in der Stundentabelle, dazu ein druckfertiges Blatt (Seite 1 für die Schülerinnen und Schüler, danach die Planung). Nutze es bei Wünschen wie "Lernsituation", "Reihe planen", "Unterrichtseinheit", "Sequenz", "mehrere Stunden zu einem Thema", "Lernfeld umsetzen". Nicht für eine einzelne Stunde, nicht für Arbeitsblätter oder Klausuren (dafür gibt es eigene Anleitungen) und nicht für eine schon angelegte Reihe, die nur ergänzt werden soll.
 ---
 

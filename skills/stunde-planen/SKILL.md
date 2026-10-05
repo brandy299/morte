@@ -1,5 +1,6 @@
 ---
 name: stunde-planen
+title: Stunde planen
 description: Plant eine einzelne Unterrichtsstunde mit Lernzielen, Phasen mit Minuten, Sozialformen und Material und erzeugt daraus eine druckfertige Seite für die Lehrkraft (Stundenverlauf). Nutze es bei Wünschen wie "Stunde planen", "Verlaufsplan", "Stundenentwurf", "wie baue ich die Stunde am Mittwoch auf", "Stundenablauf", "Doppelstunde planen". Nicht für mehrere Stunden oder eine ganze Reihe (dafür Lernsituation), nicht für Schülermaterial wie Arbeitsblätter und nicht für das Durchsehen einer schon geplanten Stunde (dafür Stunde vorbereiten).
 ---
 
