@@ -19,9 +19,21 @@ interface Pending {
 
 /** Files that were checked and wait for the teacher to say "Umwandeln". They live in memory for 30 minutes. */
 const pending = new Map<string, Pending>();
+const MAX_PENDING_BYTES = 150 * 1024 * 1024;
+
+/** Drops expired files, and the oldest ones while the waiting files together are too big. */
+function tidyPending() {
+  for (const [k, v] of pending) if (v.expires < Date.now()) pending.delete(k);
+  let total = [...pending.values()].reduce((n, p) => n + p.buffer.length, 0);
+  for (const [k, v] of pending) {
+    if (total <= MAX_PENDING_BYTES) break;
+    pending.delete(k);
+    total -= v.buffer.length;
+  }
+}
 
 function takePending(token: string): Pending | undefined {
-  for (const [k, v] of pending) if (v.expires < Date.now()) pending.delete(k);
+  tidyPending();
   return pending.get(token);
 }
 
@@ -52,14 +64,27 @@ export function lehrplanRoutes(app: Hono, state: AppState) {
     if (!isPdf && !/\.(md|markdown|txt)$/i.test(file.name)) return c.json({ error: "Ich kann PDF-Dateien und Textdateien (.md, .txt) lesen." }, 400);
     if (!isPdf && buffer.length > MAX_TEXT) return c.json({ error: "Die Textdatei ist zu groß." }, 413);
     const token = randomUUID();
+    tidyPending();
     pending.set(token, { fileName: file.name, buffer, kind: isPdf ? "pdf" : "text", expires: Date.now() + 30 * 60_000 });
-    if (!isPdf) return c.json({ token, dateiname: file.name, art: "text", zeichen: buffer.toString("utf8").length });
+    if (!isPdf) {
+      const chars = buffer.toString("utf8").trim().length;
+      if (chars < 20) {
+        pending.delete(token);
+        return c.json({ error: "In dieser Datei steht (fast) kein Text." }, 400);
+      }
+      return c.json({ token, dateiname: file.name, art: "text", zeichen: chars });
+    }
 
     let pdf: PdfFile | undefined;
     try {
       pdf = await readPdf(buffer);
       const e = estimate(pdf);
-      const price = state.choice && state.choice.provider !== "demo" ? await completer(state).then((x) => x.price).catch(() => undefined) : undefined;
+      const model = state.choice && state.choice.provider !== "demo" ? await completer(state).catch(() => undefined) : undefined;
+      if (model && e.scanned > 0 && !model.vision) {
+        pending.delete(token);
+        return c.json({ error: `${e.scanned} Seiten bestehen nur aus Bildern, und das gewählte Modell kann keine Bilder lesen. Wähle in den Einstellungen ein Modell mit Bildern.` }, 400);
+      }
+      const price = model?.price;
       const kostenUsd = price ? (e.inputTokens * price.input + e.outputTokens * price.output) / 1_000_000 : undefined;
       return c.json({ token, dateiname: file.name, art: "pdf", seiten: e.pages, bilder: e.scanned, anfragen: e.requests, kostenUsd, minuten: Math.max(1, Math.round((e.requests * 20) / 60)) });
     } catch (err) {
@@ -76,19 +101,21 @@ export function lehrplanRoutes(app: Hono, state: AppState) {
     const item = takePending(token);
     if (!item) return c.json({ error: "Die Datei ist nicht mehr da. Bitte wähle sie noch einmal aus." }, 404);
     if (converting) return c.json({ error: "Ich wandle gerade schon einen Lehrplan um." }, 409);
-    if (!name?.trim()) return c.json({ error: "Bitte gib dem Lehrplan einen Namen." }, 400);
-    if (!ersetzen && (await listLehrplaene()).some((l) => l.hasPlan && l.name.toLowerCase() === name.trim().toLowerCase())) {
-      return c.json({ error: `Für „${name.trim()}“ gibt es schon einen Lehrplan.`, existiert: true }, 409);
-    }
+    converting = true; // set at once: everything below waits, and a second request must not slip in
+    const refuse = (body: object, status: 400 | 409) => {
+      converting = false;
+      return c.json(body, status);
+    };
+    if (!name?.trim()) return refuse({ error: "Bitte gib dem Lehrplan einen Namen." }, 400);
     let ask;
-    if (item.kind === "pdf") {
-      try {
-        ask = (await completer(state)).complete;
-      } catch (err) {
-        return c.json({ error: err instanceof UserError ? err.message : "Die KI ist nicht eingerichtet." }, 409);
+    try {
+      if (!ersetzen && (await listLehrplaene()).some((l) => l.hasPlan && l.name.toLowerCase() === name.trim().toLowerCase())) {
+        return refuse({ error: `Für „${name.trim()}“ gibt es schon einen Lehrplan.`, existiert: true }, 409);
       }
+      if (item.kind === "pdf") ask = (await completer(state)).complete;
+    } catch (err) {
+      return refuse({ error: err instanceof UserError ? err.message : "Das hat nicht geklappt. Bitte versuche es noch einmal." }, 409);
     }
-    converting = true;
     return streamSSE(c, async (stream) => {
       const controller = new AbortController();
       stream.onAbort(() => controller.abort());

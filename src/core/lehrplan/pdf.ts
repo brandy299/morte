@@ -104,18 +104,24 @@ export async function readPdf(buffer: Uint8Array): Promise<PdfFile> {
     );
   }
   const pages: PdfPage[] = [];
-  for (let n = 1; n <= doc.numPages; n++) {
-    const page = await doc.getPage(n);
-    const height = page.getViewport({ scale: 1 }).height;
-    const content = await page.getTextContent();
-    const items = content.items.flatMap((it) =>
-      "str" in it
-        ? [{ str: it.str, x: it.transform[4]!, y: it.transform[5]!, w: it.width, size: Math.abs(it.transform[3]!) || it.height }]
-        : [],
-    );
-    const rows = rowsFromItems(items);
-    pages.push({ n, height, rows, chars: rows.reduce((c, r) => c + r.text.replace(/\s/g, "").length, 0) });
-    page.cleanup();
+  let n = 0;
+  try {
+    for (n = 1; n <= doc.numPages; n++) {
+      const page = await doc.getPage(n);
+      const height = page.getViewport({ scale: 1 }).height;
+      const content = await page.getTextContent();
+      const items = content.items.flatMap((it) =>
+        "str" in it
+          ? [{ str: it.str, x: it.transform[4]!, y: it.transform[5]!, w: it.width, size: Math.abs(it.transform[3]!) || it.height }]
+          : [],
+      );
+      const rows = rowsFromItems(items);
+      pages.push({ n, height, rows, chars: rows.reduce((c, r) => c + r.text.replace(/\s/g, "").length, 0) });
+      page.cleanup();
+    }
+  } catch {
+    await task.destroy();
+    throw new LehrplanError(`Seite ${n} dieses PDFs kann ich nicht lesen. Ist die Datei beschädigt?`);
   }
   return {
     pages,

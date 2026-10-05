@@ -6,7 +6,7 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { cleanName, klassenDir, readKlasse, readText, resolveDir, root, UserError } from "./index.ts";
+import { cleanName, klassenDir, lehrplanOf, readKlasse, readText, resolveDir, root, UserError, withLehrplan } from "./index.ts";
 
 export interface Bereich {
   /** Short label as the school calls it, e.g. "AFB I", "I", "Reproduktion". */
@@ -104,7 +104,7 @@ export function parseBewertung(markdown: string): Bewertung {
 
 /** Name of the Lehrplan folder that Klasse.md points to, if it names one. */
 async function lehrplanOrdner(klasse: string): Promise<string | undefined> {
-  return /^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse))?.[1]?.trim();
+  return lehrplanOf(await readKlasse(klasse));
 }
 
 /** Reads the rules for a class. `undefined` means the teacher has not set any yet. */
@@ -137,7 +137,7 @@ export async function writeBewertung(ordnerName: string, klassen: string[], inpu
   for (const k of resolved) {
     const file = join(klassenDir(), k, "Klasse.md");
     const md = await readText(file);
-    await writeFile(file, /^Lehrplan:.*$/m.test(md) ? md.replace(/^Lehrplan:.*$/m, `Lehrplan: ${ordner}`) : `${md.trimEnd()}\nLehrplan: ${ordner}\n`);
+    await writeFile(file, withLehrplan(md, ordner));
   }
   return ordner;
 }

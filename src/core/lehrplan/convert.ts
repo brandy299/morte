@@ -1,4 +1,4 @@
-import { coverage, dehyphenate, dropRepeated, fallbackMarkdown, pageText } from "./clean.ts";
+import { dehyphenate, dropRepeated, fallbackMarkdown, fidelity, normalizeHeadings, pageText } from "./clean.ts";
 import { LehrplanError, type PdfFile, type PdfPage } from "./pdf.ts";
 
 /** A model request. Pictures are base64 PNG. */
@@ -20,8 +20,9 @@ export interface Progress {
 const SCAN_BELOW = 40;
 /** About 2,500 tokens of text per request. */
 const CHUNK_CHARS = 9000;
-/** A converted part must keep at least this share of the source's words, otherwise the plain text is used. */
-const MIN_COVERAGE = 0.9;
+/** A converted part must keep at least this share of the source's words and add at most the rest, otherwise the plain text is used. */
+const MIN_KEPT = 0.92;
+const MIN_OWN = 0.92;
 
 export interface Chunk {
   /** First and last page, 1-based. */
@@ -149,7 +150,8 @@ export async function convertPdf(
     } catch {
       if (opts.signal?.aborted) throw new LehrplanError("Abgebrochen.");
     }
-    if (md && coverage(source, md) >= MIN_COVERAGE && md.length >= dehyphenate(source).length * 0.5) {
+    const f = md ? fidelity(source, md) : undefined;
+    if (md && f && f.kept >= MIN_KEPT && f.own >= MIN_OWN && md.length >= dehyphenate(source).length * 0.5) {
       parts.push(md);
     } else {
       parts.push(fallbackMarkdown(chunk.pages));
@@ -157,7 +159,7 @@ export async function convertPdf(
     }
   }
   opts.onProgress?.({ done: chunks.length, total: chunks.length, label: "Fertig" });
-  const markdown = parts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  const markdown = normalizeHeadings(parts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim());
   if (!markdown) throw new LehrplanError("Im PDF habe ich keinen Text gefunden.");
   return { markdown, pages: pdf.pages.length, warnings };
 }

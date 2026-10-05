@@ -1,6 +1,6 @@
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { cleanName, klassenDir, readKlasse, readText, resolveDir, root, UserError } from "../workspace/index.ts";
+import { cleanName, klassenDir, lehrplanOf, readKlasse, readText, resolveDir, root, UserError, withLehrplan } from "../workspace/index.ts";
 
 const lehrplanDir = () => join(root(), "Lehrpläne");
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
@@ -47,7 +47,7 @@ async function klassenByLehrplan(): Promise<Map<string, string[]>> {
     /* no classes yet */
   }
   for (const k of klassen) {
-    const name = /^Lehrplan:[ \t]*(\S.*)$/m.exec(await readText(join(klassenDir(), k, "Klasse.md")))?.[1]?.trim().toLowerCase();
+    const name = lehrplanOf(await readText(join(klassenDir(), k, "Klasse.md")))?.toLowerCase();
     if (name) map.set(name, [...(map.get(name) ?? []), k]);
   }
   return map;
@@ -63,7 +63,9 @@ export async function saveLehrplan(
   source: { file: string; pages?: number },
   opts: { replace?: boolean } = {},
 ): Promise<string> {
-  const name = cleanName(rawName, "den Namen des Lehrplans");
+  const typed = cleanName(rawName, "den Namen des Lehrplans");
+  // An existing folder wins, whatever the case: "englisch" belongs to "Englisch".
+  const name = await resolveDir(lehrplanDir(), typed, "Der Lehrplan").catch(() => typed);
   const dir = join(lehrplanDir(), name);
   const file = join(dir, "Plan.md");
   if ((await readText(file)).trim() && !opts.replace) throw new UserError(`Für „${name}“ gibt es schon einen Lehrplan.`);
@@ -89,18 +91,14 @@ export async function assignLehrplan(name: string, klassen: string[]): Promise<v
   for (const k of all) {
     const file = join(klassenDir(), k, "Klasse.md");
     const md = await readText(file);
-    const current = /^Lehrplan:[ \t]*(\S.*)$/m.exec(md)?.[1]?.trim();
-    if (wanted.has(k)) {
-      await writeFile(file, /^Lehrplan:.*$/m.test(md) ? md.replace(/^Lehrplan:.*$/m, `Lehrplan: ${dir}`) : `${md.trimEnd()}\nLehrplan: ${dir}\n`);
-    } else if (current?.toLowerCase() === dir.toLowerCase()) {
-      await writeFile(file, md.replace(/^Lehrplan:.*$/m, "Lehrplan:"));
-    }
+    if (wanted.has(k)) await writeFile(file, withLehrplan(md, dir));
+    else if (lehrplanOf(md)?.toLowerCase() === dir.toLowerCase()) await writeFile(file, withLehrplan(md, ""));
   }
 }
 
 /** The plan a class points to. `undefined` when it names none or the folder holds no text. */
 export async function planFor(klasse: string): Promise<{ name: string; markdown: string } | undefined> {
-  const name = /^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse))?.[1]?.trim();
+  const name = lehrplanOf(await readKlasse(klasse));
   if (!name) return undefined;
   try {
     const dir = await resolveDir(lehrplanDir(), name, "Der Lehrplan");

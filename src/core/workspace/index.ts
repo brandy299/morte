@@ -349,13 +349,20 @@ export async function materialFile(relative: string): Promise<string | undefined
   }
 }
 
+/** The Lehrplan folder name that a Klasse.md text names, if any. This is the only place that reads the line. */
+export const lehrplanOf = (klasseMd: string): string | undefined => /^Lehrplan:[ \t]*(\S.*)$/m.exec(klasseMd)?.[1]?.trim() || undefined;
+
+/** Klasse.md text with the Lehrplan line set to `name` (empty string clears it). */
+export const withLehrplan = (klasseMd: string, name: string): string =>
+  /^Lehrplan:.*$/m.test(klasseMd) ? klasseMd.replace(/^Lehrplan:.*$/m, `Lehrplan: ${name}`.trimEnd()) : `${klasseMd.trimEnd()}\nLehrplan: ${name}\n`;
+
 /**
  * True when Klasse.md names a Lehrplan folder that really holds a Plan.md.
  * Without it, material carries an honest note instead of invented curriculum references.
  */
 export async function hasLehrplan(klasse: string): Promise<boolean> {
   try {
-    const name = /^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse))?.[1]?.trim();
+    const name = lehrplanOf(await readKlasse(klasse));
     if (!name) return false;
     const dir = await resolveDir(join(root(), "Lehrpläne"), name, "Der Lehrplan");
     return (await readText(join(root(), "Lehrpläne", dir, "Plan.md"))).trim().length > 0;

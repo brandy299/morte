@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createClass, readKlasse, UserError } from "../workspace/index.ts";
-import { coverage, dehyphenate, dropRepeated, fallbackMarkdown } from "./clean.ts";
+import { coverage, dehyphenate, dropRepeated, fallbackMarkdown, fidelity, normalizeHeadings } from "./clean.ts";
 import { chunksOf, convertPdf, estimate, unfence, type Ask } from "./convert.ts";
 import { assignLehrplan, listLehrplaene, outline, removePlan, saveLehrplan, search, section } from "./store.ts";
 import { readPdf } from "./pdf.ts";
@@ -55,6 +55,33 @@ describe("cleaning", () => {
     expect(md).toContain("Bewältigung beruflicher Situationen"); // joined across the line end
     expect(md).toContain("Themen | Hinweise");
     await pdf.close();
+  });
+
+  it("keeps repeated table headers and numbered labels, only real page furniture goes", () => {
+    const row = (text: string, y: number) => ({ text, y, size: 10 });
+    const pages = [1, 2, 3, 4].map((n) => ({
+      n, height: 842, chars: 100,
+      rows: [row("Kompetenz\tInhalt", 800), row(`Lernfeld ${n}`, 790), row("Ministerium", 810), row(`Seite ${n} von 4`, 30), row(`Text ${n}`, 400)],
+    }));
+    const text = dropRepeated(pages).flatMap((p) => p.rows.map((r) => r.text));
+    expect(text).toContain("Kompetenz\tInhalt");
+    expect(text).toContain("Lernfeld 2");
+    expect(text).not.toContain("Ministerium");
+    expect(text.some((t) => t.startsWith("Seite"))).toBe(false);
+  });
+
+  it("checks both ways: words left out, and words the model added", () => {
+    const source = "Anwendungsmodelle Projekte Hilfsmittel Textproduktion Kommunikation Lernfeld";
+    expect(fidelity(source, source)).toEqual({ kept: 1, own: 1 });
+    expect(fidelity(source, "Anwendungsmodelle").kept).toBeLessThan(0.3);
+    expect(fidelity(source, `${source} Zusätzliche erfundene Kompetenzen Beschreibung Ergebnisse Bewertung`).own).toBeLessThan(0.6);
+  });
+
+  it("makes heading levels consistent between separately converted parts", () => {
+    const md = "# 3 Kompetenzen\n## 3.3 Kurshalbjahr\n### Hinweise\n# 4 Prüfung\n##### Unterpunkt\n```\n# kein Titel\n```";
+    expect(normalizeHeadings(md)).toBe("## 3 Kompetenzen\n### 3.3 Kurshalbjahr\n#### Hinweise\n## 4 Prüfung\n### Unterpunkt\n```\n# kein Titel\n```");
+    // A part that starts with "##" for chapter 3.3 still ends up at the right depth.
+    expect(normalizeHeadings("## 3.3 Kurshalbjahr")).toBe("## 3.3 Kurshalbjahr");
   });
 
   it("measures how much of the source a conversion kept", () => {
@@ -171,6 +198,14 @@ describe("storing plans", () => {
     await assignLehrplan("HHS", ["11b"]);
     expect(await readKlasse("11a")).toMatch(/^Lehrplan:$/m);
     expect((await listLehrplaene())[0]!.klassen).toEqual(["11b"]);
+  });
+
+  it("reuses an existing folder when the name differs only in case", async () => {
+    await saveLehrplan("Englisch", "## A\nx", { file: "a.pdf" });
+    await saveLehrplan("englisch", "## B\ny", { file: "b.pdf" }, { replace: true });
+    const plans = await listLehrplaene();
+    expect(plans.map((p) => p.name)).toEqual(["Englisch"]);
+    expect(await readFile(join(process.env.MORTE_HOME!, "Lehrpläne", "Englisch", "Plan.md"), "utf8")).toContain("## B");
   });
 
   it("removes the plan text", async () => {

@@ -36,8 +36,9 @@ export function createCompleter(settings: AgentSettings, deps: CompleterDeps = {
         { systemPrompt: request.system, messages: [{ role: "user", content, timestamp: Date.now() }] },
         { apiKey: settings.apiKey, signal, maxTokens: Math.min(model.maxTokens, 16000) },
       );
+      // A failed request can still have cost something.
+      if (reply.usage.totalTokens > 0) deps.onUsage?.({ input: reply.usage.input + reply.usage.cacheRead + reply.usage.cacheWrite, output: reply.usage.output, cost: reply.usage.cost.total });
       if (reply.stopReason === "error" || reply.stopReason === "aborted") throw new Error(reply.errorMessage ?? "request failed");
-      deps.onUsage?.({ input: reply.usage.input + reply.usage.cacheRead + reply.usage.cacheWrite, output: reply.usage.output, cost: reply.usage.cost.total });
       return reply.content.flatMap((c) => (c.type === "text" ? [c.text] : [])).join("\n");
     },
   };

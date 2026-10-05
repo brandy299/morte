@@ -59,16 +59,16 @@ describe("importing a curriculum", () => {
     state.makeCompleter = () => {
       throw new Error("must not be used");
     };
-    const check = await (await upload("# Plan\n\n## Ziele\nText", "plan.md")).json();
+    const check = await (await upload("# Plan\n\n## Ziele\nText des Plans", "plan.md")).json();
     expect(check).toMatchObject({ art: "text" });
     const ev = await events(await post("/api/lehrplan/umwandeln", { token: check.token, name: "Eigener Plan" }));
     expect(ev.at(-1)).toMatchObject({ type: "fertig", abschnitte: 3 });
   });
 
   it("does not replace a plan by accident", async () => {
-    const first = await (await upload("## A\nx", "a.md")).json();
+    const first = await (await upload("## A\nEin Plan mit genug Text.", "a.md")).json();
     await events(await post("/api/lehrplan/umwandeln", { token: first.token, name: "Plan" }));
-    const second = await (await upload("## B\ny", "b.md")).json();
+    const second = await (await upload("## B\nNoch ein Plan mit genug Text.", "b.md")).json();
     const refused = await post("/api/lehrplan/umwandeln", { token: second.token, name: "plan" });
     expect(refused.status).toBe(409);
     expect((await refused.json()).existiert).toBe(true);
@@ -87,9 +87,38 @@ describe("importing a curriculum", () => {
   });
 
   it("removes a plan", async () => {
-    const check = await (await upload("## A\nx", "a.md")).json();
+    const check = await (await upload("## A\nEin Plan mit genug Text.", "a.md")).json();
     await events(await post("/api/lehrplan/umwandeln", { token: check.token, name: "Weg" }));
     expect((await app.request("/api/lehrplan/Weg", { method: "DELETE" })).status).toBe(200);
     expect((await (await app.request("/api/lehrplan")).json()).lehrplaene).toEqual([]);
+  });
+
+  it("refuses empty text files and models without vision for scanned pages", async () => {
+    const empty = await upload("  \n ", "leer.txt");
+    expect(empty.status).toBe(400);
+    expect((await empty.json()).error).toMatch(/kein Text/);
+  });
+
+  it("lets only one conversion run at a time, even when two requests arrive together", async () => {
+    const a = await (await upload("## A\nEin Plan mit genug Text.", "a.md")).json();
+    const b = await (await upload("## B\nNoch ein Plan mit genug Text.", "b.md")).json();
+    const [first, second] = await Promise.all([post("/api/lehrplan/umwandeln", { token: a.token, name: "Eins" }), post("/api/lehrplan/umwandeln", { token: b.token, name: "Zwei" })]);
+    expect([first.status, second.status].sort()).toEqual([200, 409]);
+    await first.text();
+    await second.text();
+    // After the first one is done, the next may run.
+    const c2 = await (await upload("## C\nNoch ein dritter Plan mit Text.", "c.md")).json();
+    expect((await post("/api/lehrplan/umwandeln", { token: c2.token, name: "Drei" })).status).toBe(200);
+  });
+
+  it("refuses a PDF with scanned pages when the model cannot see pictures", async () => {
+    state.makeCompleter = () => ({ vision: false, complete: async () => "" });
+    const { readPdf } = await import("../core/lehrplan/pdf.ts");
+    const text = await readPdf(await samplePlan({ pages: 1 }));
+    const png = await text.renderPage(1, 500);
+    await text.close();
+    const res = await upload(await samplePlan({ pages: 3, scanPage: png }), "scan.pdf");
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/keine Bilder lesen/);
   });
 });

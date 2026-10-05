@@ -3,21 +3,28 @@ import type { PdfPage, PdfRow } from "./pdf.ts";
 /** Digits become "#", so "Seite 8 von 22" and "Seite 9 von 22" count as the same line. */
 const shape = (text: string) => text.toLowerCase().replace(/\d+/g, "#").replace(/\s+/g, " ").trim();
 
+/** "Seite 8 von 22", "8 / 22", "Page 3", or only a number. */
+const PAGE_NUMBER = /(^|\s)(seite|page|s\.)\s*\d+|\b\d+\s*(von|\/|of)\s*\d+\b|^\d{1,4}$/i;
+
 /**
  * Removes page headers and footers: lines in the top or bottom band of a page that come back on many pages
- * (ministry name, file name, "Seite 8 von 22").
+ * (ministry name, file name, "Seite 8 von 22"). Only identical lines count, and only page numbers may differ by digits,
+ * so repeated table headers or "Lernfeld 1", "Lernfeld 2" stay.
  */
 export function dropRepeated(pages: PdfPage[]): PdfPage[] {
   if (pages.length < 3) return pages;
-  const band = (page: PdfPage, row: PdfRow) => row.y > page.height * 0.88 || row.y < page.height * 0.1;
+  const band = (page: PdfPage, row: PdfRow) => row.y > page.height * 0.9 || row.y < page.height * 0.1;
+  // A repeated line with several columns is a table header, not page furniture (unless it carries the page number).
+  const keep = (row: PdfRow) => row.text.includes("\t") && !PAGE_NUMBER.test(row.text);
+  const key = (row: PdfRow) => (PAGE_NUMBER.test(row.text) ? shape(row.text) : row.text.replace(/\s+/g, " ").trim().toLowerCase());
   const seen = new Map<string, number>();
   for (const page of pages) {
-    const onPage = new Set(page.rows.filter((r) => band(page, r)).map((r) => shape(r.text)));
-    for (const s of onPage) seen.set(s, (seen.get(s) ?? 0) + 1);
+    const onPage = new Set(page.rows.filter((r) => band(page, r)).map(key));
+    for (const k of onPage) seen.set(k, (seen.get(k) ?? 0) + 1);
   }
-  const limit = Math.max(3, Math.ceil(pages.length * 0.4));
+  const limit = Math.max(3, Math.ceil(pages.length * 0.5));
   return pages.map((page) => {
-    const rows = page.rows.filter((r) => !(band(page, r) && (seen.get(shape(r.text)) ?? 0) >= limit));
+    const rows = page.rows.filter((r) => keep(r) || !(band(page, r) && (seen.get(key(r)) ?? 0) >= limit));
     return { ...page, rows, chars: rows.reduce((c, r) => c + r.text.replace(/\s/g, "").length, 0) };
   });
 }
@@ -82,17 +89,47 @@ export function fallbackMarkdown(pages: PdfPage[]): string {
 }
 
 const WORD = /[\p{L}\p{N}]{4,}/gu;
-const words = (text: string) => new Set((text.toLowerCase().match(WORD) ?? []));
+const words = (text: string) => new Set(text.toLowerCase().match(WORD) ?? []);
 
 /**
- * Share of the source's longer words that show up in the model's version. Low values mean the model left things out.
- * Words split at a line end are joined first, so a correct join does not count as a loss.
+ * How faithful a conversion is, in both directions. `kept` is the share of the source's longer words that show up
+ * in the model's version (nothing left out). `own` is the share of the model's words that were in the source
+ * (nothing added). Words split at a line end are joined first, so a correct join does not count as a loss.
  */
-export function coverage(source: string, converted: string): number {
+export function fidelity(source: string, converted: string): { kept: number; own: number } {
   const src = words(dehyphenate(source).replace(/\t/g, " "));
-  if (src.size === 0) return 1;
   const out = words(converted.replace(/\|/g, " "));
-  let hit = 0;
-  for (const w of src) if (out.has(w)) hit++;
-  return hit / src.size;
+  const share = (a: Set<string>, b: Set<string>) => {
+    if (a.size === 0) return 1;
+    let hit = 0;
+    for (const w of a) if (b.has(w)) hit++;
+    return hit / a.size;
+  };
+  return { kept: share(src, out), own: share(out, src) };
+}
+
+/** Kept share only. */
+export const coverage = (source: string, converted: string) => fidelity(source, converted).kept;
+
+/**
+ * Makes heading levels consistent across parts that were converted separately. Numbered headings ("3.3 Kurshalbjahr")
+ * take their level from the numbering, others keep the model's level but never jump more than one level deeper.
+ * All headings start at level 2, because the file's own title is level 1.
+ */
+export function normalizeHeadings(markdown: string): string {
+  let prev = 0;
+  let fenced = false;
+  return markdown
+    .split("\n")
+    .map((line) => {
+      if (/^```/.test(line)) fenced = !fenced;
+      const m = !fenced && /^(#{1,6})\s+(.+?)\s*#*$/.exec(line);
+      if (!m) return line;
+      const number = /^(\d+(?:\.\d+)*)\.?(\s|$)/.exec(m[2]!);
+      let level = number ? number[1]!.split(".").length : m[1]!.length;
+      level = Math.min(level, prev + 1);
+      prev = level;
+      return `${"#".repeat(Math.min(level + 1, 6))} ${m[2]}`;
+    })
+    .join("\n");
 }
