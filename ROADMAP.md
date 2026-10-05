@@ -53,7 +53,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 3: Materialerstellung
 
-- [x] Vorschau rechts, Download als PDF, Graustufen-tauglich, wenige Seiten (feste HTML-Vorlage über Playwright/Chromium; geprüft: eine Seite, nur Grauwerte)
+- [x] Vorschau rechts, Download als PDF, Graustufen-tauglich, wenige Seiten (feste Vorlage, PDF direkt in der App gezeichnet mit pdfkit, ohne Zusatzprogramm; geprüft: Seitenumbruch, nur Grauwerte)
 - [~] Skill-Lader nach Agent-Skills-Spezifikation (wie Claude-App und Pi), drei Ebenen: mitgeliefert, Schule, persönlich. Siehe `docs/skills.md` (Lader, `skill_laden` und stufenweises Laden stehen, getestet mit Beispiel-Skills; Ebene Schule folgt in Phase 6, mitgelieferte Skills fehlen noch)
 - [~] Mitgelieferte Skills neu schreiben, Bauweise nach `anthropics/k12-teacher-skills`, Inhalt für deutsche Schulen und Berufskollegs. Fertig: Arbeitsblatt. Offen: Stunde planen, Lernsituation, Klausur mit EHZ, Differenzieren, Stunde vorbereiten, Verständnis-Check
 - [ ] Qualitätsprüfung: Kriterienlisten (P/R/O/M) und Testsätze pro Skill, Auswertung durch ein KI-Modell als Prüfer, bei jeder Skill-Änderung und jedem Modellwechsel

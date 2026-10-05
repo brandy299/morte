@@ -5,7 +5,6 @@ import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCal
 import { beforeEach, describe, expect, it } from "vitest";
 import { createChatSession, type ChatEvent } from "./index.ts";
 import { createClass, createReihe, initWorkspace, readReihe } from "../workspace/index.ts";
-import { pdfAvailable } from "../material/pdf.ts";
 
 let home: string;
 beforeEach(async () => {
@@ -93,7 +92,7 @@ describe("skills in the chat", () => {
   });
 });
 
-describe.skipIf(!pdfAvailable())("worksheet tool", () => {
+describe("worksheet tool", () => {
   it("asks, builds the PDF, files it in the Reihe, enters it in the table and sends it to the preview", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     const s = session([

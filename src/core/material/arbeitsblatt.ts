@@ -2,7 +2,10 @@
  * Worksheet: the model delivers structured content, this file turns it into a fixed layout.
  * The look lives here (and only here), so it does not depend on how good the chosen model is.
  * Everything is black, white and gray on purpose: many schools do not print in color.
+ * The PDF is drawn directly (pdfkit), so nothing has to be installed next to the app.
  */
+import PDFDocument from "pdfkit";
+
 
 export class MaterialError extends Error {}
 
@@ -62,64 +65,162 @@ export function parseArbeitsblatt(raw: unknown): Arbeitsblatt {
   };
 }
 
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const para = (s: string) => esc(s).replace(/\r?\n/g, "<br>");
 
-export function arbeitsblattHtml(a: Arbeitsblatt): string {
-  const kopf = [a.fach, a.klasse].filter(Boolean).map((s) => esc(s!)).join(" · ");
-  const aufgaben = a.aufgaben
-    .map(
-      (t, i) => `
-    <section class="aufgabe">
-      <div class="nr">${i + 1}</div>
-      <div class="inhalt">
-        <p class="text">${para(t.text)}${t.punkte ? `<span class="punkte">${t.punkte} P.</span>` : ""}</p>
-        ${t.hilfe ? `<p class="hilfe"><b>Tipp:</b> ${para(t.hilfe)}</p>` : ""}
-        ${t.zeilen ? `<div class="zeilen" style="height:${t.zeilen * 8.5}mm"></div>` : ""}
-      </div>
-    </section>`,
-    )
-    .join("");
-  return `<!doctype html>
-<html lang="de"><head><meta charset="utf-8"><title>${esc(a.titel)}</title>
-<style>
-  @page { size: A4; }
-  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin: 0; color: #111; font: 10.5pt/1.5 "Avenir Next", "Segoe UI", "Liberation Sans", "DejaVu Sans", sans-serif; }
-  .serif, h1, .merk h2 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "DejaVu Serif", serif; }
-  header { border-top: 3px solid #111; border-bottom: 1px solid #111; padding: 7mm 0 5mm; margin-bottom: 7mm; display: grid; grid-template-columns: 1fr auto; gap: 8mm; align-items: end; }
-  .kopf { font-size: 8.5pt; letter-spacing: .14em; text-transform: uppercase; color: #555; margin: 0 0 2mm; }
-  h1 { margin: 0; font-size: 22pt; line-height: 1.12; font-weight: 600; }
-  .felder { font-size: 9pt; color: #444; display: grid; gap: 4mm; width: 62mm; }
-  .felder span { display: block; border-bottom: 1px solid #777; padding-bottom: 0.5mm; }
-  .einleitung { margin: 0 0 6mm; font-size: 11pt; }
-  .merk { margin: 0 0 7mm; padding: 4mm 5mm; background: #ececec; border-left: 4px solid #111; break-inside: avoid; }
-  .merk h2 { margin: 0 0 1.5mm; font-size: 11pt; }
-  .merk p { margin: 0; }
-  .aufgabe { display: grid; grid-template-columns: 9mm 1fr; gap: 4mm; margin-bottom: 6mm; break-inside: avoid; }
-  .nr { width: 9mm; height: 9mm; border-radius: 2.2mm; background: #111; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 11pt; }
-  .text { margin: 0.6mm 0 0; }
-  .punkte { float: right; margin-left: 4mm; font-size: 9pt; color: #555; border: 1px solid #999; border-radius: 4mm; padding: 0 2.4mm; }
-  .hilfe { margin: 1.5mm 0 0; font-size: 9.5pt; font-style: italic; color: #444; }
-  .zeilen { margin-top: 2mm; background: repeating-linear-gradient(to bottom, transparent 0, transparent 7.9mm, #999 7.9mm, #999 8.5mm); }
-</style></head>
-<body>
-<header>
-  <div>${kopf ? `<p class="kopf">${kopf}</p>` : ""}<h1>${esc(a.titel)}</h1></div>
-  <div class="felder"><span>Name:</span><span>Datum:</span></div>
-</header>
-${a.einleitung ? `<p class="einleitung">${para(a.einleitung)}</p>` : ""}
-${a.merkkasten ? `<aside class="merk">${a.merkkasten.titel ? `<h2>${esc(a.merkkasten.titel)}</h2>` : ""}<p>${para(a.merkkasten.text)}</p></aside>` : ""}
-${aufgaben}
-</body></html>`;
+// ---------- Layout ----------
+
+const mm = (v: number) => (v * 72) / 25.4;
+const PAGE = { w: 595.28, h: 841.89 };
+const M = { top: mm(15), bottom: mm(18), left: mm(16), right: mm(16) };
+const INK = "#111111";
+const SOFT = "#555555";
+const LINE = "#999999";
+const BOX = "#ececec";
+
+// pdfkit's built-in fonts (Times, Helvetica) only know Western European text (Windows-1252).
+const REPLACE: Record<string, string> = {
+  "→": "->", "←": "<-", "↔": "<->", "•": "-", "’": "'", "‘": "'", "‚": ",", "−": "-", "×": "x", "✓": "ok", "✔": "ok", "–": "-", "—": "-", "\u00a0": " ", "\t": " ",
+};
+const WIN1252_EXTRA = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+
+/** Keeps text printable in the standard fonts. Anything it cannot draw becomes "?" instead of garbage. */
+export function printable(text: string): string {
+  let out = "";
+  for (const ch of text.normalize("NFC")) {
+    const c = ch.codePointAt(0)!;
+    const ok = c === 0x0a || (c >= 0x20 && c <= 0x7e) || (c >= 0xa0 && c <= 0xff) || WIN1252_EXTRA.includes(ch);
+    // "–" and "—" are fine in Windows-1252 but map them to "-" for a calm look in the tasks.
+    out += REPLACE[ch] ?? (ok ? ch : "?");
+  }
+  return out;
 }
 
-/** Page margins in mm. The footer sits inside the bottom margin. */
-export const MARGIN = { top: "15mm", bottom: "18mm", left: "16mm", right: "16mm" };
+const SERIF = "Times-Bold";
+const SANS = "Helvetica";
+const SANS_BOLD = "Helvetica-Bold";
+const SANS_ITALIC = "Helvetica-Oblique";
+const SANS_BOLD_ITALIC = "Helvetica-BoldOblique";
 
-/** Footer for every page (Chromium footer template): small note on the left, page number on the right. */
-export function arbeitsblattFooter(a: Arbeitsblatt): string {
-  return `<div style="width:100%;padding:0 16mm;font:8px sans-serif;color:#666;display:flex;justify-content:space-between">
-<span>${a.fuss ? esc(a.fuss) : ""}</span><span>morte · Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span></div>`;
+export async function renderArbeitsblatt(a: Arbeitsblatt): Promise<{ pdf: Buffer; pages: number }> {
+  const doc = new PDFDocument({
+    size: "A4",
+    margins: M,
+    bufferPages: true,
+    info: { Title: printable(a.titel), Producer: "morte" },
+  });
+  const chunks: Buffer[] = [];
+  doc.on("data", (c: Buffer) => chunks.push(c));
+  const done = new Promise<void>((resolve) => doc.on("end", resolve));
+
+  const left = M.left;
+  const width = PAGE.w - M.left - M.right;
+  const limit = PAGE.h - M.bottom;
+  let y = M.top;
+  const room = (h: number) => {
+    if (y + h > limit) {
+      doc.addPage();
+      y = M.top;
+    }
+  };
+  const height = (text: string, font: string, size: number, w: number) => {
+    doc.font(font).fontSize(size);
+    return doc.heightOfString(printable(text), { width: w, lineGap: 2.5 });
+  };
+
+  // Header: heavy rule, subject line, title, fields for name and date, thin rule.
+  const fieldsW = mm(62);
+  const titleW = width - fieldsW - mm(8);
+  doc.save().rect(left, y, width, 3).fill(INK).restore();
+  y += mm(7);
+  const kopf = [a.fach, a.klasse].filter(Boolean).join(" · ");
+  const headTop = y;
+  if (kopf) {
+    doc.font(SANS).fontSize(8).fillColor(SOFT).text(printable(kopf).toUpperCase(), left, y, { width: titleW, characterSpacing: 1.1, lineBreak: false });
+    y += 13;
+  }
+  doc.font(SERIF).fontSize(22).fillColor(INK).text(printable(a.titel), left, y, { width: titleW, lineGap: 1 });
+  const titleBottom = doc.y;
+  const fx = left + width - fieldsW;
+  for (const [i, label] of ["Name:", "Datum:"].entries()) {
+    const fy = headTop + 6 + i * mm(9);
+    doc.font(SANS).fontSize(9).fillColor(SOFT).text(label, fx, fy, { lineBreak: false });
+    doc.save().moveTo(fx, fy + 14).lineTo(fx + fieldsW, fy + 14).lineWidth(0.8).strokeColor("#777777").stroke().restore();
+  }
+  y = Math.max(titleBottom, headTop + 6 + mm(9) + 16) + mm(5);
+  doc.save().moveTo(left, y).lineTo(left + width, y).lineWidth(1).strokeColor(INK).stroke().restore();
+  y += mm(7);
+
+  if (a.einleitung) {
+    const h = height(a.einleitung, SANS, 11, width);
+    room(h);
+    doc.font(SANS).fontSize(11).fillColor(INK).text(printable(a.einleitung), left, y, { width, lineGap: 2.5 });
+    y += h + mm(6);
+  }
+
+  if (a.merkkasten) {
+    const pad = mm(4);
+    const inner = width - 2 * pad - 4;
+    const titleH = a.merkkasten.titel ? height(a.merkkasten.titel, SERIF, 11, inner) + 4 : 0;
+    const textH = height(a.merkkasten.text, SANS, 10.5, inner);
+    const h = titleH + textH + 2 * pad;
+    room(h);
+    doc.save().rect(left, y, width, h).fill(BOX).rect(left, y, 4, h).fill(INK).restore();
+    let ty = y + pad;
+    if (a.merkkasten.titel) {
+      doc.font(SERIF).fontSize(11).fillColor(INK).text(printable(a.merkkasten.titel), left + 4 + pad, ty, { width: inner });
+      ty += titleH;
+    }
+    doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(a.merkkasten.text), left + 4 + pad, ty, { width: inner, lineGap: 2.5 });
+    y += h + mm(7);
+  }
+
+  const numW = mm(9);
+  const textX = left + numW + mm(4);
+  const textW = width - numW - mm(4);
+  const lineH = mm(8.5);
+  for (const [i, t] of a.aufgaben.entries()) {
+    const punkteW = t.punkte ? 44 : 0;
+    const textH = height(t.text, SANS, 10.5, textW - punkteW);
+    const hilfeH = t.hilfe ? height(`Tipp: ${t.hilfe}`, SANS_ITALIC, 9.5, textW) + 4 : 0;
+    const linesH = t.zeilen ? t.zeilen * lineH + mm(2) : 0;
+    const h = Math.max(numW, textH + hilfeH + linesH);
+    room(h + mm(6));
+    doc.save().roundedRect(left, y, numW, numW, mm(2.2)).fill(INK).restore();
+    doc.font(SANS_BOLD).fontSize(11).fillColor("#ffffff").text(String(i + 1), left, y + numW / 2 - 6, { width: numW, align: "center", lineBreak: false });
+    doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(t.text), textX, y + 2, { width: textW - punkteW, lineGap: 2.5 });
+    if (t.punkte) {
+      const label = `${t.punkte} P.`;
+      const px = left + width - 40;
+      doc.save().roundedRect(px, y + 1, 40, 15, 7.5).lineWidth(0.8).strokeColor(LINE).stroke().restore();
+      doc.font(SANS).fontSize(8.5).fillColor(SOFT).text(label, px, y + 5, { width: 40, align: "center", lineBreak: false });
+    }
+    let by = y + 2 + textH + 2;
+    if (t.hilfe) {
+      doc.font(SANS_BOLD_ITALIC).fontSize(9.5).fillColor(SOFT).text("Tipp: ", textX, by, { continued: true, width: textW, lineGap: 2.5 });
+      doc.font(SANS_ITALIC).text(printable(t.hilfe));
+      by += hilfeH - 2;
+    }
+    if (t.zeilen) {
+      by += mm(2);
+      for (let n = 1; n <= t.zeilen; n++) {
+        const ly = by + n * lineH - 2;
+        doc.save().moveTo(textX, ly).lineTo(left + width, ly).lineWidth(0.7).strokeColor(LINE).stroke().restore();
+      }
+    }
+    y += h + mm(6);
+  }
+
+  // Footer on every page: small note left, page number right. Margins are lifted so pdfkit does not add a page.
+  const count = doc.bufferedPageRange().count;
+  for (let p = 0; p < count; p++) {
+    doc.switchToPage(p);
+    doc.page.margins.bottom = 0;
+    const fy = PAGE.h - mm(12);
+    doc.font(SANS).fontSize(8).fillColor(SOFT);
+    if (a.fuss) doc.text(printable(a.fuss), left, fy, { width: width / 2, lineBreak: false });
+    doc.text(`morte - Seite ${p + 1} von ${count}`, left + width / 2, fy, { width: width / 2, align: "right", lineBreak: false });
+  }
+
+  doc.end();
+  await done;
+  return { pdf: Buffer.concat(chunks), pages: count };
 }

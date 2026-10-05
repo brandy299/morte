@@ -3,8 +3,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { arbeitsblattFooter, arbeitsblattHtml, MaterialError, parseArbeitsblatt } from "./arbeitsblatt.ts";
-import { pdfAvailable, renderPdf } from "./pdf.ts";
+import { MaterialError, parseArbeitsblatt, printable, renderArbeitsblatt } from "./arbeitsblatt.ts";
 
 const sample = {
   titel: "Job Interview <Basics>",
@@ -19,6 +18,22 @@ const sample = {
   fuss: "Ohne hinterlegten Lehrplan erstellt",
 };
 
+const tool = (cmd: string) => {
+  try {
+    execFileSync(cmd, ["-v"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+};
+const hasPoppler = tool("pdftotext") && tool("pdftoppm");
+
+async function toFile(pdf: Buffer) {
+  const file = join(await mkdtemp(join(tmpdir(), "morte-pdf-")), "a.pdf");
+  await writeFile(file, pdf);
+  return file;
+}
+
 describe("parseArbeitsblatt", () => {
   it("accepts good content", () => expect(parseArbeitsblatt(sample).aufgaben).toHaveLength(2));
   it("explains problems in plain words", () => {
@@ -28,45 +43,44 @@ describe("parseArbeitsblatt", () => {
   });
 });
 
-describe("arbeitsblattHtml", () => {
-  it("escapes everything that comes from the model", () => {
-    const html = arbeitsblattHtml(parseArbeitsblatt({ titel: "<script>alert(1)</script>", aufgaben: [{ text: "<img src=x onerror=1>" }] }));
-    expect(html).not.toContain("<script>");
-    expect(html).not.toContain("<img");
-  });
-  it("uses no color, only gray values", () => {
-    const colors = arbeitsblattHtml(parseArbeitsblatt(sample)).match(/#[0-9a-fA-F]{3,6}\b/g) ?? [];
-    for (const c of colors) {
-      const hex = c.length === 4 ? [...c.slice(1)].map((d) => d + d).join("") : c.slice(1);
-      expect(hex.slice(0, 2)).toBe(hex.slice(2, 4));
-      expect(hex.slice(2, 4)).toBe(hex.slice(4, 6));
-    }
+describe("printable", () => {
+  it("keeps German text and replaces what the standard fonts cannot draw", () => {
+    expect(printable("Größe, Übung, Straße „ja“ – 5 €")).toBe("Größe, Übung, Straße „ja“ - 5 €");
+    expect(printable("A → B • C")).toBe("A -> B - C");
+    expect(printable("Hi 😀")).toBe("Hi ?");
   });
 });
 
-const hasPoppler = (() => {
-  try {
-    execFileSync("pdftoppm", ["-v"], { stdio: "ignore" });
-    return true;
-  } catch {
-    return false;
-  }
-})();
-
-describe.skipIf(!pdfAvailable() || !hasPoppler)("renderPdf", () => {
-  it("makes a one-page, gray-only PDF with the content", async () => {
-    const a = parseArbeitsblatt(sample);
-    const { pdf, pages } = await renderPdf(arbeitsblattHtml(a), arbeitsblattFooter(a));
+describe("renderArbeitsblatt", () => {
+  it("makes a one-page PDF with the content and the footer", async () => {
+    const { pdf, pages } = await renderArbeitsblatt(parseArbeitsblatt(sample));
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(pages).toBe(1);
-    const dir = await mkdtemp(join(tmpdir(), "morte-pdf-"));
-    const file = join(dir, "a.pdf");
-    await writeFile(file, pdf);
-    const text = execFileSync("pdftotext", [file, "-"]).toString();
-    expect(text).toContain("Job Interview <Basics>");
-    expect(text).toContain("Nenne drei typische Fragen.");
-    expect(text).toContain("Ohne hinterlegten Lehrplan erstellt");
-    // Render to pixels: every pixel must have R = G = B.
-    const ppm = execFileSync("pdftoppm", ["-r", "40", file], { maxBuffer: 50_000_000 });
+    if (!hasPoppler) return;
+    const text = execFileSync("pdftotext", [await toFile(pdf), "-"]).toString();
+    for (const part of ["Job Interview <Basics>", "BUSINESS ENGLISH", "Nenne drei typische Fragen.", "Tipp: Nutze", "3 P.", "Ohne hinterlegten Lehrplan erstellt", "Seite 1 von 1"]) {
+      expect(text).toContain(part);
+    }
+  });
+
+  it("flows onto more pages without adding blank pages, and numbers them", async () => {
+    const aufgaben = Array.from({ length: 12 }, (_, i) => ({ text: `Aufgabe Nummer ${i + 1}: ${"Erkläre den Begriff genau. ".repeat(4)}`, zeilen: 5 }));
+    const { pdf, pages } = await renderArbeitsblatt(parseArbeitsblatt({ titel: "Lang", aufgaben }));
+    expect(pages).toBeGreaterThan(1);
+    if (!hasPoppler) return;
+    const file = await toFile(pdf);
+    for (let p = 1; p <= pages; p++) {
+      const text = execFileSync("pdftotext", ["-f", String(p), "-l", String(p), file, "-"]).toString();
+      expect(text, `page ${p}`).toContain("Aufgabe Nummer"); // no blank pages
+      expect(text).toContain(`Seite ${p} von ${pages}`);
+    }
+    expect(execFileSync("pdftotext", [file, "-"]).toString()).toContain("Aufgabe Nummer 12");
+  });
+
+  it("uses only gray values", async () => {
+    if (!hasPoppler) return;
+    const { pdf } = await renderArbeitsblatt(parseArbeitsblatt(sample));
+    const ppm = execFileSync("pdftoppm", ["-r", "40", await toFile(pdf)], { maxBuffer: 50_000_000 });
     const body = ppm.subarray(ppm.indexOf("\n255\n") + 5);
     let colored = 0;
     for (let i = 0; i + 2 < body.length; i += 3) if (body[i] !== body[i + 1] || body[i + 1] !== body[i + 2]) colored++;

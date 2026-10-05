@@ -6,7 +6,6 @@ Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Fahrplan: `ROADMAP.md`, Regeln: 
 
 ```
 npm install
-npx playwright install chromium   # einmalig, für druckfertige PDFs
 npm run dev
 ```
 
@@ -16,7 +15,6 @@ Anbieter: Claude, OpenAI, DeepSeek. "Erst einmal ohne KI ansehen" startet einen 
 
 Der Datenordner ist `~/morte-daten` (änderbar mit `MORTE_HOME`).
 
-Mit `MORTE_CHROMIUM=/Pfad/zu/chrome` lässt sich ein schon vorhandener Chromium-Browser für die PDFs nutzen.
 
 ## Prüfen
 

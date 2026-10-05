@@ -1,7 +1,6 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { arbeitsblattFooter, arbeitsblattHtml, parseArbeitsblatt } from "../material/arbeitsblatt.ts";
-import { renderPdf } from "../material/pdf.ts";
+import { parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
   attachMaterial, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
@@ -212,7 +211,7 @@ const arbeitsblattErstellen = defineTool({
       // Honest note instead of invented curriculum references (see docs/skills.md).
       fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
     });
-    const { pdf, pages } = await renderPdf(arbeitsblattHtml(sheet), arbeitsblattFooter(sheet));
+    const { pdf, pages } = await renderArbeitsblatt(sheet);
     const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: sheet.titel, klasse: content.klasse, fach: content.fach, reihe, datum, stunde });
     if (content.klasse && content.fach && reihe && datum && stunde) {
       await attachMaterial(content.klasse, content.fach, reihe, { datum, stunde, thema: sheet.titel }, saved.name);
