@@ -7,18 +7,22 @@ Die Ordnerstruktur ist die Architektur: Der Agent liest zur richtigen Zeit die r
 ```
 Lehrer-Harness/
 ├── Einstellungen/
-│   ├── Profil.md                  (Name, Schule, Fächer)
+│   ├── Profil.md                  (Name, Schule, Schulform, Fächer)
 │   └── Provider.md                (welche KI genutzt wird; API-Keys NICHT hier, sondern im Schlüsselbund)
 │
-├── Bildungsgänge/
-│   └── Höhere Handelsschule/
-│       ├── Bildungsplan.md        (aus dem PDF per OCR umgewandelt)
-│       ├── Bewertung.md           (Notenschlüssel, Gewichtung, Anzahl Klausuren)
-│       └── Hinweise.md            (schulinterne Vorgaben)
+├── Lehrpläne/
+│   ├── Höhere Handelsschule/       (Berufskolleg: ein Ordner pro Bildungsgang)
+│   │   ├── Plan.md                (Bildungsplan, aus dem PDF per OCR umgewandelt)
+│   │   ├── Bewertung.md           (Notenschlüssel, Gewichtung, Anzahl Klausuren)
+│   │   └── Hinweise.md            (schulinterne Vorgaben, z. B. Fachkonferenz-Beschlüsse)
+│   └── Englisch Sek I/            (Gymnasium/Gesamtschule: ein Ordner pro Fach und Stufe)
+│       ├── Plan.md                (Kernlehrplan, plus schulinterner Lehrplan falls vorhanden)
+│       ├── Bewertung.md
+│       └── Hinweise.md
 │
 ├── Klassen/
 │   └── 11a/
-│       ├── Klasse.md              (Bildungsgang, Fächer, Besonderheiten)
+│       ├── Klasse.md              (Schulform, Lehrplan-Ordner, Stufe, ggf. Kursniveau E/G oder GK/LK, Fächer, Besonderheiten)
 │       └── Business English/
 │           ├── Stand.md           (wo wir stehen, was als Nächstes dran ist)
 │           └── 01 Bewerbung/
@@ -41,7 +45,7 @@ Lehrer-Harness/
 ## Warum so
 
 - **Von oben nach unten lesen:** Klasse, Fach, dann `Stand.md`. Dort steht der aktuelle Stand, und der Agent weiß sofort, wo es weitergeht.
-- **Bildungsgang nur einmal:** Plan und Bewertung liegen an einer Stelle, jede Klasse verweist darauf.
+- **Lehrplan nur einmal:** Plan und Bewertung liegen an einer Stelle, jede Klasse verweist darauf. Am Berufskolleg ist das der Bildungsgang, an Gymnasium und Gesamtschule Fach und Stufe. Die Datei heißt überall `Plan.md`, damit Agent und Skills nicht nach Schulform unterscheiden müssen.
 - **Wenige Ordner:** Eine Reihe ist ein Ordner mit `Reihe.md` und `Material/`. Die Stunden stehen als Tabelle in der `Reihe.md`.
 - **Drag-and-Drop:** Wird Material auf eine Stunde im Stundenplan gezogen, legt der Harness die Datei in `Material/` ab und trägt sie in der Tabelle ein.
 - **"Wo fehlt noch Material?":** Der Agent sucht Zeilen ohne Eintrag in der Spalte "Material".
@@ -71,7 +75,7 @@ Pro Unterrichtsreihe. Wird nur bei Bedarf geöffnet.
 # Reihe: Bewerbung
 
 Lernfeld: LF 3
-Bildungsgang: Höhere Handelsschule (siehe Bildungsgänge/…)
+Lehrplan: Höhere Handelsschule (siehe Lehrpläne/…)
 Zeitraum: 12.10. – 04.11.
 Kompetenzen / Ziele: (aus dem Bildungsplan übernommen)
 Leistungsnachweis: Klausur 04.11. (siehe Bewertung.md)

@@ -54,9 +54,29 @@ Die Skills sind für US-Schulen (Klasse K bis 12) gebaut: Common Core, NGSS, Kla
 3. **Lehrersprache:** Niemals Werkzeugnamen, Dateinamen, "JSON" oder "Rendering" erwähnen, nur benennen, was die Lehrkraft bekommt.
 4. **Fortschritt sichtbar:** In ein, zwei Sätzen sagen, was jetzt passiert, und die Schritte in der Aufgabenliste abhaken lassen.
 5. **Eine Datenquelle, feste Skripte:** Das Modell erzeugt den Inhalt als strukturierte Datei (JSON), Skripte machen daraus Word, HTML oder PDF mit festem Theme. Genau unser Grundsatz "feste Teile als Skript".
-6. **Erdung in Vorgaben:** Dort sind es US-Standards über den Konnektor. Bei uns ist es der Bildungsplan des Bildungsgangs (`Bildungsgänge/…/Bildungsplan.md`). Fehlt er, kommt ein ehrlicher Hinweis ins Material ("Ohne hinterlegten Bildungsplan erstellt") und es werden keine Fundstellen erfunden.
+6. **Erdung in Vorgaben:** Dort sind es US-Standards über den Konnektor. Bei uns ist es der hinterlegte Lehrplan (`Lehrpläne/…/Plan.md`: Bildungsplan am Berufskolleg, Kernlehrplan an Gymnasium und Gesamtschule). Fehlt er, kommt ein ehrlicher Hinweis ins Material ("Ohne hinterlegten Lehrplan erstellt") und es werden keine Fundstellen erfunden.
 7. **Urheberrecht:** Immer eigene Inhalte schreiben, Vorlagen nur für Aufbau und Umfang nutzen, nie wörtlich übernehmen.
 8. **Klare Abgrenzung in der Beschreibung:** Jede Beschreibung sagt auch, wofür der Skill *nicht* gedacht ist, damit nicht zwei Skills gleichzeitig greifen.
+
+### Zielschulformen: NRW
+
+Die mitgelieferten Skills gelten für drei Schulformen in NRW: **Berufskolleg**, **Gymnasium** und **Gesamtschule**. Andere Bundesländer und Schulformen sind vorerst kein Ziel, die Bauweise soll sie aber später zulassen.
+
+Die Schulform steht in `Profil.md` und `Klasse.md`. Die Skills lesen sie dort und laden die passende Referenz, statt sie im Skill-Text fest zu verdrahten.
+
+Geplante Referenzdateien pro Skill (alle Inhalte vor dem Schreiben gegen die Originalquellen prüfen, z. B. die Lehrplan- und Operatorenseiten des Landes NRW):
+
+- `references/berufskolleg-nrw.md`: Bildungsgänge und Bildungspläne, Lernfelder und Lernsituationen, Handlungsorientierung, berufsbezogene Szenarien
+- `references/gymnasium-nrw.md`: Kernlehrpläne Sek I und Sek II, Vorbereitung auf das Zentralabitur, Grund- und Leistungskurs
+- `references/gesamtschule-nrw.md`: Kernlehrpläne Sek I, Fachleistungsdifferenzierung in Grund- und Erweiterungskurse, gemeinsame Oberstufe mit dem Gymnasium
+- `references/operatoren-nrw.md`: Operatoren und Anforderungsbereiche I–III (schulformübergreifend, mit fachspezifischen Abweichungen)
+- dazu fachbezogene Referenzen nach Fachgruppen (z. B. Fremdsprachen, Wirtschaft und Gesellschaft, MINT, Deutsch)
+
+Was die Schulformen für die Skills verändert:
+
+- **Berufskolleg:** Material hängt an einer beruflichen Handlungssituation und einem Lernfeld, nicht nur an einem Fachthema.
+- **Gymnasium:** In der Oberstufe zählen Abiturnähe, Operatoren und Klausurformate des Zentralabiturs.
+- **Gesamtschule:** Differenzierung ist der Normalfall. Material wird für Grund- und Erweiterungskurs angeboten, der Skill "Differenzieren" ist hier besonders wichtig.
 
 ### Geplanter Startsatz für morte
 
