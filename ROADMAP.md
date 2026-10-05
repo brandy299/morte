@@ -25,7 +25,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 ## Phase 0: Entscheidungen und Fundament
 
 - [x] Agentenkern gewählt: `pi-ai` + `pi-agent-core` (MIT) als Bibliothek, eigene Oberfläche und eigene feste Werkzeuge. Siehe `docs/entscheidungen/001-agentenkern.md`
-- [ ] Tech-Stack bestätigen (Vorschlag: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6)
+- [x] Tech-Stack bestätigt: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6. Kein Rust: pi und die Video-Pipeline sind Node, eine Sprache für alles hält das Projekt für eine Person pflegbar
 - [x] Lizenzfrage geklärt: Repo bleibt Apache-2.0. pi ist MIT und passt. Kein Code aus AGPL- oder LGPL-Projekten (Odysseus, pi-desktop), nur Ideen.
 - [ ] Plattform: Mac zuerst, Windows von Anfang an mitdenken (viele Schulen nutzen Windows)
 - [ ] Projektname, Logo und Designrichtung festlegen
