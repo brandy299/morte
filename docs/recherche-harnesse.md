@@ -66,7 +66,8 @@ Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheit
 
 - Verbrauch, Kontext-Füllstand: gebaut (`src/core/usage`, `src/web/UsageMeter.tsx`).
 - Skill-Lader mit stufenweisem Laden: gebaut (`src/core/skills`).
-- Zusammenfassen bei vollem Kontext: **fehlt noch** (siehe oben).
+- Zusammenfassen bei vollem Kontext: gebaut (`src/core/agent/compaction.ts`).
+- Prüfung von Skill-Namen und Beschreibungslänge: war im Lader schon vorhanden (`src/core/skills`), Vorschlag 2 unten ist damit erledigt.
 
 ## Folgerungen
 

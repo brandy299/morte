@@ -37,7 +37,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [~] Fortschrittsanzeige bei der Arbeit (Statuspunkt, aktuelle Zeile und Schrittliste stehen, Live-Vorschau folgt in Phase 3): pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
 - [x] Verbrauch (Tokens, geschätzte Kosten, Monatssumme), Kontext-Füllstand und Guthaben (nur wo der Anbieter es hergibt: DeepSeek) versteckt hinter einem kleinen Ring am Eingabefeld
 - [x] Bilder anhängen (Büroklammer, Ziehen, Einfügen) mit Datenschutz-Hinweis. PDF und Word folgen in Phase 3
-- [ ] Lange Gespräche: Ab etwa 80 Prozent Kontext-Füllstand den älteren Teil automatisch zusammenfassen, die letzten Beiträge bleiben wörtlich. Hinweis in einfacher Sprache, keine Rückfrage. Bei "Eingabe zu lang" vom Anbieter einmal erneut versuchen (Ideen aus `docs/recherche-harnesse.md`)
+- [x] Lange Gespräche: Ab etwa 80 Prozent Kontext-Füllstand den älteren Teil automatisch zusammenfassen, die letzten Beiträge bleiben wörtlich. Hinweis in einfacher Sprache, keine Rückfrage. Bei "Eingabe zu lang" vom Anbieter einmal erneut versuchen (Ideen aus `docs/recherche-harnesse.md`). Der Hinweis erscheint als Schritt in der Schrittliste; scheitert die Zusammenfassung, läuft das Gespräch unverändert weiter
 - [~] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent` (Claude, OpenAI, DeepSeek stehen, OpenAI-kompatibel fehlt noch)
 - [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
 - [x] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis

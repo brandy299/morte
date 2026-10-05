@@ -1,4 +1,5 @@
 import { Agent } from "@earendil-works/pi-agent-core";
+import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
 import { resolveModel } from "./models.ts";
 import { tools } from "./tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
@@ -30,6 +31,8 @@ export interface SessionDeps {
   /** Name and description of every available skill. Only these short texts go into the prompt. */
   skills?: { name: string; description: string }[];
   onUsage?: (delta: { input: number; output: number; cost: number }) => void;
+  /** Writes the summary of an older conversation part. Default: one short request to the chosen model. */
+  summarize?: (transcript: string) => Promise<string>;
 }
 
 export function createChatSession(settings: AgentSettings, deps: SessionDeps = {}): ChatSession {
@@ -67,6 +70,37 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   const answer = (id: string, allow: boolean) => {
     pending.get(id)?.(allow);
     pending.delete(id);
+  };
+
+  const summarize =
+    deps.summarize ??
+    (async (transcript: string) => {
+      const reply = await models.completeSimple(
+        model,
+        { systemPrompt: SUMMARY_SYSTEM, messages: [{ role: "user", content: transcript, timestamp: Date.now() }] },
+        { apiKey: settings.apiKey },
+      );
+      if (reply.stopReason === "error") throw new Error(reply.errorMessage ?? "summary failed");
+      return reply.content.flatMap((c) => (c.type === "text" ? [c.text] : [])).join("\n");
+    });
+
+  /** Replaces the older part of the conversation by a short summary. Returns false when nothing changed. */
+  const compact = async (onEvent: (event: ChatEvent) => void, keepTokens = keepTokensFor(model.contextWindow)): Promise<boolean> => {
+    const split = splitForCompaction(agent.state.messages, keepTokens);
+    if (!split) return false;
+    onEvent({ type: "step_start", id: "compact", label: "Fasse das bisherige Gespräch kurz zusammen" });
+    try {
+      const summary = (await summarize(renderTranscript(split.old))).trim();
+      if (!summary) throw new Error("empty summary");
+      agent.state.messages = [...split.head, ...withSummary(split.recent, summary)];
+      totals.context = agent.state.messages.reduce((n, m) => n + estimateTokens(m), 0);
+      onEvent({ type: "step_end", id: "compact", ok: true });
+      onEvent({ type: "usage", usage: snapshot() });
+      return true;
+    } catch {
+      onEvent({ type: "step_end", id: "compact", ok: false });
+      return false;
+    }
   };
 
   let emit: (event: ChatEvent) => void = () => {};
@@ -121,8 +155,22 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
           onEvent({ type: "error", message: "Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern." });
           return;
         }
-        await agent.prompt(text, images.map((i) => ({ type: "image" as const, data: i.data, mimeType: i.mimeType })));
-        const last = agent.state.messages.at(-1);
+        const pictures = images.map((i) => ({ type: "image" as const, data: i.data, mimeType: i.mimeType }));
+        if (totals.context >= COMPACT_AT * model.contextWindow) await compact(onEvent);
+        await agent.prompt(text, pictures);
+        let last = agent.state.messages.at(-1);
+        if (last?.role === "assistant" && last.stopReason === "error" && isTooLong(last.errorMessage)) {
+          // The provider found the conversation too long: drop the failed question, shorten hard once (keep only the last turn), ask again.
+          const all = agent.state.messages;
+          const asked = all.findLastIndex((m) => m.role === "user");
+          agent.state.messages = all.slice(0, asked);
+          if (await compact(onEvent, 0)) {
+            await agent.prompt(text, pictures);
+          } else {
+            agent.state.messages = all;
+          }
+          last = agent.state.messages.at(-1);
+        }
         if (last?.role === "assistant" && last.stopReason === "error") {
           onEvent({ type: "error", message: friendlyError(last.errorMessage) });
         }
