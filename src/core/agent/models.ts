@@ -1,45 +1,30 @@
-import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
+import { createModels, type Api, type Model, type Provider, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
 import { anthropicProvider } from "@earendil-works/pi-ai/providers/anthropic";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
 import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
 import type { AgentSettings } from "./types.ts";
 
-/** Default model per provider; a short list of recommended ones comes with the setup step. */
+export const PROVIDERS: Record<string, { name: string; make: () => Provider; recommended: string[] }> = {
+  anthropic: { name: "Claude (Anthropic)", make: anthropicProvider, recommended: ["claude-sonnet-5-5", "claude-haiku-4-5"] },
+  openai: { name: "OpenAI (ChatGPT)", make: openaiProvider, recommended: ["gpt-5.4", "gpt-5.4-mini"] },
+  deepseek: { name: "DeepSeek", make: deepseekProvider, recommended: ["deepseek-flash"] },
+};
+
 type ResolvedModel = {
   models: ReturnType<typeof createModels>;
-  model: NonNullable<ReturnType<ReturnType<typeof createModels>["getModel"]>>;
+  model: Model<Api>;
   /** Called after each turn (demo mode re-queues its scripted answer). */
   onTurnEnd?: () => void;
 };
 
-const DEFAULT_MODEL: Record<string, string> = {
-  anthropic: "claude-sonnet-4-6",
-  openai: "gpt-5.4",
-  deepseek: "deepseek-flash",
-};
-
-export function resolveModel(settings: AgentSettings) {
-  return resolve(settings);
-}
-
-function resolve(settings: AgentSettings): ResolvedModel {
+export function resolveModel(settings: AgentSettings): ResolvedModel {
   if (settings.provider === "demo") return demoModel();
 
+  const entry = PROVIDERS[settings.provider];
+  if (!entry) throw new Error(`Unbekannter Anbieter: ${settings.provider}`);
   const models = createModels();
-  switch (settings.provider) {
-    case "anthropic":
-      models.setProvider(anthropicProvider());
-      break;
-    case "openai":
-      models.setProvider(openaiProvider());
-      break;
-    case "deepseek":
-      models.setProvider(deepseekProvider());
-      break;
-    default:
-      throw new Error(`Unbekannter Anbieter: ${settings.provider}`);
-  }
-  const id = settings.model ?? DEFAULT_MODEL[settings.provider];
+  models.setProvider(entry.make());
+  const id = settings.model ?? entry.recommended[0];
   const model = id ? models.getModel(settings.provider, id) : undefined;
   if (!model) throw new Error(`Modell nicht gefunden: ${settings.provider}/${id}`);
   return { models, model };

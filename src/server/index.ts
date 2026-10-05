@@ -3,21 +3,68 @@ import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { createChatSession, type AgentSettings, type ChatSession } from "../core/agent/index.ts";
+import { createChatSession, listProviders, testConnection, type ChatSession } from "../core/agent/index.ts";
+import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
+import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
-/** Settings come from the environment for now; the setup step with key storage follows in Phase 1. */
-function settingsFromEnv(): AgentSettings {
-  return {
-    provider: process.env.MORTE_PROVIDER ?? "demo",
-    model: process.env.MORTE_MODEL,
-  };
+/** Holds the current chat session; it is rebuilt after the setup changes provider, model or key. */
+export interface AppState {
+  secrets: SecretStore;
+  session: ChatSession | undefined;
+  configured: { provider: string; model: string } | undefined;
 }
 
-export function createApp(session: ChatSession) {
+const keyName = (provider: string) => `apikey:${provider}`;
+
+async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
+  const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
+  state.session?.abort();
+  state.session = createChatSession({ ...choice, apiKey });
+}
+
+export async function loadState(secrets: SecretStore): Promise<AppState> {
+  const state: AppState = { secrets, session: undefined, configured: undefined };
+  const saved = await loadProviderSettings();
+  if (saved) {
+    state.configured = saved;
+    await buildSession(state, saved);
+  }
+  return state;
+}
+
+export function createApp(state: AppState) {
   const app = new Hono();
   let busy = false;
 
+  app.get("/api/setup/status", (c) =>
+    c.json({ configured: Boolean(state.session), ...state.configured, storage: state.secrets.kind }),
+  );
+  app.get("/api/setup/options", (c) => c.json({ providers: listProviders() }));
+
+  app.post("/api/setup/test", async (c) => {
+    const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
+    const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
+    return c.json(await testConnection({ provider, model, apiKey: key }));
+  });
+
+  app.post("/api/setup/save", async (c) => {
+    const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
+    if (apiKey?.trim()) await state.secrets.set(keyName(provider), apiKey.trim());
+    await saveProviderSettings({ provider, model });
+    state.configured = { provider, model };
+    await buildSession(state, { provider, model });
+    return c.json({ ok: true });
+  });
+
+  app.post("/api/setup/demo", async (c) => {
+    state.configured = undefined;
+    await buildSession(state, { provider: "demo" });
+    return c.json({ ok: true });
+  });
+
   app.post("/api/chat", async (c) => {
+    const session = state.session;
+    if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
     const { text } = await c.req.json<{ text?: string }>();
     if (!text?.trim()) return c.json({ error: "Bitte schreibe zuerst etwas." }, 400);
     if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
@@ -35,7 +82,7 @@ export function createApp(session: ChatSession) {
   });
 
   app.post("/api/chat/reset", (c) => {
-    session.reset();
+    state.session?.reset();
     return c.json({ ok: true });
   });
 
@@ -51,7 +98,7 @@ const MIME: Record<string, string> = {
 };
 
 if (process.argv[1]?.endsWith("server/index.ts") || process.argv[1]?.endsWith("server/index.js")) {
-  const app = createApp(createChatSession(settingsFromEnv()));
+  const app = createApp(await loadState(await createSecretStore()));
   const webDir = join(process.cwd(), "dist", "web");
   // Production: serve the built UI. In development Vite serves it and proxies /api here.
   app.get("*", async (c) => {

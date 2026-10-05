@@ -9,15 +9,11 @@ npm install
 npm run dev
 ```
 
-Dann im Browser `http://localhost:5173` öffnen. Ohne Einstellungen läuft der Demo-Modus (keine echte KI).
+Dann im Browser `http://localhost:5173` öffnen. Beim ersten Start führt eine Seite durch die Einrichtung: Anbieter wählen, Zugangsschlüssel einfügen, "Verbindung testen". Der Schlüssel landet im Schlüsselbund des Betriebssystems. Wo es keinen gibt, liegt er in einer Datei nur für dich im Datenordner. Nie im Programmcode.
 
-Mit echter KI, zum Beispiel Claude (der Schlüssel kommt aus der Umgebung, nie in den Quelltext):
+Anbieter: Claude, OpenAI, DeepSeek. "Erst einmal ohne KI ansehen" startet einen Demo-Modus ohne echte KI.
 
-```
-MORTE_PROVIDER=anthropic ANTHROPIC_API_KEY=... npm run dev
-```
-
-Weitere Anbieter: `openai` (`OPENAI_API_KEY`), `deepseek` (`DEEPSEEK_API_KEY`). Mit `MORTE_MODEL` lässt sich das Modell wählen. Das ist nur eine Übergangslösung bis zur Einrichtung mit Schlüsselbund.
+Der Datenordner ist `~/morte-daten` (änderbar mit `MORTE_HOME`).
 
 ## Prüfen
 

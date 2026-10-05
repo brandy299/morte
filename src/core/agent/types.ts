@@ -21,4 +21,30 @@ export interface AgentSettings {
   /** Provider id, e.g. "anthropic", "openai", "deepseek", or "demo" (offline). */
   provider: string;
   model?: string;
+  /** Read from the keychain by the server; if empty, pi falls back to the provider's environment variable. */
+  apiKey?: string;
+}
+
+export interface ModelOption {
+  id: string;
+  name: string;
+  /** Model understands images (from the pi model catalog). */
+  vision: boolean;
+  recommended: boolean;
+}
+
+export interface ProviderOption {
+  id: string;
+  name: string;
+  models: ModelOption[];
+}
+
+export type CheckState = "ok" | "failed" | "skipped";
+
+export interface ConnectionResult {
+  /** True when the model can chat, call tools and understand images. */
+  passed: boolean;
+  checks: { id: "chat" | "tools" | "vision"; label: string; state: CheckState }[];
+  /** Plain-language hint for the teacher when something failed. */
+  hint?: string;
 }

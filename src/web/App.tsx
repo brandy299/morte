@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { resetChat, sendMessage, type ChatEvent } from "./api.ts";
+import { getStatus, resetChat, sendMessage, type ChatEvent, type SetupStatus } from "./api.ts";
+import { Setup } from "./Setup.tsx";
 
 interface Step {
   id: string;
@@ -15,6 +16,29 @@ interface Message {
 }
 
 export function App() {
+  const [status, setStatus] = useState<SetupStatus | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
+  const refresh = () => getStatus().then(setStatus);
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  if (!status) return null;
+  if (!status.configured || setupOpen) {
+    return (
+      <Setup
+        status={status}
+        onDone={() => {
+          setSetupOpen(false);
+          void refresh();
+        }}
+      />
+    );
+  }
+  return <Chat onSettings={() => setSetupOpen(true)} />;
+}
+
+function Chat({ onSettings }: { onSettings: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
@@ -95,6 +119,9 @@ export function App() {
         </div>
         <button className="new" onClick={newChat}>
           Neues Gespräch
+        </button>
+        <button className="new" onClick={onSettings}>
+          Einstellungen
         </button>
         <p className="side-note">Hier erscheinen später deine Klassen, Fächer und Reihen.</p>
       </aside>

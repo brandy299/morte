@@ -36,9 +36,9 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Oberfläche mit Chat, großem Eingabefeld und Streaming
 - [~] Fortschrittsanzeige bei der Arbeit (Statuspunkt, aktuelle Zeile und Schrittliste stehen, Live-Vorschau folgt in Phase 3): pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
 - [~] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent` (Claude, OpenAI, DeepSeek stehen, OpenAI-kompatibel fehlt noch)
-- [ ] API-Keys im Schlüsselbund, nie im Code oder im Repo
-- [ ] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
-- [ ] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
+- [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
+- [x] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
+- [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
 
 ## Phase 2: Ordnerstruktur und Klassen
 

@@ -37,3 +37,28 @@ export async function sendMessage(text: string, onEvent: (e: ChatEvent) => void,
 export async function resetChat() {
   await fetch("/api/chat/reset", { method: "POST" });
 }
+
+export interface ModelOption { id: string; name: string; vision: boolean; recommended: boolean }
+export interface ProviderOption { id: string; name: string; models: ModelOption[] }
+export interface ConnectionResult {
+  passed: boolean;
+  checks: { id: string; label: string; state: "ok" | "failed" | "skipped" }[];
+  hint?: string;
+}
+export interface SetupStatus { configured: boolean; provider?: string; model?: string; storage?: "keychain" | "file" }
+
+const post = async <T,>(url: string, body?: unknown): Promise<T> => {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error("Das hat nicht geklappt.");
+  return res.json();
+};
+
+export const getStatus = async (): Promise<SetupStatus> => (await fetch("/api/setup/status")).json();
+export const getOptions = async (): Promise<ProviderOption[]> => (await (await fetch("/api/setup/options")).json()).providers;
+export const testSetup = (b: { provider: string; model: string; apiKey: string }) => post<ConnectionResult>("/api/setup/test", b);
+export const saveSetup = (b: { provider: string; model: string; apiKey: string }) => post<{ ok: true }>("/api/setup/save", b);
+export const startDemo = () => post<{ ok: true }>("/api/setup/demo");

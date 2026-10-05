@@ -14,6 +14,7 @@ export function createChatSession(settings: AgentSettings): ChatSession {
   const agent = new Agent({
     initialState: { systemPrompt: SYSTEM_PROMPT, model, tools },
     streamFn: models.streamSimple.bind(models),
+    getApiKey: async () => settings.apiKey,
   });
 
   let emit: (event: ChatEvent) => void = () => {};
