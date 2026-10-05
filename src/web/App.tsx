@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, getStatus, getTree, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { NewClass } from "./NewClass.tsx";
@@ -15,6 +15,8 @@ interface Message {
   role: "user" | "assistant";
   text: string;
   images?: string[];
+  /** Pictures that were attached in an earlier session; only the number is known. */
+  bilder?: number;
   steps: Step[];
   materials?: Material[];
   confirm?: { id: string; question: string };
@@ -27,10 +29,34 @@ export function App() {
   const [newClassOpen, setNewClassOpen] = useState(false);
   const [tree, setTree] = useState<KlasseInfo[]>([]);
   const refreshTree = () => getTree().then(setTree).catch(() => {});
+  const [history, setHistory] = useState<ConversationInfo[]>([]);
+  const [currentId, setCurrentId] = useState<string | undefined>();
+  const refreshHistory = () =>
+    getHistory()
+      .then((h) => {
+        setHistory(h.gespraeche);
+        setCurrentId(h.aktuell);
+      })
+      .catch(() => {});
+  // A new key rebuilds the chat, with the messages of the conversation that was opened (or none).
+  const [chat, setChat] = useState<{ key: number; messages: Message[] }>({ key: 0, messages: [] });
+  const show = (anzeige: StoredMessage[]) => setChat((c) => ({ key: c.key + 1, messages: anzeige.map((m) => ({ ...m, materials: m.materials })) }));
+  const open = async (id: string) => {
+    const result = await openHistory(id);
+    if (result) show(result.anzeige);
+    void refreshHistory();
+  };
+  const remove = async (c: ConversationInfo) => {
+    if (!window.confirm(`Soll das Gespräch „${c.titel}“ gelöscht werden?`)) return;
+    await deleteHistory(c.id);
+    if (c.id === currentId) show([]);
+    void refreshHistory();
+  };
   const refresh = () => getStatus().then(setStatus);
   useEffect(() => {
     void refresh();
     void refreshTree();
+    void refreshHistory();
   }, []);
 
   if (!status) return null;
@@ -56,10 +82,32 @@ export function App() {
       />
     );
   }
-  return <Chat tree={tree} refreshTree={refreshTree} onNewClass={() => setNewClassOpen(true)} onSettings={() => setSetupOpen(true)} />;
+  return (
+    <Chat
+      key={chat.key}
+      initialMessages={chat.messages}
+      tree={tree}
+      refreshTree={refreshTree}
+      history={history}
+      currentId={currentId}
+      refreshHistory={refreshHistory}
+      onOpen={open}
+      onDelete={remove}
+      onNew={() => show([])}
+      onNewClass={() => setNewClassOpen(true)}
+      onSettings={() => setSetupOpen(true)}
+    />
+  );
 }
 
 interface ChatProps {
+  initialMessages: Message[];
+  history: ConversationInfo[];
+  currentId?: string;
+  refreshHistory: () => void;
+  onOpen: (id: string) => void;
+  onDelete: (c: ConversationInfo) => void;
+  onNew: () => void;
   tree: KlasseInfo[];
   refreshTree: () => void;
   onNewClass: () => void;
@@ -68,8 +116,8 @@ interface ChatProps {
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
-function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+function Chat({ initialMessages, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onSettings }: ChatProps) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
   const [thinking, setThinking] = useState(false);
@@ -167,16 +215,14 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
       setWorking(false);
       setThinking(false);
       refreshTree();
+      refreshHistory();
     }
   };
 
   const newChat = async () => {
     abortRef.current?.abort();
     await resetChat();
-    setMessages([]);
-    setPreview(null);
-    setUsage((u) => (u ? { ...u, inputTokens: 0, outputTokens: 0, cost: 0, contextTokens: 0 } : u));
-    refreshTree();
+    onNew();
   };
 
   const last = messages.at(-1);
@@ -206,6 +252,24 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
         <button className="new" onClick={onSettings}>
           Einstellungen
         </button>
+        {history.length > 0 && (
+          <nav className="tree history" aria-label="Frühere Gespräche">
+            <div className="tree-head">
+              <span>Gespräche</span>
+            </div>
+            {history.slice(0, 12).map((c) => (
+              <div key={c.id} className={c.id === currentId ? "hist on" : "hist"}>
+                <button type="button" className="tree-node" title={c.titel} onClick={() => onOpen(c.id)}>
+                  {c.titel}
+                </button>
+                <button type="button" className="hist-del" aria-label={`Gespräch „${c.titel}“ löschen`} onClick={() => onDelete(c)}>
+                  ×
+                </button>
+              </div>
+            ))}
+            <p className="side-note">Gespräche bleiben auf diesem Computer.</p>
+          </nav>
+        )}
         <nav className="tree" aria-label="Deine Klassen">
           <div className="tree-head">
             <span>Klassen</span>
@@ -278,6 +342,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
                     ))}
                   </div>
                 )}
+                {m.bilder ? <p className="muted-note">{m.bilder === 1 ? "1 Bild angehängt" : `${m.bilder} Bilder angehängt`}</p> : null}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
                 {m.materials?.map((x) => (
                   <button key={x.path} type="button" className="file-card" onClick={() => setPreview(x)}>

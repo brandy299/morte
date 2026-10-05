@@ -1,4 +1,4 @@
-import { Agent } from "@earendil-works/pi-agent-core";
+import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
 import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
 import { resolveModel } from "./models.ts";
 import { tools } from "./tools.ts";
@@ -186,6 +186,21 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
     },
     answer,
     usage: snapshot,
+    history() {
+      const body = agent.state.messages.filter((m) => m.role !== "system").map(withoutPictures);
+      return { messages: body, usage: snapshot() };
+    },
+    restore(state) {
+      const head = agent.state.messages.filter((m) => m.role === "system");
+      agent.state.messages = [...head, ...(state.messages as AgentMessage[])];
+      const u = state.usage ?? {};
+      Object.assign(totals, {
+        input: u.inputTokens ?? 0,
+        output: u.outputTokens ?? 0,
+        cost: u.cost ?? 0,
+        context: u.contextTokens ?? agent.state.messages.reduce((n, m) => n + estimateTokens(m), 0),
+      });
+    },
     abort: () => {
       for (const id of [...pending.keys()]) answer(id, false);
       agent.abort();
@@ -202,4 +217,12 @@ function friendlyError(raw?: string): string {
     return "Der Zugang zur KI fehlt oder ist nicht gültig. Bitte prüfe den Zugangsschlüssel.";
   }
   return "Das hat gerade nicht geklappt. Bitte versuche es gleich noch einmal.";
+}
+
+/** Pictures are not stored with a conversation (they are large). The model sees "[Bild]" instead. */
+function withoutPictures(message: AgentMessage): AgentMessage {
+  const m = message as { content?: unknown };
+  if (!Array.isArray(m.content)) return message;
+  const content = m.content.map((p) => (p && typeof p === "object" && (p as { type?: string }).type === "image" ? { type: "text", text: "[Bild]" } : p));
+  return { ...message, content } as AgentMessage;
 }

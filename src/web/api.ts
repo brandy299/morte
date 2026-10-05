@@ -103,3 +103,20 @@ export async function createClass(input: NewClass): Promise<string | null> {
 
 export interface Material { title: string; name: string; path: string }
 export const materialUrl = (m: Material, download = false) => `/api/material?path=${encodeURIComponent(m.path)}${download ? "&download=1" : ""}`;
+
+export interface ConversationInfo { id: string; titel: string; aktualisiert: string }
+export interface StoredMessage {
+  role: "user" | "assistant";
+  text: string;
+  bilder?: number;
+  steps: { id: string; label: string; state: "running" | "done" | "failed" }[];
+  materials?: Material[];
+  error?: string;
+}
+
+export const getHistory = async (): Promise<{ gespraeche: ConversationInfo[]; aktuell?: string }> => (await fetch("/api/history")).json();
+export const openHistory = async (id: string): Promise<{ anzeige: StoredMessage[]; usage: UsageSnapshot } | null> => {
+  const res = await fetch("/api/history/open", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
+  return res.ok ? res.json() : null;
+};
+export const deleteHistory = (id: string) => fetch(`/api/history/${id}`, { method: "DELETE" });

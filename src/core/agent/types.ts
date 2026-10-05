@@ -37,6 +37,10 @@ export interface ChatSession {
   /** Sends one user message and streams events until the answer is complete. */
   send(text: string, onEvent: (event: ChatEvent) => void, images?: ImageAttachment[]): Promise<void>;
   usage(): UsageSnapshot;
+  /** What is needed to continue this conversation later: the model's messages (pictures reduced to text) and the usage numbers. */
+  history(): { messages: unknown[]; usage: UsageSnapshot };
+  /** Continues an earlier conversation. Replaces the current one. */
+  restore(state: { messages: unknown[]; usage?: Partial<UsageSnapshot> }): void;
   /** Answers a `confirm` event. */
   answer(id: string, allow: boolean): void;
   abort(): void;

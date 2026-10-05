@@ -6,6 +6,7 @@ import { streamSSE } from "hono/streaming";
 import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { createClass, initWorkspace, listTree, materialFile, UserError } from "../core/workspace/index.ts";
+import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
@@ -17,6 +18,8 @@ export interface AppState {
   configured: { provider: string; model: string } | undefined;
   /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
   choice?: { provider: string; model?: string };
+  /** The conversation on screen. Saved after every answer, so it can be reopened later. */
+  conversation?: { id: string; titel: string; anzeige: StoredMessage[] };
 }
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -28,6 +31,7 @@ const keyName = (provider: string) => `apikey:${provider}`;
 async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
   const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
   state.choice = choice;
+  state.conversation = undefined; // a new session starts a new conversation
   state.session?.abort();
   const { skills } = await listSkills();
   state.session = createChatSession({ ...choice, apiKey }, { skills, onUsage: (d) => void addUsage(d).catch(() => {}) });
@@ -92,17 +96,24 @@ export function createApp(state: AppState) {
     if (bad) return c.json({ error: "Bilder gehen nur als JPG, PNG, WebP oder GIF, höchstens vier Stück und jeweils unter 5 MB." }, 400);
     if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
     busy = true;
+    const conversation = (state.conversation ??= { id: newConversationId(), titel: titleFrom(text), anzeige: [] });
+    let answer: StoredMessage = { role: "assistant", text: "", steps: [] };
+    conversation.anzeige.push({ role: "user", text, bilder: images.length || undefined, steps: [] });
     return streamSSE(c, async (stream) => {
       stream.onAbort(() => session.abort());
       try {
         await session.send(
           text,
           (event) => {
+            answer = applyEvent(answer, event);
             void stream.writeSSE({ data: JSON.stringify(event) });
           },
           images,
         );
       } finally {
+        conversation.anzeige.push(settle(answer));
+        const { messages, usage } = session.history();
+        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
         busy = false;
       }
     });
@@ -135,6 +146,26 @@ export function createApp(state: AppState) {
       "content-type": "application/pdf",
       "content-disposition": `${disposition}; filename*=UTF-8''${name}`,
     });
+  });
+
+  app.get("/api/history", async (c) => c.json({ gespraeche: await listConversations(), aktuell: state.conversation?.id }));
+
+  app.post("/api/history/open", async (c) => {
+    const { id } = await c.req.json<{ id: string }>();
+    if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
+    const saved = await loadConversation(id).catch(() => undefined);
+    if (!saved || !state.choice) return c.json({ error: "Dieses Gespräch gibt es nicht mehr." }, 404);
+    await buildSession(state, state.choice);
+    state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never });
+    state.conversation = { id: saved.id, titel: saved.titel, anzeige: saved.anzeige };
+    return c.json({ anzeige: saved.anzeige, usage: state.session!.usage() });
+  });
+
+  app.delete("/api/history/:id", async (c) => {
+    const id = c.req.param("id");
+    await deleteConversation(id).catch(() => {});
+    if (state.conversation?.id === id && state.choice && !busy) await buildSession(state, state.choice);
+    return c.json({ ok: true });
   });
 
   app.post("/api/chat/reset", async (c) => {
