@@ -54,6 +54,10 @@ export interface AgentSettings {
   model?: string;
   /** Read from the keychain by the server; if empty, pi falls back to the provider's environment variable. */
   apiKey?: string;
+  /** Only for provider "custom": address of an OpenAI-compatible server. */
+  baseUrl?: string;
+  /** Only for provider "custom": size of the model's memory in tokens, if known. */
+  contextWindow?: number;
 }
 
 export interface ModelOption {
@@ -67,6 +71,8 @@ export interface ModelOption {
 export interface ProviderOption {
   id: string;
   name: string;
+  /** The teacher types address and model name herself (no catalog). */
+  custom?: boolean;
   models: ModelOption[];
 }
 

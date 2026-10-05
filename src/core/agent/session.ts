@@ -1,5 +1,6 @@
 import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
 import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
+import { keyFor } from "./custom.ts";
 import { resolveModel } from "./models.ts";
 import { tools } from "./tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
@@ -52,7 +53,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   const agent = new Agent({
     initialState: { systemPrompt: buildPrompt(deps.skills ?? []), model, tools },
     streamFn: models.streamSimple.bind(models),
-    getApiKey: async () => settings.apiKey,
+    getApiKey: async () => keyFor(settings.provider, settings.apiKey),
     beforeToolCall: async ({ toolCall, args }, signal) => {
       const tool = tools.find((t) => t.name === toolCall.name);
       if (!tool?.ask) return undefined;
@@ -79,7 +80,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
       const reply = await models.completeSimple(
         model,
         { systemPrompt: SUMMARY_SYSTEM, messages: [{ role: "user", content: transcript, timestamp: Date.now() }] },
-        { apiKey: settings.apiKey },
+        { apiKey: keyFor(settings.provider, settings.apiKey) },
       );
       // The summary costs tokens too, so it counts in the totals and in the monthly sum.
       if (reply.usage.totalTokens > 0) {

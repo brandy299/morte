@@ -8,7 +8,7 @@ export interface AppState {
   session: ChatSession | undefined;
   configured: { provider: string; model: string } | undefined;
   /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
-  choice?: { provider: string; model?: string };
+  choice?: { provider: string; model?: string; baseUrl?: string; contextWindow?: number };
   /** The conversation on screen. Saved after every answer, so it can be reopened later. */
   /** For tests: builds the one-off model access used outside the chat. */
   makeCompleter?: typeof createCompleter;

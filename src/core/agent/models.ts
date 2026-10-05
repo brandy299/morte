@@ -2,6 +2,7 @@ import { createModels, type Api, type Model, type Provider, fauxAssistantMessage
 import { anthropicProvider } from "@earendil-works/pi-ai/providers/anthropic";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
 import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
+import { CUSTOM_ID, customProvider } from "./custom.ts";
 import type { AgentSettings } from "./types.ts";
 
 export const PROVIDERS: Record<string, { name: string; make: () => Provider; recommended: string[] }> = {
@@ -19,6 +20,12 @@ type ResolvedModel = {
 
 export function resolveModel(settings: AgentSettings): ResolvedModel {
   if (settings.provider === "demo") return demoModel();
+  if (settings.provider === CUSTOM_ID) {
+    const { provider, model } = customProvider({ baseUrl: settings.baseUrl ?? "", model: settings.model ?? "", contextWindow: settings.contextWindow });
+    const models = createModels();
+    models.setProvider(provider);
+    return { models, model };
+  }
 
   const entry = PROVIDERS[settings.provider];
   if (!entry) throw new Error(`Unbekannter Anbieter: ${settings.provider}`);

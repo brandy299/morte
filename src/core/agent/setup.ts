@@ -1,12 +1,13 @@
 import { deflateSync } from "node:zlib";
 import { Type, type Context } from "@earendil-works/pi-ai";
+import { CUSTOM_ID, CustomProviderError, keyFor } from "./custom.ts";
 import { PROVIDERS, resolveModel } from "./models.ts";
 import { dateTool } from "./tools.ts";
 import type { AgentSettings, ConnectionResult, ProviderOption } from "./types.ts";
 
 /** Providers with their models. Recommended ones come first, the rest is for "Erweitert". */
 export function listProviders(): ProviderOption[] {
-  return Object.entries(PROVIDERS).map(([id, p]) => {
+  const catalog = Object.entries(PROVIDERS).map(([id, p]) => {
     const models = p.make().getModels().map((m) => ({
       id: m.id,
       name: m.name,
@@ -17,6 +18,7 @@ export function listProviders(): ProviderOption[] {
     models.sort((a, b) => rank(a.id) - rank(b.id));
     return { id, name: p.name, models };
   });
+  return [...catalog, { id: CUSTOM_ID, name: "Anderer Anbieter (OpenAI-kompatibel)", custom: true, models: [] }];
 }
 
 /** Solid red square as PNG, built by hand so no image library is needed. */
@@ -72,14 +74,14 @@ export async function testConnection(
   const set = (id: string, state: "ok" | "failed") => {
     checks.find((c) => c.id === id)!.state = state;
   };
-  const opts = { apiKey: settings.apiKey, maxTokens: 200 };
+  const opts = { apiKey: keyFor(settings.provider, settings.apiKey), maxTokens: 200 };
   const now = () => Date.now();
 
   let resolved;
   try {
     resolved = resolve(settings);
-  } catch {
-    return { passed: false, checks, hint: "Dieses Modell kenne ich nicht. Bitte wähle ein anderes." };
+  } catch (err) {
+    return { passed: false, checks, hint: err instanceof CustomProviderError ? err.message : "Dieses Modell kenne ich nicht. Bitte wähle ein anderes." };
   }
   const { models, model } = resolved;
 
@@ -93,9 +95,14 @@ export async function testConnection(
     set("chat", "ok");
   } catch (err) {
     const raw = err instanceof Error ? err.message : String(err);
-    const hint = /api key|apikey|unauthor|401|403|authenticat|invalid/i.test(raw)
+    const own = settings.provider === CUSTOM_ID;
+    const hint = /api key|apikey|unauthor|401|403|authenticat/i.test(raw)
       ? "Der Zugangsschlüssel wurde nicht angenommen. Bitte prüfe, ob du ihn vollständig kopiert hast."
-      : "Ich komme nicht an die KI heran. Bitte prüfe die Internetverbindung und versuche es noch einmal.";
+      : own && /ECONNREFUSED|ENOTFOUND|EAI_AGAIN|fetch failed|connect|ETIMEDOUT|connection error/i.test(raw)
+        ? "Ich erreiche den Server unter dieser Adresse nicht. Läuft er, und stimmt die Adresse?"
+        : own && /404|not found|model|does not exist/i.test(raw)
+          ? "Der Server kennt dieses Modell oder diesen Pfad nicht. Prüfe den Modellnamen und ob die Adresse auf „/v1“ endet."
+          : "Ich komme nicht an die KI heran. Bitte prüfe die Internetverbindung und versuche es noch einmal.";
     return { passed: false, checks, hint };
   }
 

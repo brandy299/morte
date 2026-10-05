@@ -3,7 +3,7 @@ import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
-import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
+import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { createClass, initWorkspace, listTree, materialFile, UserError } from "../core/workspace/index.ts";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
@@ -17,10 +17,18 @@ import { loadProviderSettings, saveProviderSettings } from "../core/settings/ind
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_IMAGES = 4;
+interface SetupBody {
+  provider: string;
+  model: string;
+  apiKey?: string;
+  baseUrl?: string;
+  contextWindow?: number;
+}
+
 const MAX_IMAGE_BASE64 = 7_000_000; // about 5 MB of image
 
 
-async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
+async function buildSession(state: AppState, choice: NonNullable<AppState["choice"]>) {
   const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
   state.choice = choice;
   state.conversation = undefined; // a new session starts a new conversation
@@ -87,21 +95,23 @@ export function createApp(state: AppState) {
   app.get("/api/setup/options", (c) => c.json({ providers: listProviders() }));
 
   app.post("/api/setup/test", async (c) => {
-    const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
+    const { provider, model, apiKey, baseUrl, contextWindow } = await c.req.json<SetupBody>();
     const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
-    return c.json(await testConnection({ provider, model, apiKey: key }));
+    return c.json(await testConnection({ provider, model, apiKey: key, baseUrl, contextWindow }));
   });
 
   app.post("/api/setup/save", async (c) => {
-    const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
-    if (apiKey?.trim()) await state.secrets.set(keyName(provider), apiKey.trim());
+    const { provider, model, apiKey, baseUrl, contextWindow } = await c.req.json<SetupBody>();
+    const choice = { provider, model, ...(provider === CUSTOM_ID ? { baseUrl: baseUrl?.trim(), contextWindow } : {}) };
     try {
-      await buildSession(state, { provider, model });
-    } catch {
-      return c.json({ error: "Dieses Modell kenne ich nicht. Bitte wähle ein anderes." }, 400);
+      if (provider === CUSTOM_ID) choice.baseUrl = checkBaseUrl(baseUrl);
+      if (apiKey?.trim()) await state.secrets.set(keyName(provider), apiKey.trim());
+      await buildSession(state, choice);
+    } catch (err) {
+      return c.json({ error: err instanceof CustomProviderError ? err.message : "Dieses Modell kenne ich nicht. Bitte wähle ein anderes." }, 400);
     }
-    await saveProviderSettings({ provider, model });
-    state.configured = { provider, model };
+    await saveProviderSettings(choice);
+    state.configured = choice;
     return c.json({ ok: true });
   });
 

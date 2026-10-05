@@ -39,7 +39,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Bilder anhängen (Büroklammer, Ziehen, Einfügen) mit Datenschutz-Hinweis. PDF und Word folgen in Phase 3
 - [x] Gesprächsverlauf: frühere Gespräche in der Seitenleiste, wieder öffnen (mit Schritten, Dateien und Verbrauch) und löschen. Gespeichert unter `Gespräche/` im Datenordner, nur auf diesem Computer
 - [x] Lange Gespräche: Ab etwa 80 Prozent Kontext-Füllstand den älteren Teil automatisch zusammenfassen, die letzten Beiträge bleiben wörtlich. Hinweis in einfacher Sprache, keine Rückfrage. Bei "Eingabe zu lang" vom Anbieter einmal erneut versuchen (Ideen aus `docs/recherche-harnesse.md`). Der Hinweis erscheint als Schritt in der Schrittliste; scheitert die Zusammenfassung, läuft das Gespräch unverändert weiter
-- [~] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent` (Claude, OpenAI, DeepSeek stehen, OpenAI-kompatibel fehlt noch)
+- [x] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent`: Claude, OpenAI, DeepSeek und jeder OpenAI-kompatible Server (Schulserver, LM Studio, Ollama), geprüft gegen einen echten HTTP-Mock mit Streaming und Werkzeugaufruf. http:// nur für den eigenen Computer und private Adressen
 - [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
 - [x] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
 - [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
