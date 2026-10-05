@@ -149,6 +149,29 @@ describe("worksheet tool", () => {
     expect(listing).toContain("Loesung-Interview-Basics-Basis.pdf");
   });
 
+  it("plans a lesson, notes only the topic in the table and leaves the status alone", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const plan = {
+      titel: "Vorstellungsgespräch", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3", dauer: 45,
+      lernziele: ["Typische Fragen beantworten"],
+      phasen: [{ minuten: 15, phase: "Einstieg", inhalt: "Video" }, { minuten: 30, phase: "Erarbeitung", inhalt: "Rollenspiel", sozialform: "Partnerarbeit" }],
+    };
+    const s = session([
+      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", plan)], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", { ...plan, dauer: 90 })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Plane die Stunde", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    expect(events).toContainEqual(expect.objectContaining({ type: "step_start", label: "Stunde planen", material: true }));
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toContain("| 14.10. | Mi 3 | Vorstellungsgespräch |  | geplant |");
+    // The second call has minutes that do not fit: the tool says so instead of drawing something wrong.
+    expect(events.filter((e) => e.type === "step_end")).toContainEqual({ type: "step_end", id: expect.any(String), ok: false });
+  });
+
   it("saves the teacher's rules, then builds exam and answer key with them and files the exam in the Reihe", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     const ask = (s: ReturnType<typeof session>) => (e: ChatEvent) => {

@@ -392,6 +392,31 @@ export async function attachMaterial(
   });
 }
 
+/**
+ * Notes the topic of a planned lesson in the table without touching its status or material list.
+ * An existing row (found by date, or by date and lesson name) only gets a topic when it has none.
+ * A lesson that is not in the table yet is added as "geplant" when its name is known.
+ */
+export async function notePlannedLesson(
+  klasse: string, fach: string, reihe: string, stunde: { datum: string; stunde: string; thema: string },
+): Promise<"eingetragen" | "ergaenzt" | "schon-da"> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  const rows = parseStunden(await readText(join(dir, r, "Reihe.md")));
+  let old = rows.find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
+  if (!old && !stunde.stunde) {
+    const sameDate = rows.filter((s) => s.datum.toLowerCase() === stunde.datum.toLowerCase());
+    if (sameDate.length === 1) old = sameDate[0];
+  }
+  if (old) {
+    if (old.thema) return "schon-da";
+    await setStunde(klasse, fach, reihe, { nr: rows.indexOf(old) + 1, thema: stunde.thema });
+    return "ergaenzt";
+  }
+  await setStunde(klasse, fach, reihe, { datum: stunde.datum, stunde: stunde.stunde, thema: stunde.thema });
+  return "eingetragen";
+}
+
 /** File types a teacher may put on a lesson, with the type the browser needs. Nothing that could run. */
 const MATERIAL_TYPES: Record<string, string> = {
   pdf: "application/pdf",

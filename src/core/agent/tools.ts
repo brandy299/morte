@@ -1,6 +1,7 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
+import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -8,7 +9,7 @@ import { outline, planFor, search, section } from "../lehrplan/store.ts";
 import { readMaterialText } from "../material/read.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
-  attachMaterial, UserError, createReihe, hasLehrplan, listMaterial, listTree, materialDatei, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
+  attachMaterial, notePlannedLesson, UserError, createReihe, hasLehrplan, listMaterial, listTree, materialDatei, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
 
 /**
@@ -332,6 +333,64 @@ const arbeitsblattErstellen = defineTool({
   },
 });
 
+const stundenverlaufErstellen = defineTool({
+  name: "stundenverlauf_erstellen",
+  producesMaterial: true,
+  label: "Stunde planen",
+  description:
+    "Builds the plan of one lesson as a one-page PDF for the teacher (goals, timed phases, social forms, material, differentiation, pitfalls) and shows it in the preview. You write only the content. If dauer is given, the minutes of all phases must add up to it. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to note the topic in the lesson table. The plan is not student material and does not change the lesson's status.",
+  parameters: Type.Object({
+    titel: Type.String({ description: "Topic of the lesson" }),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+    dauer: Type.Optional(Type.Number({ description: "Length in minutes, e.g. 45 or 90" })),
+    lernziele: Type.Array(Type.String(), { description: "1 to 5 goals, from the students' view" }),
+    voraussetzungen: Type.Optional(Type.String()),
+    phasen: Type.Array(
+      Type.Object({
+        minuten: Type.Number(),
+        phase: Type.String({ description: "e.g. Einstieg, Erarbeitung, Sicherung" }),
+        inhalt: Type.String({ description: "What happens, for the teacher" }),
+        sozialform: Type.Optional(Type.String({ description: "e.g. Einzelarbeit, Partnerarbeit, Plenum" })),
+        material: Type.Optional(Type.String()),
+      }),
+      { description: "2 to 12 phases" },
+    ),
+    differenzierung: Type.Optional(Type.String()),
+    hinweise: Type.Optional(Type.String({ description: "Typical stumbling blocks" })),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+  }),
+  ask: (a) =>
+    a.klasse && a.reihe
+      ? `Darf ich die Stundenplanung „${a.titel}“ erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
+      : `Darf ich die Stundenplanung „${a.titel}“ erstellen und speichern?`,
+  async execute(_id, args) {
+    const { reihe, stunde, ...content } = args;
+    const plan = parseVerlauf({
+      ...content,
+      fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
+    });
+    const { pdf, pages } = await renderVerlauf(plan);
+    const saved = await saveMaterial(pdf, { art: "Verlauf", titel: plan.titel, klasse: content.klasse, fach: content.fach, reihe, datum: content.datum, stunde });
+    let note = "Die Planung liegt im Ordner der Reihe.";
+    if (content.klasse && content.fach && reihe && content.datum) {
+      try {
+        const r = await notePlannedLesson(content.klasse, content.fach, reihe, { datum: content.datum, stunde: stunde ?? "", thema: plan.titel });
+        note = r === "schon-da" ? "Die Stunde steht schon mit einem Thema in der Stundentabelle, das bleibt." : `Das Thema ist in der Stundentabelle am ${content.datum} eingetragen.`;
+      } catch (err) {
+        if (!(err instanceof UserError)) throw err;
+        note = `Das Thema ist NICHT in die Stundentabelle eingetragen (${err.message}).`;
+      }
+    } else if (!reihe) note = "Die Planung ist nicht in einer Reihe abgelegt, weil keine Reihe genannt wurde.";
+    return {
+      content: [{ type: "text" as const, text: `Die Stundenplanung ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen. ${note}` }],
+      details: { material: { title: plan.titel, name: saved.name, path: saved.path } },
+    };
+  },
+});
+
 const bereichSchema = Type.Object({
   kurz: Type.String({ description: "Short label as the school calls it, e.g. AFB I or I" }),
   name: Type.Optional(Type.String({ description: "Name, e.g. Wiedergeben" })),
@@ -496,7 +555,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  arbeitsblattErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  arbeitsblattErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];
