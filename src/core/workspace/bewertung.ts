@@ -130,16 +130,19 @@ export async function writeBewertung(ordnerName: string, klassen: string[], inpu
   const ordner = cleanName(ordnerName, "den Namen des Bildungsgangs oder Fachs");
   const bewertung = checkBewertung(input);
   if (bewertung.notenschluessel.length === 0 && bewertung.bereiche.length === 0) throw new UserError("Es gibt noch nichts zu speichern: weder Bereiche noch einen Notenschlüssel.");
-  const dir = join(root(), "Lehrpläne", ordner);
+  // An existing folder wins, whatever the case: "englisch" belongs to "Englisch".
+  const existing = await resolveDir(join(root(), "Lehrpläne"), ordner, "Der Lehrplan").catch(() => undefined);
+  const folder = existing ?? ordner;
+  const dir = join(root(), "Lehrpläne", folder);
   const resolved = await Promise.all(klassen.map((k) => resolveDir(klassenDir(), k, "Die Klasse")));
   await mkdir(dir, { recursive: true });
-  await writeFile(join(dir, "Bewertung.md"), bewertungMarkdown(ordner, bewertung));
+  await writeFile(join(dir, "Bewertung.md"), bewertungMarkdown(folder, bewertung));
   for (const k of resolved) {
     const file = join(klassenDir(), k, "Klasse.md");
     const md = await readText(file);
-    await writeFile(file, withLehrplan(md, ordner));
+    await writeFile(file, withLehrplan(md, folder));
   }
-  return ordner;
+  return folder;
 }
 
 // ---------- Arithmetic (the model never calculates points or grade limits) ----------

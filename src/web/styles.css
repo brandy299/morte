@@ -48,6 +48,8 @@ button:disabled { cursor: default; }
 .muted { color: var(--ink-soft); }
 
 /* ---------- Page frame ---------- */
+.chat-layer { height: 100%; }
+[hidden] { display: none !important; }
 .shell { display: grid; grid-template-columns: 272px minmax(0, 1fr); height: 100%; }
 .shell.with-preview { grid-template-columns: 272px minmax(0, 1fr) minmax(400px, 44%); }
 

@@ -37,3 +37,14 @@ describe("curriculum tools", () => {
     expect(tools.find((t) => t.name === "lehrplan_lesen")!.ask).toBeUndefined();
   });
 });
+
+describe("exam rules given in the request", () => {
+  it("are checked like saved rules", async () => {
+    const exam = {
+      klasse: "11a", titel: "T",
+      aufgaben: [{ teile: [{ text: "Nenne.", punkte: 4, erwartung: "x" }] }],
+    };
+    await expect(run("klausur_erstellen", { ...exam, notenschluessel: [{ note: "1", abProzent: 50 }, { note: "2", abProzent: 80 }] })).rejects.toThrow(/kleiner werden/);
+    await expect(run("klausur_erstellen", { ...exam, bereiche: [{ kurz: "I" }, { kurz: "i" }] })).rejects.toThrow(/gleich/);
+  });
+});

@@ -42,6 +42,18 @@ describe("store", () => {
     expect(await listConversations()).toHaveLength(1);
   });
 
+  it("lists from small files and repairs a missing one", async () => {
+    const id = newConversationId();
+    await saveConversation({ id, titel: "Mit Liste", anzeige: [], modell: [{ role: "user", content: "x".repeat(1000) }] });
+    const { rm } = await import("node:fs/promises");
+    await rm(join(process.env.MORTE_HOME!, "Gespräche", `${id}.meta.json`));
+    expect((await listConversations()).map((c) => c.titel)).toEqual(["Mit Liste"]);
+    const { readdir } = await import("node:fs/promises");
+    expect(await readdir(join(process.env.MORTE_HOME!, "Gespräche"))).toContain(`${id}.meta.json`);
+    await deleteConversation(id);
+    expect(await readdir(join(process.env.MORTE_HOME!, "Gespräche"))).toEqual([]);
+  });
+
   it("refuses ids that are not generated ones", async () => {
     expect(await loadConversation("../../Einstellungen/Provider")).toBeUndefined();
     await expect(saveConversation({ id: "../x", titel: "x", anzeige: [], modell: [] })).rejects.toThrow();

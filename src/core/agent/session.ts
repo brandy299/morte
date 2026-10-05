@@ -81,6 +81,14 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
         { systemPrompt: SUMMARY_SYSTEM, messages: [{ role: "user", content: transcript, timestamp: Date.now() }] },
         { apiKey: settings.apiKey },
       );
+      // The summary costs tokens too, so it counts in the totals and in the monthly sum.
+      if (reply.usage.totalTokens > 0) {
+        const input = reply.usage.input + reply.usage.cacheRead + reply.usage.cacheWrite;
+        totals.input += input;
+        totals.output += reply.usage.output;
+        totals.cost += reply.usage.cost.total;
+        deps.onUsage?.({ input, output: reply.usage.output, cost: reply.usage.cost.total });
+      }
       if (reply.stopReason === "error") throw new Error(reply.errorMessage ?? "summary failed");
       return reply.content.flatMap((c) => (c.type === "text" ? [c.text] : [])).join("\n");
     });

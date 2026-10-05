@@ -3,7 +3,7 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
-import { readBewertung, writeBewertung } from "../workspace/bewertung.ts";
+import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
@@ -371,9 +371,11 @@ const klausurErstellen = defineTool({
   async execute(_id, args) {
     const { reihe, stunde, bereiche, notenschluessel, ...content } = args;
     const own = content.klasse ? await readBewertung(content.klasse).catch(() => undefined) : undefined;
+    // Rules given in this request are checked like saved ones: scales must fall, areas must be unique.
+    const given = bereiche || notenschluessel ? checkBewertung({ bereiche: bereiche ?? [], notenschluessel: notenschluessel ?? [] }) : undefined;
     const rules = {
-      bereiche: bereiche ?? own?.bewertung.bereiche,
-      notenschluessel: notenschluessel ?? own?.bewertung.notenschluessel,
+      bereiche: bereiche ? given!.bereiche : own?.bewertung.bereiche,
+      notenschluessel: notenschluessel ? given!.notenschluessel : own?.bewertung.notenschluessel,
     };
     const exam = parseKlausur(
       { ...content, fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt" },

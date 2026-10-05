@@ -62,4 +62,16 @@ describe("conversation history", () => {
     await app.request(`/api/history/${id}`, { method: "DELETE" });
     expect((await (await app.request("/api/history")).json()).gespraeche).toHaveLength(0);
   });
+
+  it("does not bring a conversation back by deleting it while its answer is still being written", async () => {
+    const running = app.request("/api/chat", json({ text: "Lange Frage" }));
+    await new Promise((r) => setTimeout(r, 30));
+    const id = state.conversation!.id;
+    const res = await app.request(`/api/history/${id}`, { method: "DELETE" });
+    expect(res.status).toBe(409);
+    await (await running).text();
+    expect((await (await app.request("/api/history")).json()).gespraeche).toHaveLength(1);
+    expect((await app.request(`/api/history/${id}`, { method: "DELETE" })).status).toBe(200);
+    expect((await (await app.request("/api/history")).json()).gespraeche).toHaveLength(0);
+  });
 });

@@ -108,15 +108,23 @@ function Liste({ data, onNew, onClasses, onChanged }: { data: LehrplaeneData | n
 function KlassenWahl({ plan, klassen, onDone }: { plan: LehrplanInfo; klassen: string[]; onDone: () => void }) {
   const [chosen, setChosen] = useState<string[]>(plan.klassen);
   const [saving, setSaving] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
   const save = async () => {
     setSaving(true);
-    await ordneLehrplanZu(plan.name, chosen).catch(() => {});
-    onDone();
+    setProblem(null);
+    try {
+      await ordneLehrplanZu(plan.name, chosen);
+      onDone();
+    } catch {
+      setProblem("Das Speichern hat nicht geklappt. Bitte versuche es noch einmal.");
+      setSaving(false);
+    }
   };
   return (
     <>
       <h1>Für welche Klassen gilt „{plan.name}“?</h1>
       <KlassenListe klassen={klassen} chosen={chosen} onChange={setChosen} />
+      {problem && <p className="error">{problem}</p>}
       <div className="setup-actions">
         <button type="button" className="primary" onClick={save} disabled={saving}>
           Speichern
@@ -213,8 +221,13 @@ function Neu({ klassen, onDone, onBusy }: { klassen: string[]; onDone: () => voi
   };
 
   const finish = async (planName: string) => {
-    if (chosen.length > 0) await ordneLehrplanZu(planName, chosen).catch(() => {});
-    onDone();
+    setProblem(null);
+    try {
+      if (chosen.length > 0) await ordneLehrplanZu(planName, chosen);
+      onDone();
+    } catch {
+      setProblem("Der Lehrplan ist gespeichert, aber die Zuordnung zu den Klassen hat nicht geklappt. Du kannst sie unter „Klassen wählen“ noch einmal versuchen.");
+    }
   };
 
   if (phase.name === "fertig") {
@@ -245,6 +258,7 @@ function Neu({ klassen, onDone, onBusy }: { klassen: string[]; onDone: () => voi
         </div>
         <h2>Für welche Klassen gilt er?</h2>
         <KlassenListe klassen={klassen} chosen={chosen} onChange={setChosen} />
+        {problem && <p className="error">{problem}</p>}
         <div className="setup-actions">
           <button type="button" className="primary" onClick={() => void finish(r.name)}>
             Fertig

@@ -77,7 +77,7 @@ const post = async <T,>(url: string, body?: unknown): Promise<T> => {
     headers: { "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error("Das hat nicht geklappt.");
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.");
   return res.json();
 };
 

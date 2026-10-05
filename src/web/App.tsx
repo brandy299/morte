@@ -50,7 +50,11 @@ export function App() {
   };
   const remove = async (c: ConversationInfo) => {
     if (!window.confirm(`Soll das Gespräch „${c.titel}“ gelöscht werden?`)) return;
-    await deleteHistory(c.id);
+    const res = await deleteHistory(c.id);
+    if (!res.ok) {
+      window.alert((await res.json().catch(() => ({}))).error ?? "Das Löschen hat nicht geklappt.");
+      return;
+    }
     if (c.id === currentId) show([]);
     void refreshHistory();
   };
@@ -62,45 +66,71 @@ export function App() {
   }, []);
 
   if (!status) return null;
-  if (lehrplanOpen) return <Lehrplan onClose={() => { setLehrplanOpen(false); void refreshTree(); }} />;
-  if (newClassOpen) {
-    return (
-      <NewClass
-        onCancel={() => setNewClassOpen(false)}
-        onDone={() => {
-          setNewClassOpen(false);
-          void refreshTree();
-        }}
-      />
-    );
-  }
-  if (!status.configured || setupOpen) {
+  // First start: only the setup. Afterwards the chat stays mounted behind the other screens,
+  // so an answer that is still being written and the conversation on screen are not lost.
+  if (!status.configured) {
     return (
       <Setup
         status={status}
         onDone={() => {
-          setSetupOpen(false);
           void refresh();
+          show([]);
+          void refreshHistory();
         }}
       />
     );
   }
+  const overlay = setupOpen || newClassOpen || lehrplanOpen;
   return (
-    <Chat
-      key={chat.key}
-      initialMessages={chat.messages}
-      tree={tree}
-      refreshTree={refreshTree}
-      history={history}
-      currentId={currentId}
-      refreshHistory={refreshHistory}
-      onOpen={open}
-      onDelete={remove}
-      onNew={() => show([])}
-      onNewClass={() => setNewClassOpen(true)}
-      onLehrplan={() => setLehrplanOpen(true)}
-      onSettings={() => setSetupOpen(true)}
-    />
+    <>
+      <div className="chat-layer" hidden={overlay}>
+        <Chat
+          key={chat.key}
+          initialMessages={chat.messages}
+          tree={tree}
+          refreshTree={refreshTree}
+          history={history}
+          currentId={currentId}
+          refreshHistory={refreshHistory}
+          onOpen={open}
+          onDelete={remove}
+          onNew={() => show([])}
+          onNewClass={() => setNewClassOpen(true)}
+          onLehrplan={() => setLehrplanOpen(true)}
+          onSettings={() => setSetupOpen(true)}
+        />
+      </div>
+      {setupOpen && (
+        <Setup
+          status={status}
+          onCancel={() => setSetupOpen(false)}
+          onDone={() => {
+            // Saving builds a new session on the server, so the conversation on screen starts again too.
+            setSetupOpen(false);
+            void refresh();
+            show([]);
+            void refreshHistory();
+          }}
+        />
+      )}
+      {lehrplanOpen && (
+        <Lehrplan
+          onClose={() => {
+            setLehrplanOpen(false);
+            void refreshTree();
+          }}
+        />
+      )}
+      {newClassOpen && (
+        <NewClass
+          onCancel={() => setNewClassOpen(false)}
+          onDone={() => {
+            setNewClassOpen(false);
+            void refreshTree();
+          }}
+        />
+      )}
+    </>
   );
 }
 

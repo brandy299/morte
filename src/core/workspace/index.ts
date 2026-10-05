@@ -107,10 +107,12 @@ export async function createClass(input: NewClass): Promise<string> {
   if (!SCHULFORMEN.includes(input.schulform as (typeof SCHULFORMEN)[number])) {
     throw new UserError("Bitte wähle eine Schulform aus.");
   }
-  const faecher = [...new Set(input.faecher.map((f) => cleanName(f, "den Fachnamen")))];
+  const seenFach = new Set<string>();
+  const faecher = input.faecher.map((f) => cleanName(f, "den Fachnamen")).filter((f) => !seenFach.has(f.toLowerCase()) && seenFach.add(f.toLowerCase()));
   if (faecher.length === 0) throw new UserError("Bitte gib mindestens ein Fach an.");
   const dir = join(klassenDir(), name);
-  if (await exists(dir)) throw new UserError(`Die Klasse ${name} gibt es schon.`);
+  // Lookups ignore case ("11a" finds "11A"), so a second class that differs only in case could never be reached.
+  if ((await subdirs(klassenDir())).some((k) => k.toLowerCase() === name.toLowerCase())) throw new UserError(`Die Klasse ${name} gibt es schon.`);
 
   await mkdir(dir, { recursive: true });
   const oneLine = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim();
@@ -329,7 +331,7 @@ export async function attachMaterial(
   await setStunde(klasse, fach, reihe, {
     datum: stunde.datum,
     stunde: stunde.stunde,
-    thema: stunde.thema,
+    thema: old?.thema ? undefined : stunde.thema, // a planned topic stays, the file title only fills an empty one
     material: datei,
     status: old?.status === "gehalten" ? "gehalten" : "Material fertig",
   });

@@ -98,6 +98,19 @@ describe("workspace", () => {
     expect(md).toContain("| 14.10. | Mi 3 | Interview | b.pdf | Material fertig |");
   });
 
+  it("keeps the planned topic when a file is attached to an existing lesson", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    await setStunde("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "Mi 3", thema: "Vorstellungsgespräch" });
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "Mi 3", thema: "Arbeitsblatt Interview" }, "b.pdf");
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toContain("| 14.10. | Mi 3 | Vorstellungsgespräch | b.pdf | Material fertig |");
+  });
+
+  it("does not create a second class or subject that differs only in case", async () => {
+    await expect(createClass({ name: "11A", schulform: "Gymnasium", stufe: "11", faecher: ["x"] })).rejects.toThrow(/gibt es schon/);
+    await createClass({ name: "9c", schulform: "Gymnasium", stufe: "9", faecher: ["Englisch", "englisch", "ENGLISCH"] });
+    expect((await readKlasse("9c")).match(/^Fächer: (.*)$/m)![1]).toBe("Englisch");
+  });
+
   it("only serves PDFs from Klassen and Exporte", async () => {
     expect(await materialFile("../../etc/passwd.pdf")).toBeUndefined();
     expect(await materialFile("Einstellungen/.zugang.pdf")).toBeUndefined();

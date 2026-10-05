@@ -9,7 +9,7 @@ import {
   type SetupStatus,
 } from "./api.ts";
 
-export function Setup({ status, onDone }: { status: SetupStatus; onDone: () => void }) {
+export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDone: () => void; onCancel?: () => void }) {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [providerId, setProviderId] = useState(status.provider ?? "anthropic");
   const [modelId, setModelId] = useState(status.model ?? "");
@@ -45,13 +45,23 @@ export function Setup({ status, onDone }: { status: SetupStatus; onDone: () => v
   };
 
   const save = async () => {
-    await saveSetup({ provider: providerId, model: chosen, apiKey });
-    onDone();
+    setProblem(null);
+    try {
+      await saveSetup({ provider: providerId, model: chosen, apiKey });
+      onDone();
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : "Das Speichern hat nicht geklappt.");
+    }
   };
 
   return (
     <div className="setup">
       <div className="setup-card">
+        {onCancel && (
+          <button type="button" className="link back" onClick={onCancel}>
+            ← Zurück zum Gespräch
+          </button>
+        )}
         <div className="brand">
           <span className="brand-mark" aria-hidden />
           morte

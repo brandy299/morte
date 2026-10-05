@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
-import { Hono } from "hono";
+import { Hono, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
 import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
@@ -33,14 +33,48 @@ export async function loadState(secrets: SecretStore): Promise<AppState> {
   const state: AppState = { secrets, session: undefined, configured: undefined };
   const saved = await loadProviderSettings();
   if (saved) {
-    state.configured = saved;
-    await buildSession(state, saved);
+    try {
+      await buildSession(state, saved);
+      state.configured = saved;
+    } catch {
+      // The saved model is gone (for example removed from the catalog after an update). Start with the setup screen.
+      state.session = undefined;
+    }
   }
   return state;
 }
 
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const hostnameOf = (hostHeader: string) => hostHeader.replace(/:\d+$/, "").toLowerCase();
+
+/**
+ * The server only listens on this computer, but a web page the teacher has open could still talk to it
+ * (forms and "simple" requests need no permission, and DNS tricks can point a foreign name at 127.0.0.1).
+ * So the API only answers requests for a local name, and requests that come from a page on another origin are refused.
+ */
+export function localOnly(): MiddlewareHandler {
+  return async (c, next) => {
+    const host = c.req.header("host");
+    if (host && !LOCAL_HOSTS.has(hostnameOf(host))) return c.json({ error: "Nicht erlaubt." }, 403);
+    const origin = c.req.header("origin");
+    if (origin) {
+      let originHost: string;
+      try {
+        originHost = new URL(origin).host;
+      } catch {
+        return c.json({ error: "Nicht erlaubt." }, 403);
+      }
+      if (!LOCAL_HOSTS.has(hostnameOf(originHost)) || (host && originHost.toLowerCase() !== host.toLowerCase())) {
+        return c.json({ error: "Nicht erlaubt." }, 403);
+      }
+    }
+    await next();
+  };
+}
+
 export function createApp(state: AppState) {
   const app = new Hono();
+  app.use("/api/*", localOnly());
   let busy = false;
 
   app.get("/api/setup/status", (c) =>
@@ -57,9 +91,13 @@ export function createApp(state: AppState) {
   app.post("/api/setup/save", async (c) => {
     const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
     if (apiKey?.trim()) await state.secrets.set(keyName(provider), apiKey.trim());
+    try {
+      await buildSession(state, { provider, model });
+    } catch {
+      return c.json({ error: "Dieses Modell kenne ich nicht. Bitte wähle ein anderes." }, 400);
+    }
     await saveProviderSettings({ provider, model });
     state.configured = { provider, model };
-    await buildSession(state, { provider, model });
     return c.json({ ok: true });
   });
 
@@ -155,8 +193,10 @@ export function createApp(state: AppState) {
 
   app.delete("/api/history/:id", async (c) => {
     const id = c.req.param("id");
+    // The answer that is still being written would save the conversation again, so wait until it is done.
+    if (busy && state.conversation?.id === id) return c.json({ error: "Dieses Gespräch läuft gerade. Bitte warte, bis die Antwort fertig ist." }, 409);
     await deleteConversation(id).catch(() => {});
-    if (state.conversation?.id === id && state.choice && !busy) await buildSession(state, state.choice);
+    if (state.conversation?.id === id && state.choice) await buildSession(state, state.choice);
     return c.json({ ok: true });
   });
 
