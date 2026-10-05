@@ -1,0 +1,171 @@
+import { useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown";
+import { resetChat, sendMessage, type ChatEvent } from "./api.ts";
+
+interface Step {
+  id: string;
+  label: string;
+  state: "running" | "done" | "failed";
+}
+interface Message {
+  role: "user" | "assistant";
+  text: string;
+  steps: Step[];
+  error?: string;
+}
+
+export function App() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [working, setWorking] = useState(false);
+  const [thinking, setThinking] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), [messages, thinking]);
+
+  const patchLast = (fn: (m: Message) => Message) =>
+    setMessages((all) => all.map((m, i) => (i === all.length - 1 ? fn(m) : m)));
+
+  const handleEvent = (e: ChatEvent) => {
+    switch (e.type) {
+      case "text":
+        patchLast((m) => ({ ...m, text: m.text + e.delta }));
+        break;
+      case "thinking":
+        setThinking(e.active);
+        break;
+      case "step_start":
+        patchLast((m) => ({ ...m, steps: [...m.steps, { id: e.id, label: e.label, state: "running" }] }));
+        break;
+      case "step_end":
+        patchLast((m) => ({
+          ...m,
+          steps: m.steps.map((s) => (s.id === e.id ? { ...s, state: e.ok ? "done" : "failed" } : s)),
+        }));
+        break;
+      case "error":
+        patchLast((m) => ({ ...m, error: e.message }));
+        break;
+    }
+  };
+
+  const submit = async () => {
+    const text = input.trim();
+    if (!text || working) return;
+    setInput("");
+    setWorking(true);
+    setMessages((all) => [...all, { role: "user", text, steps: [] }, { role: "assistant", text: "", steps: [] }]);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    try {
+      await sendMessage(text, handleEvent, ctrl.signal);
+    } catch (err) {
+      if (!ctrl.signal.aborted) patchLast((m) => ({ ...m, error: err instanceof Error ? err.message : "Das hat nicht geklappt." }));
+    } finally {
+      setWorking(false);
+      setThinking(false);
+    }
+  };
+
+  const newChat = async () => {
+    abortRef.current?.abort();
+    await resetChat();
+    setMessages([]);
+  };
+
+  const last = messages.at(-1);
+  const running = last?.steps.find((s) => s.state === "running");
+  const statusLine = !working
+    ? null
+    : running
+      ? `${running.label} …`
+      : thinking
+        ? "Ich überlege …"
+        : last?.text
+          ? "Ich schreibe …"
+          : "Einen Moment …";
+
+  return (
+    <div className="shell">
+      <aside className="side">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden />
+          morte
+        </div>
+        <button className="new" onClick={newChat}>
+          Neues Gespräch
+        </button>
+        <p className="side-note">Hier erscheinen später deine Klassen, Fächer und Reihen.</p>
+      </aside>
+
+      <main className="main">
+        <div className="scroll">
+          <div className="column">
+            {messages.length === 0 && (
+              <div className="hello">
+                <h1>Woran arbeiten wir heute?</h1>
+                <p>Schreib einfach, was du brauchst. Ich frage nach, wenn mir etwas fehlt.</p>
+              </div>
+            )}
+            {messages.map((m, i) => (
+              <div key={i} className={`msg ${m.role}`}>
+                {m.role === "assistant" && m.steps.length > 0 && (
+                  <ul className="steps">
+                    {m.steps.map((s) => (
+                      <li key={s.id} className={s.state}>
+                        <span className="tick" aria-hidden>
+                          {s.state === "done" ? "✓" : s.state === "failed" ? "!" : ""}
+                        </span>
+                        {s.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
+                {m.error && <p className="error">{m.error}</p>}
+              </div>
+            ))}
+            {statusLine && (
+              <div className="status" role="status" aria-live="polite">
+                <span className="pulse" aria-hidden />
+                {statusLine}
+              </div>
+            )}
+            <div ref={endRef} />
+          </div>
+        </div>
+
+        <form
+          className="composer"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+        >
+          <textarea
+            value={input}
+            rows={2}
+            placeholder="Schreib hier, was du brauchst …"
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                void submit();
+              }
+            }}
+          />
+          {working ? (
+            <button type="button" onClick={() => abortRef.current?.abort()}>
+              Anhalten
+            </button>
+          ) : (
+            <button type="submit" disabled={!input.trim()}>
+              Senden
+            </button>
+          )}
+        </form>
+      </main>
+    </div>
+  );
+}
