@@ -303,8 +303,8 @@ const arbeitsblattErstellen = defineTool({
   }),
   ask: (a) =>
     a.klasse && a.reihe
-      ? `Darf ich das Arbeitsblatt „${a.titel}“ erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich das Arbeitsblatt „${a.titel}“ erstellen und speichern?`,
+      ? `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
+      : `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, datum, stunde, ...content } = args;
     const sheet = parseArbeitsblatt({

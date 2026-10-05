@@ -157,8 +157,8 @@ describe("worksheet tool", () => {
       phasen: [{ minuten: 15, phase: "Einstieg", inhalt: "Video" }, { minuten: 30, phase: "Erarbeitung", inhalt: "Rollenspiel", sozialform: "Partnerarbeit" }],
     };
     const s = session([
-      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", plan)], { stopReason: "toolUse" }),
-      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", { ...plan, dauer: 90 })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", plan as never)], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", { ...plan, dauer: 90 } as never)], { stopReason: "toolUse" }),
       fauxAssistantMessage([fauxText("Fertig.")]),
     ]);
     const events: ChatEvent[] = [];

@@ -117,6 +117,17 @@ describe("workspace", () => {
     expect(md.match(/\| 14\.10\./g)).toHaveLength(1);
   });
 
+  it("fills the planned row of that date when the lesson name comes later", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    await setStunde("11a", "Business English", "Bewerbung", { datum: "19.10.", stunde: "x", thema: "Zellbezüge" });
+    const file = join(home, "Klassen", "11a", "Business English", "01 Bewerbung", "Reihe.md");
+    await writeFile(file, (await readFile(file, "utf8")).replace("| 19.10. | x |", "| 19.10. |  |"));
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "19.10.", stunde: "Mi 3", thema: "Blatt" }, "b.pdf");
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("| 19.10. | Mi 3 | Zellbezüge | b.pdf | Material fertig |");
+    expect(md.match(/\| 19\.10\./g)).toHaveLength(1);
+  });
+
   it("does not create a second class or subject that differs only in case", async () => {
     await expect(createClass({ name: "11A", schulform: "Gymnasium", stufe: "11", faecher: ["x"] })).rejects.toThrow(/gibt es schon/);
     await createClass({ name: "9c", schulform: "Gymnasium", stufe: "9", faecher: ["Englisch", "englisch", "ENGLISCH"] });

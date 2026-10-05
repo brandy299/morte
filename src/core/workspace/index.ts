@@ -304,8 +304,12 @@ function isoDate(datum?: string): string {
   return `${year}-${m[2]!.padStart(2, "0")}-${m[1]!.padStart(2, "0")}`;
 }
 
-const slug = (s: string) =>
-  s.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 50) || "Material";
+const slug = (s: string) => {
+  const full = s.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
+  // A long title is cut at a word edge, not in the middle of a word.
+  const cut = full.length > 50 ? full.slice(0, 50).replace(/-[^-]*$/, "") : full;
+  return (cut.length >= 20 || full.length <= 50 ? cut : full.slice(0, 50)) || "Material";
+};
 
 export interface SavedMaterial {
   name: string;
@@ -376,12 +380,7 @@ export async function attachMaterial(
   const file = join(dir, r, "Reihe.md");
   const markdown = await readText(file);
   const rows = parseStunden(markdown);
-  let old = rows.find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
-  // Without a lesson name the date alone decides, as long as it is clear which row is meant.
-  if (!old && !stunde.stunde) {
-    const sameDate = rows.filter((s) => s.datum.toLowerCase() === stunde.datum.toLowerCase());
-    if (sameDate.length === 1) old = sameDate[0];
-  }
+  const old = findStunde(rows, stunde);
   await setStunde(klasse, fach, reihe, {
     // A planned row is addressed by its number, so rows without a lesson name work too.
     ...(old ? { nr: rows.indexOf(old) + 1 } : { datum: stunde.datum }),
@@ -390,6 +389,20 @@ export async function attachMaterial(
     material: opts.append && old?.material ? (old.material.split(", ").includes(datei) ? old.material : `${old.material}, ${datei}`) : datei,
     status: old?.status === "gehalten" ? "gehalten" : "Material fertig",
   });
+}
+
+/**
+ * Finds the row of a lesson: same date and lesson name, or, when the name is missing on either side,
+ * the only row of that date that has no name yet (the series planning writes dates first and names later).
+ */
+function findStunde(rows: Stunde[], want: { datum: string; stunde: string }): Stunde | undefined {
+  const key = (s: { datum: string; stunde: string }) => `${s.datum}|${s.stunde}`.toLowerCase();
+  const exact = rows.find((s) => key(s) === key(want));
+  if (exact) return exact;
+  const sameDate = rows.filter((s) => s.datum.toLowerCase() === want.datum.toLowerCase());
+  if (!want.stunde) return sameDate.length === 1 ? sameDate[0] : undefined;
+  const unnamed = sameDate.filter((s) => !s.stunde);
+  return unnamed.length === 1 ? unnamed[0] : undefined;
 }
 
 /**
@@ -403,11 +416,7 @@ export async function notePlannedLesson(
   const { dir } = await resolveFach(klasse, fach);
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
   const rows = parseStunden(await readText(join(dir, r, "Reihe.md")));
-  let old = rows.find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
-  if (!old && !stunde.stunde) {
-    const sameDate = rows.filter((s) => s.datum.toLowerCase() === stunde.datum.toLowerCase());
-    if (sameDate.length === 1) old = sameDate[0];
-  }
+  const old = findStunde(rows, stunde);
   if (old) {
     if (old.thema) return "schon-da";
     await setStunde(klasse, fach, reihe, { nr: rows.indexOf(old) + 1, thema: stunde.thema });

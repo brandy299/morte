@@ -82,14 +82,14 @@ Was die Schulformen für die Skills verändert:
 
 | Skill | Vorbild | Neu für Deutschland/Berufskolleg |
 |---|---|---|
-| Unterrichtsstunde planen | lesson-plan-creation | Verlaufsplan, Phasen, Handlungsorientierung, Bezug Lernfeld |
+| Unterrichtsstunde planen | lesson-plan-creation | Verlaufsplan, Phasen, Handlungsorientierung, Bezug Lernfeld. Fertig (`stunde-planen`, eine Seite für die Lehrkraft) |
 | Lernsituation / Reihe planen | (keins) | Handlungssituation, Lernfeldbezug, Stundentabelle in `Reihe.md`. Legt Reihe und alle Stunden mit einer Rückfrage an, Blatt mit Schülerseite und Planung. Fertig |
 | Arbeitsblatt | Teile aus lesson-plan-creation | Graustufen, wenige Seiten, Operatoren |
 | Klausur mit Erwartungshorizont | (keins) | Bereiche und Notenschlüssel stammen von der Lehrkraft (`Bewertung.md`, Entscheidung 003), Punkte und Grenzen rechnet das Programm. Fertig |
 | Bewertungsregeln festhalten | (keins) | Ablauf-Skill: Bereiche und Notenschlüssel im Gespräch eintragen. Fertig |
-| Differenzieren | lesson-differentiation | drei Niveaus, Sprachförderung (DaZ), gleicher Kerninhalt |
-| Stunde vorbereiten | lesson-prep | kurze Vorbereitungsnotiz für die Lehrkraft |
-| Verständnis-Check | check-for-understanding | auf alle Fächer erweitert, Distraktoren aus typischen Fehlern |
+| Differenzieren | lesson-differentiation | drei Niveaus, Sprachförderung (DaZ), gleicher Kerninhalt. Fertig (`differenzieren`, je Niveau ein Blatt mit Lösungsblatt) |
+| Stunde vorbereiten | lesson-prep | kurze Vorbereitungsnotiz für die Lehrkraft. Fertig (`stunde-vorbereiten`, Notiz im Chat) |
+| Verständnis-Check | check-for-understanding | auf alle Fächer erweitert, Distraktoren aus typischen Fehlern. Fertig (`verstaendnis-check`, Blatt plus Lösungsblatt mit Fehlvorstellungen) |
 
 ## Skill-Builder
 
