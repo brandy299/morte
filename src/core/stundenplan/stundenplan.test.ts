@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createClass, createReihe, initWorkspace, readReihe, setStunde, UserError } from "../workspace/index.ts";
 import { SAMPLE_ICS } from "./fixtures.ts";
-import { IcsError, parseIcs } from "./ics.ts";
+import { IcsError, lessonKey, parseIcs } from "./ics.ts";
 import { loadZuordnung, saveZuordnung, savePlan, suggest, titelListe } from "./store.ts";
 import { addDays, legeAb, mondayOf, sameDay, weekday, woche } from "./woche.ts";
 
@@ -187,5 +187,27 @@ describe("dropping a file on a lesson", () => {
     for (const name of ["virus.exe", "skript.js", "seite.html", "ohne-endung"]) await expect(legeAb(lesson, { name, data: Buffer.from("x") })).rejects.toThrow(UserError);
     await expect(legeAb(lesson, { name: "a.pdf", data: Buffer.alloc(0) })).rejects.toThrow(/leer/);
     await expect(legeAb(lesson, { name: "a.pdf", data: Buffer.alloc(26 * 1024 * 1024) })).rejects.toThrow(/25 MB/);
+  });
+});
+
+describe("a WebUntis export (class and teacher code in the description)", () => {
+  // Invented codes in the shape of a real export: SUMMARY = subject, DESCRIPTION = "<class> <teacher>".
+  const event = (n: number, summary: string | undefined, klasse: string | undefined, room = "12") =>
+    [
+      "BEGIN:VEVENT",
+      `UID:u${n}`,
+      `DTSTART;TZID=Europe/Berlin:20261012T${String(8 + (n % 8)).padStart(2, "0")}0000`,
+      `DTEND;TZID=Europe/Berlin:20261012T${String(8 + (n % 8)).padStart(2, "0")}4500`,
+      ...(summary ? [`SUMMARY:${summary}`] : []),
+      `LOCATION:${room}`,
+      `DESCRIPTION:${[klasse, "ABC"].filter(Boolean).join(" ")}`,
+      "END:VEVENT",
+    ].join("\r\n");
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", ...[0, 1, 2, 3, 4, 5].map((i) => event(i, "INWI", i % 2 ? "HX1C" : "HX1D")), event(6, "VW", "HX1C"), event(7, "VW", "HX1C"), event(8, undefined, undefined, "FOYER"), event(9, "VW", "HX1D"), event(10, "VW", "HX1D"), "END:VCALENDAR"].join("\r\n");
+
+  it("keeps the same subject in different classes apart and drops the teacher's own code", () => {
+    const lessons = parseIcs(ics, { from: "2026-10-12", to: "2026-10-12" });
+    expect(new Set(lessons.map((l) => l.gruppe))).toEqual(new Set(["HX1C", "HX1D", undefined]));
+    expect(new Set(lessons.map((l) => lessonKey(l))).size).toBe(5);
   });
 });

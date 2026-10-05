@@ -177,7 +177,7 @@ export const entferneLehrplan = (name: string) => fetch(`/api/lehrplan/${encodeU
 export interface PlanMeta { quelle: "datei" | "link"; name?: string; aktualisiert: string; von: string; bis: string; anzahl: number }
 export interface PlanStatus { vorhanden: boolean; meta?: PlanMeta; hatLink: boolean }
 export type Zuordnung = { klasse: string; fach: string } | null;
-export interface TitelInfo { titel: string; anzahl: number; beispiel?: string; zuordnung?: Zuordnung; vorschlag?: Zuordnung }
+export interface TitelInfo { schluessel: string; titel: string; gruppe?: string; anzahl: number; beispiel?: string; zuordnung?: Zuordnung; vorschlag?: Zuordnung }
 export interface Zustand { zustand: "nicht-zugeordnet" | "nicht-geplant" | "geplant" | "material-fertig" | "gehalten" }
 export interface WochenStunde extends Zustand {
   uid: string; datum: string; von: string; bis: string; titel: string; ort?: string; beschreibung?: string;

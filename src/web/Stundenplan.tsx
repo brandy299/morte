@@ -130,8 +130,8 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
       const c: Record<string, string> = {};
       const g = new Set<string>();
       for (const t of r.titel) {
-        c[t.titel] = encode(t.zuordnung !== undefined ? t.zuordnung : t.vorschlag);
-        if (t.zuordnung === undefined && t.vorschlag) g.add(t.titel);
+        c[t.schluessel] = encode(t.zuordnung !== undefined ? t.zuordnung : t.vorschlag);
+        if (t.zuordnung === undefined && t.vorschlag) g.add(t.schluessel);
       }
       setChoice(c);
       setGuessed(g);
@@ -139,7 +139,7 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
   }, [status.meta?.aktualisiert]);
 
   const meta = status.meta!;
-  const open = titel?.filter((t) => !choice[t.titel]).length ?? 0;
+  const open = titel?.filter((t) => !choice[t.schluessel]).length ?? 0;
   const options = klassen.flatMap((k) => k.faecher.map((f) => ({ value: `${k.name}|${f}`, label: `${k.name} · ${f}` })));
 
   const act = async (job: () => Promise<string | null | void>, done?: string) => {
@@ -155,8 +155,8 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
   const save = async (andClose: boolean) => {
     const zuordnung: Record<string, Zuordnung> = {};
     for (const t of titel ?? []) {
-      const z = decode(choice[t.titel] ?? "");
-      if (z !== undefined) zuordnung[t.titel] = z;
+      const z = decode(choice[t.schluessel] ?? "");
+      if (z !== undefined) zuordnung[t.schluessel] = z;
     }
     await act(async () => {
       const error = await speichereZuordnung(zuordnung);
@@ -195,22 +195,22 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
       {klassen.length === 0 && <p className="empty">Es gibt noch keine Klasse. Lege zuerst links eine Klasse an, dann kannst du ihr Stunden zuordnen.</p>}
       <ul className="assign">
         {titel?.map((t) => (
-          <li key={t.titel}>
+          <li key={t.schluessel}>
             <div className="assign-what">
-              <strong>{t.titel}</strong>
+              <strong>{t.titel || "Ohne Titel"}{t.gruppe ? ` · ${t.gruppe}` : ""}</strong>
               <span className="muted">
                 {t.anzahl}× im Plan{t.beispiel ? ` · ${t.beispiel}` : ""}
               </span>
             </div>
             <div className="assign-pick">
               <select
-                aria-label={`Zuordnung für ${t.titel}`}
-                value={choice[t.titel] ?? ""}
+                aria-label={`Zuordnung für ${t.titel || "Eintrag ohne Titel"} ${t.gruppe ?? ""}`}
+                value={choice[t.schluessel] ?? ""}
                 onChange={(e) => {
-                  setChoice((c) => ({ ...c, [t.titel]: e.target.value }));
+                  setChoice((c) => ({ ...c, [t.schluessel]: e.target.value }));
                   setGuessed((g) => {
                     const n = new Set(g);
-                    n.delete(t.titel);
+                    n.delete(t.schluessel);
                     return n;
                   });
                 }}
@@ -223,7 +223,7 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
                 ))}
                 <option value={IGNORE}>Gehört nicht zu mir (ausblenden)</option>
               </select>
-              {guessed.has(t.titel) && <span className="guess">Vorschlag</span>}
+              {guessed.has(t.schluessel) && <span className="guess">Vorschlag</span>}
             </div>
           </li>
         ))}

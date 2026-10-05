@@ -11,6 +11,8 @@ export interface Lesson {
   titel: string;
   ort?: string;
   beschreibung?: string;
+  /** Class names from the description, without the teacher's own code that stands in every entry (WebUntis: "HHUC XBN"). */
+  gruppe?: string;
 }
 
 export class IcsError extends Error {}
@@ -35,6 +37,24 @@ const clean = (s: unknown) => (typeof s === "string" ? s.replace(/\s+/g, " ").tr
  * Reads an iCal text (UNTIS, WebUntis, any calendar) and returns the lessons between two dates (inclusive, YYYY-MM-DD).
  * Repeating events are expanded, single dates of a series can be left out (EXDATE). All-day entries are skipped.
  */
+/** Words that stand in (almost) every description: the owner of the timetable, not a class. */
+function commonTokens(root: ICAL.Component): Set<string> {
+  const counts = new Map<string, number>();
+  let total = 0;
+  for (const vevent of root.getAllSubcomponents("vevent")) {
+    const d = clean(String(vevent.getFirstPropertyValue("description") ?? ""));
+    if (!d) continue;
+    total++;
+    for (const t of new Set(d.split(/\s+/))) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  if (total < 10) return new Set();
+  return new Set([...counts].filter(([, n]) => n >= total * 0.9).map(([t]) => t));
+}
+
+/** Identifies a kind of lesson for the assignment: same title in different classes counts as different. */
+export const lessonKey = (l: Pick<Lesson, "titel" | "gruppe">) =>
+  `${l.titel}${l.gruppe ? `|${l.gruppe}` : ""}`.replace(/\s+/g, " ").trim().toLowerCase();
+
 export function parseIcs(text: string, range: { from: string; to: string }): Lesson[] {
   let root: ICAL.Component;
   try {
@@ -50,6 +70,7 @@ export function parseIcs(text: string, range: { from: string; to: string }): Les
       /* a zone that cannot be read: its events fall back to floating times */
     }
   }
+  const common = commonTokens(root);
   const lessons: Lesson[] = [];
   const add = (uid: string, ev: ICAL.Event, start: ICAL.Time, end: ICAL.Time | null) => {
     if (start.isDate) return;
@@ -64,6 +85,7 @@ export function parseIcs(text: string, range: { from: string; to: string }): Les
       titel: clean(ev.summary),
       ort: clean(ev.location) || undefined,
       beschreibung: clean(ev.description) || undefined,
+      gruppe: common.size === 0 ? undefined : clean(ev.description).split(/\s+/).filter((t) => t && !common.has(t)).join(" ") || undefined,
     });
   };
   for (const vevent of root.getAllSubcomponents("vevent")) {

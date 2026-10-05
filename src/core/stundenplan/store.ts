@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { root, listTree, type KlasseInfo } from "../workspace/index.ts";
-import { coverage, IcsError, parseIcs, type Lesson } from "./ics.ts";
+import { coverage, IcsError, lessonKey, parseIcs, type Lesson } from "./ics.ts";
 
 const dir = () => join(root(), "Stundenplan");
 
@@ -44,7 +44,6 @@ export async function removePlan(): Promise<void> {
 /** Where a title of the timetable belongs. `null` means: not mine, leave it out (supervision, breaks). */
 export type Zuordnung = { klasse: string; fach: string } | null;
 
-export const titelKey = (titel: string) => titel.replace(/\s+/g, " ").trim().toLowerCase();
 
 export async function loadZuordnung(): Promise<Record<string, Zuordnung>> {
   try {
@@ -81,7 +80,11 @@ export function suggest(text: string, klassen: Pick<KlasseInfo, "name" | "faeche
 }
 
 export interface TitelInfo {
+  /** Key under which the choice is saved. */
+  schluessel: string;
   titel: string;
+  /** Classes named in the timetable, if any. */
+  gruppe?: string;
   anzahl: number;
   /** Room and description of one example lesson, to recognize the entry. */
   beispiel?: string;
@@ -97,19 +100,21 @@ export async function titelListe(): Promise<TitelInfo[]> {
   const lessons = parseIcs(plan.text, { from: plan.meta.von, to: plan.meta.bis });
   const saved = await loadZuordnung();
   const klassen = await listTree();
-  const byTitle = new Map<string, TitelInfo & { lesson: Lesson }>();
+  const byTitle = new Map<string, Omit<TitelInfo, "schluessel"> & { lesson: Lesson }>();
   for (const l of lessons) {
-    const k = titelKey(l.titel);
+    const k = lessonKey(l);
     const known = byTitle.get(k);
     if (known) known.anzahl++;
     else byTitle.set(k, { titel: l.titel, anzahl: 1, lesson: l });
   }
   return [...byTitle.entries()]
     .map(([k, v]): TitelInfo => ({
+      schluessel: k,
       titel: v.titel,
+      gruppe: v.lesson.gruppe,
       anzahl: v.anzahl,
       beispiel: [v.lesson.ort && `Raum ${v.lesson.ort}`, v.lesson.beschreibung].filter(Boolean).join(" · ") || undefined,
-      ...(k in saved ? { zuordnung: saved[k] } : { vorschlag: suggest(`${v.titel} ${v.lesson.beschreibung ?? ""} ${v.lesson.ort ?? ""}`, klassen) }),
+      ...(k in saved ? { zuordnung: saved[k] } : { vorschlag: suggest(`${v.titel} ${v.lesson.gruppe ?? v.lesson.beschreibung ?? ""} ${v.lesson.ort ?? ""}`, klassen) }),
     }))
     .sort((a, b) => b.anzahl - a.anzahl || a.titel.localeCompare(b.titel, "de"));
 }

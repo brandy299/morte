@@ -1,7 +1,7 @@
 import { attachMaterial, listTree, readReihe, readStand, saveMaterialFile, UserError } from "../workspace/index.ts";
 import { parseStunden, type Stunde } from "../workspace/reihe.ts";
-import { parseIcs, type Lesson } from "./ics.ts";
-import { loadPlan, loadZuordnung, titelKey } from "./store.ts";
+import { lessonKey, parseIcs, type Lesson } from "./ics.ts";
+import { loadPlan, loadZuordnung } from "./store.ts";
 
 const DAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
@@ -93,7 +93,7 @@ export async function woche(anyDay: string, heute: string): Promise<Wochenansich
     const today = lessons.filter((l) => l.datum === datum);
     const seen = new Map<string, number>(); // lessons of the same class and subject on one day take the rows in order
     for (const l of today) {
-      const z = map[titelKey(l.titel)];
+      const z = map[lessonKey(l)];
       if (z === null) continue; // marked as "not mine"
       if (!z || !tree.some((k) => k.name === z.klasse && k.faecher.some((f) => f.name === z.fach))) {
         stunden.push({ ...l, zustand: "nicht-zugeordnet" });

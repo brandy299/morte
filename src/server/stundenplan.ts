@@ -1,6 +1,6 @@
 import type { Hono } from "hono";
 import { IcsError } from "../core/stundenplan/ics.ts";
-import { loadPlan, loadZuordnung, removePlan, savePlan, saveZuordnung, titelKey, titelListe, type Zuordnung } from "../core/stundenplan/store.ts";
+import { loadPlan, loadZuordnung, removePlan, savePlan, saveZuordnung, titelListe, type Zuordnung } from "../core/stundenplan/store.ts";
 import { addDays, legeAb, woche } from "../core/stundenplan/woche.ts";
 import { UserError, listTree } from "../core/workspace/index.ts";
 import type { AppState } from "./state.ts";
@@ -112,7 +112,7 @@ export function stundenplanRoutes(app: Hono, state: AppState) {
       if (z !== null && !tree.some((k) => k.name === z?.klasse && k.faecher.some((f) => f.name === z.fach))) {
         return c.json({ error: `„${titel}“: Diese Klasse oder dieses Fach gibt es nicht.` }, 400);
       }
-      clean[titelKey(titel)] = z;
+      clean[titel.toLowerCase()] = z;
     }
     await saveZuordnung(clean);
     return c.json({ ok: true });
