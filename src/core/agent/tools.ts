@@ -1,8 +1,10 @@
 import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
+import { arbeitsblattFooter, arbeitsblattHtml, parseArbeitsblatt } from "../material/arbeitsblatt.ts";
+import { renderPdf } from "../material/pdf.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import {
-  createReihe, listTree, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
+  attachMaterial, createReihe, hasLehrplan, listTree, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
 
 /**
@@ -175,7 +177,55 @@ const skillDateiLesen = defineTool({
   },
 });
 
+const arbeitsblattErstellen = defineTool({
+  name: "arbeitsblatt_erstellen",
+  label: "Arbeitsblatt erstellen",
+  description:
+    "Builds a print-ready worksheet as PDF (gray only, fixed layout) from structured content and shows it in the preview. You write only the content, never the layout. Keep it short: aim for one page, two at most. Give klasse, fach and reihe to file it in that series; add datum and stunde to also enter it in the lesson table. Returns the page count.",
+  parameters: Type.Object({
+    titel: Type.String(),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    einleitung: Type.Optional(Type.String({ description: "Short intro or instruction for students" })),
+    merkkasten: Type.Optional(Type.Object({ titel: Type.Optional(Type.String()), text: Type.String() })),
+    aufgaben: Type.Array(
+      Type.Object({
+        text: Type.String(),
+        hilfe: Type.Optional(Type.String({ description: "Short hint for students" })),
+        punkte: Type.Optional(Type.Number()),
+        zeilen: Type.Optional(Type.Number({ description: "Writing lines under the task, 0 to 15" })),
+      }),
+      { description: "1 to 20 tasks" },
+    ),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+  }),
+  ask: (a) =>
+    a.klasse && a.reihe
+      ? `Darf ich das Arbeitsblatt „${a.titel}“ erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
+      : `Darf ich das Arbeitsblatt „${a.titel}“ erstellen und speichern?`,
+  async execute(_id, args) {
+    const { reihe, datum, stunde, ...content } = args;
+    const sheet = parseArbeitsblatt({
+      ...content,
+      // Honest note instead of invented curriculum references (see docs/skills.md).
+      fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
+    });
+    const { pdf, pages } = await renderPdf(arbeitsblattHtml(sheet), arbeitsblattFooter(sheet));
+    const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: sheet.titel, klasse: content.klasse, fach: content.fach, reihe, datum, stunde });
+    if (content.klasse && content.fach && reihe && datum && stunde) {
+      await attachMaterial(content.klasse, content.fach, reihe, { datum, stunde, thema: sheet.titel }, saved.name);
+    }
+    return {
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.` }],
+      details: { material: { title: sheet.titel, name: saved.name, path: saved.path } },
+    };
+  },
+});
+
 export const tools: TeacherTool[] = [
+  arbeitsblattErstellen,
   skillLaden, skillDateiLesen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

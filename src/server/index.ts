@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
-import { createClass, initWorkspace, listTree, UserError } from "../core/workspace/index.ts";
+import { createClass, initWorkspace, listTree, materialFile, UserError } from "../core/workspace/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
@@ -124,6 +124,17 @@ export function createApp(state: AppState) {
       if (err instanceof UserError) return c.json({ error: err.message }, 400);
       throw err;
     }
+  });
+
+  app.get("/api/material", async (c) => {
+    const file = await materialFile(c.req.query("path") ?? "");
+    if (!file) return c.notFound();
+    const name = encodeURIComponent(file.split(/[\\/]/).pop()!);
+    const disposition = c.req.query("download") ? "attachment" : "inline";
+    return c.body(await readFile(file), 200, {
+      "content-type": "application/pdf",
+      "content-disposition": `${disposition}; filename*=UTF-8''${name}`,
+    });
   });
 
   app.post("/api/chat/reset", async (c) => {

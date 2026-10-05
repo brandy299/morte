@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, getStatus, getTree, getUsage, resetChat, sendMessage, type ChatEvent, type KlasseInfo, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, getStatus, getTree, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { NewClass } from "./NewClass.tsx";
@@ -16,6 +16,7 @@ interface Message {
   text: string;
   images?: string[];
   steps: Step[];
+  materials?: Material[];
   confirm?: { id: string; question: string };
   error?: string;
 }
@@ -76,6 +77,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
   const [attachProblem, setAttachProblem] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [usage, setUsage] = useState<UsageSnapshot | undefined>();
+  const [preview, setPreview] = useState<Material | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -113,6 +115,12 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
       case "usage":
         setUsage(e.usage);
         break;
+      case "material": {
+        const m = { title: e.title, name: e.name, path: e.path };
+        patchLast((x) => ({ ...x, materials: [...(x.materials ?? []), m] }));
+        setPreview(m);
+        break;
+      }
       case "step_start":
         patchLast((m) => ({ ...m, steps: [...m.steps, { id: e.id, label: e.label, state: "running" }] }));
         break;
@@ -166,6 +174,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
     abortRef.current?.abort();
     await resetChat();
     setMessages([]);
+    setPreview(null);
     setUsage((u) => (u ? { ...u, inputTokens: 0, outputTokens: 0, cost: 0, contextTokens: 0 } : u));
     refreshTree();
   };
@@ -185,7 +194,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
           : "Einen Moment …";
 
   return (
-    <div className="shell">
+    <div className={preview ? "shell with-preview" : "shell"}>
       <aside className="side">
         <div className="brand">
           <span className="brand-mark" aria-hidden />
@@ -270,6 +279,15 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
                   </div>
                 )}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
+                {m.materials?.map((x) => (
+                  <button key={x.path} type="button" className="file-card" onClick={() => setPreview(x)}>
+                    <span className="file-icon" aria-hidden>PDF</span>
+                    <span>
+                      <strong>{x.title}</strong>
+                      <small>Zum Ansehen öffnen</small>
+                    </span>
+                  </button>
+                ))}
                 {m.confirm && (
                   <div className="confirm" role="alertdialog" aria-label="Rückfrage">
                     <p>{m.confirm.question}</p>
@@ -368,6 +386,21 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
           </div>
         </form>
       </main>
+
+      {preview && (
+        <aside className="preview" aria-label="Vorschau">
+          <div className="preview-head">
+            <strong>{preview.title}</strong>
+            <a className="ghost" href={materialUrl(preview, true)} download={preview.name}>
+              Herunterladen
+            </a>
+            <button type="button" className="ghost" onClick={() => setPreview(null)}>
+              Schließen
+            </button>
+          </div>
+          <iframe title={preview.title} src={`${materialUrl(preview)}#toolbar=0&navpanes=0`} />
+        </aside>
+      )}
     </div>
   );
 }

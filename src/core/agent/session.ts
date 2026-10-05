@@ -104,9 +104,12 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
         emit({ type: "step_start", id: event.toolCallId, label: tool?.label ?? "Arbeite weiter" });
         break;
       }
-      case "tool_execution_end":
+      case "tool_execution_end": {
         emit({ type: "step_end", id: event.toolCallId, ok: !event.isError });
+        const material = event.result?.details?.material;
+        if (!event.isError && material) emit({ type: "material", ...material });
         break;
+      }
     }
   });
 

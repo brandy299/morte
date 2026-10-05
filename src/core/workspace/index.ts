@@ -1,5 +1,5 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import { dataDir } from "../paths.ts";
 import { newReiheMarkdown, parseStunden, STATUS, upsertStunde, writeStunden, type Stunde } from "./reihe.ts";
 
@@ -261,4 +261,93 @@ export async function materialLuecken(klasse?: string): Promise<Luecke[]> {
     }
   }
   return result;
+}
+
+// ---------- Material (PDF files) ----------
+
+/** "14.10." becomes "2026-10-14" (current year). Anything else falls back to today. */
+function isoDate(datum?: string): string {
+  const m = /^(\d{1,2})\.(\d{1,2})\.?(\d{4})?$/.exec((datum ?? "").trim());
+  if (!m) return today();
+  const year = m[3] ?? today().slice(0, 4);
+  return `${year}-${m[2]!.padStart(2, "0")}-${m[1]!.padStart(2, "0")}`;
+}
+
+const slug = (s: string) =>
+  s.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 50) || "Material";
+
+export interface SavedMaterial {
+  name: string;
+  /** Path relative to the working folder, for the download link. */
+  path: string;
+}
+
+/**
+ * Saves a PDF. With class, subject and series it lands in that series' Material folder,
+ * named like 2026-10-14_Mi3_Arbeitsblatt-Interview.pdf. Otherwise it goes to Exporte.
+ */
+export async function saveMaterial(
+  pdf: Buffer,
+  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string },
+): Promise<SavedMaterial> {
+  let dir = join(root(), "Exporte");
+  let rel = "Exporte";
+  if (where.klasse && where.fach && where.reihe) {
+    const f = await resolveFach(where.klasse, where.fach);
+    const r = await resolveDir(f.dir, where.reihe, "Die Reihe", stripNumber);
+    dir = join(f.dir, r, "Material");
+    rel = `Klassen/${f.klasse}/${f.fach}/${r}/Material`;
+  }
+  await mkdir(dir, { recursive: true });
+  const stunde = (where.stunde ?? "").replace(/\s+/g, "");
+  const base = [isoDate(where.datum), stunde && slug(stunde), `${where.art}-${slug(where.titel)}`].filter(Boolean).join("_");
+  let name = `${base}.pdf`;
+  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.pdf`;
+  await writeFile(join(dir, name), pdf);
+  return { name, path: `${rel}/${name}` };
+}
+
+/**
+ * Enters a file in the lesson table. A lesson that is already "gehalten" keeps that status,
+ * otherwise it becomes "Material fertig".
+ */
+export async function attachMaterial(
+  klasse: string, fach: string, reihe: string,
+  stunde: { datum: string; stunde: string; thema?: string }, datei: string,
+): Promise<void> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  const file = join(dir, r, "Reihe.md");
+  const markdown = await readText(file);
+  const old = parseStunden(markdown).find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
+  await setStunde(klasse, fach, reihe, {
+    datum: stunde.datum,
+    stunde: stunde.stunde,
+    thema: stunde.thema,
+    material: datei,
+    status: old?.status === "gehalten" ? "gehalten" : "Material fertig",
+  });
+}
+
+/** Resolves a download path from the browser to a real PDF file inside Klassen/ or Exporte/. */
+export async function materialFile(relative: string): Promise<string | undefined> {
+  const { realpath } = await import("node:fs/promises");
+  const [top] = relative.split("/");
+  if (!["Klassen", "Exporte"].includes(top ?? "") || !relative.toLowerCase().endsWith(".pdf")) return undefined;
+  try {
+    const base = await realpath(root());
+    const target = await realpath(join(base, relative));
+    return target.startsWith(join(base, top!) + sep) ? target : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** True when Klasse.md names a Lehrplan. Without it, material carries an honest note. */
+export async function hasLehrplan(klasse: string): Promise<boolean> {
+  try {
+    return Boolean(/^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse)));
+  } catch {
+    return false;
+  }
 }

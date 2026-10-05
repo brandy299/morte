@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   createClass, createReihe, initWorkspace, listTree, materialLuecken, readKlasse, readReihe, readStand,
-  setStunde, UserError, writeStand,
+  setStunde, UserError, writeStand, saveMaterial, attachMaterial, materialFile, hasLehrplan,
 } from "./index.ts";
 
 let home: string;
@@ -70,5 +70,42 @@ describe("workspace", () => {
     expect(stand).toContain("Aktuelle Reihe: 02 Meetings");
     expect(stand).not.toContain("01 Bewerbung");
     expect(stand.match(/^- /gm)).toHaveLength(1);
+  });
+
+  it("saves material into the Reihe folder with a sorted name and never overwrites", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const where = { art: "Arbeitsblatt", titel: "Interview Basics!", klasse: "11a", fach: "Business English", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3" };
+    const a = await saveMaterial(Buffer.from("%PDF-1"), where);
+    const b = await saveMaterial(Buffer.from("%PDF-2"), where);
+    expect(a.name).toMatch(/^\d{4}-10-14_Mi3_Arbeitsblatt-Interview-Basics\.pdf$/);
+    expect(b.name).toMatch(/-2\.pdf$/);
+    expect(a.path).toBe(`Klassen/11a/Business English/01 Bewerbung/Material/${a.name}`);
+    expect(await materialFile(a.path)).toBeTruthy();
+  });
+
+  it("falls back to Exporte without a Reihe", async () => {
+    const m = await saveMaterial(Buffer.from("x"), { art: "Arbeitsblatt", titel: "Test" });
+    expect(m.path.startsWith("Exporte/")).toBe(true);
+  });
+
+  it("enters material in the table and keeps the status 'gehalten'", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    await setStunde("11a", "Business English", "Bewerbung", { datum: "12.10.", stunde: "Mo 1", thema: "Lebenslauf", status: "gehalten" });
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "12.10.", stunde: "Mo 1" }, "a.pdf");
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "Mi 3", thema: "Interview" }, "b.pdf");
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("| 12.10. | Mo 1 | Lebenslauf | a.pdf | gehalten |");
+    expect(md).toContain("| 14.10. | Mi 3 | Interview | b.pdf | Material fertig |");
+  });
+
+  it("only serves PDFs from Klassen and Exporte", async () => {
+    expect(await materialFile("../../etc/passwd.pdf")).toBeUndefined();
+    expect(await materialFile("Einstellungen/.zugang.pdf")).toBeUndefined();
+    expect(await materialFile("Klassen/11a/Klasse.md")).toBeUndefined();
+    expect(await materialFile("Klassen/../Einstellungen/x.pdf")).toBeUndefined();
+  });
+
+  it("knows whether a Lehrplan is named", async () => {
+    expect(await hasLehrplan("11a")).toBe(false);
   });
 });

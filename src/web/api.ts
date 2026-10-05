@@ -20,6 +20,7 @@ export type ChatEvent =
   | { type: "step_end"; id: string; ok: boolean }
   | { type: "thinking"; active: boolean }
   | { type: "usage"; usage: UsageSnapshot }
+  | { type: "material"; title: string; name: string; path: string }
   | { type: "confirm"; id: string; question: string }
   | { type: "error"; message: string }
   | { type: "done" };
@@ -99,3 +100,6 @@ export async function createClass(input: NewClass): Promise<string | null> {
   if (res.ok) return null;
   return (await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.";
 }
+
+export interface Material { title: string; name: string; path: string }
+export const materialUrl = (m: Material, download = false) => `/api/material?path=${encodeURIComponent(m.path)}${download ? "&download=1" : ""}`;

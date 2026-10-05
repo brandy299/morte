@@ -67,3 +67,13 @@ describe("skills", () => {
     await expect(readSkillFile("klausur", "scripts/run.sh")).rejects.toBeInstanceOf(SkillError);
   });
 });
+
+describe("bundled skills", () => {
+  it("are all valid and have a description that says what they are not for", async () => {
+    delete process.env.MORTE_SKILLS;
+    const { skills, problems } = await listSkills();
+    expect(problems).toEqual([]);
+    expect(skills.map((s) => s.name)).toContain("arbeitsblatt");
+    for (const s of skills) expect(s.description).toMatch(/[Nn]icht für/);
+  });
+});
