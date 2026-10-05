@@ -28,18 +28,27 @@ export async function fetchBalance(provider: string, apiKey: string | undefined,
   }
 }
 
-/** OpenRouter shows what is left of the key's limit; a key without a limit has no remaining amount to show. */
+/**
+ * OpenRouter: the credit of the whole account (bought minus used) and the limit of this key are different things.
+ * What is really left is the smaller of the two, so that is what we show.
+ */
 async function openrouterBalance(apiKey: string, fetchFn: typeof fetch): Promise<Balance | undefined> {
-  try {
-    const res = await fetchFn("https://openrouter.ai/api/v1/auth/key", {
-      headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return undefined;
-    const left = ((await res.json()) as { data?: { limit_remaining?: number | null } }).data?.limit_remaining;
-    if (typeof left !== "number" || !Number.isFinite(left)) return undefined;
-    return { text: `${left.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` };
-  } catch {
-    return undefined;
-  }
+  const get = async (path: string) => {
+    try {
+      const res = await fetchFn(`https://openrouter.ai/api/v1/${path}`, {
+        headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
+        signal: AbortSignal.timeout(5000),
+      });
+      return res.ok ? ((await res.json()) as { data?: Record<string, unknown> }).data : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const [key, credits] = await Promise.all([get("auth/key"), get("credits")]);
+  const amounts: number[] = [];
+  if (typeof key?.limit_remaining === "number") amounts.push(key.limit_remaining);
+  if (typeof credits?.total_credits === "number" && typeof credits.total_usage === "number") amounts.push(credits.total_credits - credits.total_usage);
+  const left = amounts.filter(Number.isFinite);
+  if (left.length === 0) return undefined;
+  return { text: `${Math.max(0, Math.min(...left)).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD` };
 }

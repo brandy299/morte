@@ -55,10 +55,12 @@ describe("fetchBalance", () => {
     const b = await fetchBalance("deepseek", "key", ok({ balance_infos: [{ currency: "CNY", total_balance: "4.2" }] }));
     expect(b?.text).toBe("4,20 CNY");
   });
-  it("reads what is left of an OpenRouter key limit", async () => {
-    const b = await fetchBalance("openrouter", "key", ok({ data: { limit_remaining: 49.5 } }));
-    expect(b?.text).toBe("49,50 USD");
-    expect(await fetchBalance("openrouter", "key", ok({ data: { limit_remaining: null } }))).toBeUndefined();
+  it("shows the smaller of the key limit and the account credit for OpenRouter", async () => {
+    const answer = (data: unknown) => ({ ok: true, json: async () => ({ data }) }) as Response;
+    const by = (key: unknown, credits: unknown) => (async (url: string | URL | Request) => (String(url).includes("credits") ? answer(credits) : answer(key))) as typeof fetch;
+    expect((await fetchBalance("openrouter", "k", by({ limit_remaining: 50 }, { total_credits: 50, total_usage: 36.97 })))?.text).toBe("13,03 USD");
+    expect((await fetchBalance("openrouter", "k", by({ limit_remaining: 5 }, { total_credits: 50, total_usage: 36.97 })))?.text).toBe("5,00 USD");
+    expect((await fetchBalance("openrouter", "k", by({ limit_remaining: null }, { total_credits: 50, total_usage: 36.97 })))?.text).toBe("13,03 USD");
   });
   it("has nothing to show for providers without a balance query", async () => {
     expect(await fetchBalance("anthropic", "key", ok({}))).toBeUndefined();
