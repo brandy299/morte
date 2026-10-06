@@ -624,7 +624,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         </div>
         {view === "start" ? (
           <div className="scroll">
-            <Start key={planVersion} tree={tree} onSetup={onStundenplan} onAsk={ask} onChanged={refreshTree} />
+            <Start key={planVersion} tree={tree} onSetup={onStundenplan} onAsk={ask} onChanged={refreshTree} onNewClass={onNewClass} />
           </div>
         ) : (
           <>
