@@ -16,6 +16,18 @@ describe("listProviders", () => {
     expect(anthropic.models[0]!.id).toBe("claude-sonnet-5-5");
     expect(anthropic.models.some((m) => m.vision)).toBe(true);
   });
+
+  it("offers every recommended model that exists in the catalog, for OpenRouter and OpenCode Go", () => {
+    for (const id of ["openrouter", "opencode-go"]) {
+      const provider = listProviders().find((p) => p.id === id)!;
+      const recommended = provider.models.filter((m) => m.recommended);
+      expect(recommended.length, id).toBeGreaterThanOrEqual(5);
+      expect(provider.models.slice(0, recommended.length).every((m) => m.recommended), id).toBe(true);
+    }
+    const openrouter = listProviders().find((p) => p.id === "openrouter")!;
+    expect(openrouter.models.some((m) => m.id.startsWith("z-ai/glm") && m.recommended)).toBe(true);
+    expect(openrouter.models.some((m) => m.id.startsWith("qwen/") && m.recommended)).toBe(true);
+  });
 });
 
 describe("testConnection", () => {

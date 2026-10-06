@@ -15,6 +15,7 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
   const [modelId, setModelId] = useState(status.model ?? "");
   const [apiKey, setApiKey] = useState("");
   const [advanced, setAdvanced] = useState(false);
+  const [filter, setFilter] = useState("");
   const [baseUrl, setBaseUrl] = useState(status.baseUrl ?? "");
   const [contextWindow, setContextWindow] = useState(status.contextWindow ? String(status.contextWindow) : "");
   const [testing, setTesting] = useState(false);
@@ -27,10 +28,12 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
 
   const provider = providers.find((p) => p.id === providerId);
   const models = provider?.models ?? [];
-  const shown = advanced ? models : models.filter((m) => m.recommended);
+  const needle = filter.trim().toLowerCase();
+  // A model chosen earlier stays in the list, also when it is not recommended or the search does not match it.
+  const shown = models.filter((m) => m.id === modelId || (advanced ? !needle || `${m.name} ${m.id}`.toLowerCase().includes(needle) : m.recommended));
   const custom = Boolean(provider?.custom);
   // For an own server the teacher types the model name; otherwise it comes from the list.
-  const chosen = custom ? modelId.trim() : modelId && models.some((m) => m.id === modelId) ? modelId : (models[0]?.id ?? "");
+  const chosen = custom ? modelId.trim() : modelId && shown.some((m) => m.id === modelId) ? modelId : (shown[0]?.id ?? "");
   const alreadyStored = status.configured && status.provider === providerId;
   const body = () => ({
     provider: providerId,
@@ -145,6 +148,12 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
           </>
         ) : (
           <>
+        {advanced && (
+          <label className="field">
+            <span>Modell suchen</span>
+            <input value={filter} placeholder="zum Beispiel deepseek, glm, qwen" onChange={(e) => setFilter(e.target.value)} />
+          </label>
+        )}
         <label className="field">
           <span>Modell</span>
           <select
@@ -164,7 +173,7 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
           </select>
         </label>
         <button className="link" type="button" onClick={() => setAdvanced((a) => !a)}>
-          {advanced ? "Nur empfohlene Modelle zeigen" : "Erweitert: alle Modelle zeigen"}
+          {advanced ? "Nur empfohlene Modelle zeigen" : "Alle Modelle zeigen und suchen"}
         </button>
           </>
         )}
