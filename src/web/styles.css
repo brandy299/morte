@@ -209,7 +209,9 @@ a.file-card { text-decoration: none; color: inherit; }
 @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
 /* ---------- Setup and class wizard ---------- */
-.setup { min-height: 100%; display: grid; place-items: center; padding: 32px 16px; }
+.setup { height: 100%; overflow-y: auto; display: grid; padding: 32px 16px; }
+/* margin:auto centres a short card and lets a tall one scroll from its top edge (place-items would cut the top off). */
+.setup > * { margin: auto; }
 .setup-card { width: 100%; max-width: 540px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 38px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 2px rgba(35, 32, 27, 0.05); }
 .setup h1 { font-family: var(--serif); font-weight: 400; font-size: 33px; line-height: 1.15; margin: 8px 0 0; letter-spacing: -0.01em; }
 .lead { color: var(--ink-soft); margin: 0; }
