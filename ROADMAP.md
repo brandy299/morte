@@ -33,41 +33,52 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 1: Chat-Kern
 
-- [ ] Oberfläche mit Chat, großem Eingabefeld und Streaming
-- [ ] Fortschrittsanzeige bei der Arbeit: pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
-- [ ] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent` (Claude, OpenAI, DeepSeek, OpenAI-kompatibel)
-- [ ] API-Keys im Schlüsselbund, nie im Code oder im Repo
-- [ ] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
-- [ ] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
+- [x] Oberfläche mit Chat, großem Eingabefeld und Streaming
+- [x] Fortschrittsanzeige bei der Arbeit (Statuspunkt, aktuelle Zeile, Schrittliste und ein Platzhalter-Blatt in der Vorschau, bis das Material fertig ist; kein echter Live-Aufbau): pulsierender Statuspunkt, Zeile mit dem aktuellen Schritt, abhakende Schrittliste, Vorschau, die sich live aufbaut
+- [x] Verbrauch (Tokens, geschätzte Kosten, Monatssumme), Kontext-Füllstand und Guthaben (nur wo der Anbieter es hergibt: DeepSeek, OpenRouter) versteckt hinter einem kleinen Ring am Eingabefeld
+- [x] Bilder anhängen (Büroklammer, Ziehen, Einfügen) mit Datenschutz-Hinweis. PDF und Word folgen in Phase 3
+- [x] Gesprächsverlauf: frühere Gespräche in der Seitenleiste, wieder öffnen (mit Schritten, Dateien und Verbrauch) und löschen. Gespeichert unter `Gespräche/` im Datenordner, nur auf diesem Computer
+- [x] Lange Gespräche: Ab etwa 80 Prozent Kontext-Füllstand den älteren Teil automatisch zusammenfassen, die letzten Beiträge bleiben wörtlich. Hinweis in einfacher Sprache, keine Rückfrage. Bei "Eingabe zu lang" vom Anbieter einmal erneut versuchen (Ideen aus `docs/recherche-harnesse.md`). Der Hinweis erscheint als Schritt in der Schrittliste; scheitert die Zusammenfassung, läuft das Gespräch unverändert weiter
+- [x] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent`: Claude, OpenAI, OpenRouter, DeepSeek und jeder OpenAI-kompatible Server (Schulserver, LM Studio, Ollama), geprüft gegen einen echten HTTP-Mock mit Streaming und Werkzeugaufruf. http:// nur für den eigenen Computer und private Adressen Mit einem echten Modell (OpenRouter, Claude Haiku 4.5) geprüft: Verbindungstest, Reihe planen, Arbeitsblatt erstellen und in die Stundentabelle eintragen, Lehrplan umwandeln.
+- [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
+- [x] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
+- [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
 
 ## Phase 2: Ordnerstruktur und Klassen
 
-- [ ] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen
-- [ ] Seitenleiste als Baum: Klasse, Fach, Reihe (ohne Dateipfade)
-- [ ] Assistent "Neue Klasse anlegen" (Fragenkatalog)
-- [ ] `Stand.md` pro Klasse und Fach, wird nach jeder Sitzung kurz überschrieben
-- [ ] `Reihe.md` mit Stundentabelle und festen Status-Wörtern (`geplant`, `Material fertig`, `gehalten`)
-- [ ] Abfragen wie "Wo stehen wir in 11a?" und "Wo fehlt noch Material?"
+- [x] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen (`~/morte-daten`, beim Start)
+- [x] Seitenleiste als Baum: Klasse, Fach, Reihe (ohne Dateipfade)
+- [x] Assistent "Neue Klasse anlegen" (Fragenkatalog)
+- [~] `Stand.md` pro Klasse und Fach, wird nach jeder Sitzung kurz überschrieben (Werkzeug und Anweisung stehen, mit echtem Modell noch nicht erprobt)
+- [x] `Reihe.md` mit Stundentabelle und festen Status-Wörtern (`geplant`, `Material fertig`, `gehalten`)
+- [~] Abfragen wie "Wo stehen wir in 11a?" und "Wo fehlt noch Material?"
 
 ## Phase 3: Materialerstellung
 
-- [ ] Vorschau rechts, Download als PDF, Graustufen-tauglich, wenige Seiten
-- [ ] Skill-Lader nach Agent-Skills-Spezifikation (wie Claude-App und Pi), drei Ebenen: mitgeliefert, Schule, persönlich. Siehe `docs/skills.md`
-- [ ] Mitgelieferte Skills neu schreiben, Bauweise nach `anthropics/k12-teacher-skills`, Inhalt für deutsche Schulen und Berufskollegs: Stunde planen, Lernsituation, Arbeitsblatt, Klausur mit EHZ, Differenzieren, Stunde vorbereiten, Verständnis-Check
-- [ ] Qualitätsprüfung: Kriterienlisten (P/R/O/M) und Testsätze pro Skill, Auswertung durch ein KI-Modell als Prüfer, bei jeder Skill-Änderung und jedem Modellwechsel
-- [ ] Skill-Builder: geführt per Fragen, Beispiel hochladen, Probelauf, Nachschärfen; dazu "Daraus eine Vorlage machen" nach einem guten Chat-Ergebnis
+- [x] Vorschau rechts, Download als PDF, Graustufen-tauglich, wenige Seiten (feste Vorlage, PDF direkt in der App gezeichnet mit pdfkit, ohne Zusatzprogramm; geprüft: Seitenumbruch, nur Grauwerte)
+- [~] Skill-Lader nach Agent-Skills-Spezifikation (wie Claude-App und Pi), drei Ebenen: mitgeliefert, Schule, persönlich. Siehe `docs/skills.md` (Lader, `skill_laden` und stufenweises Laden stehen, getestet mit Beispiel-Skills; Ebene Schule folgt in Phase 6, mitgelieferte Skills fehlen noch)
+- [~] Mitgelieferte Skills neu schreiben, Bauweise nach `anthropics/k12-teacher-skills`, Inhalt für deutsche Schulen und Berufskollegs. Fertig: Arbeitsblatt, Klausur mit Erwartungshorizont (`klausur`), Bewertungsregeln festhalten (`bewertung`), Lernsituation oder Reihe planen (`lernsituation`). Außerdem fertig: Stunde planen, Differenzieren, Stunde vorbereiten, Verständnis-Check. Alle vier einmal mit einem echten Modell durchgespielt (Claude Haiku 4.5 über OpenRouter); Rückfragen und Planung sind dabei vernünftig, der fachliche Inhalt wurde nicht von einer Lehrkraft geprüft. Fehlt noch: Referenzdateien pro Schulform und Fachgruppe
+- [x] Material auf Wunsch auch als Word-Datei (Arbeitsblatt, Klausur mit Erwartungshorizont, Stundenverlauf, Lernsituation) und Word-Dateien aus Reihen lesen. Siehe `docs/entscheidungen/006-word-dateien.md`. Mit LibreOffice angesehen und mit einem echten Modell durchgespielt, nicht in Microsoft Word geöffnet
+- [~] Qualitätsprüfung: Kriterienlisten (P/R/O/M) und Testsätze pro Skill, Auswertung durch ein KI-Modell als Prüfer, bei jeder Skill-Änderung und jedem Modellwechsel. Gerüst fertig (`npm run eval`, `evals/`), erste Messung mit Haiku 4.5 und Sonnet 4.5 in `evals/BASELINE.md`. Offen: Kriterien mit Lehrkräften gegenlesen, mehrfache Läufe (`--wdh`), stärkeres Modell für das Material messen, Anleitungen Bewertung und Vorlage-bauen prüfen
+- [x] Skill-Builder (in der Oberfläche "Vorlagen"): geführt per Fragen, Beispiel als Foto, Prüfliste beim Speichern, Probelauf, Nachschärfen; dazu "Daraus eine Vorlage machen" nach einem Ergebnis im Chat. Seite "Vorlagen" in der Seitenleiste (ansehen, eigene löschen). Mit einem echten Modell durchgespielt (Anlegen, Ausprobieren, Ändern); noch von keiner Lehrkraft erprobt
 - [ ] Geführter Fragenkatalog für Material (Schulform, Bildungsgang oder Fach und Stufe, Lernfeld, Kursniveau, Bewertung, Anzahl Klausuren)
-- [ ] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise
-- [ ] Bildungsplan-Import: PDF per OCR in Markdown umwandeln, Material passt zum Plan
+- [~] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise. Bewertung steht: Anforderungsbereiche und Notenschlüssel trägt jede Lehrkraft selbst ein, nichts ist fest (Entscheidung 003). Plan.md steht über den Import (Bildschirm "Lehrpläne", Entscheidung 004). Offen: Hinweise.md (schulinterne Vorgaben) und eine Eingabemaske für die Bewertungsregeln in der Oberfläche
+- [~] Bildungsplan-Import: PDF in saubere Markdown-Gliederung umwandeln (Text aus der PDF, Modell formt, Wortlaut wird geprüft, Scans per Bild, Kosten vorab sichtbar), pro Klasse zuordnen, vom Agenten stufenweise lesbar (`lehrplan_lesen`, `lehrplan_suchen`). Siehe `docs/entscheidungen/004-lehrplaene-lesen.md`. Mit einem echten Modell noch nicht erprobt
 - [ ] Foto oder Screenshot hochladen mit "Bau mir so etwas" (Vision), mit Hinweis zu Namen und Klassenarbeiten
-- [ ] Gesamtes Material einheitlich in eigener, besonderer Optik
+- [~] Gesamtes Material einheitlich in eigener, besonderer Optik (gemeinsame Zeichenschicht `src/core/material/layout.ts`, Arbeitsblatt, Klausur, Erwartungshorizont und Lernsituation stehen, weitere Materialarten folgen)
+- [x] Eigene Schriften für Oberfläche und PDF (Fraunces und Source Sans 3, mitgeliefert, mit Griechisch, Kyrillisch und Sonderbuchstaben), Oberfläche überarbeitet: Eingabefeld als eine Karte, ruhige Seitenleiste, Menü auf schmalen Fenstern
 
 ## Phase 4: Dashboard
 
-- [ ] Stundenplan per iCal-Synchronisierung (UNTIS), grafisch aufbereitet
-- [ ] Wochenübersicht: Was steht an, wo fehlt Material
-- [ ] Drag-and-Drop: Material auf eine Stunde ziehen, Datei landet im Reihen-Ordner und in der Stundentabelle
-- [ ] Startseite "Start" mit Überblick über alle Klassen
+- [x] Stundenplan per iCal (Datei oder Link), grafisch aufbereitet (mit eigener Beispieldatei getestet, noch nicht mit einem echten UNTIS-Export)
+- [x] Wochenübersicht: Was steht an, wo fehlt Material
+- [x] Drag-and-Drop: Material auf eine Stunde ziehen, Datei landet im Reihen-Ordner und in der Stundentabelle
+- [x] Startseite "Start" mit Überblick über alle Klassen
+
+## Querschnitt: Barrierefreiheit
+
+- [x] Oberfläche mit axe-core auf WCAG 2.2 AA geprüft (Start, Gespräch, Vorlagen, Lehrpläne, Einstellungen, Neue Klasse, Stundendetails, Handy-Breite): keine Verstöße. Kontrastprüfung der Farben als Test (`src/web/contrast.test.ts`), Dialog mit Tastaturführung, Menü auf dem Handy per Tastatur bedienbar, keine seitliche Rollleiste bei 320 px
+- [ ] Prüfung mit einem echten Screenreader und mit Schriftvergrößerung des Systems (noch nicht gemacht, axe findet nur einen Teil der Probleme)
 
 ## Phase 5: Erweiterungen
 

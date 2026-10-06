@@ -1,0 +1,23 @@
+[
+  {
+    "id": "kl-vollstaendig",
+    "nachrichten": [
+      "Erstelle eine Klausur zur Reihe Bewerbung für die 11a (Business English). Sie dauert 45 Minuten, Termin 04.11. Alle Angaben sind da, die Bewertungsregeln sind hinterlegt. Leg los."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 4
+    }
+  },
+  {
+    "id": "kl-knapp",
+    "nachrichten": [
+      "Ich brauche eine Klassenarbeit zum Anschreiben.",
+      "11a Business English, 45 Minuten, bitte gleich einen Entwurf."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 4
+    }
+  }
+]

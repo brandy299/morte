@@ -13,7 +13,7 @@ Lehrer-Harness/
 ├── Lehrpläne/
 │   ├── Höhere Handelsschule/       (Berufskolleg: ein Ordner pro Bildungsgang)
 │   │   ├── Plan.md                (Bildungsplan, aus dem PDF per OCR umgewandelt)
-│   │   ├── Bewertung.md           (Notenschlüssel, Gewichtung, Anzahl Klausuren)
+│   │   ├── Bewertung.md           (Anforderungsbereiche, Notenschlüssel, Hinweise; trägt die Lehrkraft selbst ein)
 │   │   └── Hinweise.md            (schulinterne Vorgaben, z. B. Fachkonferenz-Beschlüsse)
 │   └── Englisch Sek I/            (Gymnasium/Gesamtschule: ein Ordner pro Fach und Stufe)
 │       ├── Plan.md                (Kernlehrplan, plus schulinterner Lehrplan falls vorhanden)
@@ -37,7 +37,7 @@ Lehrer-Harness/
 ├── Vorlagen/                      (Arbeitsblatt, Klausur, Merkblatt, Erklärvideo)
 │   └── Designvorgaben.md
 │
-├── Skills/                        (die mitgelieferten Lehrer-Skills)
+├── Skills/                        (eigene Skills der Lehrkraft; die mitgelieferten liegen im Programm unter skills/)
 │
 └── Exporte/                       (fertige PDFs und Videos zum Herunterladen)
 ```
@@ -49,6 +49,28 @@ Lehrer-Harness/
 - **Wenige Ordner:** Eine Reihe ist ein Ordner mit `Reihe.md` und `Material/`. Die Stunden stehen als Tabelle in der `Reihe.md`.
 - **Drag-and-Drop:** Wird Material auf eine Stunde im Stundenplan gezogen, legt der Harness die Datei in `Material/` ab und trägt sie in der Tabelle ein.
 - **"Wo fehlt noch Material?":** Der Agent sucht Zeilen ohne Eintrag in der Spalte "Material".
+
+## Vorlage: Bewertung.md
+
+Gehört zu einem Lehrplan-Ordner, auf den `Lehrplan:` in `Klasse.md` zeigt. Alles ist Sache der Lehrkraft: Anzahl und Namen der Bereiche, Stufen und Grenzen des Notenschlüssels. Die Datei darf von Hand bearbeitet werden. Das Programm liest die Zeilen mit `- Name: ...` unter den Überschriften, der Rest ist freier Text. Siehe `docs/entscheidungen/003-bewertung-ist-lehrersache.md`.
+
+```markdown
+# Bewertung: Höhere Handelsschule
+
+Bereiche (Anforderungsbereiche, so wie eure Schule sie nennt):
+- I: Wiedergeben (30 %)
+- II: Anwenden (50 %)
+- III: Beurteilen und gestalten (20 %)
+
+Notenschlüssel (ab wie viel Prozent der Punkte):
+- 1: ab 87 %
+- 2: ab 73 %
+- 6: ab 0 %
+
+Hinweise: Klausuren zählen die Hälfte der Note.
+```
+
+Die Zahlen oben sind nur ein Beispiel für das Format, keine Empfehlung.
 
 ## Vorlage: Stand.md
 
@@ -80,12 +102,21 @@ Zeitraum: 12.10. – 04.11.
 Kompetenzen / Ziele: (aus dem Bildungsplan übernommen)
 Leistungsnachweis: Klausur 04.11. (siehe Bewertung.md)
 Szenario: (zum Beispiel das Unternehmen, an dem die Reihe aufgehängt ist)
+Handlungsprodukt: (was am Ende vorliegt)
+
+## Handlungssituation
+(nur wenn die Reihe als Lernsituation geplant wurde: der Text für die Schülerinnen und Schüler)
+
+## Ablauf
+1. Stellenanzeige auswerten (Informieren): Anforderungen markieren. Ergebnis: Liste
+2. Interview (Durchführen): Rollenspiel in Paaren.
 
 ## Stunden
 | Datum | Stunde | Thema | Material | Status |
 |---|---|---|---|---|
 | 12.10. | Mo 1 | Lebenslauf | Arbeitsblatt-Lebenslauf.pdf | gehalten |
 | 14.10. | Mi 3 | Interview | | geplant |
+|  |  | Rückblick | | geplant |
 
 ## Notizen
 (Was gut lief, was angepasst werden muss)
@@ -96,5 +127,6 @@ Szenario: (zum Beispiel das Unternehmen, an dem die Reihe aufgehängt ist)
 - **Lesereihenfolge:** `Klasse.md`, dann `Stand.md`, dann nur bei Bedarf die passende `Reihe.md`.
 - **Aktualisieren:** Nach jeder Arbeitssitzung `Stand.md` kurz und überschreibend neu schreiben, Details in `Reihe.md`.
 - **Status-Wörter fest:** `geplant`, `Material fertig`, `gehalten`. So lassen sich Abfragen zuverlässig beantworten.
+- **Geplante Stunden ohne Termin** haben leere Felder für Datum und Stunde. Der Termin wird später über die Nummer der Zeile eingetragen.
 - **Nichts erfinden:** Fehlt eine Angabe, bleibt das Feld leer, und der Agent fragt nach.
 - **Datenschutz:** In `Stand.md` und `Reihe.md` stehen keine Schülernamen, nur Klassen- und Gruppenbeobachtungen.

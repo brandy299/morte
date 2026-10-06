@@ -1,0 +1,254 @@
+import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
+import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
+import { keyFor } from "./custom.ts";
+import { resolveModel } from "./models.ts";
+import { tools } from "./tools.ts";
+import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
+
+const SYSTEM_PROMPT = `Du bist morte, ein ruhiger Arbeitsassistent für Lehrkräfte.
+Antworte auf Deutsch, in einfacher Sprache ohne Fachbegriffe.
+Erfinde nichts: Fehlt eine Angabe, frag kurz nach.
+Bitte nie um Schülernamen, Noten oder Fotos von Klassenarbeiten. Es gibt nur Klassen und Kurse.
+
+Arbeitsordner: Du kennst die Klassen der Lehrkraft nur über deine Werkzeuge.
+- Lesereihenfolge pro Klasse und Fach: erst klasse_lesen, dann stand_lesen, und reihe_lesen nur bei Bedarf.
+- Bei "Wo stehen wir in 11a?" lies Klasse und Stand und fasse kurz zusammen. Bei "Wo fehlt noch Material?" nutze material_luecken.
+- Statuswörter einer Stunde sind fest: geplant, Material fertig, gehalten.
+- Lehrplan: Hat die Klasse einen Lehrplan, lies ihn gezielt, bevor du Material oder eine Reihe planst (lehrplan_lesen: erst die Gliederung, dann nur den passenden Abschnitt; lehrplan_suchen für Stichworte). Übernimm Kompetenzen und Themen nur von dort und nenne die Fundstelle (Abschnitt). Steht etwas nicht darin, erfinde es nicht.
+- Wenn die Lehrkraft eine Arbeitssitzung beendet oder etwas Wichtiges entschieden wurde, halte den Stand mit stand_schreiben fest. Lies vorher den alten Stand und übernimm, was noch stimmt. Halte ihn kurz, es steht dort nie ein Schülername.
+- Nennt die Lehrkraft eine Klasse, ein Fach oder eine Reihe, sieh erst im Arbeitsordner nach (klassen_uebersicht, klasse_lesen), bevor du fragst, was damit gemeint ist. Frag nur nach dem, was du dort nicht findest.
+- Fragen: Frag höchstens zwei Dinge auf einmal und nur, was du weder im Arbeitsordner findest noch sinnvoll selbst festlegen kannst. Biete dann an, gleich einen Entwurf zu machen. Hat die Lehrkraft Klasse, Thema und den Umfang genannt, frag nicht nach Lernzielen, Aufbau, Differenzierung oder Material, das ist deine Aufgabe: Mach einen Entwurf. Wünscht die Lehrkraft einen Entwurf, frag nicht noch einmal, sondern erstelle ihn.
+- Ehrlichkeit: Berichte nur, was die Werkzeuge bestätigt haben. Meldet ein Werkzeug, dass etwas nicht eingetragen oder nicht erstellt wurde, sag das der Lehrkraft offen und versuche es erneut.
+- Fehlt eine Angabe, die du nicht ersetzen kannst (zum Beispiel ein Datum für einen Termin), frag nach. Trage nichts ein, was du nicht weißt.
+- Schlägt ein Werkzeug fehl, versuche es still noch einmal mit korrigierten Angaben. Schreib der Lehrkraft nichts über Felder, Formate oder technische Fehler. Sag nur, was jetzt fertig ist oder was dir noch fehlt.`;
+
+function buildPrompt(skills: { name: string; description: string }[]): string {
+  if (skills.length === 0) return SYSTEM_PROMPT;
+  const list = skills.map((s) => `- ${s.name}: ${s.description}`).join("\n");
+  return `${SYSTEM_PROMPT}
+
+Anleitungen (Skills): Passt eine Anfrage zu einer dieser Anleitungen, lade sie als Allererstes mit skill_laden, noch vor Rückfragen und vor anderen Werkzeugen, und folge ihr genau. Lade nie mehrere gleichzeitig, wenn eine reicht. Erwähne gegenüber der Lehrkraft nie Dateinamen oder Werkzeugnamen, sag nur, was sie bekommt.
+${list}`;
+}
+
+export interface SessionDeps {
+  resolve?: typeof resolveModel;
+  /** Called after every answer with what it used, e.g. to add it to the monthly total. */
+  /** Name and description of every available skill. Only these short texts go into the prompt. */
+  skills?: { name: string; description: string }[];
+  onUsage?: (delta: { input: number; output: number; cost: number }) => void;
+  /** Writes the summary of an older conversation part. Default: one short request to the chosen model. */
+  summarize?: (transcript: string) => Promise<string>;
+}
+
+export function createChatSession(settings: AgentSettings, deps: SessionDeps = {}): ChatSession {
+  const { models, model, onTurnEnd } = (deps.resolve ?? resolveModel)(settings);
+  const vision = model.input.includes("image");
+  const totals = { input: 0, output: 0, cost: 0, context: 0 };
+  const snapshot = (): UsageSnapshot => ({
+    inputTokens: totals.input,
+    outputTokens: totals.output,
+    cost: totals.cost,
+    contextTokens: totals.context,
+    contextWindow: model.contextWindow,
+    vision,
+  });
+
+  const agent = new Agent({
+    initialState: { systemPrompt: buildPrompt(deps.skills ?? []), model, tools },
+    streamFn: models.streamSimple.bind(models),
+    getApiKey: async () => keyFor(settings.provider, settings.apiKey),
+    beforeToolCall: async ({ toolCall, args }, signal) => {
+      const tool = tools.find((t) => t.name === toolCall.name);
+      if (!tool?.ask) return undefined;
+      const allowed = await askTeacher(toolCall.id, tool.ask(args), signal);
+      return allowed ? undefined : { block: true, reason: "Die Lehrkraft möchte das nicht. Frag nach, was stattdessen gewünscht ist." };
+    },
+  });
+
+  const pending = new Map<string, (allow: boolean) => void>();
+  const askTeacher = (id: string, question: string, signal?: AbortSignal) =>
+    new Promise<boolean>((resolve) => {
+      pending.set(id, resolve);
+      signal?.addEventListener("abort", () => answer(id, false), { once: true });
+      emit({ type: "confirm", id, question });
+    });
+  const answer = (id: string, allow: boolean) => {
+    pending.get(id)?.(allow);
+    pending.delete(id);
+  };
+
+  const summarize =
+    deps.summarize ??
+    (async (transcript: string) => {
+      const reply = await models.completeSimple(
+        model,
+        { systemPrompt: SUMMARY_SYSTEM, messages: [{ role: "user", content: transcript, timestamp: Date.now() }] },
+        { apiKey: keyFor(settings.provider, settings.apiKey) },
+      );
+      // The summary costs tokens too, so it counts in the totals and in the monthly sum.
+      if (reply.usage.totalTokens > 0) {
+        const input = reply.usage.input + reply.usage.cacheRead + reply.usage.cacheWrite;
+        totals.input += input;
+        totals.output += reply.usage.output;
+        totals.cost += reply.usage.cost.total;
+        deps.onUsage?.({ input, output: reply.usage.output, cost: reply.usage.cost.total });
+      }
+      if (reply.stopReason === "error") throw new Error(reply.errorMessage ?? "summary failed");
+      return reply.content.flatMap((c) => (c.type === "text" ? [c.text] : [])).join("\n");
+    });
+
+  /** Replaces the older part of the conversation by a short summary. Returns false when nothing changed. */
+  const compact = async (onEvent: (event: ChatEvent) => void, keepTokens = keepTokensFor(model.contextWindow)): Promise<boolean> => {
+    const split = splitForCompaction(agent.state.messages, keepTokens);
+    if (!split) return false;
+    onEvent({ type: "step_start", id: "compact", label: "Fasse das bisherige Gespräch kurz zusammen" });
+    try {
+      const summary = (await summarize(renderTranscript(split.old))).trim();
+      if (!summary) throw new Error("empty summary");
+      agent.state.messages = [...split.head, ...withSummary(split.recent, summary)];
+      totals.context = agent.state.messages.reduce((n, m) => n + estimateTokens(m), 0);
+      onEvent({ type: "step_end", id: "compact", ok: true });
+      onEvent({ type: "usage", usage: snapshot() });
+      return true;
+    } catch {
+      onEvent({ type: "step_end", id: "compact", ok: false });
+      return false;
+    }
+  };
+
+  let emit: (event: ChatEvent) => void = () => {};
+  let thinking = false;
+  const setThinking = (active: boolean) => {
+    if (thinking === active) return;
+    thinking = active;
+    emit({ type: "thinking", active });
+  };
+
+  // Text from a later step of the same answer would stick to the earlier text ("angelegt.Perfekt!"), so it starts a new paragraph.
+  let wroteText = false;
+  let freshMessage = false;
+
+  agent.subscribe((event) => {
+    switch (event.type) {
+      case "message_start":
+        if (event.message.role === "assistant") freshMessage = true;
+        break;
+      case "message_update": {
+        const e = event.assistantMessageEvent;
+        if (e.type === "thinking_start") setThinking(true);
+        else if (e.type === "thinking_end") setThinking(false);
+        else if (e.type === "text_delta") {
+          emit({ type: "text", delta: (freshMessage && wroteText ? "\n\n" : "") + e.delta });
+          freshMessage = false;
+          wroteText = true;
+        }
+        break;
+      }
+      case "message_end": {
+        const m = event.message;
+        if (m.role === "assistant" && m.usage.totalTokens > 0) {
+          const input = m.usage.input + m.usage.cacheRead + m.usage.cacheWrite;
+          totals.input += input;
+          totals.output += m.usage.output;
+          totals.cost += m.usage.cost.total;
+          totals.context = m.usage.totalTokens;
+          deps.onUsage?.({ input, output: m.usage.output, cost: m.usage.cost.total });
+          emit({ type: "usage", usage: snapshot() });
+        }
+        break;
+      }
+      case "tool_execution_start": {
+        const tool = tools.find((t) => t.name === event.toolName);
+        emit({ type: "step_start", id: event.toolCallId, label: tool?.label ?? "Arbeite weiter", material: tool?.producesMaterial });
+        break;
+      }
+      case "tool_execution_end": {
+        emit({ type: "step_end", id: event.toolCallId, ok: !event.isError });
+        const details = event.result?.details;
+        const files = details?.materials ?? (details?.material ? [details.material] : []);
+        if (!event.isError) for (const file of files) emit({ type: "material", ...file });
+        break;
+      }
+    }
+  });
+
+  return {
+    async send(text, onEvent, images = []) {
+      emit = onEvent;
+      wroteText = false;
+      try {
+        if (images.length > 0 && !vision) {
+          onEvent({ type: "error", message: "Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern." });
+          return;
+        }
+        const pictures = images.map((i) => ({ type: "image" as const, data: i.data, mimeType: i.mimeType }));
+        if (totals.context >= COMPACT_AT * model.contextWindow) await compact(onEvent);
+        await agent.prompt(text, pictures);
+        let last = agent.state.messages.at(-1);
+        if (last?.role === "assistant" && last.stopReason === "error" && isTooLong(last.errorMessage)) {
+          // The provider found the conversation too long: drop the failed question, shorten hard once (keep only the last turn), ask again.
+          const all = agent.state.messages;
+          const asked = all.findLastIndex((m) => m.role === "user");
+          agent.state.messages = all.slice(0, asked);
+          if (await compact(onEvent, 0)) {
+            await agent.prompt(text, pictures);
+          } else {
+            agent.state.messages = all;
+          }
+          last = agent.state.messages.at(-1);
+        }
+        if (last?.role === "assistant" && last.stopReason === "error") {
+          onEvent({ type: "error", message: friendlyError(last.errorMessage) });
+        }
+      } catch (err) {
+        onEvent({ type: "error", message: friendlyError(err instanceof Error ? err.message : String(err)) });
+      } finally {
+        setThinking(false);
+        onTurnEnd?.();
+        onEvent({ type: "done" });
+        emit = () => {};
+      }
+    },
+    answer,
+    usage: snapshot,
+    history() {
+      const body = agent.state.messages.filter((m) => m.role !== "system").map(withoutPictures);
+      return { messages: body, usage: snapshot() };
+    },
+    restore(state) {
+      const head = agent.state.messages.filter((m) => m.role === "system");
+      agent.state.messages = [...head, ...(state.messages as AgentMessage[])];
+      const u = state.usage ?? {};
+      Object.assign(totals, {
+        input: u.inputTokens ?? 0,
+        output: u.outputTokens ?? 0,
+        cost: u.cost ?? 0,
+        context: u.contextTokens ?? agent.state.messages.reduce((n, m) => n + estimateTokens(m), 0),
+      });
+    },
+    abort: () => {
+      for (const id of [...pending.keys()]) answer(id, false);
+      agent.abort();
+    },
+    reset: () => {
+      agent.reset();
+      Object.assign(totals, { input: 0, output: 0, cost: 0, context: 0 });
+    },
+  };
+}
+
+function friendlyError(raw?: string): string {
+  if (raw && /api key|apikey|unauthor|401|authenticat/i.test(raw)) {
+    return "Der Zugang zur KI fehlt oder ist nicht gültig. Bitte prüfe den Zugangsschlüssel.";
+  }
+  return "Das hat gerade nicht geklappt. Bitte versuche es gleich noch einmal.";
+}
+
+/** Pictures are not stored with a conversation (they are large). The model sees "[Bild]" instead. */
+function withoutPictures(message: AgentMessage): AgentMessage {
+  const m = message as { content?: unknown };
+  if (!Array.isArray(m.content)) return message;
+  const content = m.content.map((p) => (p && typeof p === "object" && (p as { type?: string }).type === "image" ? { type: "text", text: "[Bild]" } : p));
+  return { ...message, content } as AgentMessage;
+}

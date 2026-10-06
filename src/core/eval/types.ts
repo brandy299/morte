@@ -1,0 +1,64 @@
+export interface Criterion {
+  id: string;
+  /** P Pädagogik, R Anspruch, O Form, M Gesprächsführung. */
+  gruppe: string;
+  kriterium: string;
+  bestandenWenn: string;
+  hinweis: string;
+  /** When set, the criterion only counts if this condition holds for the case; otherwise it is skipped, not failed. */
+  bedingung: string;
+  /** "Programm" is decided by code, "Prüfer" by the judge model. */
+  art: "Programm" | "Prüfer";
+}
+
+export interface EvalCase {
+  id: string;
+  skill: string;
+  /** What the teacher types, one message per turn. Later turns answer the assistant's questions. */
+  nachrichten: string[];
+  /** What the program can expect, so checks know what applies. */
+  erwartet: {
+    /** A file must be created. */
+    material?: boolean;
+    /** Largest accepted page count per PDF. Default 2. */
+    maxSeiten?: number;
+    /** Date (e.g. "21.10.") the material must be entered under in the lesson table. */
+    eintrag?: string;
+    /** The assistant must not change anything in the working folder. */
+    nurLesen?: boolean;
+    /** Number of student versions (differentiation). */
+    fassungen?: number;
+    /** No file may be created in the first turn (the plan is shown first). */
+    erstVorschlag?: boolean;
+  };
+}
+
+export interface Turn {
+  user: string;
+  assistant: string;
+  steps: string[];
+  fragen: string[];
+}
+
+export interface FileInfo {
+  name: string;
+  art: "pdf" | "docx" | "andere";
+  text: string;
+  seiten?: number;
+}
+
+export interface Transcript {
+  turns: Turn[];
+  files: FileInfo[];
+  /** Lesson table of the series as saved at the end. */
+  tabelle: string;
+  /** Text of Reihe.md before the run, to see what changed. */
+  kosten: number;
+}
+
+export interface Verdict {
+  id: string;
+  /** null: does not apply to this case. */
+  bestanden: boolean | null;
+  grund: string;
+}

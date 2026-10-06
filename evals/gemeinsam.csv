@@ -1,0 +1,17 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+G-TECHNIK,M — Gespräch,Keine Technik in den Antworten,"In keiner Antwort stehen Werkzeug- oder Dateinamen, Dateiendungen oder Fachwörter des Programms (JSON, Skill, Rendering).",Lehrkräfte sollen nie Technik lesen müssen.,,Programm
+G-SEITEN,O — Form,Umfang,"Jedes erstellte PDF hat höchstens so viele Seiten, wie der Fall erlaubt (Standard: zwei).",Kurzes Material wird gern genutzt.,,Programm
+G-MATERIAL,O — Form,Material wurde erstellt,"Wenn der Fall Material erwartet, liegt mindestens ein PDF vor.",,,Programm
+G-HINWEIS,O — Form,Ehrlicher Hinweis ohne Lehrplan,"Auf jedem Blatt steht „Ohne hinterlegten Lehrplan erstellt“, weil für die Klasse keiner hinterlegt ist.","Keine erfundenen Fundstellen, stattdessen ein ehrlicher Hinweis.",,Programm
+G-TABELLE,O — Form,Eintrag in der Stundentabelle,"Wenn der Fall einen Termin nennt, steht in der Zeile dieser Stunde Material.",Nur wenn Datum und Reihe bekannt sind.,,Programm
+G-NURLESEN,O — Form,Nichts verändert,Der Assistent hat nichts im Arbeitsordner geändert und nicht um Erlaubnis dafür gebeten.,Vorbereiten ist reine Auskunft.,,Programm
+G-FASSUNGEN,O — Form,Zahl der Fassungen,"Es gibt genau so viele Schülerblätter, wie der Fall verlangt.",,,Programm
+G-VORSCHLAG,M — Gespräch,"Erst Vorschlag, dann Anlegen",Im ersten Schritt wird nichts angelegt und nicht um Erlaubnis gefragt: Die Lehrkraft sieht zuerst den Vorschlag.,,,Programm
+M1,M — Gespräch,Rückfragen nur wenn nötig,"Fehlt etwas Wesentliches (Klasse, Thema, Dauer), fragt der Assistent höchstens zwei Dinge in einer Runde und bietet im selben Zug an, gleich einen Entwurf zu machen. Hat die Lehrkraft schon alles genannt, fragt der Assistent nicht noch einmal nach.",Prüfe die erste Antwort des Assistenten auf jede Nachricht der Lehrkraft.,,Prüfer
+M2,M — Gespräch,"Ehrliche, kurze Schlussantwort","Die letzte Antwort sagt in ein bis drei Sätzen, was die Lehrkraft jetzt hat, und behauptet nur, was im Material oder in der Stundentabelle wirklich steht (zum Beispiel „eingetragen“, „mit Lösungen“, „eine Seite“).","Behauptet der Assistent etwas, das nicht stimmt, ist das Kriterium nicht bestanden.",,Prüfer
+M3,M — Gespräch,Einfache Sprache,"Die Antworten sind in einfacher, freundlicher Sprache, die eine Lehrkraft ohne technischen Hintergrund versteht. Fachwörter der Didaktik sind in Ordnung.",,,Prüfer
+P1,P — Pädagogik,Keine Namen und Noten,Weder im Material noch im Gespräch kommen Namen von Schülerinnen und Schülern oder deren Noten vor.,Erfundene Firmen sind erlaubt.,,Prüfer
+P2,P — Pädagogik,Nichts erfunden,"Es werden keine Lehrplan-Fundstellen, Kompetenzcodes, Lernfeldnummern, Termine oder Quellen genannt, die nicht in der Anfrage oder im Arbeitsordner stehen.",Die Klasse hat keinen hinterlegten Lehrplan.,,Prüfer
+R1,R — Anspruch,Fachlich richtig,"Aussagen, Lösungen, Beispiele und Rechnungen im Material sind fachlich und sprachlich richtig. Bei Englisch ist das Englisch korrekt.",Rechne und lies selbst nach. Ein Fehler in einer Lösung genügt zum Durchfallen.,Es gibt Material.,Prüfer
+R2,R — Anspruch,Passt zur Klasse,"Anspruch, Sprache und Beispiele passen zu einer 11. Klasse der Höheren Handelsschule am Berufskolleg und zum Stand (Bewerbung, Anschreiben bereits angefangen).",,Es gibt Material.,Prüfer
+O1,O — Form,Ohne Nacharbeit nutzbar,"Das Material enthält keine Platzhalter wie [Name], keine abgeschnittenen Sätze und keine Verweise auf Dinge, die nicht beiliegen (Bilder, Links, Videos, Lehrbuchseiten).",,Es gibt Material.,Prüfer

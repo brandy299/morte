@@ -82,13 +82,14 @@ Was die Schulformen für die Skills verändert:
 
 | Skill | Vorbild | Neu für Deutschland/Berufskolleg |
 |---|---|---|
-| Unterrichtsstunde planen | lesson-plan-creation | Verlaufsplan, Phasen, Handlungsorientierung, Bezug Lernfeld |
-| Lernsituation / Reihe planen | (keins) | Handlungssituation, Lernfeldbezug, Stundentabelle in `Reihe.md` |
+| Unterrichtsstunde planen | lesson-plan-creation | Verlaufsplan, Phasen, Handlungsorientierung, Bezug Lernfeld. Fertig (`stunde-planen`, eine Seite für die Lehrkraft) |
+| Lernsituation / Reihe planen | (keins) | Handlungssituation, Lernfeldbezug, Stundentabelle in `Reihe.md`. Legt Reihe und alle Stunden mit einer Rückfrage an, Blatt mit Schülerseite und Planung. Fertig |
 | Arbeitsblatt | Teile aus lesson-plan-creation | Graustufen, wenige Seiten, Operatoren |
-| Klausur mit Erwartungshorizont | (keins) | Anforderungsbereiche I–III, Operatoren, Punkte, Notenschlüssel aus `Bewertung.md` |
-| Differenzieren | lesson-differentiation | drei Niveaus, Sprachförderung (DaZ), gleicher Kerninhalt |
-| Stunde vorbereiten | lesson-prep | kurze Vorbereitungsnotiz für die Lehrkraft |
-| Verständnis-Check | check-for-understanding | auf alle Fächer erweitert, Distraktoren aus typischen Fehlern |
+| Klausur mit Erwartungshorizont | (keins) | Bereiche und Notenschlüssel stammen von der Lehrkraft (`Bewertung.md`, Entscheidung 003), Punkte und Grenzen rechnet das Programm. Fertig |
+| Bewertungsregeln festhalten | (keins) | Ablauf-Skill: Bereiche und Notenschlüssel im Gespräch eintragen. Fertig |
+| Differenzieren | lesson-differentiation | drei Niveaus, Sprachförderung (DaZ), gleicher Kerninhalt. Fertig (`differenzieren`, je Niveau ein Blatt mit Lösungsblatt) |
+| Stunde vorbereiten | lesson-prep | kurze Vorbereitungsnotiz für die Lehrkraft. Fertig (`stunde-vorbereiten`, Notiz im Chat) |
+| Verständnis-Check | check-for-understanding | auf alle Fächer erweitert, Distraktoren aus typischen Fehlern. Fertig (`verstaendnis-check`, Blatt plus Lösungsblatt mit Fehlvorstellungen) |
 
 ## Skill-Builder
 
@@ -115,6 +116,10 @@ Ziel: Eine Lehrkraft ohne Technikkenntnisse baut in zehn Minuten einen eigenen S
 - Er prüft jeden neuen Skill gegen eine Checkliste: Beschreibung nennt Zweck und Auslöser, keine Schülerdaten, keine widersprüchlichen Regeln, Layout über Vorlage statt Prosa.
 - Später (optional): kleine Testfälle pro Skill, die bei Modellwechsel zeigen, ob der Skill noch gut funktioniert.
 
+### Stand der Umsetzung
+
+Der Skill-Builder steht: Skill `vorlage-bauen` führt durch die Fragen, `vorlage_speichern` prüft die Prüfliste (Beschreibung nennt Zweck und Abgrenzung, Anleitung hat Schritte, nennt nur vorhandene Werkzeuge, keine Namen von Lernenden) und legt die Vorlage unter `Skills/<name>/SKILL.md` im Datenordner ab. Der Probelauf lädt die neue Vorlage sofort. Nachschärfen geht über `vorlage_lesen` und erneutes Speichern. Eine neue Vorlage greift von selbst ab dem nächsten neuen Gespräch. Offen: Beispiel als PDF oder Word (bisher nur als Foto), Schul-Ebene, Teilen unter Kolleginnen und Kollegen.
+
 ## Qualitätsprüfung (nach Vorbild der k12-Evals)
 
 Anthropic prüft die k12-Skills mit Kriterienlisten, die ein KI-Modell als Prüfer abarbeitet. Jedes Kriterium wird einzeln mit bestanden oder nicht bestanden bewertet. Das übernehmen wir:
@@ -127,6 +132,6 @@ Anthropic prüft die k12-Skills mit Kriterienlisten, die ein KI-Modell als Prüf
 
 ## Offene Fragen
 
-- Welches Wort sehen Lehrkräfte in der Oberfläche: "Vorlage", "Fähigkeit" oder "Skill"?
+- Wort in der Oberfläche: vorerst "Vorlage" (Seite "Vorlagen", Skill `vorlage-bauen`). Mit Lehrkräften prüfen.
 - Wie werden Skills geteilt (Datei exportieren, Schulordner, später ein Katalog)?
 - Sollen persönliche Skills beim Update eines mitgelieferten Skills einen Hinweis bekommen?

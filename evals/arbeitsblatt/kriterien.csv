@@ -1,0 +1,7 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+A-P1,P — Pädagogik,Aufgaben passen zum Thema,Jede Aufgabe gehört zum genannten Thema. Keine Aufgabe prüft etwas anderes.,,,Prüfer
+A-P2,P — Pädagogik,Von leicht nach schwer,"Die Aufgaben steigen im Anspruch an: Die erste ist zugänglich, die letzte verlangt am meisten.",,,Prüfer
+A-P3,P — Pädagogik,Klare Arbeitsaufträge,"Jede Aufgabe enthält genau einen Auftrag, der mit einem klaren Verb beginnt oder eindeutig formuliert ist (nenne, beschreibe, erkläre, schreibe, vergleiche, begründe).",,,Prüfer
+A-R1,R — Anspruch,Nicht nur Wiedergeben,"Mindestens eine Aufgabe verlangt Anwenden, Erklären oder Begründen und nicht nur Nennen oder Abschreiben.",,,Prüfer
+A-R2,R — Anspruch,Lösungen vollständig und richtig,"Zu jeder Aufgabe mit feststehender Antwort steht im Lösungsblatt eine richtige Lösung. Bei offenen Aufgaben steht, was eine gute Antwort enthält.","Wenn die Lehrkraft Lösungen verlangt hat oder ein Lösungsblatt erstellt wurde, ist das Kriterium anwendbar. Gibt es keines und wurde auch keines verlangt, gib null.",,Prüfer
+A-O1,O — Form,Merkkasten nur wenn nötig,"Ein Merkkasten steht nur, wenn das Blatt eine Regel oder einen Wortschatz wirklich braucht, und er enthält genau das, was für die Aufgaben nötig ist.",,"Das Blatt hat einen Merkkasten, sonst null.",Prüfer
