@@ -67,7 +67,7 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
   };
 
   return (
-    <div className="setup">
+    <main className="setup">
       <div className="setup-card">
         {onCancel && (
           <button type="button" className="link back" onClick={onCancel}>
@@ -209,6 +209,6 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
           Erst einmal ohne KI ansehen
         </button>
       </div>
-    </div>
+    </main>
   );
 }

@@ -27,7 +27,7 @@ export function Stundenplan({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="setup lehrplan">
+    <main className="setup lehrplan">
       <div className="setup-card wide">
         <button type="button" className="link back" onClick={onClose}>
           ← Zurück
@@ -35,7 +35,7 @@ export function Stundenplan({ onClose }: { onClose: () => void }) {
         <h1>Stundenplan</h1>
         {status && (status.vorhanden ? <Zuordnen status={status} onChanged={reload} onClose={onClose} /> : <Laden onDone={reload} />)}
       </div>
-    </div>
+    </main>
   );
 }
 

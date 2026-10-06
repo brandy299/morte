@@ -74,6 +74,11 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Drag-and-Drop: Material auf eine Stunde ziehen, Datei landet im Reihen-Ordner und in der Stundentabelle
 - [x] Startseite "Start" mit Überblick über alle Klassen
 
+## Querschnitt: Barrierefreiheit
+
+- [x] Oberfläche mit axe-core auf WCAG 2.2 AA geprüft (Start, Gespräch, Vorlagen, Lehrpläne, Einstellungen, Neue Klasse, Stundendetails, Handy-Breite): keine Verstöße. Kontrastprüfung der Farben als Test (`src/web/contrast.test.ts`), Dialog mit Tastaturführung, Menü auf dem Handy per Tastatur bedienbar, keine seitliche Rollleiste bei 320 px
+- [ ] Prüfung mit einem echten Screenreader und mit Schriftvergrößerung des Systems (noch nicht gemacht, axe findet nur einen Teil der Probleme)
+
 ## Phase 5: Erweiterungen
 
 - [ ] E-Mail und iServ im Dashboard

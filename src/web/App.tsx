@@ -210,6 +210,14 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   const [building, setBuilding] = useState<{ id: string; label: string } | null>(null);
   const held = useRef<{ id: string; label: string } | null>(null);
   const [navOpen, setNavOpen] = useState(false);
+  useEffect(() => {
+    // Narrow windows: the menu slides in. Escape closes it, and focus goes to its close button.
+    if (!navOpen) return;
+    document.querySelector<HTMLElement>(".side-close")?.focus();
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setNavOpen(false);
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [navOpen]);
   const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -490,6 +498,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           <>
         <div className="scroll">
           <div className="column">
+            {messages.length > 0 && <h1 className="sr-only">Gespräch</h1>}
             {messages.length === 0 && (
               <div className="hello">
                 <h1>Woran arbeiten wir heute?</h1>
@@ -544,7 +553,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   <div className="confirm" role="alertdialog" aria-label="Rückfrage">
                     <p>{m.confirm.question}</p>
                     <div>
-                      <button type="button" className="primary" onClick={() => decide(m.confirm!.id, true)}>
+                      <button type="button" className="primary" autoFocus onClick={() => decide(m.confirm!.id, true)}>
                         Ja, bitte
                       </button>
                       <button type="button" className="ghost" onClick={() => decide(m.confirm!.id, false)}>

@@ -36,7 +36,7 @@ export function Lehrplan({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="setup lehrplan">
+    <main className="setup lehrplan">
       <div className="setup-card wide">
         {!busy && (
           <button type="button" className="link back" onClick={view.name === "liste" ? onClose : back}>
@@ -47,7 +47,7 @@ export function Lehrplan({ onClose }: { onClose: () => void }) {
         {view.name === "klassen" && data && <KlassenWahl plan={view.plan} klassen={data.klassen} onDone={back} />}
         {view.name === "neu" && data && <Neu klassen={data.klassen} onDone={back} onBusy={setBusy} />}
       </div>
-    </div>
+    </main>
   );
 }
 

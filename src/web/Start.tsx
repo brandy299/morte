@@ -122,9 +122,9 @@ export function Start({ tree, onSetup, onAsk, onChanged }: StartProps) {
           <div className="week" key={w.montag} style={{ gridTemplateColumns: `repeat(${w.tage.length}, minmax(176px, 1fr))` }}>
             {w.tage.map((t, di) => (
               <section key={t.datum} style={{ "--i": di } as CSSProperties} className={isToday(t.datum) ? "day today" : "day"} aria-label={`${t.tag} ${dm(t.datum)}`}>
-                <h3>
+                <h2>
                   <span>{t.tag}</span> {dm(t.datum)}
-                </h3>
+                </h2>
                 {t.stunden.length === 0 && <p className="free">frei</p>}
                 {t.stunden.map((s) => (
                   <LessonCard key={`${s.uid}`} s={s} past={t.datum < data!.heute} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
@@ -183,15 +183,37 @@ function Details({ s, onClose, onAsk, onFiles }: { s: WochenStunde; onClose: () 
   const fileRef = useRef<HTMLInputElement>(null);
   const files = s.material ? s.material.split(", ").filter(Boolean) : [];
   const base = s.klasse && s.fach && s.reihe ? `Klassen/${s.klasse}/${s.fach}/${s.reihe}/Material/` : undefined;
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", esc);
-    return () => document.removeEventListener("keydown", esc);
+    // Keyboard users: focus moves into the dialog, Tab stays inside, Escape closes, and focus goes back to the card afterwards.
+    const before = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    const keys = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onClose();
+      if (e.key !== "Tab" || !dialogRef.current) return;
+      const items = [...dialogRef.current.querySelectorAll<HTMLElement>("a[href], button:not(:disabled), input, select, textarea")].filter((el) => el.offsetParent !== null);
+      if (items.length === 0) return;
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === dialogRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", keys);
+    return () => {
+      document.removeEventListener("keydown", keys);
+      before?.focus();
+    };
   }, [onClose]);
   const when = `${new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(at(s.datum))}, ${s.von} bis ${s.bis} Uhr`;
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="Stunde">
+      <div className="modal" role="dialog" aria-modal="true" aria-label="Stunde" tabIndex={-1} ref={dialogRef}>
         <button type="button" className="modal-x" aria-label="Schließen" onClick={onClose}>
           ×
         </button>

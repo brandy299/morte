@@ -25,7 +25,7 @@ export function Vorlagen({ onClose, onBuild }: { onClose: () => void; onBuild: (
   const own = list?.filter((v) => v.eigene) ?? [];
   const bundled = list?.filter((v) => !v.eigene) ?? [];
   return (
-    <div className="setup lehrplan">
+    <main className="setup lehrplan">
       <div className="setup-card wide">
         <button type="button" className="link back" onClick={onClose}>
           ← Zurück zum Gespräch
@@ -71,6 +71,6 @@ export function Vorlagen({ onClose, onBuild }: { onClose: () => void; onBuild: (
           ))}
         </ul>
       </div>
-    </div>
+    </main>
   );
 }
