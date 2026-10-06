@@ -12,7 +12,8 @@
     "build": "vite build",
     "start": "tsx src/server/index.ts",
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "eval": "tsx scripts/eval.mts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "1.0.3",

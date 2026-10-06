@@ -1,0 +1,7 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+L-P1,P — Pädagogik,Handlungssituation konkret,"Die Handlungssituation hat eine Rolle, einen erfundenen Betrieb und einen Anlass und ist für die Lernenden geschrieben. Sie nennt keine echte Firma.",,,Prüfer
+L-P2,P — Pädagogik,Stunden bauen aufeinander auf,Jede Stunde knüpft an die vorige an und trägt zum Handlungsprodukt bei. Es gibt eine Stunde zum Prüfen oder Überarbeiten und eine zum Rückblick.,,,Prüfer
+L-P3,P — Pädagogik,Handlungsprodukt sichtbar,"Am Ende steht ein sichtbares Ergebnis (Mappe, Präsentation, Brief, Rollenspiel), das zu den Stunden passt.",,,Prüfer
+L-R1,R — Anspruch,Passt zur Anzahl der Stunden,"Die Reihe hat so viele Stunden, wie die Lehrkraft genannt hat, und der Umfang des Handlungsprodukts ist in dieser Zeit schaffbar.",,,Prüfer
+L-R2,R — Anspruch,Leere Felder bleiben leer,"Lernfeld, Zeitraum, Termine und Leistungsnachweis sind leer, wenn die Lehrkraft sie nicht genannt hat. Es wurde nichts dazu erfunden.",Prüfe das Material und die Stundentabelle.,,Prüfer
+L-M1,M — Gespräch,Vorschlag mit Rückfrage,"Vor dem Anlegen zeigt der Assistent die Planung kurz (Situation, Produkt, Stundenliste) und fragt, ob er sie so anlegen soll.",,,Prüfer

@@ -1,0 +1,7 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+K-P1,P — Pädagogik,Bereiche der Schule abgedeckt,"Die Aufgaben decken die Anforderungsbereiche der hinterlegten Bewertungsregeln (I, II, III) ab, ungefähr im Verhältnis der Vorgaben (30, 50, 20 Prozent).",,,Prüfer
+K-P2,P — Pädagogik,Aufträge passen zum Bereich,"Die Verben der Aufgaben passen zum Bereich: Bereich I verlangt Nennen und Wiedergeben, Bereich II Erklären und Anwenden, Bereich III Beurteilen und Begründen.",,,Prüfer
+K-P3,P — Pädagogik,Umfang passt zur Dauer,"Die Klausur ist in der genannten Zeit ohne Eile schaffbar, und die Punkte stehen im Verhältnis zum Aufwand.",,,Prüfer
+K-R1,R — Anspruch,Erwartungshorizont zu jeder Teilaufgabe,"Jede Teilaufgabe hat im Erwartungshorizont eine Erwartung mit Punktvergabe, und die Punkte der Vergabe ergeben die Punkte der Teilaufgabe.",Rechne die Punkte nach.,,Prüfer
+K-R2,R — Anspruch,Offene Aufgaben lassen andere Lösungen zu,Bei offenen Aufgaben nennt der Erwartungshorizont Kriterien und Beispiele und lässt andere gute Lösungen ausdrücklich zu.,,Es gibt offene Aufgaben.,Prüfer
+K-R3,R — Anspruch,Regeln der Lehrkraft verwendet,"Bereiche und Notenschlüssel im Erwartungshorizont entsprechen den hinterlegten Regeln (Noten ab 92, 81, 67, 50, 30 Prozent). Es wurde nichts anderes erfunden.",,,Prüfer

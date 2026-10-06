@@ -1,0 +1,20 @@
+[
+  {
+    "id": "sv-naechste",
+    "nachrichten": [
+      "Bereite mich auf die Stunde am 14.10. in der 11a (Business English) vor."
+    ],
+    "erwartet": {
+      "nurLesen": true
+    }
+  },
+  {
+    "id": "sv-luecke",
+    "nachrichten": [
+      "Was muss ich für die Stunde am 21.10. in der 11a (Business English) noch vorbereiten?"
+    ],
+    "erwartet": {
+      "nurLesen": true
+    }
+  }
+]

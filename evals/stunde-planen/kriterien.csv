@@ -1,0 +1,7 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+S-P1,P — Pädagogik,Lernziele aus Sicht der Lernenden,"Ein bis drei Lernziele, formuliert als etwas, das die Lernenden am Ende können (erklären, anwenden, schreiben). Sie sind in der Stunde erreichbar und überprüfbar.",,,Prüfer
+S-P2,P — Pädagogik,Sinnvolle Phasen,"Die Stunde hat Einstieg, Erarbeitung und Sicherung (bei Doppelstunden gern eine Anwendung). Die Sicherung dauert mindestens fünf Minuten.",,,Prüfer
+S-P3,P — Pädagogik,Lernende sind aktiv,"Der größere Teil der Zeit gehört der Arbeit der Lernenden, nicht dem Vortrag der Lehrkraft.",,,Prüfer
+S-R1,R — Anspruch,Zeiten sind realistisch,Die Minuten der Phasen sind für die beschriebene Tätigkeit plausibel (zum Beispiel kein Rollenspiel mit Auswertung in fünf Minuten).,"Die Summe stimmt, das prüft das Programm. Hier geht es um das Wirklichkeitsgefühl.",,Prüfer
+S-R2,R — Anspruch,"Nur Material, das es gibt","Die Planung nennt nur Material, das vorhanden ist oder in dieser Sitzung erstellt wurde. Sie erfindet keine Folien, Videos, Links oder Lehrbuchseiten.",,,Prüfer
+S-O1,O — Form,Thema in der Tabelle,"Die Stundentabelle nennt für die geplante Stunde ein Thema, das zur Planung passt.",Nur wenn der Fall einen Termin nennt.,Der Fall nennt einen Termin.,Prüfer

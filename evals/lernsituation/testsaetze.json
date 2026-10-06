@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ls-vollstaendig",
+    "nachrichten": [
+      "Plane eine Lernsituation zum Thema Beschwerdemanagement für die 11a, Business English, fünf Stunden. Alle Angaben sind da.",
+      "Ja, leg es so an."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 4,
+      "erstVorschlag": true
+    }
+  },
+  {
+    "id": "ls-knapp",
+    "nachrichten": [
+      "Ich möchte eine Reihe zum Thema Reisen planen.",
+      "11a, Business English, sechs Stunden. Mach einen Entwurf.",
+      "Ja, bitte anlegen."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 4
+    }
+  }
+]

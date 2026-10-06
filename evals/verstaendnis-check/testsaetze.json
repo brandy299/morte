@@ -1,0 +1,24 @@
+[
+  {
+    "id": "vc-vollstaendig",
+    "nachrichten": [
+      "Ich brauche am Ende der Stunde am 14.10. in der 11a (Business English, Reihe Bewerbung) einen kurzen Verständnis-Check zum Aufbau eines Anschreibens. Alle Angaben sind da, leg los."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 1,
+      "eintrag": "14.10."
+    }
+  },
+  {
+    "id": "vc-knapp",
+    "nachrichten": [
+      "Mach mir einen kurzen Test zum Lebenslauf.",
+      "Für die 11a, Business English. Einfach einen Entwurf bitte."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 1
+    }
+  }
+]

@@ -1,0 +1,7 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+V-P1,P — Pädagogik,"Wenige, gezielte Fragen","Der Check hat drei bis sechs Fragen, und jede prüft einen Kernpunkt des Themas. Er ist in etwa fünf Minuten zu schaffen.",,,Prüfer
+V-P2,P — Pädagogik,Falsche Antworten aus echten Fehlvorstellungen,"Bei Auswahlfragen entspricht jede falsche Antwort einem Fehler, den Lernende wirklich machen. Keine albernen oder offensichtlich unsinnigen Antworten.",,"Es gibt Auswahlfragen, sonst null.",Prüfer
+V-P3,P — Pädagogik,Genau eine richtige Antwort,Jede Auswahlfrage hat genau eine eindeutig richtige Antwort. Keine Verneinungen wie „Welche Aussage ist NICHT falsch?“.,,"Es gibt Auswahlfragen, sonst null.",Prüfer
+V-R1,R — Anspruch,Lösungsblatt nennt die Fehler,"Im Lösungsblatt steht zu jeder Frage die richtige Antwort und kurz, welchen Fehler jede falsche Antwort verrät.",,,Prüfer
+V-R2,R — Anspruch,Richtige Antwort wechselt die Stelle,Die richtige Antwort steht nicht immer an derselben Stelle (nicht immer B) und ist nicht immer die längste.,,"Es gibt mindestens drei Auswahlfragen, sonst null.",Prüfer
+V-R3,R — Anspruch,Nur was dran war,"Die Fragen prüfen nur Stoff, der zum genannten Thema und zum Stand der Klasse passt.",,,Prüfer

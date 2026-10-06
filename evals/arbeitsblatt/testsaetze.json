@@ -1,0 +1,24 @@
+[
+  {
+    "id": "aw-vollstaendig",
+    "nachrichten": [
+      "Erstelle ein Arbeitsblatt zum Thema Anschreiben für die 11a, Business English, Reihe Bewerbung, für die Stunde am 14.10. Eine Seite, mit Lösungen. Alle Angaben sind da, leg direkt los."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 2,
+      "eintrag": "14.10."
+    }
+  },
+  {
+    "id": "aw-knapp",
+    "nachrichten": [
+      "Ich brauche ein Arbeitsblatt zu Vokabeln.",
+      "Zum Thema Bewerbung für die 11a, Business English. Mach einen Entwurf."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 2
+    }
+  }
+]
