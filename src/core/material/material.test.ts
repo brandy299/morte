@@ -30,7 +30,7 @@ const tool = (cmd: string) => {
 const hasPoppler = tool("pdftotext") && tool("pdftoppm");
 
 async function toFile(pdf: Buffer) {
-  const file = join(await mkdtemp(join(tmpdir(), "morte-pdf-")), "a.pdf");
+  const file = join(await mkdtemp(join(tmpdir(), "pult-pdf-")), "a.pdf");
   await writeFile(file, pdf);
   return file;
 }

@@ -1,18 +1,18 @@
 # Skills und Skill-Builder
 
-Skills sind das Herzstück von morte. Sie entscheiden, ob ein Arbeitsblatt oder eine Klausur wirklich gut wird, und zwar auch für Kolleginnen und Kollegen, die nie einen Prompt schreiben wollen.
+Skills sind das Herzstück von Pult. Sie entscheiden, ob ein Arbeitsblatt oder eine Klausur wirklich gut wird, und zwar auch für Kolleginnen und Kollegen, die nie einen Prompt schreiben wollen.
 
 ## Was die Claude-App gut macht und wir übernehmen
 
 1. **Gleiches Format:** Ein Skill ist ein Ordner mit `SKILL.md` (Name, Beschreibung, Anweisungen) und optional `references/`, `scripts/`, `assets/`. Das ist die offene Agent-Skills-Spezifikation (agentskills.io), die auch die Claude-App und Pi nutzen. Skills aus der Claude-App lassen sich also direkt übernehmen und umgekehrt.
 2. **Stufenweises Laden:** Der Agent sieht anfangs nur Name und Beschreibung aller Skills. Die Anweisungen lädt er erst, wenn ein Skill passt, Referenzen und Vorlagen erst, wenn sie gebraucht werden. Das hält den Kontext klein und günstig, auch bei vielen Skills.
 3. **Gute Beschreibungen:** Die Beschreibung entscheidet, wann ein Skill greift. Sie sagt, was der Skill tut und bei welchen Anfragen er gilt, mit den Wörtern, die Lehrkräfte wirklich benutzen ("Klassenarbeit", "Test", "EHZ").
-4. **Feste Teile als Skript:** Was immer gleich aussehen muss (PDF-Layout, Graustufen, Kopfzeile, Bewertungstabelle), steckt in Vorlagen und Skripten, nicht in Prosa. So hängt die Optik nicht davon ab, wie gut das gewählte Modell gerade ist. Das ist wichtig, weil morte auch mit schwächeren Modellen funktionieren soll.
+4. **Feste Teile als Skript:** Was immer gleich aussehen muss (PDF-Layout, Graustufen, Kopfzeile, Bewertungstabelle), steckt in Vorlagen und Skripten, nicht in Prosa. So hängt die Optik nicht davon ab, wie gut das gewählte Modell gerade ist. Das ist wichtig, weil Pult auch mit schwächeren Modellen funktionieren soll.
 
 ## Technische Umsetzung
 
-- `pi-agent-core` bringt keine Skill-Verwaltung mit, die steckt in `pi-coding-agent`. morte bekommt einen eigenen kleinen Lader in `src/core/skills`: Ordner durchsuchen, Frontmatter lesen, Name und Beschreibung in den Systemprompt, ein Werkzeug `skill_laden` für die vollen Anweisungen.
-- Skills können nur die festen morte-Werkzeuge nutzen (Material speichern, PDF erzeugen, Ordner lesen ...). Skripte in Skills laufen nur über ein dafür vorgesehenes Werkzeug, nie über eine freie Shell.
+- `pi-agent-core` bringt keine Skill-Verwaltung mit, die steckt in `pi-coding-agent`. Pult bekommt einen eigenen kleinen Lader in `src/core/skills`: Ordner durchsuchen, Frontmatter lesen, Name und Beschreibung in den Systemprompt, ein Werkzeug `skill_laden` für die vollen Anweisungen.
+- Skills können nur die festen Pult-Werkzeuge nutzen (Material speichern, PDF erzeugen, Ordner lesen ...). Skripte in Skills laufen nur über ein dafür vorgesehenes Werkzeug, nie über eine freie Shell.
 - In der Oberfläche heißt ein Skill "Vorlage" oder "Fähigkeit", nicht "Skill". Das genaue Wort wird beim UI-Text festgelegt.
 
 ## Drei Ebenen
@@ -41,7 +41,7 @@ Vorbild ist `anthropics/k12-teacher-skills` (https://github.com/anthropics/k12-t
 
 - Vier Skills: Unterrichtsplanung (`k12-lesson-plan-creation`), Differenzierung in drei Niveaus (`k12-lesson-differentiation`), Vorbereitung auf eine vorhandene Stunde (`k12-lesson-prep`), kurzer Verständnis-Check für Mathe (`k12-check-for-understanding`).
 - Ein Bewertungsrahmen (`evals/`) mit 148 Prüfkriterien als CSV, gedacht für "LLM als Prüfer".
-- Lizenz Apache-2.0 (wie morte). Übernehmen und Anpassen ist erlaubt, LICENSE und NOTICE müssen mitkommen und Änderungen gekennzeichnet werden. Die enthaltenen US-Standards (Common Core) stehen unter eigener Lizenz und werden nicht gebraucht.
+- Lizenz Apache-2.0 (wie Pult). Übernehmen und Anpassen ist erlaubt, LICENSE und NOTICE müssen mitkommen und Änderungen gekennzeichnet werden. Die enthaltenen US-Standards (Common Core) stehen unter eigener Lizenz und werden nicht gebraucht.
 
 ### Warum der Inhalt nicht direkt passt
 
@@ -78,7 +78,7 @@ Was die Schulformen für die Skills verändert:
 - **Gymnasium:** In der Oberstufe zählen Abiturnähe, Operatoren und Klausurformate des Zentralabiturs.
 - **Gesamtschule:** Differenzierung ist der Normalfall. Material wird für Grund- und Erweiterungskurs angeboten, der Skill "Differenzieren" ist hier besonders wichtig.
 
-### Geplanter Startsatz für morte
+### Geplanter Startsatz für Pult
 
 | Skill | Vorbild | Neu für Deutschland/Berufskolleg |
 |---|---|---|

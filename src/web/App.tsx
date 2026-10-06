@@ -11,6 +11,7 @@ import { NewClass } from "./NewClass.tsx";
 import { Onboarding } from "./Onboarding.tsx";
 import { classColors, classVar } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
+import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -467,7 +468,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     } catch (err) {
       if (!ctrl.signal.aborted) {
         const broken = err instanceof TypeError;
-        patchLast((m) => ({ ...m, error: broken ? "Ich erreiche morte gerade nicht. Läuft das Programm noch?" : err instanceof Error ? err.message : "Das hat nicht geklappt.", retryable: broken || undefined, retryNote: undefined }));
+        patchLast((m) => ({ ...m, error: broken ? "Ich erreiche Pult gerade nicht. Läuft das Programm noch?" : err instanceof Error ? err.message : "Das hat nicht geklappt.", retryable: broken || undefined, retryNote: undefined }));
       }
     } finally {
       setWorking(false);
@@ -536,10 +537,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         }}
       >
         <div className="side-top">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden />
-            morte
-          </div>
+          <Logo />
           <button type="button" className="side-close" aria-label="Menü schließen">
             ×
           </button>
@@ -644,7 +642,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </button>
-          <span className="brand-small">morte</span>
+          <Logo small />
         </div>
         {view === "start" ? (
           <div className="scroll">

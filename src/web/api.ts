@@ -181,7 +181,7 @@ export async function pruefeLehrplan(file: File): Promise<PruefErgebnis | { erro
   const form = new FormData();
   form.set("file", file);
   const res = await fetch("/api/lehrplan/pruefen", { method: "POST", body: form }).catch(() => undefined);
-  if (!res) return { error: "Keine Verbindung zu morte." };
+  if (!res) return { error: "Keine Verbindung zu Pult." };
   return res.json().catch(() => ({ error: "Das hat nicht geklappt." }));
 }
 

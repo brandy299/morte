@@ -8,8 +8,8 @@ import { createClass, createReihe, initWorkspace, readReihe } from "../workspace
 
 let home: string;
 beforeEach(async () => {
-  home = await mkdtemp(join(tmpdir(), "morte-agent-"));
-  process.env.MORTE_HOME = home;
+  home = await mkdtemp(join(tmpdir(), "pult-agent-"));
+  process.env.PULT_HOME = home;
   await initWorkspace();
   await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
 });

@@ -11,7 +11,7 @@ let app: ReturnType<typeof createApp>;
 const keys = new Map<string, string>();
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-sps-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-sps-"));
   keys.clear();
   app = createApp({
     secrets: { kind: "file", get: async (n) => keys.get(n), set: async (n, v) => void keys.set(n, v), delete: async (n) => void keys.delete(n) },
@@ -56,7 +56,7 @@ describe("timetable import", () => {
     expect(String(fetchMock.mock.calls[0]![0])).toBe("https://untis.example.de/ical?key=GEHEIM");
     expect(keys.get("ical-url")).toContain("GEHEIM");
     const { readFile: rf } = await import("node:fs/promises");
-    expect(await rf(join(process.env.MORTE_HOME!, "Stundenplan", "Quelle.json"), "utf8")).not.toContain("GEHEIM");
+    expect(await rf(join(process.env.PULT_HOME!, "Stundenplan", "Quelle.json"), "utf8")).not.toContain("GEHEIM");
     expect((await app.request("/api/stundenplan/aktualisieren", { method: "POST" })).status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(await (await app.request("/api/stundenplan")).json()).toMatchObject({ hatLink: true });

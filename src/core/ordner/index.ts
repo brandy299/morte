@@ -22,13 +22,13 @@ export async function openDataDir(platform: NodeJS.Platform = process.platform):
 export async function pickFolder(): Promise<string | undefined> {
   if (process.platform !== "darwin") return undefined;
   return new Promise((done) => {
-    execFile("osascript", ["-e", 'POSIX path of (choose folder with prompt "Wo sollen deine morte-Daten liegen?")'], (err, out) => done(err ? undefined : out.trim().replace(/\/$/, "") || undefined));
+    execFile("osascript", ["-e", 'POSIX path of (choose folder with prompt "Wo sollen deine Pult-Daten liegen?")'], (err, out) => done(err ? undefined : out.trim().replace(/\/$/, "") || undefined));
   });
 }
 
 export interface OrdnerInfo {
   pfad: string;
-  /** Fixed by MORTE_HOME, cannot be changed here. */
+  /** Fixed by PULT_HOME, cannot be changed here. */
   fest: boolean;
   standard: string;
   plattform: NodeJS.Platform;
@@ -53,7 +53,7 @@ async function isEmptyOrMissing(dir: string): Promise<boolean> {
 export async function changeDataDir(target: string): Promise<{ pfad: string }> {
   if (dataDirFixed()) throw new OrdnerError("Der Ordner ist von außen festgelegt und lässt sich hier nicht ändern.");
   const typed = target.trim().replace(/^~(?=$|\/)/, homedir());
-  if (!typed || !isAbsolute(typed)) throw new OrdnerError("Bitte gib den ganzen Pfad an, zum Beispiel /Users/name/Dokumente/morte-daten.");
+  if (!typed || !isAbsolute(typed)) throw new OrdnerError("Bitte gib den ganzen Pfad an, zum Beispiel /Users/name/Dokumente/pult-daten.");
   const wanted = resolve(typed);
   const current = resolve(dataDir());
   if (wanted === current) throw new OrdnerError("Das ist schon der aktuelle Ordner.");

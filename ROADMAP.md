@@ -1,4 +1,4 @@
-# Roadmap: morte
+# Roadmap: Pult
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
@@ -28,7 +28,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Tech-Stack bestätigt: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6. Kein Rust: pi und die Video-Pipeline sind Node, eine Sprache für alles hält das Projekt für eine Person pflegbar
 - [x] Lizenzfrage geklärt: Repo bleibt Apache-2.0. pi ist MIT und passt. Kein Code aus AGPL- oder LGPL-Projekten (Odysseus, pi-desktop), nur Ideen.
 - [ ] Plattform: Mac zuerst, Windows von Anfang an mitdenken (viele Schulen nutzen Windows)
-- [ ] Projektname, Logo und Designrichtung festlegen
+- [x] Projektname und Logo: **Pult**, Logo nach `docs/marke.md` (das p als Pult von der Seite, Rostrot auf Papier), eingebaut in App, Favicon, App-Icon und PDF-Fuß. Früher "morte", siehe Entscheidung 004
 - [ ] `CLAUDE.md` und `docs/ordnerstruktur.md` im Repo (angelegt)
 
 ## Phase 1: Chat-Kern
@@ -46,7 +46,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 2: Ordnerstruktur und Klassen
 
-- [x] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen (`~/morte-daten`, beim Start)
+- [x] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen (`~/pult-daten`, beim Start)
 - [x] Seitenleiste als Baum: Klasse, Fach, Reihe (ohne Dateipfade)
 - [x] Assistent "Neue Klasse anlegen" (Fragenkatalog)
 - [~] `Stand.md` pro Klasse und Fach, wird nach jeder Sitzung kurz überschrieben (Werkzeug und Anweisung stehen, mit echtem Modell noch nicht erprobt)
@@ -79,8 +79,8 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 - [x] Oberfläche mit axe-core auf WCAG 2.2 AA geprüft (Start, Gespräch, Vorlagen, Lehrpläne, Einstellungen, Neue Klasse, Stundendetails, Handy-Breite): keine Verstöße. Kontrastprüfung der Farben als Test (`src/web/contrast.test.ts`), Dialog mit Tastaturführung, Menü auf dem Handy per Tastatur bedienbar, keine seitliche Rollleiste bei 320 px
 - [x] Einstellungen wie in der Claude-App mit vier Reitern: Aussehen (hell, dunkel oder wie der Computer, vier Akzentfarben, ruhige Oberfläche ohne Bewegung), Ordner (Datenordner anzeigen, im Finder/Explorer öffnen, an einen anderen Ort kopieren, zurück zum Standard; unter macOS mit Auswahlfenster), KI-Anbieter, Datenschutz. Kontrast aller Farbkombinationen als Test, axe ohne Befund in hell und dunkel. Nicht getestet: das Auswahlfenster unter macOS und das Öffnen im Finder (hier nur Linux)
-- [x] Einführung beim ersten Start in vier Schritten: Willkommen (was morte kann, was auf dem Computer bleibt), KI einrichten (mit Hilfe "Wo bekomme ich einen Schlüssel?" je Anbieter), Aussehen, "Womit anfangen?" (Stundenplan laden, Klasse anlegen oder loslegen). Auch ohne KI durchspielbar. Mit echtem Schlüssel und im Demo-Modus durchgespielt, axe ohne Befund. Noch von keiner Lehrkraft erprobt; die Links zu den Schlüsselseiten der Anbieter sind aus dem Gedächtnis eingetragen und nicht geprüft
-- [x] Verbindungsprobleme (`docs/entscheidungen/008-verbindungsprobleme.md`): Fehler werden nach Ursache erkannt (Zugang, Guthaben, Bremse, Überlastung, kein Netz, Abbruch mitten in der Antwort, stumme Leitung, Sperre), kurze Störungen wiederholt morte bis zu dreimal selbst und sagt es im Chat, der halbe Text wird zurückgenommen, "Nochmal versuchen" macht ohne zweite Frage weiter, Hinweisleiste bei fehlendem Internet. Mit einem absichtlich fehlerhaften Testserver geprüft (Tests und Browser); mit echten Anbietern nur die Fehlertexte, die uns bekannt sind
+- [x] Einführung beim ersten Start in vier Schritten: Willkommen (was Pult kann, was auf dem Computer bleibt), KI einrichten (mit Hilfe "Wo bekomme ich einen Schlüssel?" je Anbieter), Aussehen, "Womit anfangen?" (Stundenplan laden, Klasse anlegen oder loslegen). Auch ohne KI durchspielbar. Mit echtem Schlüssel und im Demo-Modus durchgespielt, axe ohne Befund. Noch von keiner Lehrkraft erprobt; die Links zu den Schlüsselseiten der Anbieter sind aus dem Gedächtnis eingetragen und nicht geprüft
+- [x] Verbindungsprobleme (`docs/entscheidungen/008-verbindungsprobleme.md`): Fehler werden nach Ursache erkannt (Zugang, Guthaben, Bremse, Überlastung, kein Netz, Abbruch mitten in der Antwort, stumme Leitung, Sperre), kurze Störungen wiederholt Pult bis zu dreimal selbst und sagt es im Chat, der halbe Text wird zurückgenommen, "Nochmal versuchen" macht ohne zweite Frage weiter, Hinweisleiste bei fehlendem Internet. Mit einem absichtlich fehlerhaften Testserver geprüft (Tests und Browser); mit echten Anbietern nur die Fehlertexte, die uns bekannt sind
 - [x] Fragensystem: Der Assistent sammelt fehlende Angaben und stellt sie einzeln nacheinander (1 bis 4 Fragen, je mit Antwortknöpfen, "Etwas anderes", **immer mit empfohlener Antwort und Grund**, "Alle Empfehlungen übernehmen", "Überspringen"). Siehe `docs/entscheidungen/009-fragen-an-die-lehrkraft.md`. Mit DeepSeek V4.1 flash und im Browser geprüft, andere Modelle nicht
 - [x] Rückmeldungen aus dem ersten Test (2026-10-06): Chatfenster und Seitenleiste scrollen jetzt im Fenster, Stundenplan als Zeitraster (gleiche Anfangszeiten stehen auf einer Höhe, Aufsichten vor 8 Uhr bekommen eine eigene frühe Zeile), Klasse direkt an der Stunde zuordnen (mit "Gehört nicht zu mir" und "Neue Klasse anlegen"), Verbindungstest zeigt die Ursache (Zertifikat, Sperre, Name) und technische Angaben, OpenCode-Kennung wird mitgeschickt, `npm start` nutzt die Zertifikate und den Proxy des Computers. Ob OpenCode Go und OpenRouter im Schulnetz damit laufen, ist nicht bestätigt
 - [x] Schaubilder im Arbeitsblatt: Ablauf, Aufbau (Hierarchie), Kreislauf, Zeitstrahl, Säulendiagramm. Die KI liefert Kästchen und Pfeile, das Programm ordnet und zeichnet sie (Vektor, Graustufen, auch als Bild in Word). Kästchen lassen sich leer lassen (zum Ausfüllen, mit Nummer, Wortbank und Lösung für die Lehrkraft), Säulen lassen sich von den Schülern zeichnen. Echte Bilder und Fotos gehören noch nicht dazu

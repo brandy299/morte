@@ -66,7 +66,7 @@ function Ordner() {
           <p className="lead">Zum Beispiel in einen Cloud-Ordner, auf einen USB-Stick oder in „Dokumente“. Ich kopiere alles dorthin. Der alte Ordner bleibt unverändert, es geht nichts verloren. Der neue Ordner muss leer sein.</p>
           <label className="field">
             <span>Neuer Ordner</span>
-            <input value={path} placeholder={info.plattform === "win32" ? "zum Beispiel D:\\Schule\\morte-daten" : "zum Beispiel /Users/name/Dokumente/morte-daten"} onChange={(e) => setPath(e.target.value)} />
+            <input value={path} placeholder={info.plattform === "win32" ? "zum Beispiel D:\\Schule\\pult-daten" : "zum Beispiel /Users/name/Dokumente/pult-daten"} onChange={(e) => setPath(e.target.value)} />
           </label>
           <div className="setup-actions">
             {info.waehlen && (
@@ -77,13 +77,13 @@ function Ordner() {
                 onClick={async () => {
                   const chosen = await chooseOrdner();
                   // The system dialog picks an existing folder; the data goes into a new folder inside it.
-                  if (chosen) setPath(`${chosen}/morte-daten`);
+                  if (chosen) setPath(`${chosen}/pult-daten`);
                 }}
               >
                 Ordner auswählen …
               </button>
             )}
-            <button type="button" className="primary" disabled={busy || !path.trim()} onClick={() => run(() => moveOrdner(path), "Fertig, die Daten sind kopiert und ab jetzt liegen sie dort. Bitte beende morte einmal und starte es neu.")}>
+            <button type="button" className="primary" disabled={busy || !path.trim()} onClick={() => run(() => moveOrdner(path), "Fertig, die Daten sind kopiert und ab jetzt liegen sie dort. Bitte beende Pult einmal und starte es neu.")}>
               {busy ? "Ich kopiere …" : "Dorthin umziehen"}
             </button>
           </div>

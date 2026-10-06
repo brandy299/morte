@@ -10,7 +10,7 @@ import { readPdf } from "./pdf.ts";
 import { samplePlan } from "./fixtures.ts";
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-lp-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-lp-"));
 });
 
 /** A "model" that gives the text back as Markdown: tabs become table cells, line-end hyphens are joined. */
@@ -182,7 +182,7 @@ describe("storing plans", () => {
 
   it("saves the plan with its source, refuses to overwrite by accident, replaces on request", async () => {
     await saveLehrplan("Höhere Handelsschule", "## Ziele\nText", { file: "lp.pdf", pages: 22 });
-    const file = join(process.env.MORTE_HOME!, "Lehrpläne", "Höhere Handelsschule", "Plan.md");
+    const file = join(process.env.PULT_HOME!, "Lehrpläne", "Höhere Handelsschule", "Plan.md");
     expect(await readFile(file, "utf8")).toMatch(/^# Höhere Handelsschule\n\nQuelle: lp\.pdf · 22 Seiten · übernommen am \d{4}-\d\d-\d\d/);
     await expect(saveLehrplan("Höhere Handelsschule", "neu", { file: "b.pdf" })).rejects.toThrow(/schon einen Lehrplan/);
     await saveLehrplan("Höhere Handelsschule", "## Neu", { file: "b.pdf" }, { replace: true });
@@ -205,7 +205,7 @@ describe("storing plans", () => {
     await saveLehrplan("englisch", "## B\ny", { file: "b.pdf" }, { replace: true });
     const plans = await listLehrplaene();
     expect(plans.map((p) => p.name)).toEqual(["Englisch"]);
-    expect(await readFile(join(process.env.MORTE_HOME!, "Lehrpläne", "Englisch", "Plan.md"), "utf8")).toContain("## B");
+    expect(await readFile(join(process.env.PULT_HOME!, "Lehrpläne", "Englisch", "Plan.md"), "utf8")).toContain("## B");
   });
 
   it("removes the plan text", async () => {

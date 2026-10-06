@@ -33,13 +33,13 @@ describe("conversation export", () => {
   it("tells who said what, with the tool calls and their answers", () => {
     expect(md).toContain("# Gespräch: Arbeitsblatt BRD");
     expect(md).toContain("- Modell: openrouter / deepseek/deepseek-v4.1-flash");
-    expect(md).toContain("- morte Version: 0.1.0");
+    expect(md).toContain("- Pult Version: 0.1.0");
     expect(md).toContain("## Lehrkraft\n\nMach ein Arbeitsblatt");
     expect(md).toContain("Ich lege los.");
     expect(md).toContain("**Werkzeug: `arbeitsblatt_erstellen`**");
     expect(md).toContain('"titel": "BRD"');
     expect(md).toContain("**Antwort des Werkzeugs `arbeitsblatt_erstellen` (Fehler)**");
-    expect(md).toContain("## morte (Fehler)");
+    expect(md).toContain("## Pult (Fehler)");
     expect(md).toContain("Fehlermeldung: 503");
   });
 

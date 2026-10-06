@@ -52,7 +52,7 @@ function Laden({ onDone }: { onDone: () => void }) {
   const run = async (job: () => Promise<string | null>) => {
     setBusy(true);
     setProblem(null);
-    const error = await job().catch(() => "Keine Verbindung zu morte.");
+    const error = await job().catch(() => "Keine Verbindung zu Pult.");
     setBusy(false);
     if (error) setProblem(error);
     else onDone();
@@ -146,7 +146,7 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
     setBusy(true);
     setProblem(null);
     setInfo(null);
-    const error = await job().catch(() => "Keine Verbindung zu morte.");
+    const error = await job().catch(() => "Keine Verbindung zu Pult.");
     setBusy(false);
     if (error) setProblem(error);
     else if (done) setInfo(done);

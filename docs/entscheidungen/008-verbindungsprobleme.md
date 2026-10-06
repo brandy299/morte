@@ -22,12 +22,12 @@ Fehler beim Anbieter werden nach ihrer Ursache sortiert (`src/core/agent/errors.
 
 ## Ablauf
 
-- Kurze Störungen wiederholt morte bis zu dreimal selbst (nach etwa 2, 5 und 12 Sekunden, mit leichter Streuung; wünscht der Anbieter eine Wartezeit, gilt sie bis 30 Sekunden). Im Chat steht dann zum Beispiel "Der KI-Anbieter ist gerade überlastet. Neuer Versuch in 2 Sekunden (1 von 3) …".
+- Kurze Störungen wiederholt Pult bis zu dreimal selbst (nach etwa 2, 5 und 12 Sekunden, mit leichter Streuung; wünscht der Anbieter eine Wartezeit, gilt sie bis 30 Sekunden). Im Chat steht dann zum Beispiel "Der KI-Anbieter ist gerade überlastet. Neuer Versuch in 2 Sekunden (1 von 3) …".
 - Der halbe Text des missglückten Versuchs wird zurückgenommen, auf dem Bildschirm und im Gespräch. Sonst stünde er nach einem neuen Versuch doppelt da. Schritte, die vorher schon liefen (zum Beispiel eine erstellte Datei), bleiben.
 - Gemacht wird weiter ab dem letzten guten Stand (`agent.continue()`), die Frage wird nie ein zweites Mal gestellt. Das gilt auch für den Knopf "Nochmal versuchen".
 - "Anhalten" durch die Lehrkraft löst nie einen neuen Versuch aus.
-- Ein Wächter erkennt eine Verbindung, die stumm wird. Während ein Werkzeug arbeitet oder morte auf ein Ja der Lehrkraft wartet, zählt Stille nicht.
-- Bricht die Verbindung zwischen Browser und morte ab, steht "Die Verbindung wurde unterbrochen" oder "Ich erreiche morte gerade nicht", mit dem Knopf. Ist der Computer offline, zeigt eine Leiste das an.
+- Ein Wächter erkennt eine Verbindung, die stumm wird. Während ein Werkzeug arbeitet oder Pult auf ein Ja der Lehrkraft wartet, zählt Stille nicht.
+- Bricht die Verbindung zwischen Browser und Pult ab, steht "Die Verbindung wurde unterbrochen" oder "Ich erreiche Pult gerade nicht", mit dem Knopf. Ist der Computer offline, zeigt eine Leiste das an.
 - Die Fehlertexte enthalten keine Fachbegriffe und keine Zahlen von Fehlercodes.
 
 ## Warum so

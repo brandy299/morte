@@ -21,7 +21,7 @@ export function codeOf(err: unknown): string {
 
 export function explain(code: string): string {
   if (CERT.test(code)) {
-    return "Dein Netz prüft verschlüsselte Verbindungen mit einem eigenen Zertifikat (üblich in Schulnetzen), dem morte nicht traut. Starte morte mit „npm start“, dann nutzt es die Zertifikate deines Computers. Hilft das nicht, frag die IT der Schule nach dem Zertifikat.";
+    return "Dein Netz prüft verschlüsselte Verbindungen mit einem eigenen Zertifikat (üblich in Schulnetzen), dem Pult nicht traut. Starte Pult mit „npm start“, dann nutzt es die Zertifikate deines Computers. Hilft das nicht, frag die IT der Schule nach dem Zertifikat.";
   }
   if (NAME.test(code)) return "Der Name des Anbieters lässt sich nicht auflösen. Entweder fehlt das Internet oder das Netz sperrt diese Seite.";
   if (REFUSED.test(code) || code === "TIMEOUT") return "Die Verbindung zum Anbieter wird abgelehnt oder bricht ab. Im Schulnetz ist das oft eine Sperre oder ein Zwang zu einem Proxy. Frag die IT, ob die Adresse des Anbieters freigegeben ist.";

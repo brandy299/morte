@@ -11,7 +11,7 @@ import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWor
 
 /** Reads a Word file back as plain text, the way a teacher's Word would show it. */
 async function textOf(buffer: Buffer): Promise<string> {
-  const file = join(await mkdtemp(join(tmpdir(), "morte-word-")), "x.docx");
+  const file = join(await mkdtemp(join(tmpdir(), "pult-word-")), "x.docx");
   await writeFile(file, buffer);
   return (await mammoth.extractRawText({ path: file })).value;
 }

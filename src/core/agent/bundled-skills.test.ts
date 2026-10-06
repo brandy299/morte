@@ -11,7 +11,7 @@ const tools = [...fixedTools, fragenTool(async () => undefined) as (typeof fixed
 /** Guards the skills that come with the program: they load, and every tool they name exists with the parameters they mention. */
 describe("bundled skills", () => {
   it("all load without problems", async () => {
-    delete process.env.MORTE_SKILLS;
+    delete process.env.PULT_SKILLS;
     const { skills, problems } = await listSkills();
     expect(problems).toEqual([]);
     expect(skills.filter((s) => s.level === "mitgeliefert").map((s) => s.name).sort()).toEqual(

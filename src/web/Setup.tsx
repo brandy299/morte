@@ -8,6 +8,7 @@ import {
   type ProviderOption,
   type SetupStatus,
 } from "./api.ts";
+import { Logo } from "./Logo.tsx";
 
 /** Where to get a key, in plain words, per provider. */
 const KEY_HELP: Record<string, { text: string; url?: string }> = {
@@ -247,10 +248,7 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
             ← Zurück zum Gespräch
           </button>
         )}
-        <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          morte
-        </div>
+        <Logo />
         {inner}
       </div>
     </main>

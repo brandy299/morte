@@ -25,7 +25,7 @@ export function exportMarkdown(c: Conversation, info: { version: string; now?: D
     `# Gespräch: ${c.titel}`,
     "",
     `- Exportiert: ${(info.now ?? new Date()).toISOString()}`,
-    `- morte Version: ${info.version}`,
+    `- Pult Version: ${info.version}`,
     `- Modell: ${first ? `${first.provider ?? "?"} / ${first.model}` : "unbekannt"}`,
     `- Begonnen: ${c.erstellt}, zuletzt: ${c.aktualisiert}`,
     c.verbrauch ? `- Verbrauch: ${JSON.stringify(c.verbrauch)}` : "",
@@ -42,7 +42,7 @@ export function exportMarkdown(c: Conversation, info: { version: string; now?: D
     } else if (m.role === "assistant") {
       const parts = Array.isArray(m.content) ? m.content : [];
       const text = parts.flatMap((p) => (p.type === "text" && p.text ? [p.text] : [])).join("\n");
-      out.push(`## morte${m.stopReason === "error" ? " (Fehler)" : ""}`, "");
+      out.push(`## Pult${m.stopReason === "error" ? " (Fehler)" : ""}`, "");
       if (text) out.push(text, "");
       for (const p of parts) {
         if (p.type === "toolCall") out.push(`**Werkzeug: \`${p.name}\`**`, "", fence(cut(JSON.stringify(p.arguments, null, 2), 12000), "json"), "");

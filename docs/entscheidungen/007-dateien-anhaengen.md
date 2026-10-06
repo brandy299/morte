@@ -4,7 +4,7 @@ Stand: 2026-10-06
 
 ## Entscheidung
 
-Lehrkräfte können Dateien wie in der Claude-App anhängen: mehrere auf einmal, per Ziehen ins Fenster, Einfügen oder Knopf. morte liest den Text selbst aus der Datei (`src/core/anhang/extract.ts`) und schickt ihn in einem markierten Block `<datei name="…">` zur Frage. Das Modell braucht dafür keine Datei-Funktion des Anbieters, es bleibt austauschbar.
+Lehrkräfte können Dateien wie in der Claude-App anhängen: mehrere auf einmal, per Ziehen ins Fenster, Einfügen oder Knopf. Pult liest den Text selbst aus der Datei (`src/core/anhang/extract.ts`) und schickt ihn in einem markierten Block `<datei name="…">` zur Frage. Das Modell braucht dafür keine Datei-Funktion des Anbieters, es bleibt austauschbar.
 
 Das gleiche Lesen nutzt auch das Werkzeug, das Material aus einer Reihe liest.
 

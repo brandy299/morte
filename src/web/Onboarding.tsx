@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { startDemo, type SetupStatus } from "./api.ts";
+import { Logo } from "./Logo.tsx";
 import { LookPicker } from "./LookPicker.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -24,10 +25,7 @@ export function Onboarding({ status, onConfigured, onFinish }: { status: SetupSt
   return (
     <main className="setup onboarding">
       <div className="setup-card wide" key={step}>
-        <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          morte
-        </div>
+        <Logo />
         <ol className="onb-steps" aria-label={`Schritt ${index + 1} von ${ORDER.length}: ${TITLES[step]}`}>
           {ORDER.map((s, i) => (
             <li key={s} className={i === index ? "now" : i < index ? "past" : ""} aria-current={i === index ? "step" : undefined}>
@@ -38,7 +36,7 @@ export function Onboarding({ status, onConfigured, onFinish }: { status: SetupSt
 
         {step === "willkommen" && (
           <>
-            <h1>Willkommen bei morte</h1>
+            <h1>Willkommen bei Pult</h1>
             <p className="lead">Dein ruhiger Arbeitsplatz für den Unterricht. In ein paar Minuten ist alles eingerichtet.</p>
             <ul className="welcome-points">
               {POINTS.map((p) => (

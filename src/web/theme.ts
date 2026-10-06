@@ -8,11 +8,13 @@ export interface Look {
 }
 
 export const DEFAULT_LOOK: Look = { mode: "auto", accent: "terrakotta", calm: false };
-const KEY = "morte-aussehen";
+const KEY = "pult-aussehen";
+/** The key of earlier versions (the app was called morte). Read once so the chosen look survives the rename. */
+const OLD_KEY = "morte-aussehen";
 
 export function readLook(): Look {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) ?? "{}") as Partial<Look>;
+    const raw = JSON.parse(localStorage.getItem(KEY) ?? localStorage.getItem(OLD_KEY) ?? "{}") as Partial<Look>;
     return {
       mode: raw.mode === "hell" || raw.mode === "dunkel" ? raw.mode : "auto",
       accent: raw.accent === "salbei" || raw.accent === "blau" || raw.accent === "pflaume" ? raw.accent : "terrakotta",
