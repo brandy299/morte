@@ -193,6 +193,22 @@ interface ChatProps {
   onSettings: () => void;
 }
 
+/** One-click changes under a finished result. What fits depends on the kind of material (read from the file name). */
+function followUps(materials: Material[]): { label: string; text: string }[] {
+  const names = materials.map((m) => m.name);
+  const has = (word: string) => names.some((n) => n.includes(`_${word}-`));
+  const hasWord = names.some((n) => /\.docx$/i.test(n));
+  const list: { label: string; text: string }[] = [];
+  if (has("Arbeitsblatt") || has("Klausur")) {
+    list.push({ label: "Kürzer", text: "Mach es etwas kürzer." }, { label: "Leichter", text: "Mach es etwas leichter." }, { label: "Schwerer", text: "Mach es etwas schwerer." });
+  }
+  if (has("Arbeitsblatt")) list.push({ label: "In drei Niveaus", text: "Mach daraus drei Niveaus: Basis, Standard und Erweiterung." });
+  if (has("Verlauf")) list.push({ label: "Passendes Arbeitsblatt", text: "Erstelle zu dieser Stunde ein passendes Arbeitsblatt." });
+  if (has("Lernsituation")) list.push({ label: "Material für Stunde 1", text: "Erstelle Material für die erste Stunde." });
+  if (!hasWord && names.length > 0) list.push({ label: "Als Word", text: "Gib mir das auch als Word-Datei zum Bearbeiten." });
+  return list;
+}
+
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings }: ChatProps) {
@@ -555,9 +571,18 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   ),
                 )}
                 {m.role === "assistant" && (m.materials?.length ?? 0) > 0 && !working && i === messages.length - 1 && (
-                  <button type="button" className="make-template" onClick={() => void submit("Ich möchte aus diesem Ergebnis eine eigene Vorlage machen.")}>
-                    Daraus eine Vorlage machen
-                  </button>
+                  <div className="follow-ups">
+                    <div className="chips" role="group" aria-label="Das Ergebnis anpassen">
+                      {followUps(m.materials!).map((f) => (
+                        <button key={f.label} type="button" onClick={() => void submit(f.text)}>
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                    <button type="button" className="make-template" onClick={() => void submit("Ich möchte aus diesem Ergebnis eine eigene Vorlage machen.")}>
+                      Daraus eine Vorlage machen
+                    </button>
+                  </div>
                 )}
                 {m.confirm && (
                   <div className="confirm" role="alertdialog" aria-label="Rückfrage">

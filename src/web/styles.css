@@ -364,7 +364,11 @@ a.file-card { text-decoration: none; color: inherit; }
 
 /* Vorlagen */
 .group { font-family: var(--serif); font-weight: 400; font-size: 21px; margin: 18px 0 0; }
-.make-template { margin-top: 10px; padding: 6px 2px; border: 0; background: none; color: var(--accent-deep); font-family: var(--sans); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--accent-wash); }
+.follow-ups { margin-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { padding: 7px 15px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-family: var(--sans); font-size: 14.5px; transition: border-color 0.15s, transform 0.15s; }
+.chips button:hover { border-color: var(--accent); transform: translateY(-1px); }
+.make-template { margin-top: 2px; padding: 6px 2px; border: 0; background: none; color: var(--accent-deep); font-family: var(--sans); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--accent-wash); }
 .make-template:hover { text-decoration-color: var(--accent-deep); }
 
 /* ---------- Motion ----------
