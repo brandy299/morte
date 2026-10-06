@@ -1,17 +1,21 @@
 import { readFile } from "node:fs/promises";
+import mammoth from "mammoth";
 import { readPdf } from "../lehrplan/pdf.ts";
 
 const MAX_CHARS = 12000;
 
 /**
  * Text of a material file, so the assistant can build on it (differentiate, prepare a lesson).
- * PDFs and plain text can be read. Other types are listed but not opened, and the answer says so in plain words.
+ * PDFs, Word files (.docx) and plain text can be read. Other types are listed but not opened, and the answer says so in plain words.
  */
 export async function readMaterialText(path: string): Promise<string> {
   const ext = /\.([A-Za-z0-9]+)$/.exec(path)?.[1]?.toLowerCase();
   let text: string;
   if (ext === "txt") text = await readFile(path, "utf8");
-  else if (ext === "pdf") {
+  else if (ext === "docx") {
+    text = (await mammoth.extractRawText({ path })).value;
+    if (text.replace(/\s/g, "").length < 10) return "Diese Word-Datei enthält keinen lesbaren Text.";
+  } else if (ext === "pdf") {
     const pdf = await readPdf(await readFile(path));
     try {
       text = pdf.pages.map((p) => p.rows.map((r) => r.text.replace(/\t+/g, " | ")).join("\n")).join("\n\n");

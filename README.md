@@ -26,4 +26,4 @@ npm run build
 
 ## Hinweis zu Bibliotheken
 
-Der Stundenplan wird mit [ical.js](https://github.com/kewisch/ical.js) gelesen (MPL-2.0), unverändert als Abhängigkeit eingebunden.
+Der Stundenplan wird mit [ical.js](https://github.com/kewisch/ical.js) gelesen (MPL-2.0), unverändert als Abhängigkeit eingebunden. Word-Dateien schreibt [docx](https://github.com/dolanmiu/docx) (MIT) und liest [mammoth](https://github.com/mwilliamson/mammoth.js) (BSD-2-Clause).

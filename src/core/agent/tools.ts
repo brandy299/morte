@@ -2,6 +2,7 @@ import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
 import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
+import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWord, verlaufWord } from "../material/word-render.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -23,6 +24,14 @@ export type TeacherTool = AgentTool<any> & { ask?: (args: any) => string; produc
 type Params = Tool["parameters"];
 /** Keeps the argument types of each tool while the list below holds them as one type. */
 const defineTool = <P extends Params>(tool: AgentTool<P> & { ask?: (args: any) => string; producesMaterial?: boolean }): TeacherTool => tool as TeacherTool;
+
+const wordParam = Type.Optional(Type.Boolean({ description: "Also save an editable Word version (.docx) next to the PDF. Set it when the teacher wants to edit the material in Word." }));
+
+/** Saves a Word file next to the PDF and returns the card for it. Word files are downloaded, not previewed. */
+async function saveWord(buf: Buffer, where: Parameters<typeof saveMaterial>[1], title: string) {
+  const saved = await saveMaterial(buf, { ...where, ext: "docx" });
+  return { saved, card: { title, name: saved.name, path: saved.path, preview: false } };
+}
 
 const text = (t: string) => ({ content: [{ type: "text" as const, text: t }], details: undefined });
 
@@ -223,9 +232,10 @@ const lernsituationErstellen = defineTool({
       }),
       { description: "Planned lessons in order, 1 to 40" },
     ),
+    word: wordParam,
   }),
   ask: (a) => `Darf ich in ${a.klasse}, ${a.fach} die neue Reihe „${a.titel}“ mit ${(a.ablauf ?? []).length} geplanten Stunden anlegen und das Blatt dazu erstellen?`,
-  async execute(_id, { klasse, fach, ...content }) {
+  async execute(_id, { klasse, fach, word, ...content }) {
     const plan = parseLernsituation({
       ...content,
       fach,
@@ -245,9 +255,10 @@ const lernsituationErstellen = defineTool({
       ablauf: plan.ablauf,
     });
     const saved = await saveMaterial(pdf, { art: "Lernsituation", titel: plan.titel, klasse, fach, reihe });
+    const wordPlan = word ? await saveWord(await lernsituationWord(plan), { art: "Lernsituation", titel: plan.titel, klasse, fach, reihe }, `${plan.titel} (Word)`) : undefined;
     return {
-      content: [{ type: "text" as const, text: `Die Reihe „${reihe}“ ist angelegt, mit ${plan.ablauf.length} geplanten Stunden. Das Blatt zur Lernsituation hat ${pages} Seiten und ist in der Vorschau zu sehen.` }],
-      details: { material: { title: plan.titel, name: saved.name, path: saved.path } },
+      content: [{ type: "text" as const, text: `Die Reihe „${reihe}“ ist angelegt, mit ${plan.ablauf.length} geplanten Stunden. Das Blatt zur Lernsituation hat ${pages} Seiten und ist in der Vorschau zu sehen.${wordPlan ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}` }],
+      details: { materials: [{ title: plan.titel, name: saved.name, path: saved.path }, ...(wordPlan ? [wordPlan.card] : [])] },
     };
   },
 });
@@ -298,6 +309,7 @@ const arbeitsblattErstellen = defineTool({
       }),
       { description: "1 to 20 tasks" },
     ),
+    word: wordParam,
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
@@ -307,7 +319,7 @@ const arbeitsblattErstellen = defineTool({
       ? `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
       : `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und speichern?`,
   async execute(_id, args) {
-    const { reihe, datum, stunde, ...content } = args;
+    const { reihe, datum, stunde, word, ...content } = args;
     const sheet = parseArbeitsblatt({
       ...content,
       // Honest note instead of invented curriculum references (see docs/skills.md).
@@ -320,15 +332,20 @@ const arbeitsblattErstellen = defineTool({
     const saved = await saveMaterial(pdf, { art: "Arbeitsblatt", titel: label, ...where });
     const key = hasLoesungen(sheet) ? await renderArbeitsblatt(sheet, { lehrerexemplar: true }) : undefined;
     const savedKey = key ? await saveMaterial(key.pdf, { art: "Loesung", titel: label, ...where }) : undefined;
+    const wordSheet = word ? await saveWord(await arbeitsblattWord(sheet), { art: "Arbeitsblatt", titel: label, ...where }, `${shown} (Word)`) : undefined;
+    const wordKey = word && key ? await saveWord(await arbeitsblattWord(sheet, { lehrerexemplar: true }), { art: "Loesung", titel: label, ...where }, `${shown} (Lösung, Word)`) : undefined;
     const entered = content.klasse && content.fach && reihe && datum
       ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: sheet.titel }, saved.name, { append: true })
       : "fehlt klasse, fach, reihe oder datum";
+    if (entered === true && wordSheet) await tryAttach(content.klasse!, content.fach!, reihe!, { datum: datum!, stunde: stunde ?? "", thema: sheet.titel }, wordSheet.saved.name, { append: true });
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft wenige Seiten wollte, kürze zuerst Schreibzeilen, Tipps und die Einleitung. Streiche nie Aufgaben, die die Lehrkraft ausdrücklich verlangt hat. Passt es dann nicht, sag es ehrlich." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft wenige Seiten wollte, kürze zuerst Schreibzeilen, Tipps und die Einleitung. Streiche nie Aufgaben, die die Lehrkraft ausdrücklich verlangt hat. Passt es dann nicht, sag es ehrlich." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: {
         materials: [
           { title: shown, name: saved.name, path: saved.path },
           ...(savedKey ? [{ title: `${shown} (Lösung)`, name: savedKey.name, path: savedKey.path }] : []),
+          ...(wordSheet ? [wordSheet.card] : []),
+          ...(wordKey ? [wordKey.card] : []),
         ],
       },
     };
@@ -363,19 +380,21 @@ const stundenverlaufErstellen = defineTool({
     differenzierung: Type.Optional(Type.String()),
     hinweise: Type.Optional(Type.String({ description: "Typical stumbling blocks" })),
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    word: wordParam,
   }),
   ask: (a) =>
     a.klasse && a.reihe
       ? `Darf ich die Stundenplanung „${a.titel}“ erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
       : `Darf ich die Stundenplanung „${a.titel}“ erstellen und speichern?`,
   async execute(_id, args) {
-    const { reihe, stunde, ...content } = args;
+    const { reihe, stunde, word, ...content } = args;
     const plan = parseVerlauf({
       ...content,
       fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
     });
     const { pdf, pages } = await renderVerlauf(plan);
     const saved = await saveMaterial(pdf, { art: "Verlauf", titel: plan.titel, klasse: content.klasse, fach: content.fach, reihe, datum: content.datum, stunde });
+    const wordPlan = word ? await saveWord(await verlaufWord(plan), { art: "Verlauf", titel: plan.titel, klasse: content.klasse, fach: content.fach, reihe, datum: content.datum, stunde }, `${plan.titel} (Word)`) : undefined;
     let note = "Die Planung liegt im Ordner der Reihe.";
     if (content.klasse && content.fach && reihe && content.datum) {
       try {
@@ -387,8 +406,8 @@ const stundenverlaufErstellen = defineTool({
       }
     } else if (!reihe) note = "Die Planung ist nicht in einer Reihe abgelegt, weil keine Reihe genannt wurde.";
     return {
-      content: [{ type: "text" as const, text: `Die Stundenplanung ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen. ${note}` }],
-      details: { material: { title: plan.titel, name: saved.name, path: saved.path } },
+      content: [{ type: "text" as const, text: `Die Stundenplanung ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen. ${wordPlan ? "Es gibt auch eine Word-Fassung zum Bearbeiten. " : ""}${note}` }],
+      details: { materials: [{ title: plan.titel, name: saved.name, path: saved.path }, ...(wordPlan ? [wordPlan.card] : [])] },
     };
   },
 });
@@ -508,6 +527,7 @@ const klausurErstellen = defineTool({
       { description: "1 to 12 tasks" },
     ),
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    word: wordParam,
     bereiche: Type.Optional(Type.Array(bereichSchema)),
     notenschluessel: Type.Optional(Type.Array(noteSchema)),
   }),
@@ -516,7 +536,7 @@ const klausurErstellen = defineTool({
       ? `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
       : `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und speichern?`,
   async execute(_id, args) {
-    const { reihe, stunde, bereiche, notenschluessel, ...content } = args;
+    const { reihe, stunde, bereiche, notenschluessel, word, ...content } = args;
     const own = content.klasse ? await readBewertung(content.klasse).catch(() => undefined) : undefined;
     // Rules given in this request are checked like saved ones: scales must fall, areas must be unique.
     const given = bereiche || notenschluessel ? checkBewertung({ bereiche: bereiche ?? [], notenschluessel: notenschluessel ?? [] }) : undefined;
@@ -533,6 +553,8 @@ const klausurErstellen = defineTool({
     const ehz = await renderErwartungshorizont(exam);
     const savedK = await saveMaterial(klausur.pdf, { art: "Klausur", titel: exam.titel, ...where });
     const savedE = await saveMaterial(ehz.pdf, { art: "Erwartungshorizont", titel: exam.titel, ...where });
+    const wordK = word ? await saveWord(await klausurWord(exam), { art: "Klausur", titel: exam.titel, ...where }, `${exam.titel} (Word)`) : undefined;
+    const wordE = word ? await saveWord(await erwartungshorizontWord(exam), { art: "Erwartungshorizont", titel: exam.titel, ...where }, `Erwartungshorizont: ${exam.titel} (Word)`) : undefined;
     const entered = content.klasse && content.fach && reihe && content.datum
       ? await tryAttach(content.klasse, content.fach, reihe, { datum: content.datum, stunde: stunde ?? "", thema: exam.titel }, savedK.name)
       : "fehlt klasse, fach, reihe oder datum";
@@ -541,6 +563,7 @@ const klausurErstellen = defineTool({
       exam.notenschluessel.length
         ? `Der Notenschlüssel stammt ${notenschluessel ? "aus dieser Anfrage" : `aus den Bewertungsregeln „${own?.ordner}“`}.`
         : "Es ist kein Notenschlüssel hinterlegt, im Erwartungshorizont steht deshalb keiner. Frag die Lehrkraft danach und biete an, ihn zu speichern.",
+      wordK ? "Beides gibt es auch als Word-Datei zum Bearbeiten." : "",
       entered === true ? `Die Klausur ist in der Stundentabelle am ${content.datum} eingetragen.` : `Die Klausur ist NICHT in die Stundentabelle eingetragen (${entered}).`,
       exam.bereiche.length ? "" : "Es sind keine Bereiche hinterlegt, deshalb gibt es keine Verteilung auf Bereiche.",
     ].filter(Boolean);
@@ -550,6 +573,8 @@ const klausurErstellen = defineTool({
         materials: [
           { title: exam.titel, name: savedK.name, path: savedK.path },
           { title: `Erwartungshorizont: ${exam.titel}`, name: savedE.name, path: savedE.path, preview: false },
+          ...(wordK ? [wordK.card] : []),
+          ...(wordE ? [wordE.card] : []),
         ],
       },
     };

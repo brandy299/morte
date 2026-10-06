@@ -323,7 +323,7 @@ export interface SavedMaterial {
  */
 export async function saveMaterial(
   pdf: Buffer,
-  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string },
+  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string; ext?: "pdf" | "docx" },
 ): Promise<SavedMaterial> {
   let dir = join(root(), "Exporte");
   let rel = "Exporte";
@@ -336,8 +336,9 @@ export async function saveMaterial(
   await mkdir(dir, { recursive: true });
   const stunde = (where.stunde ?? "").replace(/\s+/g, "");
   const base = [isoDate(where.datum), stunde && slug(stunde), `${where.art}-${slug(where.titel)}`].filter(Boolean).join("_");
-  let name = `${base}.pdf`;
-  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.pdf`;
+  const ext = where.ext ?? "pdf";
+  let name = `${base}.${ext}`;
+  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.${ext}`;
   await writeFile(join(dir, name), pdf);
   return { name, path: `${rel}/${name}` };
 }

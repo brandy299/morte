@@ -149,6 +149,30 @@ describe("worksheet tool", () => {
     expect(listing).toContain("Loesung-Interview-Basics-Basis.pdf");
   });
 
+  it("saves an editable Word version next to the PDF, lists it in the table and can read it back", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const s = session([
+      fauxAssistantMessage(
+        [fauxToolCall("arbeitsblatt_erstellen", {
+          titel: "Interview Basics", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3", word: true,
+          aufgaben: [{ text: "Nenne eine typische Frage im Interview.", zeilen: 2, loesung: "Tell me about yourself." }],
+        })],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxToolCall("material_lesen", { klasse: "11a", fach: "Business English", reihe: "Bewerbung", datei: "2026-10-14_Mi3_Arbeitsblatt-Interview-Basics.docx" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Arbeitsblatt, auch als Word", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    const cards = (events.filter((e) => e.type === "material") as { title: string; path: string }[]).map((m) => [m.title, m.path.split(".").pop()]);
+    expect(cards).toEqual([["Interview Basics", "pdf"], ["Interview Basics (Lösung)", "pdf"], ["Interview Basics (Word)", "docx"], ["Interview Basics (Lösung, Word)", "docx"]]);
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/Arbeitsblatt-Interview-Basics\.pdf, .*Arbeitsblatt-Interview-Basics\.docx \| Material fertig/);
+    expect(JSON.stringify(s.history().messages)).toContain("Nenne eine typische Frage im Interview.");
+  });
+
   it("plans a lesson, notes only the topic in the table and leaves the status alone", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     const plan = {

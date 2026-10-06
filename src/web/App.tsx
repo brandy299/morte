@@ -535,15 +535,25 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 )}
                 {m.bilder ? <p className="muted-note">{m.bilder === 1 ? "1 Bild angehängt" : `${m.bilder} Bilder angehängt`}</p> : null}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
-                {m.materials?.map((x) => (
-                  <button key={x.path} type="button" className="file-card" onClick={() => setPreview(x)}>
-                    <span className="file-icon" aria-hidden>PDF</span>
-                    <span>
-                      <strong>{x.title}</strong>
-                      <small>Zum Ansehen öffnen</small>
-                    </span>
-                  </button>
-                ))}
+                {m.materials?.map((x) =>
+                  /\.docx?$/i.test(x.path) ? (
+                    <a key={x.path} className="file-card" href={materialUrl(x, true)} download={x.name}>
+                      <span className="file-icon word" aria-hidden>DOC</span>
+                      <span>
+                        <strong>{x.title}</strong>
+                        <small>Zum Bearbeiten herunterladen</small>
+                      </span>
+                    </a>
+                  ) : (
+                    <button key={x.path} type="button" className="file-card" onClick={() => setPreview(x)}>
+                      <span className="file-icon" aria-hidden>PDF</span>
+                      <span>
+                        <strong>{x.title}</strong>
+                        <small>Zum Ansehen öffnen</small>
+                      </span>
+                    </button>
+                  ),
+                )}
                 {m.role === "assistant" && (m.materials?.length ?? 0) > 0 && !working && i === messages.length - 1 && (
                   <button type="button" className="make-template" onClick={() => void submit("Ich möchte aus diesem Ergebnis eine eigene Vorlage machen.")}>
                     Daraus eine Vorlage machen
