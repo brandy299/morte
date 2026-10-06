@@ -4,7 +4,7 @@ import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material
 import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
 import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWord, verlaufWord } from "../material/word-render.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
-import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur } from "../material/klausur.ts";
+import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
 import { readMaterialText } from "../material/read.ts";
@@ -564,6 +564,7 @@ const klausurErstellen = defineTool({
         ? `Der Notenschlüssel stammt ${notenschluessel ? "aus dieser Anfrage" : `aus den Bewertungsregeln „${own?.ordner}“`}.`
         : "Es ist kein Notenschlüssel hinterlegt, im Erwartungshorizont steht deshalb keiner. Frag die Lehrkraft danach und biete an, ihn zu speichern.",
       wordK ? "Beides gibt es auch als Word-Datei zum Bearbeiten." : "",
+      ...verteilung(exam).filter((v) => v.soll !== undefined && Math.abs(v.anteil - v.soll) > 10).map((v) => `ACHTUNG: Bereich ${v.kurz} hat ${Math.round(v.anteil)} % der Punkte, vorgesehen sind ${v.soll} %. Die Verteilung weicht um mehr als 10 Prozentpunkte ab. Erstelle die Klausur neu und gleiche das aus, bevor du der Lehrkraft Bescheid sagst.`),
       entered === true ? `Die Klausur ist in der Stundentabelle am ${content.datum} eingetragen.` : `Die Klausur ist NICHT in die Stundentabelle eingetragen (${entered}).`,
       exam.bereiche.length ? "" : "Es sind keine Bereiche hinterlegt, deshalb gibt es keine Verteilung auf Bereiche.",
     ].filter(Boolean);
