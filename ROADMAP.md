@@ -28,7 +28,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Tech-Stack bestätigt: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6. Kein Rust: pi und die Video-Pipeline sind Node, eine Sprache für alles hält das Projekt für eine Person pflegbar
 - [x] Lizenzfrage geklärt: Repo bleibt Apache-2.0. pi ist MIT und passt. Kein Code aus AGPL- oder LGPL-Projekten (Odysseus, pi-desktop), nur Ideen.
 - [ ] Plattform: Mac zuerst, Windows von Anfang an mitdenken (viele Schulen nutzen Windows)
-- [~] Projektname, Logo und Designrichtung festlegen (Name: **Pult**, früher "morte", das auf Italienisch und Portugiesisch "Tod" heißt. Logo folgt mit dem Logo-Skill kaankiziltug/logo-design-skill, MIT, nur beim Entwickeln genutzt)
+- [x] Projektname und Logo: **Pult**, Logo nach `docs/marke.md` (das p als Pult von der Seite, Rostrot auf Papier), eingebaut in App, Favicon, App-Icon und PDF-Fuß. Früher "morte", siehe Entscheidung 004
 - [ ] `CLAUDE.md` und `docs/ordnerstruktur.md` im Repo (angelegt)
 
 ## Phase 1: Chat-Kern

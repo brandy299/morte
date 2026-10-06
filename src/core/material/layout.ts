@@ -53,6 +53,15 @@ export function printable(text: string): string {
 }
 
 /** Number with a German decimal comma, without trailing zeros: 2.5 -> "2,5". */
+/** The Pult mark (small cut), drawn as a vector in the footer. Source: design/logo/pult-zeichen-klein.svg */
+const MARK = {
+  d: "M41.76 12.64 L214.24 58.86 L214.24 86.56 A85.12 85.12 0 0 1 129.12 171.68 L91.04 171.68 L91.04 236.64 L41.76 236.64 Z M91.04 76.86 L91.04 122.4 L129.12 122.4 A35.84 35.84 0 0 0 164.96 86.56 L164.96 96.67 Z",
+  x: 41.76,
+  y: 12.64,
+  w: 172.48,
+  h: 224,
+};
+
 export const num = (n: number) => String(Math.round(n * 100) / 100).replace(".", ",");
 
 export interface Sheet {
@@ -155,7 +164,11 @@ export function newSheet(title: string): Sheet {
         const fy = PAGE.h - mm(12);
         doc.font(SANS).fontSize(8).fillColor(SOFT);
         if (note) doc.text(printable(note), left, fy, { width: width / 2, lineBreak: false });
-        doc.text(`Pult - Seite ${p + 1} von ${count}`, left + width / 2, fy, { width: width / 2, align: "right", lineBreak: false });
+        const label = `Pult - Seite ${p + 1} von ${count}`;
+        doc.text(label, left + width / 2, fy, { width: width / 2, align: "right", lineBreak: false });
+        const s = 8.5 / MARK.h;
+        const mx = left + width - doc.widthOfString(label) - 4 - MARK.w * s;
+        doc.save().translate(mx - MARK.x * s, fy - 1 - MARK.y * s).scale(s).path(MARK.d).fill(SOFT, "even-odd").restore();
       }
       doc.end();
       await done;

@@ -197,8 +197,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
     <div className={preview ? "shell with-preview" : "shell"}>
       <aside className="side">
         <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          Pult
+          <img src="/pult-logo.svg" alt="Pult" />
         </div>
         <button className="new" onClick={newChat}>
           Neues Gespräch

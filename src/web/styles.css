@@ -19,8 +19,8 @@ body { background: var(--paper); color: var(--ink); font-family: var(--sans); fo
 .shell { display: grid; grid-template-columns: 260px 1fr; height: 100%; }
 
 .side { background: var(--paper-deep); border-right: 1px solid var(--line); padding: 24px 18px; display: flex; flex-direction: column; gap: 18px; }
-.brand { font-family: var(--serif); font-size: 26px; letter-spacing: 0.01em; display: flex; align-items: center; gap: 10px; }
-.brand-mark { width: 14px; height: 14px; background: var(--accent); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.brand { display: flex; align-items: center; padding: 4px 0 2px; }
+.brand img { height: 30px; width: auto; display: block; }
 .new { text-align: left; padding: 10px 14px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; font: inherit; color: var(--ink); cursor: pointer; }
 .new:hover { border-color: var(--accent); }
 .side-note { color: var(--ink-soft); font-size: 14px; margin: 0; }

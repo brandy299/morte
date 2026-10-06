@@ -53,8 +53,7 @@ export function Setup({ status, onDone }: { status: SetupStatus; onDone: () => v
     <div className="setup">
       <div className="setup-card">
         <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          Pult
+          <img src="/pult-logo.svg" alt="Pult" />
         </div>
         <h1>Welche KI soll dir helfen?</h1>
         <p className="lead">
