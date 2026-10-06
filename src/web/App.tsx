@@ -8,6 +8,7 @@ import { Vorlagen } from "./Vorlagen.tsx";
 import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
+import { Onboarding } from "./Onboarding.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -32,6 +33,8 @@ interface Message {
 export function App() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
+  // First start: the welcome steps run until the teacher finishes them, also after the key was saved on the way.
+  const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const [newClassOpen, setNewClassOpen] = useState(false);
   const [lehrplanOpen, setLehrplanOpen] = useState(false);
   const [stundenplanOpen, setStundenplanOpen] = useState(false);
@@ -71,7 +74,11 @@ export function App() {
     if (c.id === currentId) show([]);
     void refreshHistory();
   };
-  const refresh = () => getStatus().then(setStatus);
+  const refresh = () =>
+    getStatus().then((next) => {
+      setStatus(next);
+      setOnboarding((o) => o ?? !next.configured);
+    });
   useEffect(() => {
     void refresh();
     void refreshTree();
@@ -82,14 +89,17 @@ export function App() {
   if (!status || !startView) return null;
   // First start: only the setup. Afterwards the chat stays mounted behind the other screens,
   // so an answer that is still being written and the conversation on screen are not lost.
-  if (!status.configured) {
+  if (onboarding || !status.configured) {
     return (
-      <Setup
+      <Onboarding
         status={status}
-        onDone={() => {
-          void refresh();
-          show([]);
+        onConfigured={() => void refresh()}
+        onFinish={(next) => {
+          setOnboarding(false);
           void refreshHistory();
+          show([]);
+          if (next === "stundenplan") setStundenplanOpen(true);
+          if (next === "klasse") setNewClassOpen(true);
         }}
       />
     );

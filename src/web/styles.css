@@ -539,3 +539,24 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .folder-label { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); }
 .folder-path { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 15px; overflow-wrap: anywhere; color: var(--ink); }
 .notice { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--ok-wash); color: var(--ok-ink); font-size: 15px; }
+
+/* ---------- Onboarding ---------- */
+.onboarding .setup-card { animation: rise 0.35s var(--ease) backwards; }
+.onb-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+.onb-steps li { width: 28px; height: 5px; border-radius: 3px; background: var(--line); transition: background 0.2s, width 0.2s; }
+.onb-steps li.past { background: var(--accent-deep); opacity: 0.55; }
+.onb-steps li.now { background: var(--accent); width: 44px; }
+.welcome-points { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.welcome-points li { display: flex; flex-direction: column; gap: 2px; padding-left: 18px; border-left: 3px solid var(--accent-wash); }
+.welcome-points strong { font-weight: 600; }
+.welcome-points span { color: var(--ink-soft); }
+.next-cards { display: flex; flex-direction: column; gap: 10px; }
+.next-cards button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 16px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); transition: border-color 0.15s, transform 0.15s, background 0.15s; }
+.next-cards button:hover { border-color: var(--accent); background: var(--card); transform: translateY(-1px); }
+.next-cards strong { font-size: 18px; font-family: var(--serif); font-weight: 600; }
+.next-cards span { color: var(--ink-soft); font-size: 15.5px; }
+.key-help { font-size: 15px; color: var(--ink-soft); }
+.key-help summary { cursor: pointer; color: var(--accent-deep); width: fit-content; }
+.key-help p { margin: 8px 0 0; }
+.key-help a { color: var(--accent-deep); overflow-wrap: anywhere; }
+.look-picker { display: flex; flex-direction: column; gap: 18px; }

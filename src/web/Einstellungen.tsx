@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { chooseOrdner, getOrdner, moveOrdner, openOrdner, resetOrdner, type OrdnerInfo, type SetupStatus } from "./api.ts";
 import { Setup } from "./Setup.tsx";
-import { readLook, saveLook, type Accent, type Look, type Mode } from "./theme.ts";
+import { LookPicker } from "./LookPicker.tsx";
 
 type Tab = "aussehen" | "ordner" | "ki" | "datenschutz";
 const TABS: { id: Tab; label: string }[] = [
@@ -10,60 +10,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "ki", label: "KI-Anbieter" },
   { id: "datenschutz", label: "Datenschutz" },
 ];
-
-const MODES: { id: Mode; label: string }[] = [
-  { id: "auto", label: "Wie mein Computer" },
-  { id: "hell", label: "Hell" },
-  { id: "dunkel", label: "Dunkel" },
-];
-const ACCENTS: { id: Accent; label: string; color: string }[] = [
-  { id: "terrakotta", label: "Terrakotta", color: "#b4532a" },
-  { id: "salbei", label: "Salbei", color: "#4f6f52" },
-  { id: "blau", label: "Blau", color: "#3f6591" },
-  { id: "pflaume", label: "Pflaume", color: "#85476b" },
-];
-
-function Aussehen() {
-  const [look, setLook] = useState<Look>(readLook);
-  const change = (patch: Partial<Look>) => {
-    const next = { ...look, ...patch };
-    setLook(next);
-    saveLook(next);
-  };
-  return (
-    <div className="settings-panel">
-      <fieldset className="choice-group">
-        <legend>Farbmodus</legend>
-        <div className="segmented" role="radiogroup" aria-label="Farbmodus">
-          {MODES.map((m) => (
-            <button key={m.id} type="button" role="radio" aria-checked={look.mode === m.id} className={look.mode === m.id ? "on" : ""} onClick={() => change({ mode: m.id })}>
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset className="choice-group">
-        <legend>Akzentfarbe</legend>
-        <div className="swatches" role="radiogroup" aria-label="Akzentfarbe">
-          {ACCENTS.map((a) => (
-            <button key={a.id} type="button" role="radio" aria-checked={look.accent === a.id} className={look.accent === a.id ? "swatch on" : "swatch"} onClick={() => change({ accent: a.id })}>
-              <span className="swatch-dot" style={{ background: a.color }} aria-hidden />
-              {a.label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <label className="check">
-        <input type="checkbox" checked={look.calm} onChange={(e) => change({ calm: e.target.checked })} />
-        <span>
-          Ruhige Oberfläche
-          <small>Schaltet Bewegungen und Übergänge ab.</small>
-        </span>
-      </label>
-      <p className="lead">Texte größer oder kleiner machst du mit dem Browser: <kbd>Strg</kbd> oder <kbd>⌘</kbd> und <kbd>+</kbd> / <kbd>−</kbd>.</p>
-    </div>
-  );
-}
 
 function Ordner() {
   const [info, setInfo] = useState<OrdnerInfo | null>(null);
@@ -177,7 +123,11 @@ export function Einstellungen({ status, onClose, onDone }: { status: SetupStatus
           ))}
         </div>
         <div id="settings-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-          {tab === "aussehen" && <Aussehen />}
+          {tab === "aussehen" && (
+            <div className="settings-panel">
+              <LookPicker />
+            </div>
+          )}
           {tab === "ordner" && <Ordner />}
           {tab === "ki" && <Setup status={status} embedded onDone={onDone} />}
           {tab === "datenschutz" && <Datenschutz />}

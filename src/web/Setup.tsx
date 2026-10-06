@@ -9,6 +9,15 @@ import {
   type SetupStatus,
 } from "./api.ts";
 
+/** Where to get a key, in plain words, per provider. */
+const KEY_HELP: Record<string, { text: string; url?: string }> = {
+  anthropic: { text: "Melde dich bei Anthropic an, lege ein Guthaben an (ein paar Euro reichen zum Start) und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://console.anthropic.com/settings/keys" },
+  openai: { text: "Melde dich bei OpenAI an, lege ein Guthaben an und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://platform.openai.com/api-keys" },
+  openrouter: { text: "OpenRouter ist ein Zugang zu vielen Modellen mit nur einem Schlüssel und einem Guthaben. Anmelden, Guthaben aufladen, Schlüssel erstellen. Du kannst dort eine Ausgabengrenze für den Schlüssel setzen.", url: "https://openrouter.ai/keys" },
+  deepseek: { text: "Melde dich bei DeepSeek an, lade etwas Guthaben auf und erstelle einen Schlüssel. In manchen Schulnetzen ist DeepSeek gesperrt. Dann geht es über OpenRouter.", url: "https://platform.deepseek.com/api_keys" },
+  "opencode-go": { text: "Den Schlüssel findest du in deinem Konto bei OpenCode, wenn du das Go-Abo hast." },
+};
+
 export function Setup({ status, onDone, onCancel, embedded }: { status: SetupStatus; onDone: () => void; onCancel?: () => void; embedded?: boolean }) {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [providerId, setProviderId] = useState(status.provider ?? "anthropic");
@@ -119,6 +128,19 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
             }}
           />
         </label>
+        {KEY_HELP[providerId] && (
+          <details className="key-help">
+            <summary>Wo bekomme ich einen Schlüssel?</summary>
+            <p>{KEY_HELP[providerId]!.text}</p>
+            {KEY_HELP[providerId]!.url && (
+              <p>
+                <a href={KEY_HELP[providerId]!.url} target="_blank" rel="noopener noreferrer">
+                  {KEY_HELP[providerId]!.url!.replace("https://", "")}
+                </a>
+              </p>
+            )}
+          </details>
+        )}
 
         {custom ? (
           <>
@@ -174,7 +196,7 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
           </button>
           {result?.passed && (
             <button className="primary" onClick={save}>
-              Speichern und loslegen
+              {embedded ? "Speichern und weiter" : "Speichern und loslegen"}
             </button>
           )}
         </div>
