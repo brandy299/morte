@@ -8,6 +8,8 @@ import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { createClass, initWorkspace, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
+import pkg from "../../package.json" with { type: "json" };
+import { exportMarkdown } from "../core/history/export.ts";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
@@ -275,6 +277,16 @@ export function createApp(state: AppState) {
     state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never });
     state.conversation = { id: saved.id, titel: saved.titel, anzeige: saved.anzeige };
     return c.json({ anzeige: saved.anzeige, usage: state.session!.usage() });
+  });
+
+  // The whole conversation as a readable text file, to look at what went wrong or well.
+  app.get("/api/history/:id/export", async (c) => {
+    const conversation = await loadConversation(c.req.param("id")).catch(() => undefined);
+    if (!conversation) return c.json({ error: "Dieses Gespräch gibt es nicht." }, 404);
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+    c.header("content-type", "text/markdown; charset=utf-8");
+    c.header("content-disposition", `attachment; filename="morte-gespraech-${stamp}.md"`);
+    return c.body(exportMarkdown(conversation, { version: pkg.version }));
   });
 
   app.delete("/api/history/:id", async (c) => {

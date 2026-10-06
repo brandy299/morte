@@ -45,6 +45,7 @@ describe("layout", () => {
   const specs = {
     gesetz,
     waagerecht: { art: "ablauf", knoten: [{ id: "1", text: "Bedarf" }, { id: "2", text: "Produktion" }, { id: "3", text: "Verkauf" }] },
+    kette: { art: "ablauf", knoten: ["Antrag stellen", "Prüfung durch die Behörde", "Anhörung", "Bescheid erlassen", "Widerspruch einlegen", "Klage vor dem Verwaltungsgericht", "Urteil"].map((t, i) => ({ id: String(i), text: t, leer: i === 2 })) },
     baum: { art: "hierarchie", knoten: [{ id: "v", text: "Volk" }, { id: "l", text: "Gesetzgebung" }, { id: "r", text: "Regierung" }, { id: "j", text: "Rechtsprechung" }, { id: "x", text: "Ein sehr langes Wort wie Verfassungsbeschwerdeverfahren" }], verbindungen: [{ von: "v", nach: "l" }, { von: "v", nach: "r" }, { von: "v", nach: "j" }, { von: "j", nach: "x" }] },
     kreis: { art: "kreislauf", mitte: "Wirtschaft", knoten: ["Haushalte", "Unternehmen", "Staat", "Banken", "Ausland"].map((t, i) => ({ id: String(i), text: t })) },
     zeit: { art: "zeitstrahl", knoten: [1949, 1961, 1989, 1990].map((y, i) => ({ id: String(i), datum: String(y), text: `Ereignis im Jahr ${y}, ziemlich lang beschrieben` })) },
@@ -62,6 +63,16 @@ describe("layout", () => {
     }
     for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) expect(overlap(a, b), `${a.zeilen.join(" ")} / ${b.zeilen.join(" ")}`).toBe(false);
     expect(scene.h).toBeGreaterThan(20);
+  });
+
+  it("lays a long plain chain out in rows, so it stays short", () => {
+    const scene = szeneVon(parseSchaubild(specs.kette, 1), 450, false);
+    const ys = new Set(kaesten(scene.formen).map((b) => Math.round(b.y)));
+    expect(ys.size).toBe(3); // seven steps, three per row
+    expect(scene.h).toBeLessThan(260);
+    // A chain with labels on the arrows keeps the vertical layout, because labels need room.
+    const labelled = { ...specs.kette, knoten: specs.kette.knoten, verbindungen: specs.kette.knoten.slice(1).map((k, i) => ({ von: String(i), nach: k.id, text: "dann" })) };
+    expect(new Set(kaesten(szeneVon(parseSchaubild(labelled, 1), 450, false).formen).map((b) => Math.round(b.y))).size).toBe(7);
   });
 
   it("hides the text of blank boxes for students and shows it in the teacher's copy", () => {

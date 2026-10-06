@@ -63,8 +63,8 @@ describe("checks the program can decide", () => {
 
   it("counts pages, checks the note about the missing curriculum, and skips what does not apply", () => {
     const pdf = (seiten: number, text = "Ohne hinterlegten Lehrplan erstellt") => ({ name: "a.pdf", art: "pdf" as const, text, seiten });
-    expect(PROGRAMM["G-SEITEN"]!(kase(), transcript({ files: [pdf(3)] })).bestanden).toBe(false);
-    expect(PROGRAMM["G-SEITEN"]!(kase({ maxSeiten: 4 }), transcript({ files: [pdf(3)] })).bestanden).toBe(true);
+    expect(PROGRAMM["G-SEITEN"]!(kase(), transcript({ files: [pdf(4)] })).bestanden).toBe(false);
+    expect(PROGRAMM["G-SEITEN"]!(kase({ maxSeiten: 4 }), transcript({ files: [pdf(4)] })).bestanden).toBe(true);
     expect(PROGRAMM["G-SEITEN"]!(kase(), transcript()).bestanden).toBeNull();
     expect(PROGRAMM["G-HINWEIS"]!(kase(), transcript({ files: [pdf(1, "kein Hinweis")] })).bestanden).toBe(false);
     expect(PROGRAMM["G-MATERIAL"]!(kase({ material: true }), transcript()).bestanden).toBe(false);

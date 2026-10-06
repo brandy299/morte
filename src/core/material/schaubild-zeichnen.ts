@@ -33,8 +33,11 @@ export function zeichnePdf(doc: PDFKit.PDFDocument, szene: Szene, x0: number, y0
         doc.font(SANS_BOLD).fontSize(8.5).fillColor("#ffffff").text(String(f.nr), x - 6.5, y - 3.5, { width: 15, align: "center", lineBreak: false });
       }
     } else if (f.k === "pfeil") {
-      doc.lineWidth(1.1).strokeColor(INK).moveTo(x0 + f.punkte[0]![0], y0 + f.punkte[0]![1]).lineTo(x0 + f.punkte[1]![0], y0 + f.punkte[1]![1]).stroke();
-      const [tip, l, r] = arrowHead([x0 + f.punkte[0]![0], y0 + f.punkte[0]![1]], [x0 + f.punkte[1]![0], y0 + f.punkte[1]![1]]);
+      const pts = f.punkte.map(([px, py]) => [x0 + px, y0 + py] as P);
+      doc.lineWidth(1.1).strokeColor(INK).moveTo(pts[0]![0], pts[0]![1]);
+      for (const [px, py] of pts.slice(1)) doc.lineTo(px, py);
+      doc.stroke();
+      const [tip, l, r] = arrowHead(pts[pts.length - 2]!, pts[pts.length - 1]!);
       doc.polygon(tip, l, r).fill(INK);
     } else if (f.k === "text") {
       const lines = f.zeilen.map(printable);
@@ -103,14 +106,14 @@ export function szeneAlsPng(szene: Szene, scale = 3): Buffer {
         ctx.fillText(String(f.nr), f.x + 1, f.y - 3);
       }
     } else if (f.k === "pfeil") {
-      const [a, b] = f.punkte as [[number, number], [number, number]];
+      const pts = f.punkte as P[];
       ctx.strokeStyle = INK;
       ctx.lineWidth = 1.1;
       ctx.beginPath();
-      ctx.moveTo(a[0], a[1]);
-      ctx.lineTo(b[0], b[1]);
+      ctx.moveTo(pts[0]![0], pts[0]![1]);
+      for (const [px, py] of pts.slice(1)) ctx.lineTo(px, py);
       ctx.stroke();
-      const [tip, l, r] = arrowHead(a, b);
+      const [tip, l, r] = arrowHead(pts[pts.length - 2]!, pts[pts.length - 1]!);
       ctx.fillStyle = INK;
       ctx.beginPath();
       ctx.moveTo(tip[0], tip[1]);

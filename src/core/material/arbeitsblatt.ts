@@ -52,7 +52,7 @@ export function parseArbeitsblatt(raw: unknown): Arbeitsblatt {
     const punkte = t.punkte === undefined ? undefined : Number(t.punkte);
     if (!Number.isInteger(zeilen) || zeilen < 0 || zeilen > 15) throw new MaterialError(`Aufgabe ${i + 1}: Die Zahl der Schreibzeilen muss zwischen 0 und 15 liegen.`);
     if (punkte !== undefined && (!Number.isFinite(punkte) || punkte < 0 || punkte > 100)) throw new MaterialError(`Aufgabe ${i + 1}: Die Punkte sind nicht gültig.`);
-    return { text: str(t.text, `Text von Aufgabe ${i + 1}`, 2000, true)!, hilfe: str(t.hilfe, `Hilfe zu Aufgabe ${i + 1}`, 500), punkte, zeilen, loesung: str(t.loesung, `Lösung zu Aufgabe ${i + 1}`, 1500), typ: parseTyp(t, i + 1) };
+    return { text: str(t.text, `Text von Aufgabe ${i + 1}`, 3000, true)!, hilfe: str(t.hilfe, `Hilfe zu Aufgabe ${i + 1}`, 800), punkte, zeilen, loesung: str(t.loesung, `Lösung zu Aufgabe ${i + 1}`, 1500), typ: parseTyp(t, i + 1) };
   });
   const mk = o.merkkasten as Record<string, unknown> | undefined;
   return {
@@ -60,8 +60,8 @@ export function parseArbeitsblatt(raw: unknown): Arbeitsblatt {
     fach: str(o.fach, "das Fach", 60),
     klasse: str(o.klasse, "die Klasse", 60),
     niveau: str(o.niveau, "das Niveau", 40),
-    einleitung: str(o.einleitung, "die Einleitung", 1500),
-    merkkasten: mk ? { titel: str(mk.titel, "der Titel des Merkkastens", 60), text: str(mk.text, "der Text des Merkkastens", 1500, true)! } : undefined,
+    einleitung: str(o.einleitung, "die Einleitung", 4000),
+    merkkasten: mk ? { titel: str(mk.titel, "der Titel des Merkkastens", 60), text: str(mk.text, "der Text des Merkkastens", 3000, true)! } : undefined,
     aufgaben,
     fuss: str(o.fuss, "der Fußtext", 200),
   };

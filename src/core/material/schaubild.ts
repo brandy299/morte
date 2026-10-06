@@ -188,6 +188,8 @@ function kasten(k: Knoten, x: number, y: number, w: number, h: number, zeilen: s
 
 /** Flow and structure: boxes in layers, arrows between the layers. */
 function geschichtet(s: Schaubild, W: number, loesung: boolean): Szene {
+  const chain = kette(s);
+  if (chain) return schlange(s, chain, W, loesung);
   const ids = s.knoten.map((k) => k.id);
   const layer = new Map<string, number>();
   const parents = new Map<string, string[]>(ids.map((id) => [id, s.verbindungen.filter((v) => v.nach === id).map((v) => v.von)]));
@@ -266,6 +268,51 @@ function geschichtet(s: Schaubild, W: number, loesung: boolean): Szene {
     }
   }
   return { w: W, h: height, formen };
+}
+
+/** The boxes in order when the diagram is a plain chain of five or more steps without labels or a fixed direction. */
+function kette(s: Schaubild): Knoten[] | undefined {
+  const n = s.knoten.length;
+  if (s.art !== "ablauf" || s.richtung || n < 5 || s.verbindungen.length !== n - 1 || s.verbindungen.some((v) => v.text)) return undefined;
+  const next = new Map(s.verbindungen.map((v) => [v.von, v.nach]));
+  const hasParent = new Set(s.verbindungen.map((v) => v.nach));
+  if (next.size !== n - 1 || hasParent.size !== n - 1) return undefined;
+  const start = s.knoten.find((k) => !hasParent.has(k.id));
+  const byId = new Map(s.knoten.map((k) => [k.id, k]));
+  const order: Knoten[] = [];
+  for (let k = start; k && order.length <= n; k = next.has(k.id) ? byId.get(next.get(k.id)!) : undefined) order.push(k);
+  return order.length === n ? order : undefined;
+}
+
+/** A long chain in rows of three or four boxes, so it does not run down the whole page. Arrows turn at the end of a row. */
+function schlange(s: Schaubild, order: Knoten[], W: number, loesung: boolean): Szene {
+  const n = order.length;
+  const perRow = n >= 10 ? 4 : 3;
+  const GAP = 26;
+  const bw = Math.min(150, (W - (perRow - 1) * GAP) / perRow);
+  const nummern = leereNummern(s);
+  const lines = order.map((k) => umbrechen(k.text, bw - 2 * PAD));
+  const hs = order.map((k, i) => boxHeight(Math.max(lines[i]!.length, k.leer ? 2 : 0)));
+  const rows = Math.ceil(n / perRow);
+  const rowH = Array.from({ length: rows }, (_, r) => Math.max(...hs.slice(r * perRow, (r + 1) * perRow)));
+  const ROWGAP = 30;
+  const x0 = (W - (perRow * bw + (perRow - 1) * GAP)) / 2;
+  const top = (r: number) => rowH.slice(0, r).reduce((a, h) => a + h + ROWGAP, 0);
+  const box = (i: number) => ({ x: x0 + (i % perRow) * (bw + GAP), y: top(Math.floor(i / perRow)), w: bw, h: rowH[Math.floor(i / perRow)]! });
+  const formen: Form[] = order.map((k, i) => {
+    const b = box(i);
+    return kasten(k, b.x, b.y, b.w, b.h, lines[i]!, nummern, loesung);
+  });
+  for (let i = 0; i + 1 < n; i++) {
+    const a = box(i);
+    const b = box(i + 1);
+    if (Math.floor(i / perRow) === Math.floor((i + 1) / perRow)) formen.push({ k: "pfeil", punkte: [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]] });
+    else {
+      const ym = a.y + a.h + ROWGAP / 2;
+      formen.push({ k: "pfeil", punkte: [[a.x + a.w / 2, a.y + a.h], [a.x + a.w / 2, ym], [b.x + b.w / 2, ym], [b.x + b.w / 2, b.y]] });
+    }
+  }
+  return { w: W, h: top(rows - 1) + rowH[rows - 1]!, formen };
 }
 
 const mean = (a: number[]) => (a.length ? a.reduce((n, x) => n + x, 0) / a.length : 0);

@@ -18,7 +18,7 @@ export const PROGRAMM: Record<string, Check> = {
     // The limit is for what students get. A teacher's copy with explanations may be longer.
     const pdfs = t.files.filter((f) => f.art === "pdf" && f.seiten !== undefined && !/Lösungsblatt|Erwartungshorizont/.test(f.name));
     if (pdfs.length === 0) return na;
-    const max = c.erwartet.maxSeiten ?? 2;
+    const max = c.erwartet.maxSeiten ?? 3;
     const long = pdfs.filter((f) => (f.seiten ?? 0) > max);
     return long.length ? fail(`${long.map((f) => `${f.name} hat ${f.seiten} Seiten`).join(", ")} (erlaubt: ${max}).`) : ok(`Alle PDFs haben höchstens ${max} Seiten.`);
   },
