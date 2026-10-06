@@ -131,6 +131,8 @@ export async function createClass(input: NewClass): Promise<string | null> {
 }
 
 export interface Material { title: string; name: string; path: string }
+/** One download with several material files as zip. */
+export const zipUrl = (paths: string[], name?: string) => `/api/material/zip?${[...paths.map((p) => `path=${encodeURIComponent(p)}`), ...(name ? [`name=${encodeURIComponent(name)}`] : [])].join("&")}`;
 export const materialUrl = (m: Material, download = false) => `/api/material?path=${encodeURIComponent(m.path)}${download ? "&download=1" : ""}`;
 
 export interface ConversationInfo { id: string; titel: string; aktualisiert: string }

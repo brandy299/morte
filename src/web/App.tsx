@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
@@ -9,6 +9,7 @@ import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Onboarding } from "./Onboarding.tsx";
+import { classColors, classVar } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
@@ -584,6 +585,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           {tree.map((k) => (
             <div key={k.name} className="tree-klasse">
               <button type="button" className="tree-node k" onClick={() => ask(`Wo stehen wir in ${k.name}?`)}>
+                <span className="legend-dot" style={{ background: classVar(classColors(tree.map((x) => x.name)), k.name) }} aria-hidden />
                 {k.name}
               </button>
               {k.faecher.map((f) => (
@@ -734,6 +736,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                     </div>
                   </div>
                 ))}
+                {(m.materials?.length ?? 0) > 1 && (
+                  <a className="zip-link" href={zipUrl(m.materials!.map((x) => x.path), m.materials![0]!.title.replace(/ \(.*\)$/, ""))} download>
+                    Alles als ZIP herunterladen ({m.materials!.length} Dateien)
+                  </a>
+                )}
                 {m.role === "assistant" && (m.materials?.length ?? 0) > 0 && !working && i === messages.length - 1 && (
                   <div className="follow-ups">
                     <div className="chips" role="group" aria-label="Das Ergebnis anpassen">
