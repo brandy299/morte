@@ -11,7 +11,7 @@ Du lieferst die Inhalte der Fassungen. Das Layout ist fest. Alle Fassungen verfo
 ## Ablauf
 
 1. **Vorlage finden.** Nennt die Lehrkraft ein vorhandenes Blatt, sieh in der Reihe nach (`material_lesen`: erst die Liste, dann die passende Datei) und baue darauf auf. Ist das Blatt in diesem Gespräch entstanden, nimm es von dort. Hat die Lehrkraft nur eine Idee oder ein Thema genannt, ist das die Vorlage. Kannst du die Datei nicht lesen (zum Beispiel ein Scan oder ein Word-Dokument), bitte darum, die Seite als Bild in den Chat zu legen.
-2. **Klären, höchstens eine Rückfrage.** Wie viele Fassungen? Standard sind drei: Basis, Standard, Erweiterung. Gibt es einen besonderen Förderbedarf (zum Beispiel Sprachförderung für Lernende, die noch Deutsch lernen)? Hat die Lehrkraft nichts dazu gesagt, nimm drei Fassungen und frag nicht.
+2. **Klären, höchstens eine Rückfrage.** Stell die Rückfragen mit `fragen_stellen`, jede mit einer empfohlenen Antwort und dem Grund dafür. Wie viele Fassungen? Standard sind drei: Basis, Standard, Erweiterung. Gibt es einen besonderen Förderbedarf (zum Beispiel Sprachförderung für Lernende, die noch Deutsch lernen)? Hat die Lehrkraft nichts dazu gesagt, nimm drei Fassungen und frag nicht.
 3. **Klasse kennen.** `klasse_lesen` und `stand_lesen`, damit der Anspruch zur Klasse passt. Steht in der Klasse ein Kursniveau, lass die mittlere Fassung dazu passen.
 4. **Fassungen bauen.**
    - **Gleicher Kern:** Jede Fassung prüft dieselbe Kompetenz, damit die Klasse danach gemeinsam weiterarbeiten kann.

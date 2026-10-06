@@ -2,7 +2,11 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { listSkills } from "../skills/index.ts";
-import { tools } from "./tools.ts";
+import { fragenTool } from "./fragen.ts";
+import { tools as fixedTools } from "./tools.ts";
+
+// The question tool is added by the session (it needs the screen), so it is not in the fixed list.
+const tools = [...fixedTools, fragenTool(async () => undefined) as (typeof fixedTools)[number]];
 
 /** Guards the skills that come with the program: they load, and every tool they name exists with the parameters they mention. */
 describe("bundled skills", () => {

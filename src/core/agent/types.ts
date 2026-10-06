@@ -1,3 +1,4 @@
+import type { Frage, Gegeben } from "./fragen.ts";
 /**
  * Events the rest of the app sees. No pi types leave src/core/agent,
  * so the agent core can be swapped without touching server or UI.
@@ -13,6 +14,10 @@ export type ChatEvent =
   | { type: "material"; title: string; name: string; path: string; preview?: boolean }
   /** The teacher must say yes or no before a tool changes files. Answer with ChatSession.answer(id, allow). */
   | { type: "confirm"; id: string; question: string }
+  /** The assistant asks several questions. Show them one after another and send the choices with ChatSession.answerQuestions(id, choices). */
+  | { type: "fragen"; id: string; fragen: Frage[] }
+  /** The teacher answered. Kept in the conversation as a short summary. */
+  | { type: "fragen_beantwortet"; id: string; antworten: Gegeben[] }
   /** A try failed for a short-lived reason and is repeated after `seconds`. The text of the failed try (`dropText` characters) is withdrawn. */
   | { type: "retry"; attempt: number; max: number; seconds: number; message: string; dropText: number }
   /** The answer failed for good. `retryable`: the teacher can press "Nochmal versuchen". `dropText`: characters of the failed try to withdraw. */
@@ -51,6 +56,8 @@ export interface ChatSession {
   restore(state: { messages: unknown[]; usage?: Partial<UsageSnapshot> }): void;
   /** Answers a `confirm` event. */
   answer(id: string, allow: boolean): void;
+  /** Answers a `fragen` event with one choice per question. `undefined` skips the questions. Returns false when the choices do not fit. */
+  answerQuestions(id: string, choices: unknown): boolean;
   abort(): void;
   reset(): void;
 }

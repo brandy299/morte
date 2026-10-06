@@ -14,6 +14,10 @@ export interface UsageInfo {
 }
 export const getUsage = async (): Promise<UsageInfo> => (await fetch("/api/usage")).json();
 
+export interface Antwort { text: string; erklaerung: string }
+export interface Frage { frage: string; antworten: Antwort[]; empfohlen: number; grund: string }
+export interface Gegeben { frage: string; antwort: string; empfohlen: boolean; eigene?: boolean }
+
 export type ChatEvent =
   | { type: "text"; delta: string }
   | { type: "step_start"; id: string; label: string; material?: boolean }
@@ -22,6 +26,8 @@ export type ChatEvent =
   | { type: "usage"; usage: UsageSnapshot }
   | { type: "material"; title: string; name: string; path: string; preview?: boolean }
   | { type: "confirm"; id: string; question: string }
+  | { type: "fragen"; id: string; fragen: Frage[] }
+  | { type: "fragen_beantwortet"; id: string; antworten: Gegeben[] }
   | { type: "retry"; attempt: number; max: number; seconds: number; message: string; dropText: number }
   | { type: "error"; message: string; retryable?: boolean; dropText?: number }
   | { type: "done" };
@@ -134,6 +140,7 @@ export interface StoredMessage {
   dateien?: string[];
   steps: { id: string; label: string; state: "running" | "done" | "failed" }[];
   materials?: Material[];
+  fragen?: Gegeben[];
   error?: string;
   retryable?: boolean;
 }
@@ -262,3 +269,9 @@ export const openOrdner = () => ordnerCall("/oeffnen");
 export const resetOrdner = () => ordnerCall("/standard");
 export const moveOrdner = (pfad: string) => ordnerCall("/aendern", { pfad });
 export const chooseOrdner = async (): Promise<string | null> => (await (await fetch("/api/ordner/waehlen", { method: "POST" })).json()).pfad;
+
+/** Sends the choices for the assistant's questions. `null` skips them. Returns a problem text, or null when it worked. */
+export async function answerFragen(id: string, antworten: { antwort: string; eigene?: boolean }[] | null): Promise<string | null> {
+  const res = await fetch("/api/chat/fragen", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, antworten }) });
+  return res.ok ? null : ((await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.");
+}

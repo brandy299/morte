@@ -198,6 +198,13 @@ export function createApp(state: AppState) {
   });
 
   // "Nochmal versuchen": goes on with the failed answer instead of asking the question a second time.
+  // The teacher's choices for the questions the assistant asked (null: skipped).
+  app.post("/api/chat/fragen", async (c) => {
+    const { id, antworten } = await c.req.json<{ id?: string; antworten?: unknown }>();
+    const ok = state.session?.answerQuestions(String(id), antworten === null ? undefined : antworten) ?? false;
+    return ok ? c.json({ ok: true }) : c.json({ error: "Die Antworten passen nicht zu den Fragen." }, 400);
+  });
+
   app.post("/api/chat/retry", async (c) => {
     const session = state.session;
     const conversation = state.conversation;

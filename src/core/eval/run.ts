@@ -108,6 +108,10 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
         else if (e.type === "confirm") {
           turn.fragen.push(e.question);
           session.answer(e.id, true);
+        } else if (e.type === "fragen") {
+          // No teacher here: take the recommendations, and count the questions like questions in the text.
+          turn.fragen.push(...e.fragen.map((f) => f.frage));
+          session.answerQuestions(e.id, e.fragen.map((f) => ({ antwort: f.antworten[f.empfohlen - 1]!.text })));
         } else if (e.type === "error") turn.assistant += `\n[Fehler: ${e.message}]`;
       }, n === 0 ? bilder.map(({ data, mimeType }) => ({ data, mimeType })) : []).finally(() => clearTimeout(timer));
       turns.push(turn);

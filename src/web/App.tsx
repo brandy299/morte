@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, retryMessage, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
@@ -9,6 +9,7 @@ import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Onboarding } from "./Onboarding.tsx";
+import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
 
@@ -27,6 +28,10 @@ interface Message {
   steps: Step[];
   materials?: Material[];
   confirm?: { id: string; question: string };
+  /** Questions waiting for the teacher. */
+  offeneFragen?: { id: string; fragen: Frage[] };
+  /** Questions that were answered. */
+  fragen?: Gegeben[];
   error?: string;
   /** The failed answer can be tried again. */
   retryable?: boolean;
@@ -347,6 +352,13 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
       case "text":
         patchLast((m) => ({ ...m, text: m.text + e.delta, retryNote: undefined }));
         break;
+      case "fragen":
+        setBuilding(null);
+        patchLast((m) => ({ ...m, offeneFragen: { id: e.id, fragen: e.fragen } }));
+        break;
+      case "fragen_beantwortet":
+        patchLast((m) => ({ ...m, offeneFragen: undefined, fragen: [...(m.fragen ?? []), ...e.antworten] }));
+        break;
       case "retry":
         patchLast((m) => ({
           ...m,
@@ -480,7 +492,9 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     ? null
     : last?.retryNote
       ? last.retryNote
-      : last?.confirm
+      : last?.offeneFragen
+        ? "Ich warte auf deine Antworten …"
+        : last?.confirm
       ? "Ich warte auf deine Antwort …"
       : running
       ? `${running.label} …`
@@ -716,6 +730,8 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                     </div>
                   </div>
                 )}
+                {m.fragen && m.fragen.length > 0 && <FragenRueckblick fragen={m.fragen} />}
+                {m.offeneFragen && <Fragen key={m.offeneFragen.id} id={m.offeneFragen.id} fragen={m.offeneFragen.fragen} />}
                 {m.error && (
                   <div className="error-box" role="alert">
                     <p className="error">{m.error}</p>

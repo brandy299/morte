@@ -10,7 +10,7 @@ Du schreibst den Inhalt. Das Werkzeug zeichnet die Seite und prüft, ob die Minu
 
 ## Ablauf
 
-1. **Klären, höchstens zwei Rückfragen in einer Runde.** Nötig sind Klasse (oder Kurs), Thema und die Dauer (45 oder 90 Minuten, sonst frag). Hilfreich: Datum, was davor behandelt wurde, welches Material schon da ist. Biete in derselben Runde an: "Soll ich gleich einen Entwurf machen?" Hat die Lehrkraft alles genannt, frag nicht nach. Frag nie nach Lernzielen, Ablauf, Differenzierung oder Material: Das planst du selbst, die Lehrkraft korrigiert den Entwurf danach.
+1. **Klären, höchstens zwei Rückfragen in einer Runde.** Stell die Rückfragen mit `fragen_stellen`, jede mit einer empfohlenen Antwort und dem Grund dafür. Nötig sind Klasse (oder Kurs), Thema und die Dauer (45 oder 90 Minuten, sonst frag). Hilfreich: Datum, was davor behandelt wurde, welches Material schon da ist. Biete in derselben Runde an: "Soll ich gleich einen Entwurf machen?" Hat die Lehrkraft alles genannt, frag nicht nach. Frag nie nach Lernzielen, Ablauf, Differenzierung oder Material: Das planst du selbst, die Lehrkraft korrigiert den Entwurf danach.
 2. **Klasse und Reihe kennen.** `klasse_lesen`, `stand_lesen`. Gehört die Stunde zu einer Reihe, lies `reihe_lesen`: Wo steht die Stunde in der Tabelle, was kam davor, was kommt danach? Gibt es dort Material, sieh mit `material_lesen` nach und baue darauf auf, statt es neu zu erfinden.
 3. **Aufbau überlegen.**
    - **Ein Lernziel pro Kernaussage**, ein bis drei Stück, aus Sicht der Lernenden ("können ... erklären", "können ... anwenden"). Es muss in der Stunde erreichbar und überprüfbar sein.

@@ -3,7 +3,8 @@ import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript,
 import { AUTO_RETRY, classifyFailure, MAX_AUTO_RETRIES, retryDelay, type Failure } from "./errors.ts";
 import { keyFor } from "./custom.ts";
 import { resolveModel } from "./models.ts";
-import { tools } from "./tools.ts";
+import { fragenTool, matchGegeben, type Frage, type Gegeben } from "./fragen.ts";
+import { tools as baseTools } from "./tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
 
 const SYSTEM_PROMPT = `Du bist morte, ein ruhiger Arbeitsassistent für Lehrkräfte.
@@ -20,7 +21,7 @@ Arbeitsordner: Du kennst die Klassen der Lehrkraft nur über deine Werkzeuge.
 - Lehrplan: Hat die Klasse einen Lehrplan, lies ihn gezielt, bevor du Material oder eine Reihe planst (lehrplan_lesen: erst die Gliederung, dann nur den passenden Abschnitt; lehrplan_suchen für Stichworte). Übernimm Kompetenzen und Themen nur von dort und nenne die Fundstelle (Abschnitt). Steht etwas nicht darin, erfinde es nicht.
 - Wenn die Lehrkraft eine Arbeitssitzung beendet oder etwas Wichtiges entschieden wurde, halte den Stand mit stand_schreiben fest. Lies vorher den alten Stand und übernimm, was noch stimmt. Halte ihn kurz, es steht dort nie ein Schülername.
 - Nennt die Lehrkraft eine Klasse, ein Fach oder eine Reihe, sieh erst im Arbeitsordner nach (klassen_uebersicht, klasse_lesen), bevor du fragst, was damit gemeint ist. Frag nur nach dem, was du dort nicht findest.
-- Fragen: Frag höchstens zwei Dinge auf einmal und nur, was du weder im Arbeitsordner findest noch sinnvoll selbst festlegen kannst. Biete dann an, gleich einen Entwurf zu machen. Hat die Lehrkraft Klasse, Thema und den Umfang genannt, frag nicht nach Lernzielen, Aufbau, Differenzierung oder Material, das ist deine Aufgabe: Mach einen Entwurf. Wünscht die Lehrkraft einen Entwurf, frag nicht noch einmal, sondern erstelle ihn.
+- Fragen: Fehlen dir mehrere Angaben, die du weder im Arbeitsordner findest noch sinnvoll selbst festlegen kannst, stell sie mit dem Werkzeug fragen_stellen (1 bis 4 Fragen, nur was das Ergebnis wirklich ändert). Jede Frage hat 2 bis 4 Antworten mit je einem kurzen Satz, was sie bedeutet, eine empfohlene Antwort und einen Grund, warum du sie in dieser Lage empfiehlst. Frag das nicht zusätzlich im Text. Eine einzelne kurze Ja/Nein-Rückfrage darfst du im Text stellen. Frag nie, ob du einen Entwurf machen oder gleich loslegen sollst: Tu es. Hat die Lehrkraft Klasse, Thema und den Umfang genannt, frag nicht nach Lernzielen, Aufbau, Differenzierung oder Material, das ist deine Aufgabe: Mach einen Entwurf. Wünscht die Lehrkraft einen Entwurf, frag nicht noch einmal, sondern erstelle ihn.
 - Ehrlichkeit: Berichte nur, was die Werkzeuge bestätigt haben. Meldet ein Werkzeug, dass etwas nicht eingetragen oder nicht erstellt wurde, sag das der Lehrkraft offen und versuche es erneut.
 - Fehlt eine Angabe, die du nicht ersetzen kannst (zum Beispiel ein Datum für einen Termin), frag nach. Trage nichts ein, was du nicht weißt.
 - Schlägt ein Werkzeug fehl, versuche es still noch einmal mit korrigierten Angaben. Schreib der Lehrkraft nichts über Felder, Formate oder technische Fehler. Sag nur, was jetzt fertig ist oder was dir noch fehlt.`;
@@ -67,6 +68,10 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
     vision,
   });
 
+  // Questions need the screen, so this tool is built here and not in the fixed list.
+  const questionTool = fragenTool((fragen, signal) => askQuestions(fragen, signal));
+  const tools = [...baseTools, questionTool as (typeof baseTools)[number]];
+
   const agent = new Agent({
     initialState: { systemPrompt: buildPrompt(deps.skills ?? []), model, tools },
     streamFn: models.streamSimple.bind(models),
@@ -80,6 +85,20 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   });
 
   const pending = new Map<string, (allow: boolean) => void>();
+  const asked = new Map<string, { fragen: Frage[]; done: (gegeben: Gegeben[] | undefined) => void }>();
+  let questionNo = 0;
+  const askQuestions = (fragen: Frage[], signal?: AbortSignal) =>
+    new Promise<Gegeben[] | undefined>((resolve) => {
+      const id = `fragen-${++questionNo}`;
+      const done = (gegeben: Gegeben[] | undefined) => {
+        asked.delete(id);
+        if (gegeben) emit({ type: "fragen_beantwortet", id, antworten: gegeben });
+        resolve(gegeben);
+      };
+      asked.set(id, { fragen, done });
+      signal?.addEventListener("abort", () => done(undefined), { once: true });
+      emit({ type: "fragen", id, fragen });
+    });
   const askTeacher = (id: string, question: string, signal?: AbortSignal) =>
     new Promise<boolean>((resolve) => {
       pending.set(id, resolve);
@@ -318,6 +337,15 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
       }
     },
     answer,
+    answerQuestions(id, choices) {
+      const open = asked.get(id);
+      if (!open) return false;
+      if (choices === undefined) return open.done(undefined), true;
+      const gegeben = matchGegeben(open.fragen, choices);
+      if (!gegeben) return false;
+      open.done(gegeben);
+      return true;
+    },
     usage: snapshot,
     history() {
       const body = agent.state.messages.filter((m) => m.role !== "system").map(withoutPictures);
@@ -337,6 +365,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
     abort: () => {
       aborted = true;
       for (const id of [...pending.keys()]) answer(id, false);
+      for (const open of [...asked.values()]) open.done(undefined);
       agent.abort();
     },
     reset: () => {
