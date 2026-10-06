@@ -76,7 +76,7 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
   if (a.einleitung) sheet.paragraph(a.einleitung);
   if (a.merkkasten) sheet.box({ title: a.merkkasten.titel, text: a.merkkasten.text });
 
-  const numW = mm(9);
+  const numW = mm(7.5);
   const textX = left + numW + mm(4);
   const textW = width - numW - mm(4);
   const lineH = mm(8.5);
@@ -88,10 +88,10 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
     const answerH = answer ? sheet.height(answer, SANS, 10, textW - mm(8)) + mm(5) : 0;
     const linesH = key ? answerH : t.zeilen ? t.zeilen * lineH + mm(2) : 0;
     const h = Math.max(numW, textH + hilfeH + linesH);
-    sheet.room(h + mm(6));
+    sheet.room(h + mm(5));
     const y = sheet.y;
-    doc.save().roundedRect(left, y, numW, numW, mm(2.2)).fill(INK).restore();
-    doc.font(SANS_BOLD).fontSize(11).fillColor("#ffffff").text(String(i + 1), left, y + numW / 2 - 6, { width: numW, align: "center", lineBreak: false });
+    doc.save().roundedRect(left, y, numW, numW, mm(1.8)).fill(INK).restore();
+    doc.font(SANS_BOLD).fontSize(10).fillColor("#ffffff").text(String(i + 1), left, y + numW / 2 - 5.5, { width: numW, align: "center", lineBreak: false });
     doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(t.text), textX, y + 2, { width: textW - punkteW, lineGap: 2.5 });
     if (t.punkte) {
       const label = `${t.punkte} P.`;
@@ -117,7 +117,7 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
         doc.save().moveTo(textX, ly).lineTo(left + width, ly).lineWidth(0.7).strokeColor(LINE).stroke().restore();
       }
     }
-    sheet.y = y + h + mm(6);
+    sheet.y = y + h + mm(5);
   }
 
   return sheet.finish(a.fuss);

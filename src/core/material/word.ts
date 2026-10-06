@@ -51,24 +51,31 @@ export function newWord(title: string): WordDoc {
   const doc: WordDoc = {
     add: (...b) => void children.push(...b),
     header({ kicker, title: heading, fields }) {
+      const small = (text: string) => new TextRun({ text, font: SANS_W, size: 17, color: SOFT });
+      // Kicker on the left, name and date on the right, in one line: the same quiet header as the PDF.
       children.push(
-        new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 24, color: INK, space: 6 } }, spacing: { before: 0, after: 40 }, children: kicker ? [new TextRun({ text: printable(kicker).toUpperCase(), font: SANS_W, size: 16, color: SOFT, characterSpacing: 30 })] : [] }),
-        new Paragraph({ spacing: { after: 120 }, children: [new TextRun({ text: printable(heading), font: SERIF_W, size: 48, bold: true, color: INK })] }),
+        new Paragraph({
+          spacing: { before: 0, after: 60 },
+          tabStops: fields
+            ? [
+                { type: TabStopType.LEFT, position: PAGE_W - twip(92) },
+                { type: TabStopType.RIGHT, position: PAGE_W - twip(38), leader: LeaderType.UNDERSCORE },
+                { type: TabStopType.LEFT, position: PAGE_W - twip(34) },
+                { type: TabStopType.RIGHT, position: PAGE_W, leader: LeaderType.UNDERSCORE },
+              ]
+            : [],
+          children: [
+            new TextRun({ text: printable(kicker ?? "").toUpperCase(), font: SANS_W, size: 15, color: SOFT, characterSpacing: 30 }),
+            ...(fields ? [small("\tName"), small("\t"), small("\tDatum"), small("\t")] : []),
+          ],
+        }),
+        new Paragraph({
+          spacing: { after: 100 },
+          border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: INK, space: 6 } },
+          children: [new TextRun({ text: printable(heading), font: SERIF_W, size: 38, bold: true, color: INK })],
+        }),
+        new Paragraph({ spacing: { after: 80 }, children: [] }),
       );
-      if (fields) {
-        children.push(
-          new Paragraph({
-            spacing: { before: 60, after: 160 },
-            tabStops: [
-              { type: TabStopType.LEFT, position: twip(88), leader: LeaderType.UNDERSCORE },
-              { type: TabStopType.LEFT, position: twip(100) },
-              { type: TabStopType.RIGHT, position: PAGE_W, leader: LeaderType.UNDERSCORE },
-            ],
-            children: [new TextRun({ text: "Name: ", font: SANS_W, size: 20, color: SOFT }), new TextRun({ text: "\t\tDatum: ", font: SANS_W, size: 20, color: SOFT }), new TextRun({ text: "\t", font: SANS_W, size: 20 })],
-          }),
-        );
-      }
-      children.push(new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: INK, space: 4 } }, spacing: { after: 200 }, children: [] }));
     },
     paragraph(text, o = {}) {
       children.push(

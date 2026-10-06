@@ -37,14 +37,14 @@ describe("Word files", () => {
   it("worksheet: student copy has the fields and no answers, the teacher's copy has the answers", async () => {
     const student = await textOf(await arbeitsblattWord(sheet));
     expect(student).toContain("Zellbezüge");
-    expect(student).toContain("Name:");
+    expect(student).toContain("Name");
     expect(student).toContain("Tipp: Denk an die Zeile.");
     expect(student).toContain("2 P.");
     expect(student).not.toContain("=A2+B2");
     const teacher = await textOf(await arbeitsblattWord(sheet, { lehrerexemplar: true }));
     expect(teacher).toContain("=A2+B2");
     expect(teacher).toContain("Lösung für die Lehrkraft".toUpperCase());
-    expect(teacher).not.toContain("Name:");
+    expect(teacher).not.toContain("Name");
   });
 
   it("lesson plan: every phase with its times", async () => {

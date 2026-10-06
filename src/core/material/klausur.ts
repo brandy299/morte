@@ -153,7 +153,7 @@ export async function renderKlausur(k: Klausur): Promise<{ pdf: Buffer; pages: n
   ]);
   if (k.hinweise) sheet.box({ title: "Hinweise", text: k.hinweise });
 
-  const numW = mm(9);
+  const numW = mm(7.5);
   const textX = left + numW + mm(4);
   const textW = width - numW - mm(4);
   const scoreW = 50;
@@ -171,8 +171,8 @@ export async function renderKlausur(k: Klausur): Promise<{ pdf: Buffer; pages: n
     // Keep the heading together with what follows it: never a heading alone at the bottom of a page.
     sheet.room(numW + mm(3) + einstiegHeight(a) + teilHeight(a.teile[0]!, single) + mm(5));
     let y = sheet.y;
-    doc.save().roundedRect(left, y, numW, numW, mm(2.2)).fill(INK).restore();
-    doc.font(SANS_BOLD).fontSize(11).fillColor("#ffffff").text(String(i + 1), left, y + numW / 2 - 6, { width: numW, align: "center", lineBreak: false });
+    doc.save().roundedRect(left, y, numW, numW, mm(1.8)).fill(INK).restore();
+    doc.font(SANS_BOLD).fontSize(10).fillColor("#ffffff").text(String(i + 1), left, y + numW / 2 - 5.5, { width: numW, align: "center", lineBreak: false });
     if (a.titel) doc.font(displayFont(a.titel)).fontSize(13).fillColor(INK).text(printable(a.titel), textX, y + 4, { width: textW - 60, lineBreak: false, ellipsis: true });
     doc.font(SANS).fontSize(9).fillColor(SOFT).text(`${num(punkteAufgabe(a))} P.`, left + width - 56, y + 6, { width: 56, align: "right", lineBreak: false });
     sheet.y = y + numW + mm(3);

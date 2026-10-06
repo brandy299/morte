@@ -142,27 +142,26 @@ export function newSheet(title: string): Sheet {
       return doc.heightOfString(printable(text), { width: w, lineGap: 2.5 });
     },
     header({ kicker, title: heading, fields = [] }) {
-      const fieldsW = fields.length ? mm(62) : 0;
-      const titleW = width - fieldsW - (fields.length ? mm(8) : 0);
-      doc.save().rect(left, sheet.y, width, 3).fill(INK).restore();
-      sheet.y += mm(7);
-      const headTop = sheet.y;
+      // One quiet line on top: the kicker on the left, the write-in fields (name, date) on the right. Then the title, then a thin rule.
+      const slots = fields.map((label) => ({ label, w: /datum/i.test(label) ? mm(32) : mm(54) }));
+      const fieldsW = slots.reduce((n, f) => n + f.w + mm(4), 0);
+      const rowTop = sheet.y;
       if (kicker) {
-        doc.font(SANS).fontSize(8).fillColor(SOFT).text(printable(kicker).toUpperCase(), left, sheet.y, { width: titleW, characterSpacing: 1.1, lineBreak: false });
-        sheet.y += 13;
+        doc.font(SANS).fontSize(7.5).fillColor(SOFT).text(printable(kicker).toUpperCase(), left, rowTop + 4, { width: width - fieldsW - mm(4), characterSpacing: 1.1, lineBreak: false, ellipsis: true });
       }
-      doc.font(displayFont(heading)).fontSize(22).fillColor(INK).text(printable(heading), left, sheet.y, { width: titleW, lineGap: 1 });
-      const titleBottom = doc.y;
-      const fx = left + width - fieldsW;
-      for (const [i, label] of fields.entries()) {
-        const fy = headTop + 6 + i * mm(9);
-        doc.font(SANS).fontSize(9).fillColor(SOFT).text(label, fx, fy, { lineBreak: false });
-        doc.save().moveTo(fx, fy + 14).lineTo(fx + fieldsW, fy + 14).lineWidth(0.8).strokeColor("#777777").stroke().restore();
+      let fx = left + width - fieldsW + mm(4);
+      for (const f of slots) {
+        const label = f.label.replace(/:\s*$/, "");
+        doc.font(SANS).fontSize(8.5).fillColor(SOFT).text(label, fx, rowTop + 3, { lineBreak: false });
+        const lx = fx + doc.widthOfString(label) + 4;
+        doc.save().moveTo(lx, rowTop + 12).lineTo(fx + f.w, rowTop + 12).lineWidth(0.6).strokeColor("#888888").stroke().restore();
+        fx += f.w + mm(4);
       }
-      const fieldsBottom = fields.length ? headTop + 6 + (fields.length - 1) * mm(9) + 16 : 0;
-      sheet.y = Math.max(titleBottom, fieldsBottom) + mm(5);
-      doc.save().moveTo(left, sheet.y).lineTo(left + width, sheet.y).lineWidth(1).strokeColor(INK).stroke().restore();
-      sheet.y += mm(7);
+      sheet.y = rowTop + (kicker || slots.length ? mm(7.5) : 0);
+      doc.font(displayFont(heading)).fontSize(19).fillColor(INK).text(printable(heading), left, sheet.y, { width, lineGap: 1 });
+      sheet.y = doc.y + mm(3);
+      doc.save().moveTo(left, sheet.y).lineTo(left + width, sheet.y).lineWidth(0.7).strokeColor(INK).stroke().restore();
+      sheet.y += mm(6);
     },
     paragraph(text, o = {}) {
       const font = o.font ?? SANS;
@@ -174,7 +173,7 @@ export function newSheet(title: string): Sheet {
       sheet.y += h + (o.gap ?? mm(6));
     },
     box({ title: boxTitle, text }) {
-      const pad = mm(4);
+      const pad = mm(3.2);
       const inner = width - 2 * pad - 4;
       const titleH = boxTitle ? sheet.height(boxTitle, displayFont(boxTitle), 11, inner) + 4 : 0;
       const textH = sheet.height(text, SANS, 10.5, inner);
@@ -187,7 +186,7 @@ export function newSheet(title: string): Sheet {
         ty += titleH;
       }
       doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(text), left + 4 + pad, ty, { width: inner, lineGap: 2.5 });
-      sheet.y += h + mm(7);
+      sheet.y += h + mm(6);
     },
     async finish(note) {
       // Footer on every page: small note left, page number right. Margins are lifted so pdfkit does not add a page.

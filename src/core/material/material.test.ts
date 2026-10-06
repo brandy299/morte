@@ -125,10 +125,10 @@ describe("teacher's copy", () => {
     const teacher = await toFile((await renderArbeitsblatt(sheet, { lehrerexemplar: true })).pdf);
     const read = (f: string) => execFileSync("pdftotext", ["-layout", f, "-"]).toString();
     expect(read(student)).toContain("BASIS");
-    expect(read(student)).toContain("Name:");
+    expect(read(student)).toContain("Name");
     expect(read(student)).not.toContain("Tell me about yourself");
     expect(read(teacher)).toContain("Tell me about yourself.");
     expect(read(teacher)).toContain("LÖSUNG FÜR DIE LEHRKRAFT");
-    expect(read(teacher)).not.toContain("Name:");
+    expect(read(teacher)).not.toContain("Name");
   });
 });
