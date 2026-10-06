@@ -3,6 +3,8 @@
  * The look lives in layout.ts (shared by all material), so it does not depend on how good the chosen model is.
  */
 import { koerperVon, loesungVon, parseTyp, type Koerper, type Typ } from "./aufgabentypen.ts";
+import { szeneVon, type Szene } from "./schaubild.ts";
+import { zeichnePdf } from "./schaubild-zeichnen.ts";
 import { BOX, INK, LINE, MaterialError, SANS, SANS_BOLD, SANS_BOLD_ITALIC, SANS_ITALIC, SOFT, mm, newSheet, printable, str, type Sheet } from "./layout.ts";
 
 export { MaterialError, printable };
@@ -72,7 +74,20 @@ const FS = 10.5;
 const ROW = mm(6.5);
 
 /** Height of the parts of a typed task, drawn in `drawBody`. Both use the same measures, so nothing is cut off. */
-function bodyHeight(sheet: Sheet, k: Koerper, w: number): number {
+const CAPTION = 9;
+const MAX_DIAGRAM = 620;
+
+/** The diagram of a task with its caption and word bank, measured once for height and drawing. */
+function diagramm(sheet: Sheet, k: Extract<Koerper, { art: "schaubild" }>, w: number, key: boolean) {
+  const scene: Szene = szeneVon(k.schaubild, w, key);
+  if (scene.h > MAX_DIAGRAM) throw new MaterialError("Das Schaubild ist zu groß für eine Seite. Nimm weniger Kästchen, kürzere Texte oder die Richtung waagerecht.");
+  const capH = k.schaubild.titel ? sheet.height(k.schaubild.titel, SANS_ITALIC, CAPTION, w) + mm(2) : 0;
+  const bankH = k.wortliste && !key ? sheet.height(k.wortliste, SANS_BOLD, 10, w - mm(8)) + mm(8) : 0;
+  return { scene, capH, bankH, h: scene.h + mm(3) + capH + bankH };
+}
+
+function bodyHeight(sheet: Sheet, k: Koerper, w: number, key: boolean): number {
+  if (k.art === "schaubild") return diagramm(sheet, k, w, key).h;
   if (k.art === "zuordnung") {
     const colW = (w - mm(10)) / 2;
     return k.links.reduce((n, l, i) => n + Math.max(sheet.height(l, SANS, FS, colW - mm(11)), sheet.height(k.rechts[i]!, SANS, FS, colW), ROW) + mm(2), 0);
@@ -85,10 +100,22 @@ function bodyHeight(sheet: Sheet, k: Koerper, w: number): number {
   return mm(7) + k.zeilen.reduce((n, r) => n + Math.max(...r.map((c) => sheet.height(c || " ", SANS, 10, colW - mm(4))), mm(5)) + mm(4.5), 0);
 }
 
-function drawBody(sheet: Sheet, k: Koerper, x: number, y0: number, w: number): void {
+function drawBody(sheet: Sheet, k: Koerper, x: number, y0: number, w: number, key: boolean): void {
   const { doc } = sheet;
   let y = y0;
-  if (k.art === "zuordnung") {
+  if (k.art === "schaubild") {
+    const d = diagramm(sheet, k, w, key);
+    zeichnePdf(doc, d.scene, x, y);
+    y += d.scene.h + mm(3);
+    if (d.capH) {
+      doc.font(SANS_ITALIC).fontSize(CAPTION).fillColor(SOFT).text(printable(k.schaubild.titel!), x, y, { width: w, align: "center", lineGap: 2.5 });
+      y += d.capH;
+    }
+    if (d.bankH) {
+      doc.save().roundedRect(x, y, w, d.bankH - mm(3), 4).lineWidth(0.8).strokeColor(LINE).stroke().restore();
+      doc.font(SANS_BOLD).fontSize(10).fillColor(INK).text(printable(k.wortliste!), x + mm(4), y + mm(2.5), { width: w - mm(8), lineGap: 2.5 });
+    }
+  } else if (k.art === "zuordnung") {
     const gap = mm(10);
     const colW = (w - gap) / 2;
     for (const [i, l] of k.links.entries()) {
@@ -160,7 +187,7 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
     const textH = sheet.height(t.text, SANS, 10.5, textW - punkteW);
     const hilfeH = t.hilfe ? sheet.height(`Tipp: ${t.hilfe}`, SANS_ITALIC, 9.5, textW) + 4 : 0;
     const body = koerper(a, i);
-    const bodyH = body ? bodyHeight(sheet, body, textW) + mm(2) : 0;
+    const bodyH = body ? bodyHeight(sheet, body, textW, key) + mm(2) : 0;
     const answer = key ? (loesungText(a, i) ?? "—") : undefined;
     const answerH = answer ? sheet.height(answer, SANS, 10, textW - mm(8)) + mm(5) : 0;
     const linesH = key ? answerH : t.zeilen ? t.zeilen * lineH + mm(2) : 0;
@@ -184,7 +211,7 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
     }
     if (body) {
       by += mm(1.5);
-      drawBody(sheet, body, textX, by, textW);
+      drawBody(sheet, body, textX, by, textW, key);
       by += bodyH - mm(1.5);
     }
     if (answer) {
