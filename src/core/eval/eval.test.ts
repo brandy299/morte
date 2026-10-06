@@ -148,6 +148,6 @@ describe("running a case", () => {
     expect(t.files.find((f) => f.art === "pdf" && !/Lösungsblatt/.test(f.name))).toMatchObject({ seiten: 1, text: expect.stringContaining("Nenne zwei Teile") });
     expect(t.tabelle).toMatch(/\| 14\.10\. \|.*Arbeitsblatt-Das-Anschreiben\.pdf/);
     for (const id of ["G-TECHNIK", "G-SEITEN", "G-MATERIAL", "G-HINWEIS", "G-TABELLE"]) expect(PROGRAMM[id]!(kase({ material: true, eintrag: "14.10." }), t).bestanden, id).toBe(true);
-    expect(process.env.MORTE_HOME ?? "").not.toContain("morte-eval-"); // the folder of the run is gone and the setting restored
+    expect(process.env.PULT_HOME ?? "").not.toContain("pult-eval-"); // the folder of the run is gone and the setting restored
   });
 });

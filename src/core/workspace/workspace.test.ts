@@ -9,8 +9,8 @@ import {
 
 let home: string;
 beforeEach(async () => {
-  home = await mkdtemp(join(tmpdir(), "morte-test-"));
-  process.env.MORTE_HOME = home;
+  home = await mkdtemp(join(tmpdir(), "pult-test-"));
+  process.env.PULT_HOME = home;
   await initWorkspace();
   await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
 });

@@ -7,8 +7,8 @@ import { createApp } from "./index.ts";
 
 let app: ReturnType<typeof createApp>;
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-vorlagen-"));
-  delete process.env.MORTE_SKILLS;
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-vorlagen-"));
+  delete process.env.PULT_SKILLS;
   app = createApp({ secrets: { kind: "file", get: async () => undefined, set: async () => {}, delete: async () => {} }, session: undefined, configured: undefined });
 });
 

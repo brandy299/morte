@@ -25,7 +25,7 @@ export interface SkillProblem {
 
 const NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-const bundledDir = () => process.env.MORTE_SKILLS ?? fileURLToPath(new URL("../../../skills", import.meta.url));
+const bundledDir = () => process.env.PULT_SKILLS ?? fileURLToPath(new URL("../../../skills", import.meta.url));
 const personalDir = () => join(dataDir(), "Skills");
 
 /** Reads the small YAML header: `key: value`, quoted values, and indented continuation lines. */

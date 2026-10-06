@@ -221,7 +221,7 @@ export function newWord(title: string): WordDoc {
     async build(footnote) {
       const file = new Document({
         title: printable(title),
-        creator: "morte",
+        creator: "Pult",
         styles: { default: { document: { run: { font: SANS_W, size: 21, color: INK } } } },
         sections: [
           {
@@ -233,7 +233,7 @@ export function newWord(title: string): WordDoc {
                     tabStops: [{ type: TabStopType.RIGHT, position: PAGE_W }],
                     children: [
                       new TextRun({ text: printable(footnote ?? ""), font: SANS_W, size: 15, color: SOFT }),
-                      new TextRun({ text: "\tmorte · Seite ", font: SANS_W, size: 15, color: SOFT }),
+                      new TextRun({ text: "\tPult · Seite ", font: SANS_W, size: 15, color: SOFT }),
                       new TextRun({ children: [PageNumber.CURRENT], font: SANS_W, size: 15, color: SOFT }),
                       new TextRun({ text: " von ", font: SANS_W, size: 15, color: SOFT }),
                       new TextRun({ children: [PageNumber.TOTAL_PAGES], font: SANS_W, size: 15, color: SOFT }),

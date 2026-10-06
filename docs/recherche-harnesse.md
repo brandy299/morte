@@ -2,11 +2,11 @@
 
 Stand: 2026-10-05 · Quelle: GitHub-Suche und README-Seiten. Lizenzen laut GitHub-Angabe, vor einer Übernahme jeweils in der `LICENSE`-Datei prüfen. Ideen dürfen übernommen werden, Code nur aus Apache-2.0, MIT und ähnlichen Lizenzen mit Namensnennung, nie aus AGPL (siehe `CLAUDE.md`).
 
-Zweite Runde am 2026-10-05: skills.sh und opencode.ai waren jetzt erreichbar und sind unten ausgewertet. Nicht gelesen wurde der Quelltext von OpenCode (GitHub-Zugriff in dieser Sitzung nur für morte). Was nur aus dem Quelltext hervorginge, ist als "nicht belegt" markiert.
+Zweite Runde am 2026-10-05: skills.sh und opencode.ai waren jetzt erreichbar und sind unten ausgewertet. Nicht gelesen wurde der Quelltext von OpenCode (GitHub-Zugriff in dieser Sitzung nur für Pult). Was nur aus dem Quelltext hervorginge, ist als "nicht belegt" markiert.
 
 ## Harnesse und Agenten-Apps
 
-| Projekt | Lizenz | Was es ist | Nutzen für morte |
+| Projekt | Lizenz | Was es ist | Nutzen für Pult |
 |---|---|---|---|
 | anomalyco/opencode | MIT (LICENSE geprüft) | Quelloffener Coding-Agent (TypeScript), Oberfläche im Terminal, als Desktop-App und im Browser | Siehe Abschnitt "OpenCode, ausgewertet". Zwei Ideen sind brauchbar: automatisches Zusammenfassen bei vollem Kontext und der Skill-Aufbau |
 | nexu-io/open-design | Apache-2.0 | Design-Arbeitsplatz für Agenten, Skills im `SKILL.md`-Format, Gestaltungsregeln als `DESIGN.md`, Export HTML, PDF, PPTX | Idee der portablen Designvorgaben als Markdown-Datei passt zu `Vorlagen/Designvorgaben.md`. Technik passt nicht: braucht installierte Agenten-Programme, Node 24, pnpm |
@@ -19,7 +19,7 @@ Zweite Runde am 2026-10-05: skills.sh und opencode.ai waren jetzt erreichbar und
 
 | Projekt | Lizenz | Was es ist | Hinweis |
 |---|---|---|---|
-| FWU-DE/ais-chat | **AGPL-3.0** | KI-Chatbot für Schulen in Deutschland, selbst gehostet (Docker, Keycloak, PostgreSQL), Projekte nach Bundesland, Rollen für Lehrkräfte und Verwaltung | Nur Ideen, kein Code. Zeigt die Gegenrichtung (Server für die Schule). morte bleibt lokal und für eine Person |
+| FWU-DE/ais-chat | **AGPL-3.0** | KI-Chatbot für Schulen in Deutschland, selbst gehostet (Docker, Keycloak, PostgreSQL), Projekte nach Bundesland, Rollen für Lehrkräfte und Verwaltung | Nur Ideen, kein Code. Zeigt die Gegenrichtung (Server für die Schule). Pult bleibt lokal und für eine Person |
 | Kleine Lehrer-Assistenten (Streamlit, K-12) | verschieden | Meist Prototypen mit wenigen Sternen | Kein Vorbild für Qualität erkennbar |
 
 ## Skills-Sammlungen
@@ -31,12 +31,12 @@ Zweite Runde am 2026-10-05: skills.sh und opencode.ai waren jetzt erreichbar und
 
 Quelle: opencode.ai/docs und opencode.ai/v2/docs, Stand 2026-10-05. Es ist ein Coding-Agent mit Terminal-Oberfläche, Befehlen wie `/undo` und `/export`, Git-Verwaltung und freier Shell. Für Lehrkräfte ist das die falsche Oberfläche. Die Technik dahinter liefert aber Ideen.
 
-- **Verbrauch und Kontext-Anzeige:** In den Docs steht dazu nichts. Es gibt nur eine Tastenkombination, die eine Seitenleiste ein- und ausblendet, und eine Statusansicht. Was dort genau steht (Tokens, Kosten, Füllstand), ist nur aus dem Quelltext zu erfahren und hier **nicht belegt**. morte hat die Anzeige ohnehin schon gebaut (Commit "Verbrauch, Kontext-Füllstand und Bildanhänge im Chat"), der Bedarf ist also gedeckt.
-- **Automatisches Zusammenfassen ("Compaction"):** Nähert sich ein Gespräch dem Limit des Modells, ersetzt OpenCode den älteren Teil durch eine Zusammenfassung und behält die letzten rund 15.000 Tokens wörtlich. Spätere Zusammenfassungen aktualisieren dieselbe Zusammenfassung. Wenn der Anbieter eine Anfrage als zu lang ablehnt, versucht es OpenCode einmal erneut. Docs-Hinweis: das Zusammenfassen verliert Einzelheiten. **Für morte nützlich**, denn lange Planungsgespräche füllen den Kontext, und die Lehrkraft soll nie eine Fehlermeldung zu "zu langer Eingabe" sehen. In morte kommt noch dazu, dass wichtige Dinge ohnehin in `Stand.md` und `Reihe.md` stehen, die Zusammenfassung muss also wenig tragen.
-- **Zwischenspeicher halten ("Warming"):** Optionale Keep-alive-Anfragen alle vier Minuten, damit der Zwischenspeicher des Anbieters nicht verfällt. Kostet selbst Tokens, standardmäßig aus. Für morte nicht nötig.
+- **Verbrauch und Kontext-Anzeige:** In den Docs steht dazu nichts. Es gibt nur eine Tastenkombination, die eine Seitenleiste ein- und ausblendet, und eine Statusansicht. Was dort genau steht (Tokens, Kosten, Füllstand), ist nur aus dem Quelltext zu erfahren und hier **nicht belegt**. Pult hat die Anzeige ohnehin schon gebaut (Commit "Verbrauch, Kontext-Füllstand und Bildanhänge im Chat"), der Bedarf ist also gedeckt.
+- **Automatisches Zusammenfassen ("Compaction"):** Nähert sich ein Gespräch dem Limit des Modells, ersetzt OpenCode den älteren Teil durch eine Zusammenfassung und behält die letzten rund 15.000 Tokens wörtlich. Spätere Zusammenfassungen aktualisieren dieselbe Zusammenfassung. Wenn der Anbieter eine Anfrage als zu lang ablehnt, versucht es OpenCode einmal erneut. Docs-Hinweis: das Zusammenfassen verliert Einzelheiten. **Für Pult nützlich**, denn lange Planungsgespräche füllen den Kontext, und die Lehrkraft soll nie eine Fehlermeldung zu "zu langer Eingabe" sehen. In Pult kommt noch dazu, dass wichtige Dinge ohnehin in `Stand.md` und `Reihe.md` stehen, die Zusammenfassung muss also wenig tragen.
+- **Zwischenspeicher halten ("Warming"):** Optionale Keep-alive-Anfragen alle vier Minuten, damit der Zwischenspeicher des Anbieters nicht verfällt. Kostet selbst Tokens, standardmäßig aus. Für Pult nicht nötig.
 - **Skills:** Gleiches Format wie bei uns (`SKILL.md` mit `name`, `description`, optional `license`, `compatibility`, `metadata`). Name nur Kleinbuchstaben, Ziffern und Bindestriche, höchstens 64 Zeichen, gleich dem Ordnernamen. Beschreibung höchstens 1024 Zeichen. Der Agent sieht nur Name und Beschreibung und lädt den Rest über ein Werkzeug `skill`. OpenCode liest auch `.claude/skills` und `.agents/skills`. Das bestätigt unser Vorgehen in `docs/skills.md`. **Übernehmen:** diese Längenregeln und die Namensprüfung in den Skill-Lader und in die Checkliste des Skill-Builders.
 - **Rechte pro Skill:** `allow`, `deny` und `ask`, mit Platzhaltern (`internal-*`). Eine Idee für die spätere Schulebene (Phase 6), zum Beispiel um mitgelieferte Skills auszublenden. Vorher nicht nötig.
-- **Eigene Befehle, Plugins, MCP:** Für morte nicht vorgesehen. Der Agent bekommt feste Werkzeuge.
+- **Eigene Befehle, Plugins, MCP:** Für Pult nicht vorgesehen. Der Agent bekommt feste Werkzeuge.
 
 ## skills.sh, ausgewertet
 
@@ -49,7 +49,7 @@ Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheit
 | anthropics/k12-teacher-skills (vier Skills) und die Kopie learning-commons-org/agent-skills | 14 bis 135 | Schon ausgewertet in `docs/skills.md`. Die Kopie ist Apache-2.0 (LICENSE geprüft) |
 | garethmanning/education-agent-skills | unter 200 | Lizenz **CC BY-SA 4.0** (LICENSE geprüft). Die Share-Alike-Bedingung verträgt sich nicht mit Apache-2.0 für abgeleitete Texte. Nur Ideen, kein Text. Inhalt auf Englisch, mit Verweisen auf Fachliteratur |
 | jamesrochabrun/skills (math-teacher, reading-teacher) | 276 bis 854 | Lizenz und Inhalt nicht geprüft, nur die Namen und Zahlen aus der Suche |
-| googleworkspace/cli (gws-classroom) | 28.526 | Anbindung an Google Classroom. Nicht nötig, morte bindet keine Schülerplattform an |
+| googleworkspace/cli (gws-classroom) | 28.526 | Anbindung an Google Classroom. Nicht nötig, Pult bindet keine Schülerplattform an |
 | darius-theodor/klausur-lerncoach, klotzkette/arbeitsblatt-perspektiven-definieren | 1 bis 4 | Deutsche Namen, aber praktisch ungenutzt. Inhalt nicht gelesen. Der zweite gehört laut Ordnername zu einer Sammlung für deutsches Recht, also kein erkennbarer Schulbezug |
 
 **Brauchbar als Vorbild für die Skill-Bauweise:**
@@ -62,7 +62,7 @@ Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheit
 - **heygen-com/hyperframes** (Apache-2.0, LICENSE geprüft): Eine Sammlung von Skills, die aus Text ein Erklärvideo bauen, Bild für Bild als HTML, mit eigenem Skill `faceless-explainer` ("faceless" heißt: nur Grafik, kein Sprecher). Das passt zu unserem Standard "Erklärvideo ohne Stimme". Vorgehen dort: Gestaltungssystem wählen, Lerngeschichte planen, Szenen bauen, jeden Schritt vor dem nächsten prüfen. **Bewertung:** Als Vorbild für den Ablauf gut. Als Baustein vorerst ungeeignet, denn die Skills rufen eigene Befehle (`npx hyperframes ...`) auf, ziehen Musik und Bilder aus dem HeyGen-Katalog und fragen vor dem Aktualisieren nach. Das widerspricht "Alles in der App" (Entscheidung 002) und dem Verzicht auf eine freie Shell. Vor einer Übernahme müsste geklärt werden, was davon ohne HeyGen-Konto und ohne Netz läuft und welche Lizenz der Musik- und Bildkatalog hat.
 - Außerdem aufgefallen: `remotion-dev/skills`, `remotion-best-practices` (575.000 Installationen). Remotion ist ein Video-Baukasten mit React. Lizenz und Kosten wurden hier **nicht geprüft**.
 
-## Was schon dazu in morte steht
+## Was schon dazu in Pult steht
 
 - Verbrauch, Kontext-Füllstand: gebaut (`src/core/usage`, `src/web/UsageMeter.tsx`).
 - Skill-Lader mit stufenweisem Laden: gebaut (`src/core/skills`).

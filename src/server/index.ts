@@ -79,8 +79,8 @@ export function localOnly(): MiddlewareHandler {
       } catch {
         return c.json({ error: "Nicht erlaubt." }, 403);
       }
-      // The page must be this app: same address, or in development the Vite dev server (MORTE_DEV_PORT) that forwards to us.
-      const devPort = process.env.MORTE_DEV_PORT;
+      // The page must be this app: same address, or in development the Vite dev server (PULT_DEV_PORT) that forwards to us.
+      const devPort = process.env.PULT_DEV_PORT;
       const fromDevServer = Boolean(devPort) && originHost.toLowerCase().endsWith(`:${devPort}`);
       const sameAddress = !host || originHost.toLowerCase() === host.toLowerCase();
       if (!LOCAL_HOSTS.has(hostnameOf(originHost)) || !(sameAddress || fromDevServer)) {
@@ -307,7 +307,7 @@ export function createApp(state: AppState) {
     if (!conversation) return c.json({ error: "Dieses Gespräch gibt es nicht." }, 404);
     const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
     c.header("content-type", "text/markdown; charset=utf-8");
-    c.header("content-disposition", `attachment; filename="morte-gespraech-${stamp}.md"`);
+    c.header("content-disposition", `attachment; filename="pult-gespraech-${stamp}.md"`);
     return c.body(exportMarkdown(conversation, { version: pkg.version }));
   });
 
@@ -337,6 +337,9 @@ const MIME: Record<string, string> = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".webmanifest": "application/manifest+json",
   ".woff2": "font/woff2",
   ".ttf": "font/ttf",
 };
@@ -359,6 +362,6 @@ if (process.argv[1]?.endsWith("server/index.ts") || process.argv[1]?.endsWith("s
   });
   const port = Number(process.env.PORT ?? 3001);
   serve({ fetch: app.fetch, port, hostname: "127.0.0.1" }, () =>
-    console.log(`morte läuft auf http://localhost:${port}`),
+    console.log(`Pult läuft auf http://localhost:${port}`),
   );
 }

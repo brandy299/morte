@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "./index.ts";
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-history-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "pult-history-"));
 });
 
 describe("transcript", () => {
@@ -59,12 +59,12 @@ describe("store", () => {
     const id = newConversationId();
     await saveConversation({ id, titel: "Mit Liste", anzeige: [], modell: [{ role: "user", content: "x".repeat(1000) }] });
     const { rm } = await import("node:fs/promises");
-    await rm(join(process.env.MORTE_HOME!, "Gespräche", `${id}.meta.json`));
+    await rm(join(process.env.PULT_HOME!, "Gespräche", `${id}.meta.json`));
     expect((await listConversations()).map((c) => c.titel)).toEqual(["Mit Liste"]);
     const { readdir } = await import("node:fs/promises");
-    expect(await readdir(join(process.env.MORTE_HOME!, "Gespräche"))).toContain(`${id}.meta.json`);
+    expect(await readdir(join(process.env.PULT_HOME!, "Gespräche"))).toContain(`${id}.meta.json`);
     await deleteConversation(id);
-    expect(await readdir(join(process.env.MORTE_HOME!, "Gespräche"))).toEqual([]);
+    expect(await readdir(join(process.env.PULT_HOME!, "Gespräche"))).toEqual([]);
   });
 
   it("refuses ids that are not generated ones", async () => {

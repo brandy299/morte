@@ -9,7 +9,7 @@ let state: AppState;
 const json = (body: unknown) => ({ method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-server-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-server-"));
   state = { secrets: { kind: "file", get: async () => undefined, set: async () => {}, delete: async () => {} }, session: undefined, configured: undefined };
   app = createApp(state);
   await app.request("/api/setup/demo", { method: "POST" }); // offline demo model

@@ -36,7 +36,7 @@ describe("Stundenverlauf", () => {
   it("draws one page with the times of each phase", async () => {
     const { pdf, pages } = await renderVerlauf(parseVerlauf(sampleVerlauf));
     expect(pages).toBe(1);
-    const file = join(await mkdtemp(join(tmpdir(), "morte-pdf-")), "v.pdf");
+    const file = join(await mkdtemp(join(tmpdir(), "pult-pdf-")), "v.pdf");
     await writeFile(file, pdf);
     let text = "";
     try {

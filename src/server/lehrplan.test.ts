@@ -11,7 +11,7 @@ let app: ReturnType<typeof createApp>;
 let state: AppState;
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-lps-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-lps-"));
   state = {
     secrets: { kind: "file", get: async () => undefined, set: async () => {}, delete: async () => {} },
     session: undefined,

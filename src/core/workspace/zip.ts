@@ -20,5 +20,5 @@ export function zipFiles(files: { name: string; data: Uint8Array }[]): Uint8Arra
 /** Name of the zip file from a title: letters, digits, dashes. */
 export const zipName = (title: string | undefined, date = new Date()) => {
   const base = (title ?? "").normalize("NFC").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 60);
-  return `${base || "morte-material"}-${date.toISOString().slice(0, 10)}.zip`;
+  return `${base || "pult-material"}-${date.toISOString().slice(0, 10)}.zip`;
 };

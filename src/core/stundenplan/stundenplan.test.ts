@@ -55,7 +55,7 @@ describe("dates", () => {
 
 describe("timetable in the working folder", () => {
   beforeEach(async () => {
-    process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-sp-"));
+    process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-sp-"));
     await initWorkspace();
     await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
     await createClass({ name: "11b", schulform: "Berufskolleg", stufe: "11", faecher: ["Wirtschaft und Verwaltung"] });
@@ -95,7 +95,7 @@ describe("timetable in the working folder", () => {
 
 describe("the week", () => {
   beforeEach(async () => {
-    process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-wo-"));
+    process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-wo-"));
     await initWorkspace();
     await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
     await createClass({ name: "11b", schulform: "Berufskolleg", stufe: "11", faecher: ["Wirtschaft und Verwaltung"] });
@@ -137,14 +137,14 @@ describe("the week", () => {
   });
 
   it("has nothing to show without a timetable", async () => {
-    process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-none-"));
+    process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-none-"));
     expect(await woche("2026-10-14", "2026-10-14")).toBeUndefined();
   });
 });
 
 describe("dropping a file on a lesson", () => {
   beforeEach(async () => {
-    process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-drop-"));
+    process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-drop-"));
     await initWorkspace();
     await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
   });
@@ -158,7 +158,7 @@ describe("dropping a file on a lesson", () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     const first = await legeAb(lesson, { name: "Arbeitsblatt Lebenslauf.docx", data: Buffer.from("x") });
     expect(first).toEqual({ reihe: "01 Bewerbung", datei: "2026-10-14_Mi0945_Arbeitsblatt-Lebenslauf.docx" });
-    expect(await readFile(join(process.env.MORTE_HOME!, "Klassen/11a/Business English/01 Bewerbung/Material", first.datei), "utf8")).toBe("x");
+    expect(await readFile(join(process.env.PULT_HOME!, "Klassen/11a/Business English/01 Bewerbung/Material", first.datei), "utf8")).toBe("x");
     await legeAb(lesson, { name: "Folien.pptx", data: Buffer.from("y") });
     const md = await readReihe("11a", "Business English", "Bewerbung");
     expect(md).toContain("| 14.10. | Mi 09:45 |  | 2026-10-14_Mi0945_Arbeitsblatt-Lebenslauf.docx, 2026-10-14_Mi0945_Folien.pptx | Material fertig |");

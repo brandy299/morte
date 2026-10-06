@@ -1,7 +1,7 @@
 /**
  * Quality check of the bundled skills. Plays every test case with the chosen model and lets a (stronger) judge model
  * score the results against the criteria in evals/. Usage:
- *   MORTE_EVAL_API_KEY=... npm run eval -- --modell openrouter/anthropic/claude-haiku-4.5 --pruefer openrouter/anthropic/claude-sonnet-4.5
+ *   PULT_EVAL_API_KEY=... npm run eval -- --modell openrouter/anthropic/claude-haiku-4.5 --pruefer openrouter/anthropic/claude-sonnet-4.5
  * Options: --skill a,b   only these skills     --limit 3   stop when the cost passes this many US dollars
  *          --ohne-pruefer   only the checks the program can decide (no judge, much cheaper)
  *          --wdh 2   play every test case this many times (models answer differently each time)
@@ -24,8 +24,8 @@ const split = (spec: string | undefined, what: string) => {
 };
 
 const gen = split(opt("modell"), "--modell");
-const apiKey = process.env.MORTE_EVAL_API_KEY;
-if (!apiKey) throw new Error("MORTE_EVAL_API_KEY ist nicht gesetzt. Den Schlüssel nie in einen Befehl oder Quelltext schreiben, sondern als Umgebungsvariable setzen.");
+const apiKey = process.env.PULT_EVAL_API_KEY;
+if (!apiKey) throw new Error("PULT_EVAL_API_KEY ist nicht gesetzt. Den Schlüssel nie in einen Befehl oder Quelltext schreiben, sondern als Umgebungsvariable setzen.");
 const ohnePruefer = flag("ohne-pruefer");
 const judgeSpec = ohnePruefer ? undefined : split(opt("pruefer"), "--pruefer");
 const limit = Number(opt("limit") ?? 3);
@@ -33,7 +33,7 @@ const only = opt("skill")?.split(",");
 const repeats = Math.max(1, Number(opt("wdh") ?? 1));
 
 let spent = 0;
-const judge = judgeSpec ? createCompleter({ ...judgeSpec, apiKey: process.env.MORTE_EVAL_PRUEFER_KEY ?? apiKey }, { onUsage: (d) => (spent += d.cost) }) : undefined;
+const judge = judgeSpec ? createCompleter({ ...judgeSpec, apiKey: process.env.PULT_EVAL_PRUEFER_KEY ?? apiKey }, { onUsage: (d) => (spent += d.cost) }) : undefined;
 
 const suites = await loadSuites(join(process.cwd(), "evals"), only);
 const stamp = new Date().toISOString();

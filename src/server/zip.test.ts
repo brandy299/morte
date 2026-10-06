@@ -11,7 +11,7 @@ const host = { host: "localhost:3001" };
 let app: ReturnType<typeof createApp>;
 
 beforeEach(async () => {
-  const home = (process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-zip-")));
+  const home = (process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "pult-zip-")));
   await mkdir(join(home, "Exporte"), { recursive: true });
   await writeFile(join(home, "Exporte", "Blatt.pdf"), "pdf eins");
   await writeFile(join(home, "Exporte", "Loesung.pdf"), "pdf zwei");
@@ -53,6 +53,6 @@ describe("zip helpers", () => {
 
   it("names the zip after the title", () => {
     expect(zipName("Klausur 11a: Politik", new Date("2026-10-06T10:00:00Z"))).toBe("Klausur-11a-Politik-2026-10-06.zip");
-    expect(zipName(undefined, new Date("2026-10-06T10:00:00Z"))).toBe("morte-material-2026-10-06.zip");
+    expect(zipName(undefined, new Date("2026-10-06T10:00:00Z"))).toBe("pult-material-2026-10-06.zip");
   });
 });

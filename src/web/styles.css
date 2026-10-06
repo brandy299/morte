@@ -101,8 +101,11 @@ button:disabled { cursor: default; }
 /* ---------- Sidebar ---------- */
 .side { background: var(--paper-deep); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; padding: 22px 14px 12px; gap: 16px; }
 .side-top { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
-.brand { font-family: var(--serif); font-weight: 600; font-size: 26px; letter-spacing: 0.01em; display: flex; align-items: center; gap: 10px; }
-.brand-mark { width: 14px; height: 14px; background: var(--accent); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.brand { display: flex; align-items: center; padding: 4px 0 2px; }
+.logo { height: 30px; width: auto; display: block; }
+.logo.small { height: 22px; }
+.logo .logo-p { fill: var(--accent); }
+.logo .logo-ink { fill: var(--ink); }
 .side-close { display: none; border: 0; background: none; font-size: 26px; line-height: 1; color: var(--ink-soft); padding: 2px 8px; }
 .new-chat { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); font-weight: 600; text-align: left; transition: border-color 0.15s, box-shadow 0.15s; }
 .new-chat:hover { border-color: var(--accent-deep); box-shadow: 0 1px 0 var(--accent); }
@@ -446,8 +449,8 @@ a.file-card { text-decoration: none; color: inherit; }
 @keyframes pop-in { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes tick-pop { 0% { transform: scale(0.5); } 60% { transform: scale(1.22); } 100% { transform: scale(1); } }
 @keyframes bounce { 0%, 70%, 100% { transform: translateY(0); opacity: 0.45; } 35% { transform: translateY(-5px); opacity: 1; } }
-@keyframes nod { 0%, 100% { transform: rotate(-45deg); } 35% { transform: rotate(-30deg) scale(1.08); } 70% { transform: rotate(-52deg); } }
-@keyframes breathe { 0%, 100% { transform: rotate(-45deg) scale(1); } 50% { transform: rotate(-45deg) scale(1.18); } }
+@keyframes nod { 0%, 100% { transform: rotate(0); } 35% { transform: rotate(-5deg); } 70% { transform: rotate(1.5deg); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-6deg); } 60% { transform: rotate(4deg); } }
 @keyframes shimmer-in { from { opacity: 0; } to { opacity: 1; } }
 
@@ -469,8 +472,10 @@ a.file-card { text-decoration: none; color: inherit; }
 .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bounce 1.2s ease-in-out infinite; }
 .dots i:nth-child(2) { animation-delay: 0.15s; }
 .dots i:nth-child(3) { animation-delay: 0.3s; }
-.brand:hover .brand-mark { animation: nod 0.7s var(--ease) 1; }
-.is-busy .brand-mark { animation: breathe 2.2s ease-in-out infinite; }
+/* The desk-shaped "p" tips when hovered and breathes while the assistant works. */
+.logo .logo-p { transform-box: fill-box; transform-origin: 0% 100%; }
+.brand:hover .logo-p { animation: nod 0.7s var(--ease) 1; }
+.is-busy .logo-p { animation: breathe 2.2s ease-in-out infinite; }
 
 /* Views and panels */
 .start { animation: rise 0.4s var(--ease) backwards; }
@@ -510,7 +515,6 @@ a.file-card { text-decoration: none; color: inherit; }
   .scrim { display: block; position: fixed; inset: 0; z-index: 25; background: var(--overlay); opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .nav-open .scrim { opacity: 1; pointer-events: auto; }
   .topbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
-  .brand-small { font-family: var(--serif); font-weight: 600; font-size: 20px; }
   .menu-btn { border: 0; background: none; padding: 8px; border-radius: 10px; }
   .menu-btn:hover { background: var(--paper-deep); }
   .column { padding: 28px 18px 16px; }

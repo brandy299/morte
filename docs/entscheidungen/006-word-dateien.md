@@ -22,5 +22,5 @@ Stand: 2026-10-06
 
 - Gelesen wird nur Text. Bilder, Formatierung und Kommentare einer Word-Datei kennt der Assistent nicht.
 - Geprüft wurde das Aussehen mit LibreOffice. In Microsoft Word selbst wurde es nicht geöffnet.
-- `npm audit` meldet für `mammoth` eine Warnung der Stufe "mittel" in einer Unterbibliothek (`sprintf-js` über `argparse`, Überlastung durch eine extrem lange Formatangabe). Betroffen ist die Kommandozeile von `argparse`, die morte nicht benutzt. Die vorgeschlagene Behebung würde `mammoth` auf eine alte Version zurücksetzen und wird nicht übernommen. Bei einem Update von `mammoth` neu prüfen.
+- `npm audit` meldet für `mammoth` eine Warnung der Stufe "mittel" in einer Unterbibliothek (`sprintf-js` über `argparse`, Überlastung durch eine extrem lange Formatangabe). Betroffen ist die Kommandozeile von `argparse`, die Pult nicht benutzt. Die vorgeschlagene Behebung würde `mammoth` auf eine alte Version zurücksetzen und wird nicht übernommen. Bei einem Update von `mammoth` neu prüfen.
 - Pro Reihe liegen Word- und PDF-Fassung nebeneinander. Wird eine Word-Datei geändert, ändert sich das PDF nicht mit.

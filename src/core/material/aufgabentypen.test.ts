@@ -97,7 +97,7 @@ describe("worksheets with typed tasks", () => {
 
   it("show every part in the PDF, and the solution only in the teacher's copy", async () => {
     const file = async (lehrer: boolean) => {
-      const f = join(await mkdtemp(join(tmpdir(), "morte-pdf-")), "a.pdf");
+      const f = join(await mkdtemp(join(tmpdir(), "pult-pdf-")), "a.pdf");
       await writeFile(f, (await renderArbeitsblatt(sheet, { lehrerexemplar: lehrer })).pdf);
       return f;
     };
@@ -117,7 +117,7 @@ describe("worksheets with typed tasks", () => {
   });
 
   it("show every part in the Word file too", async () => {
-    const f = join(await mkdtemp(join(tmpdir(), "morte-word-")), "a.docx");
+    const f = join(await mkdtemp(join(tmpdir(), "pult-word-")), "a.docx");
     await writeFile(f, await arbeitsblattWord(sheet));
     const text = (await mammoth.extractRawText({ path: f })).value;
     for (const part of ["apply", "bewerben", "Frist", "am writing", "Dear Sir or Madam", "Englisch", "Lebenslauf"]) expect(text, part).toContain(part);

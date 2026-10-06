@@ -16,7 +16,7 @@ function session(onUsage?: (d: { input: number; output: number; cost: number }) 
 
 describe("usage", () => {
   beforeEach(async () => {
-    process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-usage-"));
+    process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "pult-usage-"));
   });
 
   it("reports tokens and context after an answer and adds up over turns", async () => {

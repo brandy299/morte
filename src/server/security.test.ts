@@ -9,7 +9,7 @@ const secrets = { kind: "file" as const, get: async () => undefined, set: async 
 let app: ReturnType<typeof createApp>;
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-sec-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "pult-sec-"));
   app = createApp({ secrets, session: undefined, configured: undefined });
 });
 
@@ -39,12 +39,12 @@ describe("only this computer may use the API", () => {
   it("accepts the development server only when it is announced", async () => {
     const viaDev = { host: "127.0.0.1:3001", origin: "http://localhost:5173" }; // Vite forwards with the server's own Host
     expect((await post(viaDev)).status).toBe(403);
-    process.env.MORTE_DEV_PORT = "5173";
+    process.env.PULT_DEV_PORT = "5173";
     try {
       expect((await post(viaDev)).status).toBe(200);
       expect((await post({ host: "127.0.0.1:3001", origin: "https://evil.example:5173" })).status).toBe(403);
     } finally {
-      delete process.env.MORTE_DEV_PORT;
+      delete process.env.PULT_DEV_PORT;
     }
   });
 });
@@ -86,7 +86,7 @@ describe("own OpenAI-compatible server in the setup", () => {
     const res = await mine.request("/api/setup/save", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ provider: "custom", model: "llama", apiKey: "geheim", baseUrl: "http://localhost:11434/v1/", contextWindow: 16000 }) });
     expect(res.status).toBe(200);
     const { readFile } = await import("node:fs/promises");
-    const md = await readFile(join(process.env.MORTE_HOME!, "Einstellungen", "Provider.md"), "utf8");
+    const md = await readFile(join(process.env.PULT_HOME!, "Einstellungen", "Provider.md"), "utf8");
     expect(md).toContain("Adresse: http://localhost:11434/v1");
     expect(md).toContain("Gedächtnis: 16000");
     expect(md).not.toContain("geheim");

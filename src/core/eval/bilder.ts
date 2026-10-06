@@ -46,7 +46,7 @@ export async function fixtureBild(name: string): Promise<Bild> {
   const raw = SHEETS[name];
   if (!raw) throw new Error(`Das Testbild „${name}“ gibt es nicht.`);
   const { pdf } = await renderArbeitsblatt(parseArbeitsblatt(raw));
-  const dir = await mkdtemp(join(tmpdir(), "morte-bild-"));
+  const dir = await mkdtemp(join(tmpdir(), "pult-bild-"));
   try {
     const file = join(dir, "blatt.pdf");
     await writeFile(file, pdf);

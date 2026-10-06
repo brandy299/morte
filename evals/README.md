@@ -34,7 +34,7 @@ Ein Testsatz hat `id`, `nachrichten` (was die Lehrkraft nacheinander schreibt, s
 ## Aufrufen
 
 ```
-MORTE_EVAL_API_KEY=… npm run eval -- \
+PULT_EVAL_API_KEY=… npm run eval -- \
   --modell openrouter/anthropic/claude-haiku-4.5 \
   --pruefer openrouter/anthropic/claude-sonnet-4.5
 ```
@@ -43,7 +43,7 @@ MORTE_EVAL_API_KEY=… npm run eval -- \
 - `--wdh 3` spielt jeden Testsatz dreimal, weil Modelle jedes Mal anders antworten.
 - `--ohne-pruefer` lässt nur die Programmprüfungen laufen (wenige Cent).
 - `--limit 3` bricht ab, wenn die Kosten drei US-Dollar überschreiten.
-- Den Schlüssel immer als Umgebungsvariable setzen, nie in den Befehl oder in eine Datei im Repo schreiben. Anbieter und Modell sind frei wählbar, auch eine andere Firma für den Prüfer (`MORTE_EVAL_PRUEFER_KEY`).
+- Den Schlüssel immer als Umgebungsvariable setzen, nie in den Befehl oder in eine Datei im Repo schreiben. Anbieter und Modell sind frei wählbar, auch eine andere Firma für den Prüfer (`PULT_EVAL_PRUEFER_KEY`).
 
 ## Grenzen
 

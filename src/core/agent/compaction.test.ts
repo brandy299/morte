@@ -6,7 +6,7 @@ const user = (text: string): AgentMessage => ({ role: "user", content: text, tim
 const assistant = (text: string): AgentMessage => ({ role: "assistant", content: [{ type: "text", text }] }) as unknown as AgentMessage;
 const toolCall = (): AgentMessage => ({ role: "assistant", content: [{ type: "toolCall", id: "1", name: "klasse_lesen", arguments: { klasse: "11a" } }] }) as unknown as AgentMessage;
 const toolResult = (text: string): AgentMessage => ({ role: "toolResult", toolCallId: "1", toolName: "klasse_lesen", content: [{ type: "text", text }] }) as unknown as AgentMessage;
-const system = (): AgentMessage => ({ role: "system", content: "Du bist morte." }) as unknown as AgentMessage;
+const system = (): AgentMessage => ({ role: "system", content: "Du bist Pult." }) as unknown as AgentMessage;
 
 describe("splitForCompaction", () => {
   const long = "x".repeat(4000); // about 1000 tokens

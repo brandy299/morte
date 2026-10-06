@@ -15,7 +15,7 @@ const hasPoppler = (() => {
   }
 })();
 const pageText = async (pdf: Buffer, p: number) => {
-  const file = join(await mkdtemp(join(tmpdir(), "morte-ls-")), "a.pdf");
+  const file = join(await mkdtemp(join(tmpdir(), "pult-ls-")), "a.pdf");
   await writeFile(file, pdf);
   return execFileSync("pdftotext", ["-f", String(p), "-l", String(p), file, "-"]).toString();
 };

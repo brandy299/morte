@@ -13,7 +13,7 @@ const run = async (name: string, args: object) => {
 };
 
 beforeEach(async () => {
-  process.env.MORTE_HOME = await mkdtemp(join(tmpdir(), "morte-lpt-"));
+  process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "morte-lpt-"));
   await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
 });
 

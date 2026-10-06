@@ -7,8 +7,8 @@ import { createClass, hasLehrplan, initWorkspace, readKlasse, UserError } from "
 
 let home: string;
 beforeEach(async () => {
-  home = await mkdtemp(join(tmpdir(), "morte-bew-"));
-  process.env.MORTE_HOME = home;
+  home = await mkdtemp(join(tmpdir(), "pult-bew-"));
+  process.env.PULT_HOME = home;
   await initWorkspace();
   await createClass({ name: "11a", schulform: "Berufskolleg", stufe: "11", faecher: ["Business English"] });
   await createClass({ name: "7c", schulform: "Gesamtschule", stufe: "7", faecher: ["Englisch"] });

@@ -89,9 +89,9 @@ async function tables(): Promise<string> {
  * "May I ...?", and collects what the assistant said, what it did and what it left behind.
  */
 export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> & { timeoutMs?: number } = {}): Promise<Transcript> {
-  const before = process.env.MORTE_HOME;
-  const home = await mkdtemp(join(tmpdir(), "morte-eval-"));
-  process.env.MORTE_HOME = home;
+  const before = process.env.PULT_HOME;
+  const home = await mkdtemp(join(tmpdir(), "pult-eval-"));
+  process.env.PULT_HOME = home;
   try {
     await seedWorkspace();
     const { skills } = await listSkills();
@@ -120,8 +120,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     const ordner = `Klasse.md:\n${(await readKlasse(KLASSE)).trim()}\n\nStand.md:\n${(await readStand(KLASSE, FACH)).trim()}`;
     return { turns, files: await collectFiles(), tabelle: await tables(), ordner, vorlage: bilder.length ? bilder.map((b) => b.text).join("\n\n") : undefined, kosten: session.usage().cost };
   } finally {
-    if (before === undefined) delete process.env.MORTE_HOME;
-    else process.env.MORTE_HOME = before;
+    if (before === undefined) delete process.env.PULT_HOME;
+    else process.env.PULT_HOME = before;
     await rm(home, { recursive: true, force: true });
   }
 }
