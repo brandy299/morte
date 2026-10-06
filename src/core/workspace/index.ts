@@ -165,6 +165,32 @@ export async function listMaterial(klasse: string, fach: string, reihe: string):
   }
 }
 
+export interface MaterialEntry { klasse: string; fach: string; reihe: string; name: string; path: string; size: number; modified: string }
+
+/** Every material file of every class, newest first, for the overview page. `path` is what /api/material takes. */
+export async function listAllMaterial(): Promise<MaterialEntry[]> {
+  const result: MaterialEntry[] = [];
+  for (const klasse of await subdirs(klassenDir())) {
+    for (const fach of await subdirs(join(klassenDir(), klasse))) {
+      for (const reihe of await subdirs(join(klassenDir(), klasse, fach))) {
+        const folder = join(klassenDir(), klasse, fach, reihe, "Material");
+        let names: string[] = [];
+        try {
+          names = (await readdir(folder)).filter((n) => materialType(n));
+        } catch {
+          continue;
+        }
+        for (const name of names) {
+          const info = await stat(join(folder, name)).catch(() => undefined);
+          if (!info?.isFile()) continue;
+          result.push({ klasse, fach, reihe, name, path: `Klassen/${klasse}/${fach}/${reihe}/Material/${name}`, size: info.size, modified: info.mtime.toISOString() });
+        }
+      }
+    }
+  }
+  return result.sort((a, b) => b.modified.localeCompare(a.modified) || a.name.localeCompare(b.name, "de", { numeric: true }));
+}
+
 /** Full path of one file in the Material folder of a series. Only the file name counts, never a path. */
 export async function materialDatei(klasse: string, fach: string, reihe: string, datei: string): Promise<string> {
   const { dir } = await resolveFach(klasse, fach);

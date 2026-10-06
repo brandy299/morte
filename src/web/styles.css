@@ -635,3 +635,43 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .legend-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; flex: none; margin-right: 6px; }
 .legend li .legend-dot { margin-right: 0; }
 .tree-node.k { display: flex; align-items: center; }
+
+/* ---------- Seite Material ---------- */
+.mat { container-type: inline-size; max-width: 980px; margin: 0 auto; padding: 36px 28px 110px; display: flex; flex-direction: column; gap: 14px; animation: rise 0.4s var(--ease) backwards; }
+.mat-head h1 { margin: 0 0 4px; }
+.mat-head p { margin: 0; }
+.mat-tools { display: flex; flex-direction: column; gap: 10px; }
+.mat-search input { width: 100%; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; }
+.mat-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.mat-filters button { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink); font-size: 14.5px; }
+.mat-filters button:hover { border-color: var(--accent); }
+.mat-filters button.on { background: var(--accent-wash); border-color: var(--accent); }
+.mat .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--k, var(--ink-soft)); flex: none; }
+.mat-count { margin: 0; font-size: 14.5px; }
+.linklike { border: 0; background: none; padding: 0; color: var(--accent-deep); text-decoration: underline; font: inherit; cursor: pointer; }
+.mat-group { border: 1px solid var(--line); border-top: 4px solid var(--k, var(--line)); border-radius: 14px; background: var(--card); padding: 14px 18px 8px; }
+.mat-group h2 { display: flex; align-items: center; gap: 9px; margin: 0 0 4px; font-size: 19px; }
+.mat-reihe h3 { margin: 12px 0 2px; font-size: 14px; font-family: var(--sans); font-weight: 600; letter-spacing: 0.02em; color: var(--ink-soft); }
+.mat-reihe ul { list-style: none; margin: 0; padding: 0; }
+.mat-reihe li { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+.mat-reihe li:first-child { border-top: 0; }
+.mat-check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.mat-badge { min-width: 48px; padding: 2px 8px; border-radius: 6px; background: var(--paper-deep); font-size: 12.5px; font-weight: 600; text-align: center; letter-spacing: 0.03em; }
+.mat-name { overflow-wrap: anywhere; }
+.mat-meta { color: var(--ink-soft); font-size: 13.5px; white-space: nowrap; }
+.mat-actions { display: flex; gap: 8px; }
+.mat-actions .ghost { padding: 6px 12px; font-size: 14px; }
+.mat-empty { padding: 28px; border: 1px dashed var(--line); border-radius: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.mat-empty p { margin: 0; }
+.mat-note { margin: 0; color: var(--danger-ink); }
+.mat-bar { position: sticky; bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); box-shadow: 0 6px 24px rgb(0 0 0 / 0.12); }
+.mat-bar > span:first-child { flex: 1 1 200px; }
+.mat-bar .primary { padding: 8px 16px; text-decoration: none; }
+/* The page gets narrow when the preview is open, so the layout follows the width of the page, not of the window. */
+@container (max-width: 640px) {
+  .mat-reihe li { grid-template-columns: auto auto minmax(0, 1fr); row-gap: 4px; }
+  .mat-meta, .mat-actions { grid-column: 3; }
+}
+@media (max-width: 720px) {
+  .mat { padding: 24px 16px 110px; }
+}
