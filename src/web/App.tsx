@@ -198,7 +198,7 @@ function Chat({ tree, refreshTree, onNewClass, onSettings }: ChatProps) {
       <aside className="side">
         <div className="brand">
           <span className="brand-mark" aria-hidden />
-          morte
+          Pult
         </div>
         <button className="new" onClick={newChat}>
           Neues Gespräch

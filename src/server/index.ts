@@ -171,6 +171,6 @@ if (process.argv[1]?.endsWith("server/index.ts") || process.argv[1]?.endsWith("s
   });
   const port = Number(process.env.PORT ?? 3001);
   serve({ fetch: app.fetch, port, hostname: "127.0.0.1" }, () =>
-    console.log(`morte läuft auf http://localhost:${port}`),
+    console.log(`Pult läuft auf http://localhost:${port}`),
   );
 }

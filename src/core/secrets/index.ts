@@ -9,7 +9,9 @@ export interface SecretStore {
   delete(name: string): Promise<void>;
 }
 
-const SERVICE = "morte";
+const SERVICE = "pult";
+/** Name of the app before it was renamed. Keys saved under it are still found. */
+const LEGACY_SERVICE = "morte";
 
 async function keychainStore(): Promise<SecretStore | undefined> {
   try {
@@ -20,7 +22,8 @@ async function keychainStore(): Promise<SecretStore | undefined> {
     await probe.deletePassword();
     return {
       kind: "keychain",
-      get: async (name) => (await new AsyncEntry(SERVICE, name).getPassword()) ?? undefined,
+      get: async (name) =>
+        (await new AsyncEntry(SERVICE, name).getPassword()) ?? (await new AsyncEntry(LEGACY_SERVICE, name).getPassword().catch(() => undefined)) ?? undefined,
       set: (name, value) => new AsyncEntry(SERVICE, name).setPassword(value),
       delete: async (name) => {
         await new AsyncEntry(SERVICE, name).deletePassword();

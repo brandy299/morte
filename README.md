@@ -1,4 +1,4 @@
-# morte
+# Pult
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Fahrplan: `ROADMAP.md`, Regeln: `CLAUDE.md`.
 
@@ -13,7 +13,7 @@ Dann im Browser `http://localhost:5173` öffnen. Beim ersten Start führt eine S
 
 Anbieter: Claude, OpenAI, DeepSeek. "Erst einmal ohne KI ansehen" startet einen Demo-Modus ohne echte KI.
 
-Der Datenordner ist `~/morte-daten` (änderbar mit `MORTE_HOME`).
+Der Datenordner ist `~/pult-daten` (änderbar mit `PULT_HOME`). Ein alter Ordner `~/morte-daten` wird beim ersten Start einmal umbenannt.
 
 
 ## Prüfen

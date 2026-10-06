@@ -1,6 +1,6 @@
-# CLAUDE.md: Regeln für die Arbeit an morte
+# CLAUDE.md: Regeln für die Arbeit an Pult
 
-morte ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materialerstellung, Klassenstruktur, Stundenplan-Dashboard). Der Fahrplan steht in `ROADMAP.md`, die Ordnerstruktur in `docs/ordnerstruktur.md`. Lies beides, bevor du etwas Größeres anfängst.
+Pult ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materialerstellung, Klassenstruktur, Stundenplan-Dashboard). Der Fahrplan steht in `ROADMAP.md`, die Ordnerstruktur in `docs/ordnerstruktur.md`. Lies beides, bevor du etwas Größeres anfängst.
 
 ## Arbeitsweise
 
@@ -20,7 +20,7 @@ morte ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materi
 - **Datenschutz:** Keine Schülernamen, Noten oder Fotos von Klassenarbeiten in Prompts, Logs, Beispieldaten oder Commits. Es gibt nur Klassen und Kurse. Beispieldaten sind frei erfunden.
 - **Secrets:** API-Keys und Zugangsdaten gehören in den Schlüsselbund oder in eine lokale Konfigurationsdatei außerhalb des Repos, nie in den Quelltext. `.env` und Ähnliches stehen in `.gitignore`.
 - **Provider austauschbar:** Kein Code darf an einen einzelnen KI-Anbieter gebunden sein. Anbieter laufen über eine gemeinsame Schicht. Hauptmodelle brauchen Tool-Calling und Vision (wird beim Einrichten getestet).
-- **Alles in der App:** Kolleginnen und Kollegen installieren nichts außer morte. Keine Abhängigkeit darf ein Zusatzprogramm, einen Browser-Download oder eine Einrichtung außerhalb der App verlangen. Siehe `docs/entscheidungen/002-alles-in-der-app.md`.
+- **Alles in der App:** Kolleginnen und Kollegen installieren nichts außer Pult. Keine Abhängigkeit darf ein Zusatzprogramm, einen Browser-Download oder eine Einrichtung außerhalb der App verlangen. Siehe `docs/entscheidungen/002-alles-in-der-app.md`.
 - **Lizenz:** Das Repo steht unter Apache-2.0. Code aus Projekten mit anderer Lizenz, vor allem AGPL (z. B. Odysseus), wird nicht kopiert. Ideen und Vorgehen dürfen übernommen werden.
 
 ## Architektur-Grundsätze

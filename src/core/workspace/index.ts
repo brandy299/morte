@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, sep } from "node:path";
-import { dataDir } from "../paths.ts";
+import { dataDir, moveLegacyDataDir } from "../paths.ts";
 import { newReiheMarkdown, parseStunden, STATUS, upsertStunde, writeStunden, type AblaufSchritt, type Stunde } from "./reihe.ts";
 
 export { STATUS } from "./reihe.ts";
@@ -17,6 +17,7 @@ export const root = () => dataDir();
 export const klassenDir = () => join(root(), "Klassen");
 
 export async function initWorkspace(): Promise<void> {
+  await moveLegacyDataDir();
   for (const f of TOP_FOLDERS) await mkdir(join(root(), f), { recursive: true });
 }
 

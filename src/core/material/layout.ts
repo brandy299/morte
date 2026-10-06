@@ -1,5 +1,5 @@
 /**
- * Shared look of all morte material: page, header, footer, fonts, tables.
+ * Shared look of all Pult material: page, header, footer, fonts, tables.
  * Every material type (worksheet, exam, answer key) draws through this file, so they look like one family.
  * Everything is black, white and gray on purpose: many schools do not print in color.
  * The PDF is drawn directly (pdfkit), so nothing has to be installed next to the app.
@@ -75,7 +75,7 @@ export interface Sheet {
 }
 
 export function newSheet(title: string): Sheet {
-  const doc = new PDFDocument({ size: "A4", margins: M, bufferPages: true, info: { Title: printable(title), Producer: "morte" } });
+  const doc = new PDFDocument({ size: "A4", margins: M, bufferPages: true, info: { Title: printable(title), Producer: "Pult" } });
   const chunks: Buffer[] = [];
   doc.on("data", (c: Buffer) => chunks.push(c));
   const done = new Promise<void>((resolve) => doc.on("end", resolve));
@@ -155,7 +155,7 @@ export function newSheet(title: string): Sheet {
         const fy = PAGE.h - mm(12);
         doc.font(SANS).fontSize(8).fillColor(SOFT);
         if (note) doc.text(printable(note), left, fy, { width: width / 2, lineBreak: false });
-        doc.text(`morte - Seite ${p + 1} von ${count}`, left + width / 2, fy, { width: width / 2, align: "right", lineBreak: false });
+        doc.text(`Pult - Seite ${p + 1} von ${count}`, left + width / 2, fy, { width: width / 2, align: "right", lineBreak: false });
       }
       doc.end();
       await done;

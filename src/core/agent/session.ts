@@ -4,7 +4,7 @@ import { resolveModel } from "./models.ts";
 import { tools } from "./tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
 
-const SYSTEM_PROMPT = `Du bist morte, ein ruhiger Arbeitsassistent für Lehrkräfte.
+const SYSTEM_PROMPT = `Du bist Pult, ein ruhiger Arbeitsassistent für Lehrkräfte.
 Antworte auf Deutsch, in einfacher Sprache ohne Fachbegriffe.
 Erfinde nichts: Fehlt eine Angabe, frag kurz nach.
 Bitte nie um Schülernamen, Noten oder Fotos von Klassenarbeiten. Es gibt nur Klassen und Kurse.

@@ -1,8 +1,8 @@
-# Roadmap: morte
+# Roadmap: Pult
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -28,7 +28,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Tech-Stack bestätigt: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6. Kein Rust: pi und die Video-Pipeline sind Node, eine Sprache für alles hält das Projekt für eine Person pflegbar
 - [x] Lizenzfrage geklärt: Repo bleibt Apache-2.0. pi ist MIT und passt. Kein Code aus AGPL- oder LGPL-Projekten (Odysseus, pi-desktop), nur Ideen.
 - [ ] Plattform: Mac zuerst, Windows von Anfang an mitdenken (viele Schulen nutzen Windows)
-- [ ] Projektname, Logo und Designrichtung festlegen
+- [~] Projektname, Logo und Designrichtung festlegen (Name: **Pult**, früher "morte", das auf Italienisch und Portugiesisch "Tod" heißt. Logo folgt mit dem Logo-Skill kaankiziltug/logo-design-skill, MIT, nur beim Entwickeln genutzt)
 - [ ] `CLAUDE.md` und `docs/ordnerstruktur.md` im Repo (angelegt)
 
 ## Phase 1: Chat-Kern
@@ -45,7 +45,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 2: Ordnerstruktur und Klassen
 
-- [x] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen (`~/morte-daten`, beim Start)
+- [x] Arbeitsordner nach `docs/ordnerstruktur.md` anlegen (`~/pult-daten`, beim Start)
 - [x] Seitenleiste als Baum: Klasse, Fach, Reihe (ohne Dateipfade)
 - [x] Assistent "Neue Klasse anlegen" (Fragenkatalog)
 - [~] `Stand.md` pro Klasse und Fach, wird nach jeder Sitzung kurz überschrieben (Werkzeug und Anweisung stehen, mit echtem Modell noch nicht erprobt)

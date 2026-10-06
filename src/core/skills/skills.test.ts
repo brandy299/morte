@@ -14,10 +14,10 @@ async function skill(root: string, name: string, description = "Tut etwas. Nicht
 }
 
 beforeEach(async () => {
-  bundled = await mkdtemp(join(tmpdir(), "morte-bundled-"));
-  home = await mkdtemp(join(tmpdir(), "morte-home-"));
-  process.env.MORTE_SKILLS = bundled;
-  process.env.MORTE_HOME = home;
+  bundled = await mkdtemp(join(tmpdir(), "pult-bundled-"));
+  home = await mkdtemp(join(tmpdir(), "pult-home-"));
+  process.env.PULT_SKILLS = bundled;
+  process.env.PULT_HOME = home;
 });
 
 describe("parseSkillFile", () => {
@@ -70,7 +70,7 @@ describe("skills", () => {
 
 describe("bundled skills", () => {
   it("are all valid and have a description that says what they are not for", async () => {
-    delete process.env.MORTE_SKILLS;
+    delete process.env.PULT_SKILLS;
     const { skills, problems } = await listSkills();
     expect(problems).toEqual([]);
     expect(skills.map((s) => s.name)).toContain("arbeitsblatt");

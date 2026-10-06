@@ -4,11 +4,11 @@ Datum: 2026-10-05 · Status: angenommen (Vorgabe von Yannik)
 
 ## Anlass
 
-Kolleginnen und Kollegen sollen nichts außer morte selbst installieren müssen. Der erste Entwurf für die PDF-Erzeugung (HTML-Vorlage über Playwright) hätte einen zusätzlichen Chromium-Browser verlangt (`npx playwright install chromium`, rund 150 MB).
+Kolleginnen und Kollegen sollen nichts außer Pult selbst installieren müssen. Der erste Entwurf für die PDF-Erzeugung (HTML-Vorlage über Playwright) hätte einen zusätzlichen Chromium-Browser verlangt (`npx playwright install chromium`, rund 150 MB).
 
 ## Entscheidung
 
-- **Regel:** Alles, was morte zum Arbeiten braucht, steckt in der App. Es gibt keine Zusatzinstallation und keine Einrichtung außerhalb von morte. Das gilt auch für spätere Funktionen.
+- **Regel:** Alles, was Pult zum Arbeiten braucht, steckt in der App. Es gibt keine Zusatzinstallation und keine Einrichtung außerhalb von Pult. Das gilt auch für spätere Funktionen.
 - **PDF:** Wird direkt in der App gezeichnet mit `pdfkit` (reines Node, Lizenz MIT). Das Layout liegt fest im Code (`src/core/material/`), das Modell liefert nur den Inhalt.
 - **Playwright** ist wieder entfernt.
 
