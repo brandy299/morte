@@ -335,3 +335,12 @@ describe("lernsituation tool", () => {
   });
 });
 
+
+describe("confirmation before changes", () => {
+  it("asks only where existing things are replaced, deleted or changed, never for new material", async () => {
+    const { tools } = await import("./tools.ts");
+    const asking = tools.filter((t) => t.ask).map((t) => t.name).sort();
+    expect(asking).toEqual(["bewertung_speichern", "lernsituation_erstellen", "stand_schreiben", "stunde_eintragen", "vorlage_entfernen", "vorlage_speichern"]);
+    for (const name of ["arbeitsblatt_erstellen", "klausur_erstellen", "stundenverlauf_erstellen"]) expect(tools.find((t) => t.name === name)?.ask, name).toBeUndefined();
+  });
+});

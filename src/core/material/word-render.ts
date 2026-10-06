@@ -23,6 +23,7 @@ export async function arbeitsblattWord(a: Arbeitsblatt, opts: { lehrerexemplar?:
       zeilen: key ? 0 : t.zeilen,
       antwort: key ? (loesungText(a, i) ?? "—") : undefined,
       koerper: koerper(a, i),
+      loesungsansicht: key,
     });
   }
   return w.build(a.fuss);

@@ -214,6 +214,28 @@ interface ChatProps {
   onSettings: () => void;
 }
 
+const isWord = (m: Material) => /\.docx?$/i.test(m.path);
+const VARIANTS: Record<string, string> = { "": "Blatt", "Lösung": "Lösung", "Word": "Word", "Lösung, Word": "Lösung als Word" };
+
+/**
+ * One card per finished piece of material: the sheet, its solution and the Word versions as buttons on one card.
+ * If the same piece was made again (a change was asked for), only the newest files show.
+ */
+function groupMaterials(materials: Material[]): { title: string; parts: { label: string; file: Material }[] }[] {
+  const groups = new Map<string, Map<string, Material>>();
+  for (const file of materials) {
+    const m = /^(.*?)(?: \(([^()]*)\))?$/.exec(file.title)!;
+    const [title, variant] = m[2] !== undefined && m[2] in VARIANTS ? [m[1]!, m[2]] : [file.title, ""];
+    if (!groups.has(title)) groups.set(title, new Map());
+    groups.get(title)!.set(isWord(file) && variant === "" ? "Word" : variant, file);
+  }
+  const order = Object.keys(VARIANTS).map((k) => (k === "" ? "" : k));
+  return [...groups].map(([title, variants]) => ({
+    title,
+    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: VARIANTS[variant] ?? variant, file })),
+  }));
+}
+
 /** One-click changes under a finished result. What fits depends on the kind of material (read from the file name). */
 function followUps(materials: Material[]): { label: string; text: string }[] {
   const names = materials.map((m) => m.name);
@@ -628,6 +650,13 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           </div>
         ) : (
           <>
+        {currentId && messages.length > 0 && (
+          <div className="chat-bar">
+            <a className="export-link" href={`/api/history/${currentId}/export`} download title="Speichert das ganze Gespräch als Textdatei, zum Beispiel, um Rückmeldung zu geben">
+              Gespräch exportieren
+            </a>
+          </div>
+        )}
         <div className="scroll">
           <div className="column">
             {messages.length > 0 && <h1 className="sr-only">Gespräch</h1>}
@@ -684,25 +713,27 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 )}
                 {m.bilder ? <p className="muted-note">{m.bilder === 1 ? "1 Bild angehängt" : `${m.bilder} Bilder angehängt`}</p> : null}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
-                {m.materials?.map((x) =>
-                  /\.docx?$/i.test(x.path) ? (
-                    <a key={x.path} className="file-card" href={materialUrl(x, true)} download={x.name}>
-                      <span className="file-icon word" aria-hidden>DOC</span>
-                      <span>
-                        <strong>{x.title}</strong>
-                        <small>Zum Bearbeiten herunterladen</small>
-                      </span>
-                    </a>
-                  ) : (
-                    <button key={x.path} type="button" className="file-card" onClick={() => setPreview(x)}>
-                      <span className="file-icon" aria-hidden>PDF</span>
-                      <span>
-                        <strong>{x.title}</strong>
-                        <small>Zum Ansehen öffnen</small>
-                      </span>
-                    </button>
-                  ),
-                )}
+                {groupMaterials(m.materials ?? []).map((g) => (
+                  <div key={g.title} className="file-group">
+                    <div className="file-group-head">
+                      <span className="file-icon" aria-hidden>{g.parts.some((p) => !isWord(p.file)) ? "PDF" : "DOC"}</span>
+                      <strong>{g.title}</strong>
+                    </div>
+                    <div className="file-actions">
+                      {g.parts.map((p) =>
+                        isWord(p.file) ? (
+                          <a key={p.file.path} className="file-action" href={materialUrl(p.file, true)} download={p.file.name}>
+                            {p.label} <small>herunterladen</small>
+                          </a>
+                        ) : (
+                          <button key={p.file.path} type="button" className="file-action" onClick={() => setPreview(p.file)}>
+                            {p.label} <small>ansehen</small>
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                ))}
                 {m.role === "assistant" && (m.materials?.length ?? 0) > 0 && !working && i === messages.length - 1 && (
                   <div className="follow-ups">
                     <div className="chips" role="group" aria-label="Das Ergebnis anpassen">

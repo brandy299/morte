@@ -1,6 +1,6 @@
 ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
 G-TECHNIK,M — Gespräch,Keine Technik in den Antworten,"In keiner Antwort stehen Werkzeug- oder Dateinamen, Dateiendungen oder Fachwörter des Programms (JSON, Skill, Rendering).",Lehrkräfte sollen nie Technik lesen müssen.,,Programm
-G-SEITEN,O — Form,Umfang,"Jedes erstellte PDF hat höchstens so viele Seiten, wie der Fall erlaubt (Standard: zwei).",Kurzes Material wird gern genutzt.,,Programm
+G-SEITEN,O — Form,Umfang,"Jedes erstellte PDF hat höchstens so viele Seiten, wie der Fall erlaubt (Standard: drei).","Material soll so lang sein, wie das Thema es braucht, aber nicht ausufern.",,Programm
 G-MATERIAL,O — Form,Material wurde erstellt,"Wenn der Fall Material erwartet, liegt mindestens ein PDF vor.",,,Programm
 G-HINWEIS,O — Form,Ehrlicher Hinweis ohne Lehrplan,"Auf jedem Blatt steht „Ohne hinterlegten Lehrplan erstellt“, weil für die Klasse keiner hinterlegt ist.","Keine erfundenen Fundstellen, stattdessen ein ehrlicher Hinweis.",,Programm
 G-TABELLE,O — Form,Eintrag in der Stundentabelle,"Wenn der Fall einen Termin nennt, steht in der Zeile dieser Stunde Material.",Nur wenn Datum und Reihe bekannt sind.,,Programm

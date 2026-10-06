@@ -63,8 +63,8 @@ describe("checks the program can decide", () => {
 
   it("counts pages, checks the note about the missing curriculum, and skips what does not apply", () => {
     const pdf = (seiten: number, text = "Ohne hinterlegten Lehrplan erstellt") => ({ name: "a.pdf", art: "pdf" as const, text, seiten });
-    expect(PROGRAMM["G-SEITEN"]!(kase(), transcript({ files: [pdf(3)] })).bestanden).toBe(false);
-    expect(PROGRAMM["G-SEITEN"]!(kase({ maxSeiten: 4 }), transcript({ files: [pdf(3)] })).bestanden).toBe(true);
+    expect(PROGRAMM["G-SEITEN"]!(kase(), transcript({ files: [pdf(4)] })).bestanden).toBe(false);
+    expect(PROGRAMM["G-SEITEN"]!(kase({ maxSeiten: 4 }), transcript({ files: [pdf(4)] })).bestanden).toBe(true);
     expect(PROGRAMM["G-SEITEN"]!(kase(), transcript()).bestanden).toBeNull();
     expect(PROGRAMM["G-HINWEIS"]!(kase(), transcript({ files: [pdf(1, "kein Hinweis")] })).bestanden).toBe(false);
     expect(PROGRAMM["G-MATERIAL"]!(kase({ material: true }), transcript()).bestanden).toBe(false);
@@ -143,7 +143,7 @@ describe("running a case", () => {
     const t = await runCase({ ...kase({ material: true, eintrag: "14.10." }), nachrichten: ["Arbeitsblatt zum Anschreiben am 14.10."] }, { provider: "x" }, { resolve: () => ({ models, model: faux.getModel() }) });
     expect(t.turns[0]!.assistant).toContain("Das Blatt ist fertig");
     expect(t.turns[0]!.steps).toContain("Arbeitsblatt erstellen");
-    expect(t.turns[0]!.fragen[0]).toContain("Darf ich das Arbeitsblatt");
+    expect(t.turns[0]!.fragen).toEqual([]); // a new worksheet needs no confirmation
     expect(t.files.map((f) => f.name)).toEqual(expect.arrayContaining([expect.stringMatching(/Arbeitsblatt-Das-Anschreiben\.pdf/), expect.stringMatching(/Loesung.*Lösungsblatt/)]));
     expect(t.files.find((f) => f.art === "pdf" && !/Lösungsblatt/.test(f.name))).toMatchObject({ seiten: 1, text: expect.stringContaining("Nenne zwei Teile") });
     expect(t.tabelle).toMatch(/\| 14\.10\. \|.*Arbeitsblatt-Das-Anschreiben\.pdf/);

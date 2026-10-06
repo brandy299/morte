@@ -25,7 +25,7 @@ type Params = Tool["parameters"];
 /** Keeps the argument types of each tool while the list below holds them as one type. */
 const defineTool = <P extends Params>(tool: AgentTool<P> & { ask?: (args: any) => string; producesMaterial?: boolean }): TeacherTool => tool as TeacherTool;
 
-const wordParam = Type.Optional(Type.Boolean({ description: "Also save an editable Word version (.docx) next to the PDF. Set it when the teacher wants to edit the material in Word." }));
+const wordParam = Type.Optional(Type.Boolean({ description: "Also save an editable Word version (.docx) next to the PDF. Only when the teacher asks for Word or wants to edit the material; never by default." }));
 
 /** Saves a Word file next to the PDF and returns the card for it. Word files are downloaded, not previewed. */
 async function saveWord(buf: Buffer, where: Parameters<typeof saveMaterial>[1], title: string) {
@@ -161,7 +161,6 @@ const reiheAnlegen = defineTool({
     leistungsnachweis: Type.Optional(Type.String()),
     szenario: Type.Optional(Type.String()),
   }),
-  ask: (a) => `Darf ich in ${a.klasse}, ${a.fach} die neue Reihe „${a.thema}“ anlegen?`,
   async execute(_id, { klasse, fach, ...rest }) {
     const name = await createReihe(klasse, fach, rest);
     return text(`Die Reihe ist angelegt: ${name}`);
@@ -291,13 +290,13 @@ const arbeitsblattErstellen = defineTool({
   producesMaterial: true,
   label: "Arbeitsblatt erstellen",
   description:
-    "Builds a print-ready worksheet as PDF (gray only, fixed layout) from structured content, with free tasks and typed tasks (matching, gap text, multiple choice, table) and shows it in the preview. You write only the content, never the layout. Keep it short: aim for one page, two at most. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table. Returns the page count.",
+    "Builds a print-ready worksheet as PDF (gray only, fixed layout) from structured content, with free tasks and typed tasks (matching, gap text, multiple choice, table) and shows it in the preview. You write only the content, never the layout. The length follows the lesson and the topic (usually one to three pages); do not cut good content to save paper. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table. Returns the page count.",
   parameters: Type.Object({
     titel: Type.String(),
     fach: Type.Optional(Type.String()),
     klasse: Type.Optional(Type.String()),
     niveau: Type.Optional(Type.String({ description: "Level of a differentiated version, e.g. Basis, Standard, Erweiterung" })),
-    einleitung: Type.Optional(Type.String({ description: "Short intro or instruction for students" })),
+    einleitung: Type.Optional(Type.String({ description: "The material the tasks refer to: an information text, a case, a source (up to about 3000 characters), or a short intro. Explain technical terms" })),
     merkkasten: Type.Optional(Type.Object({ titel: Type.Optional(Type.String()), text: Type.String() })),
     aufgaben: Type.Array(
       Type.Object({
@@ -306,7 +305,7 @@ const arbeitsblattErstellen = defineTool({
         punkte: Type.Optional(Type.Number()),
         zeilen: Type.Optional(Type.Number({ description: "Writing lines under the task, 0 to 15" })),
         loesung: Type.Optional(Type.String({ description: "Expected answer for a free task. For the typed tasks below the program writes the solution itself; add here only what else the teacher should know (for example why a wrong choice tempts students). If any task has a solution, a second PDF for the teacher is made" })),
-        art: Type.Optional(StringEnum(["frei", "zuordnung", "luecken", "auswahl", "tabelle"], { description: "Kind of task. Default frei (free text). zuordnung needs paare, luecken needs saetze, auswahl needs optionen and richtig, tabelle needs tabelle" })),
+        art: Type.Optional(StringEnum(["frei", "zuordnung", "luecken", "auswahl", "tabelle", "schaubild"], { description: "Kind of task. Default frei (free text). zuordnung needs paare, luecken needs saetze, auswahl needs optionen and richtig, tabelle needs tabelle, schaubild needs schaubild" })),
         paare: Type.Optional(Type.Array(Type.Object({ links: Type.String(), rechts: Type.String() }), { description: "zuordnung: 3 to 10 pairs. The program shuffles the right side, numbers the left and letters the right, and writes the solution" })),
         saetze: Type.Optional(Type.Array(Type.String(), { description: "luecken: 1 to 8 sentences, the missing word in double curly braces: \"Yesterday I {{wrote}} a letter.\"" })),
         wortliste: Type.Optional(Type.Boolean({ description: "luecken: print the missing words, shuffled, as a word bank" })),
@@ -317,6 +316,24 @@ const arbeitsblattErstellen = defineTool({
           zeilen: Type.Array(Type.Array(Type.String()), { description: "Rows, each with one entry per column. An empty string is a blank for the students to fill in" }),
           loesung: Type.Optional(Type.Array(Type.Array(Type.String()), { description: "The same rows with every field filled in" })),
         }, { description: "tabelle: a table to complete" })),
+        schaubild: Type.Optional(Type.Object({
+          art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen"], { description: "ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers" }),
+          titel: Type.Optional(Type.String({ description: "Caption below the diagram" })),
+          knoten: Type.Optional(Type.Array(Type.Object({
+            id: Type.String({ description: "Short unique name, used in verbindungen" }),
+            text: Type.String({ description: "Text in the box, short (a few words)" }),
+            datum: Type.Optional(Type.String({ description: "zeitstrahl: the date or year" })),
+            leer: Type.Optional(Type.Boolean({ description: "Leave the box empty for the students to fill in. The program numbers these boxes and writes the key for the teacher" })),
+            betont: Type.Optional(Type.Boolean({ description: "Heavy edge and gray fill, for the most important box" })),
+          }), { description: "ablauf, hierarchie, kreislauf: 2 to 12 boxes (kreislauf 3 to 8, zeitstrahl 2 to 8, in order)" })),
+          verbindungen: Type.Optional(Type.Array(Type.Object({ von: Type.String(), nach: Type.String(), text: Type.Optional(Type.String({ description: "Label on the arrow, a few words" })) }), { description: "Arrows between boxes by id. ablauf: leave out for a simple chain in the order of the boxes. hierarchie: required (from the upper to the lower box). No arrows back: use kreislauf for cycles" })),
+          richtung: Type.Optional(StringEnum(["waagerecht", "senkrecht"], { description: "ablauf, hierarchie: left to right or top to bottom. Leave out and the program chooses" })),
+          mitte: Type.Optional(Type.String({ description: "kreislauf: text in the middle" })),
+          saeulen: Type.Optional(Type.Array(Type.Object({ name: Type.String(), wert: Type.Number() }), { description: "saeulen: 2 to 8 bars" })),
+          einheit: Type.Optional(Type.String({ description: "saeulen: unit shown at the axis, e.g. Prozent" })),
+          leer: Type.Optional(Type.Boolean({ description: "saeulen: the students draw the bars themselves; the teacher's copy shows them" })),
+          wortliste: Type.Optional(Type.Boolean({ description: "Print the texts of the empty boxes, shuffled, as a word bank" })),
+        }, { description: "schaubild: a diagram the program draws. Use it for processes, structures, cycles, time lines and numbers instead of describing them in words. Gray and print-ready. It cannot draw pictures, maps or photos" })),
       }),
       { description: "1 to 20 tasks. Give the parts of matching, gap and table tasks in the fields, never inside the task text: the sheet shows only what is in the fields" },
     ),
@@ -325,10 +342,6 @@ const arbeitsblattErstellen = defineTool({
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
   }),
-  ask: (a) =>
-    a.klasse && a.reihe
-      ? `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, datum, stunde, word, ...content } = args;
     const sheet = parseArbeitsblatt({
@@ -350,7 +363,7 @@ const arbeitsblattErstellen = defineTool({
       : "fehlt klasse, fach, reihe oder datum";
     if (entered === true && wordSheet) await tryAttach(content.klasse!, content.fach!, reihe!, { datum: datum!, stunde: stunde ?? "", thema: sheet.titel }, wordSheet.saved.name, { append: true });
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 1 ? " Es sind mehr als eine Seite. Wenn die Lehrkraft wenige Seiten wollte, kürze zuerst Schreibzeilen, Tipps und die Einleitung. Streiche nie Aufgaben, die die Lehrkraft ausdrücklich verlangt hat. Passt es dann nicht, sag es ehrlich." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""}} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: {
         materials: [
           { title: shown, name: saved.name, path: saved.path },
@@ -393,10 +406,6 @@ const stundenverlaufErstellen = defineTool({
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     word: wordParam,
   }),
-  ask: (a) =>
-    a.klasse && a.reihe
-      ? `Darf ich die Stundenplanung „${a.titel}“ erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich die Stundenplanung „${a.titel}“ erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, stunde, word, ...content } = args;
     const plan = parseVerlauf({
@@ -542,10 +551,6 @@ const klausurErstellen = defineTool({
     bereiche: Type.Optional(Type.Array(bereichSchema)),
     notenschluessel: Type.Optional(Type.Array(noteSchema)),
   }),
-  ask: (a) =>
-    a.klasse && a.reihe
-      ? `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, stunde, bereiche, notenschluessel, word, ...content } = args;
     const own = content.klasse ? await readBewertung(content.klasse).catch(() => undefined) : undefined;

@@ -48,6 +48,20 @@ const FONT_FILES: Record<string, string> = {
   [SANS_BOLD_ITALIC]: "SourceSans3_700Bold_Italic.ttf",
 };
 
+/** Font name -> file, for drawing code that does not use pdfkit (pictures for Word files). */
+export const fontFile = (name: string) => FONT_DIR + FONT_FILES[name]!;
+export const FONT_NAMES = Object.keys(FONT_FILES);
+
+let scratch: PDFKit.PDFDocument | undefined;
+/** Width of a single line of text in points, measured with the real font. For laying out drawings. */
+export function textWidth(text: string, font: string, size: number): number {
+  if (!scratch) {
+    scratch = new PDFDocument();
+    registerFonts(scratch);
+  }
+  return scratch.font(font).fontSize(size).widthOfString(printable(text));
+}
+
 function registerFonts(doc: PDFKit.PDFDocument) {
   for (const [name, file] of Object.entries(FONT_FILES)) doc.registerFont(name, FONT_DIR + file);
 }

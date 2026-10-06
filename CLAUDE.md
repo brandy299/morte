@@ -35,7 +35,7 @@ morte ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materi
 ## Architektur-Grundsätze
 
 - Agentenkern: `@earendil-works/pi-ai` und `@earendil-works/pi-agent-core`, Versionen exakt gepinnt. Nur `src/core/agent` importiert pi direkt, der Rest der App spricht mit dieser Schicht. Begründung in `docs/entscheidungen/001-agentenkern.md`.
-- Der Agent bekommt nur feste, lehrerspezifische Werkzeuge, keine freie Shell. Rückfragen vor Aktionen laufen über `beforeToolCall`, in einfacher Sprache.
+- Der Agent bekommt nur feste, lehrerspezifische Werkzeuge, keine freie Shell. Rückfragen vor Aktionen laufen über `beforeToolCall`, in einfacher Sprache. Gefragt wird nur, wenn ein Werkzeug Vorhandenes ersetzt, löscht oder ändert (Stand, Stundentabelle, Bewertungsregeln, Vorlagen) oder gleich mehrere Dinge anlegt (eine Lernsituation). Neues Material und eine neue Reihe (Arbeitsblatt, Klausur, Stundenplanung) wird ohne Rückfrage erstellt, es überschreibt nie etwas. Fehlen Angaben, fragt der Assistent mit `fragen_stellen`, jede Frage mit empfohlener Antwort und Begründung.
 - Die Fortschrittsanzeige wird aus den Agenten-Ereignissen gespeist (`tool_execution_start/end`, `message_update`). Jedes Werkzeug hat ein deutsches `label` für die Anzeige.
 - Vision und Tool-Calling eines Modells werden über den pi-Modellkatalog geprüft (`model.input`) und beim Einrichten zusätzlich getestet.
 - Neue Grundsatzentscheidungen kommen als nummerierte Datei nach `docs/entscheidungen/`.
@@ -49,7 +49,7 @@ morte ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materi
 
 ## Materialien (Standard für alle mitgelieferten Skills)
 
-- Ausgabe als druckfertiges PDF, in Graustufen gut lesbar (viele Schulen drucken nicht in Farbe), möglichst wenige Seiten, Querformat ist erlaubt.
+- Ausgabe als druckfertiges PDF, in Graustufen gut lesbar (viele Schulen drucken nicht in Farbe), Seitenzahl nach Inhalt, nicht künstlich gekürzt (Platz spart das Layout, nicht das Weglassen); Querformat ist erlaubt. Abläufe, Aufbau, Kreisläufe, Zeitverläufe und Zahlen werden als Schaubild gezeichnet.
 - Eine eigene, besondere Optik, die nicht sofort nach Standard-KI aussieht.
 - Erklärvideos haben standardmäßig keine Stimme (nur Musik). Sprache nur auf ausdrücklichen Wunsch.
 

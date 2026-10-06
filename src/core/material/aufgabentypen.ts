@@ -5,8 +5,10 @@
  * Shuffling is seeded, so the PDF, the Word file and the teacher's copy show the same order.
  */
 import { MaterialError, str } from "./layout.ts";
+import { mischen } from "./mischen.ts";
+import { parseSchaubild, versteckt, type Schaubild } from "./schaubild.ts";
 
-export type Art = "frei" | "zuordnung" | "luecken" | "auswahl" | "tabelle";
+export type Art = "frei" | "zuordnung" | "luecken" | "auswahl" | "tabelle" | "schaubild";
 
 export interface Typ {
   art: Art;
@@ -20,6 +22,8 @@ export interface Typ {
   richtig?: number;
   /** Rows to fill in: an empty cell is a blank for the students. `loesung` has every cell filled. */
   tabelle?: { spalten: string[]; zeilen: string[][]; loesung?: string[][] };
+  /** A diagram: flow, structure, cycle, timeline, bar chart. */
+  schaubild?: Schaubild;
 }
 
 const MARK = /\{\{\s*([^{}]+?)\s*\}\}/g;
@@ -34,8 +38,8 @@ function list(v: unknown, what: string, nr: number, min: number, max: number): u
 
 /** Checks the type-specific parts of one task. Which type it is follows from `art`, or from the parts that are given. */
 export function parseTyp(t: Record<string, unknown>, nr: number): Typ {
-  const art = (t.art as Art | undefined) ?? (t.paare ? "zuordnung" : t.saetze ? "luecken" : t.optionen ? "auswahl" : t.tabelle ? "tabelle" : "frei");
-  if (!["frei", "zuordnung", "luecken", "auswahl", "tabelle"].includes(art)) throw new MaterialError(`Aufgabe ${nr}: Die Art „${String(t.art)}“ gibt es nicht. Erlaubt: frei, zuordnung, luecken, auswahl, tabelle.`);
+  const art = (t.art as Art | undefined) ?? (t.paare ? "zuordnung" : t.saetze ? "luecken" : t.optionen ? "auswahl" : t.tabelle ? "tabelle" : t.schaubild ? "schaubild" : "frei");
+  if (!["frei", "zuordnung", "luecken", "auswahl", "tabelle", "schaubild"].includes(art)) throw new MaterialError(`Aufgabe ${nr}: Die Art „${String(t.art)}“ gibt es nicht. Erlaubt: frei, zuordnung, luecken, auswahl, tabelle, schaubild.`);
 
   if (art === "zuordnung") {
     const paare = list(t.paare, "Zuordnung", nr, 3, 10).map((p, i) => {
@@ -73,36 +77,13 @@ export function parseTyp(t: Record<string, unknown>, nr: number): Typ {
     const loesung = tb.loesung === undefined ? undefined : cells(list(tb.loesung, "Tabelle, Lösung", nr, zeilen.length, zeilen.length), "Lösungszeile");
     return { art, tabelle: { spalten, zeilen, loesung } };
   }
+  if (art === "schaubild") return { art, schaubild: parseSchaubild(t.schaubild, nr) };
   return { art: "frei" };
 }
 
 // ---------- shuffling ----------
 
-function rng(seed: string): () => number {
-  let h = 2166136261;
-  for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
-  let x = (h >>> 0) || 1;
-  return () => (x = (Math.imul(x, 1664525) + 1013904223) >>> 0) / 2 ** 32;
-}
-
-/** A permutation of 0..n-1 that moves every element (for n >= 2), the same every time for the same seed. */
-export function mischen(n: number, seed: string): number[] {
-  const r = rng(seed);
-  const a = Array.from({ length: n }, (_, i) => i);
-  for (let i = n - 1; i > 0; i--) {
-    const j = Math.floor(r() * (i + 1));
-    [a[i], a[j]] = [a[j]!, a[i]!];
-  }
-  if (n >= 2) {
-    for (let i = 0; i < n; i++) {
-      if (a[i] === i) {
-        const j = (i + 1) % n;
-        [a[i], a[j]] = [a[j]!, a[i]!];
-      }
-    }
-  }
-  return a;
-}
+export { mischen } from "./mischen.ts";
 
 // ---------- what is drawn ----------
 
@@ -110,7 +91,8 @@ export type Koerper =
   | { art: "zuordnung"; links: string[]; rechts: string[] }
   | { art: "luecken"; saetze: string[]; wortliste?: string }
   | { art: "auswahl"; optionen: string[] }
-  | { art: "tabelle"; spalten: string[]; zeilen: string[][] };
+  | { art: "tabelle"; spalten: string[]; zeilen: string[][] }
+  | { art: "schaubild"; schaubild: Schaubild; wortliste?: string };
 
 /** The parts of a task as they appear on the sheet: numbered, lettered, shuffled, blanks drawn. */
 export function koerperVon(typ: Typ, seed: string): Koerper | undefined {
@@ -128,6 +110,7 @@ export function koerperVon(typ: Typ, seed: string): Koerper | undefined {
   }
   if (typ.art === "auswahl" && typ.optionen) return { art: "auswahl", optionen: typ.optionen.map((o, i) => `${letter(i)})  ${o}`) };
   if (typ.art === "tabelle" && typ.tabelle) return { art: "tabelle", spalten: typ.tabelle.spalten, zeilen: typ.tabelle.zeilen };
+  if (typ.art === "schaubild" && typ.schaubild) return { art: "schaubild", schaubild: typ.schaubild, wortliste: versteckt(typ.schaubild, seed).wortliste };
   return undefined;
 }
 
@@ -146,6 +129,8 @@ export function loesungVon(typ: Typ, seed: string, eigene?: string): string | un
     own = `Richtig: ${letter(typ.richtig - 1)}) ${typ.optionen[typ.richtig - 1]}`;
   } else if (typ.art === "tabelle" && typ.tabelle?.loesung) {
     own = typ.tabelle.loesung.map((r) => r.join(" | ")).join("\n");
+  } else if (typ.art === "schaubild" && typ.schaubild) {
+    own = versteckt(typ.schaubild, seed).loesung;
   }
   return [own, eigene].filter(Boolean).join("\n") || undefined;
 }

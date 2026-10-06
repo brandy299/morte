@@ -4,10 +4,12 @@
  * The fonts are ones every Word has (Georgia for headings, Calibri for text), so nothing needs to be embedded.
  */
 import {
-  AlignmentType, BorderStyle, Document, Footer, HeightRule, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
+  AlignmentType, BorderStyle, Document, Footer, HeightRule, ImageRun, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
   type ParagraphChild,
 } from "docx";
 import type { Koerper } from "./aufgabentypen.ts";
+import { szeneVon } from "./schaubild.ts";
+import { szeneAlsPng } from "./schaubild-zeichnen.ts";
 import { printable } from "./layout.ts";
 
 export const SERIF_W = "Georgia";
@@ -41,7 +43,7 @@ export interface WordDoc {
   /** Row of small facts, e.g. "45 Minuten · 14.10.". */
   facts(items: string[]): void;
   /** One numbered task: number, text, optional hint, points, lines or answer. */
-  task(opts: { nr: string; text: string; hilfe?: string; punkte?: string; zeilen?: number; antwort?: string; indent?: boolean; koerper?: Koerper }): void;
+  task(opts: { nr: string; text: string; hilfe?: string; punkte?: string; zeilen?: number; antwort?: string; indent?: boolean; koerper?: Koerper; loesungsansicht?: boolean }): void;
   table(columns: { title: string; share: number; bold?: boolean; right?: boolean }[], rows: string[][], opts?: { noHeader?: boolean; minHeight?: number }): void;
   pageBreak(): void;
   build(footnote?: string): Promise<Buffer>;
@@ -113,7 +115,7 @@ export function newWord(title: string): WordDoc {
     facts(items) {
       if (items.length) doc.paragraph(items.join("   ·   "), { color: SOFT, after: 160 });
     },
-    task({ nr, text, hilfe, punkte, zeilen = 0, antwort, indent, koerper }) {
+    task({ nr, text, hilfe, punkte, zeilen = 0, antwort, indent, koerper, loesungsansicht }) {
       const left = twip(11);
       const tabs = [{ type: TabStopType.LEFT, position: left }, { type: TabStopType.RIGHT, position: PAGE_W }];
       children.push(
@@ -140,7 +142,21 @@ export function newWord(title: string): WordDoc {
         );
       }
       if (koerper) {
-        if (koerper.art === "zuordnung") {
+        if (koerper.art === "schaubild") {
+          // The diagram is a picture in the Word file (the same drawing as in the PDF), 450 points wide.
+          const scene = szeneVon(koerper.schaubild, 450, loesungsansicht === true);
+          const px = 96 / 72;
+          children.push(
+            new Paragraph({
+              keepNext: Boolean(koerper.schaubild.titel || koerper.wortliste),
+              spacing: { before: 80, after: 80 },
+              indent: { left },
+              children: [new ImageRun({ type: "png", data: szeneAlsPng(scene), transformation: { width: Math.round((scene.w + 4 / 3) * px), height: Math.round((scene.h + 14 / 3) * px) }, altText: { title: koerper.schaubild.titel ?? "Schaubild", description: koerper.schaubild.titel ?? "Schaubild", name: "Schaubild" } })],
+            }),
+          );
+          if (koerper.schaubild.titel) doc.paragraph(koerper.schaubild.titel, { indent: left, italic: true, size: 9, color: SOFT, after: 100 });
+          if (koerper.wortliste && !loesungsansicht) doc.paragraph(`Wörter:   ${koerper.wortliste}`, { indent: left, bold: true, size: 10, after: 120 });
+        } else if (koerper.art === "zuordnung") {
           doc.table(
             [{ title: "", share: 0.5 }, { title: "", share: 0.5 }],
             koerper.links.map((l, i) => [`${l}      ____`, koerper.rechts[i]!]),
