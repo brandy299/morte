@@ -1,8 +1,9 @@
+import { changeDataDir, openDataDir, ordnerInfo, OrdnerError, pickFolder, resetDataDir } from "../core/ordner/index.ts";
 import { AnhangError, extractFile, MAX_FILES, MAX_TOTAL_CHARS, withFiles, type SentFile } from "../core/anhang/extract.ts";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
-import { Hono, type MiddlewareHandler } from "hono";
+import { Hono, type Context, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
@@ -133,6 +134,21 @@ export function createApp(state: AppState) {
       balance: provider ? await fetchBalance(provider, key) : undefined,
     });
   });
+
+  // Data folder: show, open in Finder/Explorer, pick, move.
+  app.get("/api/ordner", (c) => c.json(ordnerInfo()));
+  const ordnerAction = (run: (c: Context) => Promise<unknown>) => async (c: Context) => {
+    try {
+      return c.json({ ...ordnerInfo(), ...((await run(c)) as object | undefined) });
+    } catch (e) {
+      if (e instanceof OrdnerError) return c.json({ error: e.message }, 400);
+      throw e;
+    }
+  };
+  app.post("/api/ordner/oeffnen", ordnerAction(() => openDataDir()));
+  app.post("/api/ordner/waehlen", async (c) => c.json({ pfad: (await pickFolder()) ?? null }));
+  app.post("/api/ordner/aendern", ordnerAction(async (c) => changeDataDir(String((await c.req.json<{ pfad?: string }>()).pfad ?? ""))));
+  app.post("/api/ordner/standard", ordnerAction(() => resetDataDir()));
 
   // Reads one attached file and returns its text. Nothing is stored; the browser sends the text along with the question.
   app.post("/api/anhang", async (c) => {

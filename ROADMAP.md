@@ -78,6 +78,9 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 ## Querschnitt: Barrierefreiheit
 
 - [x] Oberfläche mit axe-core auf WCAG 2.2 AA geprüft (Start, Gespräch, Vorlagen, Lehrpläne, Einstellungen, Neue Klasse, Stundendetails, Handy-Breite): keine Verstöße. Kontrastprüfung der Farben als Test (`src/web/contrast.test.ts`), Dialog mit Tastaturführung, Menü auf dem Handy per Tastatur bedienbar, keine seitliche Rollleiste bei 320 px
+- [x] Einstellungen wie in der Claude-App mit vier Reitern: Aussehen (hell, dunkel oder wie der Computer, vier Akzentfarben, ruhige Oberfläche ohne Bewegung), Ordner (Datenordner anzeigen, im Finder/Explorer öffnen, an einen anderen Ort kopieren, zurück zum Standard; unter macOS mit Auswahlfenster), KI-Anbieter, Datenschutz. Kontrast aller Farbkombinationen als Test, axe ohne Befund in hell und dunkel. Nicht getestet: das Auswahlfenster unter macOS und das Öffnen im Finder (hier nur Linux)
+- [x] Seiten, die höher sind als das Fenster (Einstellungen, Vorlagen, Lehrpläne), lassen sich scrollen
+- [x] Anbieter OpenCode Go, bei OpenRouter DeepSeek, GLM, Qwen, MiMo und Kimi als empfohlene Modelle (Verbindungstest bestanden), Suche in der Liste aller Modelle. OpenCode Go ist ohne Schlüssel nicht getestet
 - [ ] Prüfung mit einem echten Screenreader und mit Schriftvergrößerung des Systems (noch nicht gemacht, axe findet nur einen Teil der Probleme)
 
 ## Phase 5: Erweiterungen

@@ -8,6 +8,7 @@ import { Vorlagen } from "./Vorlagen.tsx";
 import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
+import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
 
 interface Step {
@@ -119,9 +120,9 @@ export function App() {
         />
       </div>
       {setupOpen && (
-        <Setup
+        <Einstellungen
           status={status}
-          onCancel={() => setSetupOpen(false)}
+          onClose={() => setSetupOpen(false)}
           onDone={() => {
             // Saving builds a new session on the server, so the conversation on screen starts again too.
             setSetupOpen(false);

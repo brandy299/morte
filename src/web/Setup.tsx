@@ -9,7 +9,7 @@ import {
   type SetupStatus,
 } from "./api.ts";
 
-export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDone: () => void; onCancel?: () => void }) {
+export function Setup({ status, onDone, onCancel, embedded }: { status: SetupStatus; onDone: () => void; onCancel?: () => void; embedded?: boolean }) {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [providerId, setProviderId] = useState(status.provider ?? "anthropic");
   const [modelId, setModelId] = useState(status.model ?? "");
@@ -69,19 +69,9 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
     }
   };
 
-  return (
-    <main className="setup">
-      <div className="setup-card">
-        {onCancel && (
-          <button type="button" className="link back" onClick={onCancel}>
-            ← Zurück zum Gespräch
-          </button>
-        )}
-        <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          morte
-        </div>
-        <h1>Welche KI soll dir helfen?</h1>
+  const inner = (
+    <>
+        {embedded ? <h2>Welche KI soll dir helfen?</h2> : <h1>Welche KI soll dir helfen?</h1>}
         <p className="lead">
           Dafür brauche ich einen Zugangsschlüssel von deinem KI-Anbieter. Er bleibt auf diesem Computer
           {status.storage === "file" ? " (in einer Datei nur für dich)" : " (im Schlüsselbund)"} und kommt nie in
@@ -217,6 +207,23 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
         >
           Erst einmal ohne KI ansehen
         </button>
+    </>
+  );
+
+  if (embedded) return <div className="embedded">{inner}</div>;
+  return (
+    <main className="setup">
+      <div className="setup-card">
+        {onCancel && (
+          <button type="button" className="link back" onClick={onCancel}>
+            ← Zurück zum Gespräch
+          </button>
+        )}
+        <div className="brand">
+          <span className="brand-mark" aria-hidden />
+          morte
+        </div>
+        {inner}
       </div>
     </main>
   );

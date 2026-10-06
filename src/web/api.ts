@@ -244,3 +244,18 @@ export async function legeAb(l: { klasse: string; fach: string; datum: string; v
 export interface VorlageInfo { name: string; titel: string; beschreibung: string; eigene: boolean }
 export const getVorlagen = async (): Promise<VorlageInfo[]> => (await (await fetch("/api/vorlagen")).json()).vorlagen;
 export const entferneVorlage = (name: string) => fetch(`/api/vorlagen/${encodeURIComponent(name)}`, { method: "DELETE" });
+
+// ---------- Datenordner ----------
+
+export interface OrdnerInfo { pfad: string; fest: boolean; standard: string; plattform: string; waehlen: boolean }
+const ordnerCall = async (path: string, body?: unknown): Promise<OrdnerInfo & { error?: string }> => {
+  const res = await fetch(`/api/ordner${path}`, body === undefined ? { method: path ? "POST" : "GET" } : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? "Das hat nicht geklappt.");
+  return data;
+};
+export const getOrdner = () => ordnerCall("");
+export const openOrdner = () => ordnerCall("/oeffnen");
+export const resetOrdner = () => ordnerCall("/standard");
+export const moveOrdner = (pfad: string) => ordnerCall("/aendern", { pfad });
+export const chooseOrdner = async (): Promise<string | null> => (await (await fetch("/api/ordner/waehlen", { method: "POST" })).json()).pfad;
