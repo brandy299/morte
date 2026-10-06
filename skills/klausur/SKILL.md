@@ -1,7 +1,7 @@
 ---
 name: klausur
 title: Klausur mit Erwartungshorizont
-description: Erstellt eine Klausur oder einen schriftlichen Test zusammen mit dem Erwartungshorizont (Lösungen mit Punkten) als zwei druckfertige PDFs in Graustufen. Nutzt die Bewertungsregeln der Lehrkraft (Anforderungsbereiche, Notenschlüssel), falls hinterlegt. Nutze es bei Wünschen wie "Klausur", "Klassenarbeit", "Test", "Leistungsüberprüfung", "Erwartungshorizont", "EHZ", "schriftliche Arbeit". Nicht für Übungsblätter ohne Bewertung (dafür Arbeitsblatt), nicht für die Planung von Stunden oder Reihen und nicht für das Eintragen von Notenschlüsseln (dafür Bewertung).
+description: Erstellt eine Klausur oder einen schriftlichen Test zusammen mit dem Erwartungshorizont (Lösungen mit Punkten) als zwei druckfertige PDFs in Graustufen. Nutzt die Bewertungsregeln der Lehrkraft (Anforderungsbereiche, Notenschlüssel), falls hinterlegt. Nutze es bei Wünschen wie "Klausur", "Klassenarbeit", "Test", "Leistungsüberprüfung", "Erwartungshorizont", "EHZ", "schriftliche Arbeit". Nicht für kurze Verständnis-Checks oder Blitztests am Stundenende (dafür Verständnis-Check), nicht für Übungsblätter ohne Bewertung (dafür Arbeitsblatt), nicht für die Planung von Stunden oder Reihen und nicht für das Eintragen von Notenschlüsseln (dafür Bewertung).
 ---
 
 # Klausur mit Erwartungshorizont

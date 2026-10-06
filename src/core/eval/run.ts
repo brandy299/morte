@@ -6,7 +6,7 @@ import type { AgentSettings } from "../agent/types.ts";
 import { readPdf } from "../lehrplan/pdf.ts";
 import { readMaterialText } from "../material/read.ts";
 import { listSkills } from "../skills/index.ts";
-import { createClass, createReihe, initWorkspace, readStand, writeStand } from "../workspace/index.ts";
+import { createClass, createReihe, initWorkspace, readKlasse, readStand, writeStand } from "../workspace/index.ts";
 import { writeBewertung } from "../workspace/bewertung.ts";
 import { dataDir } from "../paths.ts";
 import type { EvalCase, FileInfo, Transcript, Turn } from "./types.ts";
@@ -111,7 +111,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
       turns.push(turn);
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run
-    return { turns, files: await collectFiles(), tabelle: await tables(), kosten: session.usage().cost };
+    const ordner = `Klasse.md:\n${(await readKlasse(KLASSE)).trim()}\n\nStand.md:\n${(await readStand(KLASSE, FACH)).trim()}`;
+    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, kosten: session.usage().cost };
   } finally {
     if (before === undefined) delete process.env.MORTE_HOME;
     else process.env.MORTE_HOME = before;

@@ -15,10 +15,17 @@ Du erzeugst nur den Inhalt. Das Layout ist fest und wird vom Werkzeug übernomme
 3. **Inhalt schreiben.** Eigene Aufgaben, nichts aus bekannten Lehrwerken abschreiben. Beachte:
    - **Kurz:** möglichst eine Seite, höchstens zwei. Lieber wenige gute Aufgaben (meist 3 bis 6).
    - **Von leicht nach schwer.** Eine Aufgabe, ein Arbeitsauftrag. Beginne jeden Auftrag mit einem klaren Verb (nenne, beschreibe, erkläre, vergleiche, begründe, entwirf).
+   - **Aufgabenarten:** Wähle die Art, die zum Lernziel passt, und gib die Teile immer in den Feldern an, nie im Aufgabentext. Das Blatt zeigt nur, was in den Feldern steht.
+     - `zuordnung` (`paare`, 3 bis 10): Begriff und Bedeutung, Wendung und Übersetzung, Ursache und Wirkung. Das Programm mischt die rechte Seite und schreibt die Lösung selbst.
+     - `luecken` (`saetze`, das fehlende Wort in doppelten geschweiften Klammern, `wortliste` für eine Wortbank): Wortschatz und Grammatik in Sätzen.
+     - `auswahl` (`optionen`, `richtig`): eine Frage, zwei bis fünf Antworten, genau eine ist richtig.
+     - `tabelle` (`tabelle` mit Spalten und Zeilen, leere Felder zum Ausfüllen, dazu die Lösung): Sammeln, Vergleichen, Einordnen.
+     - frei (ohne `art`): Erklären, Begründen, Schreiben, mit Schreibzeilen.
+     Mische die Arten sinnvoll, aber nicht aus Prinzip: Eine Aufgabe, die frei am besten funktioniert, bleibt frei. Schreib nie „Verbinde die Satzanfänge“ als freie Aufgabe, ohne dass die Teile in den Feldern stehen.
    - **Schreibzeilen** nach erwarteter Antwortlänge: 1 bis 2 für ein Wort oder einen Satz, 4 bis 6 für einen Absatz, 0 wenn nur angekreuzt oder verbunden wird.
    - **Tipp** (`hilfe`) nur dort, wo Schülerinnen und Schüler typischerweise hängen.
    - **Merkkasten** nur, wenn eine Regel oder ein Wortschatz wirklich gebraucht wird.
-   - **Lösung** (`loesung`) zu jeder Aufgabe, deren Antwort feststeht, kurz und genau. Dann liegt dem Blatt automatisch ein Lösungsblatt für die Lehrkraft bei. Bei offenen Aufgaben schreib stattdessen in einem Satz, was eine gute Antwort enthält.
+   - **Lösung** (`loesung`) zu jeder freien Aufgabe, deren Antwort feststeht, kurz und genau. Bei Zuordnung, Lücken, Auswahl und Tabelle schreibt das Programm die Lösung selbst, du ergänzt höchstens, was die Lehrkraft zusätzlich wissen sollte. Dann liegt dem Blatt automatisch ein Lösungsblatt für die Lehrkraft bei. Bei offenen Aufgaben schreib stattdessen in einem Satz, was eine gute Antwort enthält.
    - **Punkte** nur angeben, wenn die Lehrkraft Punkte möchte.
    - Keine Farben, keine Bilder, keine Symbole, die in Schwarz-Weiß nicht tragen.
    - Setze keine Namen von Schülerinnen und Schülern ein.

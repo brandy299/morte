@@ -80,7 +80,7 @@ function bodyHeight(sheet: Sheet, k: Koerper, w: number): number {
   if (k.art === "luecken") {
     return k.saetze.reduce((n, t) => n + sheet.height(t, SANS, FS, w) + mm(3.5), 0) + (k.wortliste ? sheet.height(k.wortliste, SANS_BOLD, 10, w - mm(8)) + mm(8) : 0);
   }
-  if (k.art === "auswahl") return k.optionen.reduce((n, o) => n + sheet.height(o, SANS, FS, w - mm(4)) + mm(1.5), 0);
+  if (k.art === "auswahl") return k.optionen.reduce((n, o) => n + sheet.height(o, SANS, FS, w - mm(4)) + mm(0.8), 0);
   const colW = w / k.spalten.length;
   return mm(7) + k.zeilen.reduce((n, r) => n + Math.max(...r.map((c) => sheet.height(c || " ", SANS, 10, colW - mm(4))), mm(5)) + mm(4.5), 0);
 }
@@ -115,7 +115,7 @@ function drawBody(sheet: Sheet, k: Koerper, x: number, y0: number, w: number): v
     for (const o of k.optionen) {
       const h = sheet.height(o, SANS, FS, w - mm(4));
       doc.font(SANS).fontSize(FS).fillColor(INK).text(printable(o), x + mm(4), y, { width: w - mm(4), lineGap: 2.5 });
-      y += h + mm(1.5);
+      y += h + mm(0.8);
     }
   } else {
     const colW = w / k.spalten.length;

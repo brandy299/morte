@@ -19,6 +19,7 @@ Du lieferst die Inhalte der Fassungen. Das Layout ist fest. Alle Fassungen verfo
    - **Standard:** die Fassung, die du ohne Differenzierung geschrieben hättest.
    - **Erweiterung:** gleiche Aufgaben mit mehr Eigenständigkeit und Tiefe. Weniger Hilfe, offenere Fragen, Begründen, Bewerten, Übertragen auf eine neue Situation. Keine bloße Mehrarbeit.
    - **Sprachförderung:** kurze Sätze, bekannte Wörter, Wortschatzhilfe, Bilder nur wenn sie in Schwarz-Weiß tragen. Der fachliche Anspruch bleibt.
+   - **Aufgabenarten als Stütze:** Die Basis kann dieselbe Frage als `auswahl`, `zuordnung` oder `luecken` mit Wortliste stellen, die Erweiterung als freie Aufgabe. So bleibt der Kern gleich und nur die Hilfe ändert sich.
    - **Kurz:** jede Fassung möglichst eine Seite, höchstens zwei.
    - Nichts abschreiben, keine Schülernamen. Zu jeder Aufgabe, deren Antwort feststeht, eine Lösung angeben (`loesung`).
 5. **Erdung.** Keine Lehrplan-Fundstellen erfinden. Hat die Klasse einen Lehrplan, lies die passende Stelle und richte den Kern danach aus.
