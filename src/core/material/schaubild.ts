@@ -29,7 +29,7 @@ export interface Schaubild {
   richtung?: "waagerecht" | "senkrecht";
   knoten: Knoten[];
   /** Arrows. Without any, a flow is a chain in the order of the boxes. */
-  verbindungen: { von: string; nach: string; text?: string }[];
+  verbindungen: { von: string; nach: string; text?: string; leer?: boolean }[];
   /** Cycle: text in the middle. */
   mitte?: string;
   /** Bar chart. */
@@ -68,7 +68,8 @@ export function parseSchaubild(raw: unknown, nr: number): Schaubild {
   }
 
   const list = Array.isArray(o.knoten) ? o.knoten : [];
-  const [min, max] = art === "kreislauf" ? [3, 8] : art === "zeitstrahl" ? [2, 8] : [2, 12];
+  const custom = Array.isArray(o.verbindungen) && o.verbindungen.length > 0;
+  const [min, max] = art === "kreislauf" ? [custom ? 2 : 3, 8] : art === "zeitstrahl" ? [2, 8] : [2, 12];
   if (list.length < min || list.length > max) throw new MaterialError(`${where}: ${art} braucht ${min} bis ${max} Kästchen (knoten), es sind ${list.length}.`);
   const seen = new Set<string>();
   const knoten = list.map((k, i): Knoten => {
@@ -80,7 +81,8 @@ export function parseSchaubild(raw: unknown, nr: number): Schaubild {
     const datum = art === "zeitstrahl" ? str(e.datum, `Datum von Ereignis ${i + 1} in Aufgabe ${nr}`, 30, true) : undefined;
     return { id, text, datum, leer: e.leer === true, betont: e.betont === true };
   });
-  if (art === "zeitstrahl" || art === "kreislauf") return { ...base, knoten, mitte: art === "kreislauf" ? str(o.mitte, `der Text in der Mitte in Aufgabe ${nr}`, 60) : undefined, wortliste: o.wortliste === true };
+  if (art === "zeitstrahl") return { ...base, knoten, wortliste: o.wortliste === true };
+  const mitte = art === "kreislauf" ? str(o.mitte, `der Text in der Mitte in Aufgabe ${nr}`, 60) : undefined;
 
   const links = Array.isArray(o.verbindungen) ? o.verbindungen : [];
   if (art === "hierarchie" && links.length === 0) throw new MaterialError(`${where}: Eine Hierarchie braucht Pfeile (verbindungen: von, nach), sonst ist nicht klar, was worunter steht.`);
@@ -90,10 +92,15 @@ export function parseSchaubild(raw: unknown, nr: number): Schaubild {
         const von = String(e.von ?? "").trim();
         const nach = String(e.nach ?? "").trim();
         if (!seen.has(von) || !seen.has(nach)) throw new MaterialError(`${where}: Pfeil ${i + 1} nennt ein Kästchen, das es nicht gibt („${von}“ nach „${nach}“). Nimm die Kennungen aus knoten.`);
-        if (von === nach) throw new MaterialError(`${where}: Pfeil ${i + 1} zeigt auf dasselbe Kästchen. Für Kreisläufe nimm die Art kreislauf.`);
-        return { von, nach, text: str(e.text, `Beschriftung von Pfeil ${i + 1} in Aufgabe ${nr}`, 40) };
+        if (von === nach) throw new MaterialError(`${where}: Pfeil ${i + 1} zeigt auf dasselbe Kästchen.`);
+        const text = str(e.text, `Beschriftung von Pfeil ${i + 1} in Aufgabe ${nr}`, 40);
+        if (e.leer === true && !text) throw new MaterialError(`${where}: Pfeil ${i + 1} soll leer bleiben, aber es fehlt der Text für die Lösung. Gib text an und setze leer.`);
+        return { von, nach, text, leer: e.leer === true };
       })
-    : knoten.slice(1).map((k, i) => ({ von: knoten[i]!.id, nach: k.id }));
+    : art === "kreislauf"
+      ? []
+      : knoten.slice(1).map((k, i) => ({ von: knoten[i]!.id, nach: k.id }));
+  if (art === "kreislauf") return { ...base, knoten, verbindungen, mitte, wortliste: o.wortliste === true };
   if (links.length && hasCycle(knoten, verbindungen)) throw new MaterialError(`${where}: Die Pfeile laufen im Kreis. Für einen Kreislauf nimm die Art kreislauf, sonst lass den Pfeil zurück weg.`);
   const rich = o.richtung;
   if (rich !== undefined && rich !== "waagerecht" && rich !== "senkrecht") throw new MaterialError(`${where}: richtung ist waagerecht oder senkrecht.`);
@@ -122,7 +129,9 @@ export type Form =
   | { k: "text"; x: number; y: number; w: number; zeilen: string[]; groesse: number; fett?: boolean; ausrichtung: "left" | "center" | "right"; weissHinter?: boolean }
   | { k: "linie"; x1: number; y1: number; x2: number; y2: number; breite: number; farbe: "ink" | "line"; gestrichelt?: boolean }
   | { k: "balken"; x: number; y: number; w: number; h: number }
-  | { k: "punkt"; x: number; y: number; r: number };
+  | { k: "punkt"; x: number; y: number; r: number }
+  /** Label on an arrow. `leer`: an empty box for the students (shown filled in the teacher's copy). */
+  | { k: "etikett"; x: number; y: number; w: number; h: number; zeilen: string[]; leer: boolean; nr?: number };
 
 export interface Szene {
   w: number;
@@ -171,6 +180,14 @@ function rand(b: { x: number; y: number; w: number; h: number }, tx: number, ty:
   return [cx + dx * s, cy + dy * s];
 }
 
+/** Where a line that starts at `p` (inside the box) and runs in direction `d` leaves the box. */
+function leave(b: { x: number; y: number; w: number; h: number }, p: [number, number], d: [number, number]): [number, number] {
+  const sx = d[0] !== 0 ? (d[0] > 0 ? b.x + b.w - p[0] : b.x - p[0]) / d[0] : Infinity;
+  const sy = d[1] !== 0 ? (d[1] > 0 ? b.y + b.h - p[1] : b.y - p[1]) / d[1] : Infinity;
+  const t = Math.max(0, Math.min(sx, sy));
+  return [p[0] + d[0] * t, p[1] + d[1] * t];
+}
+
 /** Builds the scene for a diagram `w` points wide. `loesung`: blank boxes and bars show their content. */
 export function szeneVon(s: Schaubild, w: number, loesung: boolean): Szene {
   const scene = s.art === "saeulen" ? saeulen(s, w, loesung) : s.art === "zeitstrahl" ? zeitstrahl(s, w) : s.art === "kreislauf" ? kreislauf(s, w, loesung) : geschichtet(s, w, loesung);
@@ -179,6 +196,21 @@ export function szeneVon(s: Schaubild, w: number, loesung: boolean): Szene {
 
 /** Numbers of blank boxes in order of appearance. */
 const leereNummern = (s: Schaubild) => new Map(s.knoten.filter((k) => k.leer).map((k, i) => [k.id, i + 1]));
+/** Arrow labels left blank are numbered after the boxes: index of the arrow -> number. */
+const pfeilNummern = (s: Schaubild) => {
+  let n = s.knoten.filter((k) => k.leer).length;
+  return new Map(s.verbindungen.flatMap((v, i) => (v.leer ? [[i, ++n] as [number, number]] : [])));
+};
+
+const etikettBreite = (v: Schaubild["verbindungen"][number], hidden: boolean) => Math.max(hidden ? 64 : 40, Math.min(130, textWidth(v.text ?? "", SANS, 8.5) + 12));
+
+/** The label of an arrow, centred on (cx, cy). Blank labels are as wide as the text they hide, so the students have room. */
+function etikett(v: Schaubild["verbindungen"][number], cx: number, cy: number, nr: number | undefined, loesung: boolean): Form | undefined {
+  if (!v.text) return undefined;
+  const hidden = v.leer && !loesung;
+  const w = etikettBreite(v, hidden === true);
+  return { k: "etikett", x: cx - w / 2, y: cy - 9, w, h: 18, zeilen: hidden ? [] : [v.text], leer: hidden === true, nr: v.leer ? nr : undefined };
+}
 
 function kasten(k: Knoten, x: number, y: number, w: number, h: number, zeilen: string[], nummern: Map<string, number>, loesung: boolean): Form {
   const nr = nummern.get(k.id);
@@ -256,16 +288,15 @@ function geschichtet(s: Schaubild, W: number, loesung: boolean): Szene {
     const b = placed.get(k.id)!;
     formen.push(kasten(k, b.x, b.y, b.w, b.h, umbrechen(k.text, b.w - 2 * PAD), nummern, loesung));
   }
+  const pfeile = pfeilNummern(s);
   for (const v of s.verbindungen) {
     const a = placed.get(v.von)!;
     const b = placed.get(v.nach)!;
     const from = rand(a, b.x + b.w / 2, b.y + b.h / 2);
     const to = rand(b, a.x + a.w / 2, a.y + a.h / 2);
     formen.push({ k: "pfeil", punkte: [from, to] });
-    if (v.text) {
-      const lw = Math.min(110, textWidth(v.text, SANS, 8.5) + 8);
-      formen.push({ k: "text", x: (from[0] + to[0]) / 2 - lw / 2, y: (from[1] + to[1]) / 2 - 6, w: lw, zeilen: [v.text], groesse: 8.5, ausrichtung: "center", weissHinter: true });
-    }
+    const lab = etikett(v, (from[0] + to[0]) / 2, (from[1] + to[1]) / 2, pfeile.get(s.verbindungen.indexOf(v)), loesung);
+    if (lab) formen.push(lab);
   }
   return { w: W, h: height, formen };
 }
@@ -319,16 +350,26 @@ const mean = (a: number[]) => (a.length ? a.reduce((n, x) => n + x, 0) / a.lengt
 
 function kreislauf(s: Schaubild, W: number, loesung: boolean): Szene {
   const n = s.knoten.length;
-  const H = Math.min(W * 0.78, 270);
-  const bw = Math.min(130, W / (n <= 4 ? 3 : 3.6));
   const nummern = leereNummern(s);
+  const idx = new Map(s.knoten.map((k, i) => [k.id, i]));
+  const arrows = s.verbindungen.length ? s.verbindungen : s.knoten.map((k, i) => ({ von: k.id, nach: s.knoten[(i + 1) % n]!.id }) as Schaubild["verbindungen"][number]);
+  const hasLabels = arrows.some((v) => v.text);
+  // Several arrows between the same two boxes run side by side in lanes; the boxes are as wide as the lanes need.
+  const pairKey = (v: Schaubild["verbindungen"][number]) => [idx.get(v.von)!, idx.get(v.nach)!].sort().join("-");
+  const lanes = new Map<string, number>();
+  for (const v of arrows) lanes.set(pairKey(v), (lanes.get(pairKey(v)) ?? 0) + 1);
+  const maxLanes = Math.max(...lanes.values());
+  const labelW = Math.max(0, ...arrows.map((v) => (v.text ? etikettBreite(v, true) : 0)));
+  const spaceV = hasLabels ? labelW + 10 : 10;
+  const bw = n === 2 && maxLanes > 1 ? Math.min(W - 20, Math.max(150, (maxLanes - 1) * spaceV + 60)) : Math.min(130, W / (n <= 4 ? 3 : 3.6));
+  const H = n === 2 ? (hasLabels ? 190 : 150) : Math.min(W * 0.78, 270);
   const rx = (W - bw) / 2 - 4;
   const ry = (H - 34) / 2 - 2;
   const lines = s.knoten.map((k) => umbrechen(k.text, bw - 2 * PAD));
   const lineCount = (i: number) => Math.max(lines[i]!.length, s.knoten[i]!.leer ? 2 : 0);
   const centers = s.knoten.map((_, i) => {
     const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
-    return [W / 2 + rx * Math.cos(a), H / 2 + ry * Math.sin(a)] as const;
+    return [W / 2 + (n === 2 ? 0 : rx * Math.cos(a)), H / 2 + ry * Math.sin(a)] as const;
   });
   const boxes = s.knoten.map((_, i) => {
     const h = boxHeight(lineCount(i));
@@ -340,13 +381,33 @@ function kreislauf(s: Schaubild, W: number, loesung: boolean): Szene {
     const zeilen = umbrechen(s.mitte, mw, 10.5, SANS_BOLD);
     formen.push({ k: "text", x: W / 2 - mw / 2, y: H / 2 - (zeilen.length * 13) / 2, w: mw, zeilen, groesse: 10.5, fett: true, ausrichtung: "center" });
   }
-  s.knoten.forEach((k, i) => formen.push(kasten(k, boxes[i]!.x, boxes[i]!.y, bw, boxes[i]!.h, lines[i]!, nummern, loesung)));
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    const from = rand(boxes[i]!, centers[j]![0], centers[j]![1]);
-    const to = rand(boxes[j]!, centers[i]![0], centers[i]![1]);
+  s.knoten.forEach((k, i) => formen.push(kasten(k, boxes[i]!.x, boxes[i]!.y, boxes[i]!.w, boxes[i]!.h, lines[i]!, nummern, loesung)));
+  const pfeile = pfeilNummern(s);
+  const seen = new Map<string, number>();
+  arrows.forEach((v, ai) => {
+    const i = idx.get(v.von)!;
+    const j = idx.get(v.nach)!;
+    const key = pairKey(v);
+    const lane = seen.get(key) ?? 0;
+    seen.set(key, lane + 1);
+    // The line between the two centres, always measured from the lower to the higher box, so lanes keep their side.
+    const [a, b] = i < j ? [i, j] : [j, i];
+    const dx = centers[b]![0] - centers[a]![0];
+    const dy = centers[b]![1] - centers[a]![1];
+    const len = Math.hypot(dx, dy) || 1;
+    const mostlyVertical = Math.abs(dy) > Math.abs(dx);
+    const space = hasLabels ? (mostlyVertical ? spaceV : 24) : 8;
+    const off = (lane - (lanes.get(key)! - 1) / 2) * space;
+    const px = (-dy / len) * off;
+    const py = (dx / len) * off;
+    const sx = centers[j]![0] - centers[i]![0];
+    const sy = centers[j]![1] - centers[i]![1];
+    const from = leave(boxes[i]!, [centers[i]![0] + px, centers[i]![1] + py], [sx, sy]);
+    const to = leave(boxes[j]!, [centers[j]![0] + px, centers[j]![1] + py], [-sx, -sy]);
     formen.push({ k: "pfeil", punkte: [from, to] });
-  }
+    const lab = etikett(v, (from[0] + to[0]) / 2, (from[1] + to[1]) / 2, pfeile.get(ai), loesung);
+    if (lab) formen.push(lab);
+  });
   return { w: W, h: H, formen };
 }
 
@@ -419,11 +480,10 @@ export function versteckt(s: Schaubild, seed: string): { wortliste?: string; loe
   if (s.art === "saeulen") {
     return s.leerSaeulen ? { loesung: s.saeulen.map((x) => `${x.name}: ${zahl(x.wert)}${s.einheit ? ` ${s.einheit}` : ""}`).join(",  ") } : {};
   }
-  const blanks = s.knoten.filter((k) => k.leer);
+  const blanks = [...s.knoten.filter((k) => k.leer).map((k) => k.text), ...s.verbindungen.filter((v) => v.leer).map((v) => v.text!)];
   if (blanks.length === 0) return {};
-  const nummern = leereNummern(s);
   return {
-    wortliste: s.wortliste ? mischen(blanks.length, `${seed}|s`).map((i) => blanks[i]!.text).join("   ·   ") : undefined,
-    loesung: s.knoten.filter((k) => k.leer).map((k) => `${nummern.get(k.id)} = ${k.text}`).join(",  "),
+    wortliste: s.wortliste ? mischen(blanks.length, `${seed}|s`).map((i) => blanks[i]).join("   ·   ") : undefined,
+    loesung: blanks.map((text, i) => `${i + 1} = ${text}`).join(",  "),
   };
 }

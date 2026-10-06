@@ -32,6 +32,19 @@ export function zeichnePdf(doc: PDFKit.PDFDocument, szene: Szene, x0: number, y0
         doc.circle(x + 1, y + 1, 7.5).fill(INK);
         doc.font(SANS_BOLD).fontSize(8.5).fillColor("#ffffff").text(String(f.nr), x - 6.5, y - 3.5, { width: 15, align: "center", lineBreak: false });
       }
+    } else if (f.k === "etikett") {
+      const x = x0 + f.x;
+      const y = y0 + f.y;
+      doc.roundedRect(x, y, f.w, f.h, 3).lineWidth(0.8);
+      if (f.leer) doc.dash(3, { space: 2.5 });
+      doc.fillAndStroke("#ffffff", f.leer ? "#555555" : LINE);
+      doc.undash();
+      doc.font(SANS).fontSize(8.5).fillColor(INK);
+      f.zeilen.forEach((l, i) => doc.text(printable(l), x + 2, y + 4.5 + i * LEAD, { width: f.w - 4, align: "center", lineBreak: false }));
+      if (f.nr !== undefined) {
+        doc.circle(x + 1, y + 1, 7).fill(INK);
+        doc.font(SANS_BOLD).fontSize(8).fillColor("#ffffff").text(String(f.nr), x - 6, y - 3, { width: 14, align: "center", lineBreak: false });
+      }
     } else if (f.k === "pfeil") {
       const pts = f.punkte.map(([px, py]) => [x0 + px, y0 + py] as P);
       doc.lineWidth(1.1).strokeColor(INK).moveTo(pts[0]![0], pts[0]![1]);
@@ -103,6 +116,29 @@ export function szeneAlsPng(szene: Szene, scale = 3): Buffer {
         ctx.fill();
         ctx.fillStyle = "#ffffff";
         ctx.font = font({ fett: true, groesse: 8.5 });
+        ctx.fillText(String(f.nr), f.x + 1, f.y - 3);
+      }
+    } else if (f.k === "etikett") {
+      ctx.beginPath();
+      ctx.roundRect(f.x, f.y, f.w, f.h, 3);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = f.leer ? "#555555" : LINE;
+      if (f.leer) ctx.setLineDash([3, 2.5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = INK;
+      ctx.textAlign = "center";
+      ctx.font = font({ fett: false, groesse: 8.5 });
+      f.zeilen.forEach((l, i) => ctx.fillText(printable(l), f.x + f.w / 2, f.y + 4 + i * LEAD));
+      if (f.nr !== undefined) {
+        ctx.beginPath();
+        ctx.arc(f.x + 1, f.y + 1, 7, 0, Math.PI * 2);
+        ctx.fillStyle = INK;
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = font({ fett: true, groesse: 8 });
         ctx.fillText(String(f.nr), f.x + 1, f.y - 3);
       }
     } else if (f.k === "pfeil") {

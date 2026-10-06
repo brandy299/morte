@@ -49,6 +49,7 @@ describe("layout", () => {
     baum: { art: "hierarchie", knoten: [{ id: "v", text: "Volk" }, { id: "l", text: "Gesetzgebung" }, { id: "r", text: "Regierung" }, { id: "j", text: "Rechtsprechung" }, { id: "x", text: "Ein sehr langes Wort wie Verfassungsbeschwerdeverfahren" }], verbindungen: [{ von: "v", nach: "l" }, { von: "v", nach: "r" }, { von: "v", nach: "j" }, { von: "j", nach: "x" }] },
     kreis: { art: "kreislauf", mitte: "Wirtschaft", knoten: ["Haushalte", "Unternehmen", "Staat", "Banken", "Ausland"].map((t, i) => ({ id: String(i), text: t })) },
     zeit: { art: "zeitstrahl", knoten: [1949, 1961, 1989, 1990].map((y, i) => ({ id: String(i), datum: String(y), text: `Ereignis im Jahr ${y}, ziemlich lang beschrieben` })) },
+    kreislaufMitPfeilen: { art: "kreislauf", knoten: [{ id: "h", text: "Private Haushalte" }, { id: "u", text: "Unternehmen" }], verbindungen: [{ von: "u", nach: "h", text: "Güter", leer: true }, { von: "h", nach: "u", text: "Geld" }, { von: "u", nach: "h", text: "Lohn", leer: true }, { von: "h", nach: "u", text: "Arbeitskraft" }] },
     saeulen: { art: "saeulen", einheit: "Prozent", saeulen: [{ name: "Partei A", wert: 24.3 }, { name: "Partei B", wert: 18 }, { name: "Sonstige Parteien und Gruppen", wert: 7 }] },
   };
 
@@ -63,6 +64,28 @@ describe("layout", () => {
     }
     for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) expect(overlap(a, b), `${a.zeilen.join(" ")} / ${b.zeilen.join(" ")}`).toBe(false);
     expect(scene.h).toBeGreaterThan(20);
+  });
+
+  it("draws a circuit with your own arrows, also in both directions, and numbers the blank labels", () => {
+    const s = parseSchaubild(specs.kreislaufMitPfeilen, 1);
+    const student = szeneVon(s, 450, false);
+    const labels = student.formen.filter((f): f is Extract<Form, { k: "etikett" }> => f.k === "etikett");
+    expect(labels).toHaveLength(4);
+    expect(labels.filter((l) => l.leer).map((l) => l.nr)).toEqual([1, 2]);
+    expect(labels.filter((l) => !l.leer).flatMap((l) => l.zeilen)).toEqual(["Geld", "Arbeitskraft"]);
+    // The four arrows run side by side, not on top of each other.
+    const arrows = student.formen.filter((f): f is Extract<Form, { k: "pfeil" }> => f.k === "pfeil");
+    expect(new Set(arrows.map((a) => Math.round(a.punkte[0]![0]))).size).toBeGreaterThanOrEqual(2);
+    // Labels do not overlap each other or the boxes.
+    const shapes = [...kaesten(student.formen), ...labels];
+    for (const [i, a] of shapes.entries()) for (const b of shapes.slice(i + 1)) expect(overlap(a, b)).toBe(false);
+    const teacher = szeneVon(s, 450, true).formen.filter((f) => f.k === "etikett") as { zeilen: string[]; leer: boolean }[];
+    expect(teacher.map((l) => l.zeilen[0])).toEqual(["Güter", "Geld", "Lohn", "Arbeitskraft"]);
+    expect(versteckt({ ...s, wortliste: true }, "x").loesung).toBe("1 = Güter,  2 = Lohn");
+  });
+
+  it("asks for the solution text when an arrow label is left blank", () => {
+    expect(() => parseSchaubild({ art: "kreislauf", knoten: [{ id: "a", text: "A" }, { id: "b", text: "B" }], verbindungen: [{ von: "a", nach: "b", leer: true }] }, 1)).toThrow(/Text für die Lösung/);
   });
 
   it("lays a long plain chain out in rows, so it stays short", () => {

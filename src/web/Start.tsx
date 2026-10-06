@@ -1,5 +1,5 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
-import { getTitel, getWoche, legeAb, speichereZuordnung, type KlasseInfo, type WocheAntwort, type WochenStunde } from "./api.ts";
+import { zipUrl, getTitel, getWoche, legeAb, speichereZuordnung, type KlasseInfo, type WocheAntwort, type WochenStunde } from "./api.ts";
 
 const long = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long" });
 const withYear = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long", year: "numeric" });
@@ -285,6 +285,11 @@ function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: Wo
               Datei hinzufügen
             </button>
           </div>
+        )}
+        {base && files.length > 1 && (
+          <a className="zip-link" href={zipUrl(files.map((f) => base + f), `${s.klasse}-${s.fach}-${dm(s.datum)}`)} download>
+            Alle {files.length} Dateien als ZIP herunterladen
+          </a>
         )}
         {s.klasse && <p className="muted small-note">Du kannst Dateien auch einfach auf die Stunde ziehen.</p>}
       </div>

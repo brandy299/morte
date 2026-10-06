@@ -608,9 +608,11 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .file-group-head { display: flex; align-items: center; gap: 14px; }
 .file-group-head strong { font-weight: 600; }
 .file-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-left: 52px; }
-.file-action { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; transition: border-color 0.15s, background 0.15s; }
+.file-action { font-family: var(--sans); display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; transition: border-color 0.15s, background 0.15s; }
 .file-action small { font-weight: 400; color: var(--ink-soft); font-size: 13px; }
 .file-action:hover { border-color: var(--accent-deep); background: var(--accent-wash); }
 .chat-bar { display: flex; justify-content: flex-end; padding: 8px 20px 0; }
 .export-link { font-size: 14px; color: var(--ink-soft); text-decoration: none; padding: 4px 12px; border-radius: 999px; border: 1px solid transparent; transition: border-color 0.15s, color 0.15s; }
 .export-link:hover { color: var(--accent-deep); border-color: var(--line); }
+.zip-link { display: inline-block; margin-top: 12px; font-size: 15px; color: var(--accent-deep); }
+.zip-link:hover { text-decoration-thickness: 2px; }

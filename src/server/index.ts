@@ -7,6 +7,7 @@ import { Hono, type Context, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
+import { zipFiles, zipName, ZIP_MAX_FILES } from "../core/workspace/zip.ts";
 import { createClass, initWorkspace, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
 import pkg from "../../package.json" with { type: "json" };
 import { exportMarkdown } from "../core/history/export.ts";
@@ -264,6 +265,27 @@ export function createApp(state: AppState) {
       "content-disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${name}`,
       "x-content-type-options": "nosniff",
     });
+  });
+
+  // Several material files as one zip. `path` is repeated, `name` titles the zip.
+  app.get("/api/material/zip", async (c) => {
+    const wanted = [...new Set(c.req.queries("path") ?? [])];
+    if (wanted.length === 0 || wanted.length > ZIP_MAX_FILES) return c.json({ error: "Es gibt nichts zu packen." }, 400);
+    const files: { name: string; data: Uint8Array }[] = [];
+    for (const rel of wanted) {
+      const file = await materialFile(rel);
+      if (file) files.push({ name: file.split(/[\\/]/).pop()!, data: await readFile(file) });
+    }
+    if (files.length === 0) return c.json({ error: "Diese Dateien gibt es nicht mehr." }, 404);
+    try {
+      return c.body(zipFiles(files) as unknown as ArrayBuffer, 200, {
+        "content-type": "application/zip",
+        "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(zipName(c.req.query("name")))}`,
+        "x-content-type-options": "nosniff",
+      });
+    } catch {
+      return c.json({ error: "Die Dateien sind zu groß für ein gemeinsames Paket." }, 413);
+    }
   });
 
   app.get("/api/history", async (c) => c.json({ gespraeche: await listConversations(), aktuell: state.conversation?.id }));
