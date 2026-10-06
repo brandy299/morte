@@ -8,7 +8,7 @@ import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { zipFiles, zipName, ZIP_MAX_FILES } from "../core/workspace/zip.ts";
-import { createClass, initWorkspace, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
+import { createClass, initWorkspace, listAllMaterial, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
 import pkg from "../../package.json" with { type: "json" };
 import { exportMarkdown } from "../core/history/export.ts";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
@@ -253,6 +253,8 @@ export function createApp(state: AppState) {
       throw err;
     }
   });
+
+  app.get("/api/material/liste", async (c) => c.json({ dateien: await listAllMaterial() }));
 
   app.get("/api/material", async (c) => {
     const file = await materialFile(c.req.query("path") ?? "");

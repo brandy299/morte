@@ -13,6 +13,7 @@ import { classColors, classVar } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
+import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
 
 interface Step {
@@ -258,7 +259,7 @@ const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [view, setView] = useState<"chat" | "start">(initialView);
+  const [view, setView] = useState<"chat" | "start" | "material">(initialView);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
   const [thinking, setThinking] = useState(false);
@@ -549,6 +550,12 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           </svg>
           Start
         </button>
+        <button type="button" className={view === "material" ? "nav-item on" : "nav-item"} onClick={() => setView("material")}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />
+          </svg>
+          Material
+        </button>
         <button className="new-chat" onClick={() => { setView("chat"); void newChat(); }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
             <path d="M12 5v14M5 12h14" />
@@ -647,6 +654,10 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         {view === "start" ? (
           <div className="scroll">
             <Start key={planVersion} tree={tree} onSetup={onStundenplan} onAsk={ask} onChanged={refreshTree} onNewClass={onNewClass} />
+          </div>
+        ) : view === "material" ? (
+          <div className="scroll">
+            <MaterialSeite tree={tree} onPreview={setPreview} onAsk={ask} />
           </div>
         ) : (
           <>

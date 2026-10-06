@@ -1,3 +1,4 @@
+import type { MaterialDatei } from "./materialListe.ts";
 export interface UsageSnapshot {
   inputTokens: number;
   outputTokens: number;
@@ -278,3 +279,5 @@ export async function answerFragen(id: string, antworten: { antwort: string; eig
   const res = await fetch("/api/chat/fragen", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, antworten }) });
   return res.ok ? null : ((await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.");
 }
+
+export const getMaterialListe = async (): Promise<MaterialDatei[]> => (await (await fetch("/api/material/liste")).json()).dateien;
