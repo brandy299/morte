@@ -1,12 +1,12 @@
 ---
 name: foto-nachbauen
 title: Aus einem Foto nachbauen
-description: Baut aus einem Foto, Scan oder Screenshot (ein Arbeitsblatt, eine Heftseite, eine Tafel, eine Buchseite, eine alte Klausur) neues, eigenes Material in der Form der Vorlage, als druckfertiges Blatt. Nutze es, wenn die Lehrkraft ein Bild anhängt und etwas sagt wie "bau mir so etwas", "mach das nach", "wie auf dem Foto", "nach diesem Muster", "mach daraus ein neues Blatt". Nicht, wenn nur ein Bild erklärt oder gelesen werden soll, nicht für das Abschreiben oder Digitalisieren einer Vorlage Wort für Wort und nicht für Stundenplan-Fotos.
+description: Baut aus einem Foto, Scan, Screenshot oder einer angehängten Datei (PDF, Word, OpenOffice, Folien; ein Arbeitsblatt, eine Heftseite, eine Tafel, eine Buchseite, eine alte Klausur) neues, eigenes Material in der Form der Vorlage, als druckfertiges Blatt. Nutze es, wenn die Lehrkraft ein Bild oder eine Datei anhängt und etwas sagt wie "bau mir so etwas", "mach das nach", "wie auf dem Foto", "nach diesem Muster", "mach daraus ein neues Blatt". Nicht, wenn nur ein Bild erklärt oder gelesen werden soll, nicht für das Abschreiben oder Digitalisieren einer Vorlage Wort für Wort und nicht für Stundenplan-Fotos.
 ---
 
 # Aus einem Foto nachbauen
 
-Die Lehrkraft zeigt dir ein Bild und will etwas Ähnliches. Du liest die Vorlage, verstehst, was sie leistet, und baust **neues, eigenes** Material in derselben Machart. Du kopierst nichts Wort für Wort: Texte, Aufgaben und Beispiele auf dem Foto können urheberrechtlich geschützt sein (Lehrwerke, Verlagsmaterial). Übernimm Aufbau, Thema, Schwierigkeit und Aufgabenarten, schreibe Inhalte und Beispiele neu.
+Die Lehrkraft zeigt dir ein Bild oder hängt eine Datei an (ihr Text steht dann in <datei>-Blöcken) und will etwas Ähnliches. Du liest die Vorlage, verstehst, was sie leistet, und baust **neues, eigenes** Material in derselben Machart. Du kopierst nichts Wort für Wort: Texte, Aufgaben und Beispiele auf dem Foto können urheberrechtlich geschützt sein (Lehrwerke, Verlagsmaterial). Übernimm Aufbau, Thema, Schwierigkeit und Aufgabenarten, schreibe Inhalte und Beispiele neu.
 
 ## Ablauf
 

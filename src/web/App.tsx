@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
-import { MAX_IMAGES, readImage, type Attachment } from "./attachments.ts";
+import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
 import { Vorlagen } from "./Vorlagen.tsx";
@@ -19,6 +19,7 @@ interface Message {
   role: "user" | "assistant";
   text: string;
   images?: string[];
+  dateien?: string[];
   /** Pictures that were attached in an earlier session; only the number is known. */
   bilder?: number;
   steps: Step[];
@@ -244,16 +245,58 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
 
   const addFiles = async (files: FileList | File[]) => {
     setAttachProblem(null);
-    const list = [...files];
-    if (usage && !usage.vision) return setAttachProblem("Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern.");
-    const room = MAX_IMAGES - attachments.length;
-    if (list.length > room) setAttachProblem(`Es passen höchstens ${MAX_IMAGES} Bilder in eine Nachricht.`);
-    for (const file of list.slice(0, Math.max(0, room))) {
-      const result = await readImage(file);
-      if (typeof result === "string") setAttachProblem(result);
-      else setAttachments((a) => [...a, result]);
+    let images = attachments.reduce((n, a) => n + a.images.length, 0);
+    let docs = attachments.filter((a) => a.text !== undefined).length;
+    let problem: string | null = null;
+    for (const file of [...files]) {
+      const isImage = file.type.startsWith("image/");
+      if (isImage ? images >= MAX_IMAGES : docs >= MAX_FILES) {
+        problem = isImage ? `Es passen höchstens ${MAX_IMAGES} Bilder in eine Nachricht.` : `Es passen höchstens ${MAX_FILES} Dateien in eine Nachricht.`;
+        continue;
+      }
+      const result = await readAttachment(file);
+      if (typeof result === "string") {
+        problem = result;
+        continue;
+      }
+      if (result.images.length > 0 && usage && !usage.vision) {
+        problem = "Dieses Modell versteht keine Bilder. Wähle in den Einstellungen ein Modell mit Bildern.";
+        continue;
+      }
+      images += result.images.length;
+      if (result.text !== undefined) docs++;
+      setAttachments((a) => [...a, result]);
     }
+    setAttachProblem(problem);
   };
+  // Files can be dropped anywhere in the window.
+  const addRef = useRef(addFiles);
+  addRef.current = addFiles;
+  useEffect(() => {
+    const hasFiles = (e: DragEvent) => [...(e.dataTransfer?.types ?? [])].includes("Files");
+    const over = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      setDragging(true);
+    };
+    const leave = (e: DragEvent) => {
+      if (!e.relatedTarget) setDragging(false);
+    };
+    const drop = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      setDragging(false);
+      if (e.dataTransfer) void addRef.current(e.dataTransfer.files);
+    };
+    window.addEventListener("dragover", over);
+    window.addEventListener("dragleave", leave);
+    window.addEventListener("drop", drop);
+    return () => {
+      window.removeEventListener("dragover", over);
+      window.removeEventListener("dragleave", leave);
+      window.removeEventListener("drop", drop);
+    };
+  }, []);
   const endRef = useRef<HTMLDivElement>(null);
 
   // The input grows with the text, up to about eight lines.
@@ -333,13 +376,13 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     setWorking(true);
     setMessages((all) => [
       ...all,
-      { role: "user", text, images: sent.map((a) => a.preview), steps: [] },
+      { role: "user", text, images: sent.flatMap((a) => (a.preview ? [a.preview] : [])), dateien: sent.filter((a) => a.text !== undefined).map((a) => a.name), steps: [] },
       { role: "assistant", text: "", steps: [] },
     ]);
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      await sendMessage(text, sent.map(({ data, mimeType }) => ({ data, mimeType })), handleEvent, ctrl.signal);
+      await sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), handleEvent, ctrl.signal);
     } catch (err) {
       if (!ctrl.signal.aborted) patchLast((m) => ({ ...m, error: err instanceof Error ? err.message : "Das hat nicht geklappt." }));
     } finally {
@@ -559,6 +602,13 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                     ))}
                   </div>
                 )}
+                {m.dateien && m.dateien.length > 0 && (
+                  <ul className="sent-files">
+                    {m.dateien.map((n, j) => (
+                      <li key={j}>{n}</li>
+                    ))}
+                  </ul>
+                )}
                 {m.bilder ? <p className="muted-note">{m.bilder === 1 ? "1 Bild angehängt" : `${m.bilder} Bilder angehängt`}</p> : null}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
                 {m.materials?.map((x) =>
@@ -620,21 +670,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           </div>
         </div>
 
+        {dragging && (
+          <div className="drop-overlay" aria-hidden>
+            <p>Hier loslassen, um die Dateien anzuhängen</p>
+          </div>
+        )}
         <form
-          className={dragging ? "composer drop" : "composer"}
+          className="composer"
           onSubmit={(e) => {
             e.preventDefault();
             void submit();
-          }}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragging(false);
-            void addFiles(e.dataTransfer.files);
           }}
         >
           <div className="composer-box">
@@ -642,15 +687,25 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               <div className="attached">
                 <ul>
                   {attachments.map((a) => (
-                    <li key={a.id}>
-                      <img src={a.preview} alt={a.name} />
+                    <li key={a.id} className={a.preview ? "pic" : "doc"}>
+                      {a.preview ? (
+                        <img src={a.preview} alt={a.name} />
+                      ) : (
+                        <span className="doc-chip">
+                          <span className="doc-kind" aria-hidden>{a.art}</span>
+                          <span className="doc-name">
+                            <strong>{a.name}</strong>
+                            <small>{[a.info, a.gekuerzt ? "gekürzt" : "", a.images.length ? "Seiten als Bild" : ""].filter(Boolean).join(" · ") || "bereit"}</small>
+                          </span>
+                        </span>
+                      )}
                       <button type="button" aria-label={`${a.name} entfernen`} onClick={() => setAttachments(attachments.filter((x) => x.id !== a.id))}>
                         ×
                       </button>
                     </li>
                   ))}
                 </ul>
-                <p>Bitte keine Namen von Schülerinnen und Schülern und keine Klassenarbeiten mit Namen. Das Bild geht an deinen KI-Anbieter.</p>
+                <p>Bitte keine Namen von Schülerinnen und Schülern und keine Klassenarbeiten mit Namen. Bilder und Dateien gehen an deinen KI-Anbieter.</p>
               </div>
             )}
             {attachProblem && <p className="error">{attachProblem}</p>}
@@ -662,7 +717,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               aria-label="Deine Nachricht"
               onChange={(e) => setInput(e.target.value)}
               onPaste={(e) => {
-                const files = [...e.clipboardData.files].filter((f) => f.type.startsWith("image/"));
+                const files = [...e.clipboardData.files];
                 if (files.length) {
                   e.preventDefault();
                   void addFiles(files);
@@ -676,8 +731,8 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               }}
             />
             <div className="composer-bar">
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }} />
-              <button type="button" className="icon-btn" title="Bild anhängen" aria-label="Bild anhängen" onClick={() => fileRef.current?.click()}>
+              <input ref={fileRef} type="file" accept={FILE_ACCEPT} multiple hidden onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }} />
+              <button type="button" className="icon-btn" title="Datei oder Bild anhängen" aria-label="Datei oder Bild anhängen" onClick={() => fileRef.current?.click()}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
                 </svg>

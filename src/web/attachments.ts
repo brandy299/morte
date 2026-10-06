@@ -1,13 +1,24 @@
-import type { ImageAttachment } from "./api.ts";
+import { readFileOnServer, type ImageAttachment } from "./api.ts";
 
-export interface Attachment extends ImageAttachment {
+/** A picture or a file (PDF, Word, Excel, …) waiting in the message field. */
+export interface Attachment {
   id: string;
   name: string;
-  /** data: URL for the small preview. */
-  preview: string;
+  /** Pictures sent to the model: the picture itself, or the pages of a scanned PDF. */
+  images: ImageAttachment[];
+  /** data: URL for the small preview of a picture. */
+  preview?: string;
+  /** Text read out of a file. */
+  text?: string;
+  /** Short kind and size, like "Word" or "3 Seiten". */
+  art?: string;
+  info?: string;
+  gekuerzt?: boolean;
 }
 
-export const MAX_IMAGES = 4;
+export const MAX_IMAGES = 8;
+export const MAX_FILES = 5;
+export const FILE_ACCEPT = "image/jpeg,image/png,image/webp,image/gif,.pdf,.docx,.odt,.rtf,.txt,.md,.html,.htm,.csv,.tsv,.xlsx,.xlsm,.xlsb,.xls,.ods,.pptx,.odp";
 const MAX_BYTES = 5 * 1024 * 1024;
 /** Phone photos are 3 to 10 MB and far sharper than a model needs. They are scaled down before they are sent. */
 const MAX_SIDE = 1800;
@@ -36,9 +47,16 @@ async function shrink(file: File): Promise<File> {
   }
 }
 
-/** Reads an image file. Returns a plain-German problem text when it cannot be used. */
-export async function readImage(original: File): Promise<Attachment | string> {
-  if (!TYPES.includes(original.type)) return `„${original.name}“ ist kein Bild, das ich lesen kann. Ich nehme JPG, PNG, WebP und GIF.`;
+/** Reads a picture or a file. Returns a plain-German problem text when it cannot be used. */
+export async function readAttachment(file: File): Promise<Attachment | string> {
+  if (TYPES.includes(file.type)) return readImage(file);
+  if (file.type.startsWith("image/")) return `„${file.name}“ ist ein Bild-Format, das ich nicht lesen kann. Ich nehme JPG, PNG, WebP und GIF.`;
+  const read = await readFileOnServer(file);
+  if (typeof read === "string") return read;
+  return { id: crypto.randomUUID(), name: file.name, images: read.bilder ?? [], text: read.text, art: read.art, info: read.info, gekuerzt: read.gekuerzt };
+}
+
+async function readImage(original: File): Promise<Attachment | string> {
   const file = await shrink(original);
   if (file.size > MAX_BYTES) return `„${file.name}“ ist auch verkleinert noch größer als 5 MB.`;
   return new Promise((resolve) => {
@@ -46,7 +64,7 @@ export async function readImage(original: File): Promise<Attachment | string> {
     reader.onerror = () => resolve(`„${file.name}“ konnte ich nicht öffnen.`);
     reader.onload = () => {
       const url = String(reader.result);
-      resolve({ id: crypto.randomUUID(), name: file.name || "Bild", mimeType: file.type, data: url.slice(url.indexOf(",") + 1), preview: url });
+      resolve({ id: crypto.randomUUID(), name: file.name || "Bild", images: [{ mimeType: file.type, data: url.slice(url.indexOf(",") + 1) }], preview: url, art: "Bild" });
     };
     reader.readAsDataURL(file);
   });
