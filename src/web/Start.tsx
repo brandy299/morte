@@ -1,5 +1,5 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
-import { getWoche, legeAb, type KlasseInfo, type WocheAntwort, type WochenStunde } from "./api.ts";
+import { getTitel, getWoche, legeAb, speichereZuordnung, type KlasseInfo, type WocheAntwort, type WochenStunde } from "./api.ts";
 
 const long = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long" });
 const withYear = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long", year: "numeric" });
@@ -27,9 +27,11 @@ export interface StartProps {
   /** Opens the chat with a first message ready to send. */
   onAsk: (text: string) => void;
   onChanged: () => void;
+  /** Opens the dialog to create a class. */
+  onNewClass: () => void;
 }
 
-export function Start({ tree, onSetup, onAsk, onChanged }: StartProps) {
+export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProps) {
   const [day, setDay] = useState<string | undefined>();
   const [data, setData] = useState<WocheAntwort | null>(null);
   const [open, setOpen] = useState<WochenStunde | null>(null);
@@ -61,6 +63,8 @@ export function Start({ tree, onSetup, onAsk, onChanged }: StartProps) {
 
   const w = data?.woche;
   const isToday = (d: string) => d === data?.heute;
+  // Every start time of the week, earliest first ("07:30" before "08:00").
+  const times = [...new Set(w?.tage.flatMap((t) => t.stunden.map((x) => x.von)) ?? [])].sort();
   const todays = w?.tage.find((t) => isToday(t.datum))?.stunden.length ?? 0;
 
   return (
@@ -118,17 +122,38 @@ export function Start({ tree, onSetup, onAsk, onChanged }: StartProps) {
               </li>
             )}
           </ul>
+          {w.nichtZugeordnet > 0 && <p className="muted assign-hint">Tipp: Klick eine Stunde an, um sie einer deiner Klassen zuzuordnen. Aufsichten und Pausen kannst du dort ausblenden.</p>}
 
-          <div className="week" key={w.montag} style={{ gridTemplateColumns: `repeat(${w.tage.length}, minmax(176px, 1fr))` }}>
+          {/* One row per start time of the whole week, so a lesson at 8:00 on Monday sits level with 8:00 on Tuesday,
+              and a duty at 7:30 gets its own row above the first lesson. */}
+          <div className="week" key={w.montag} style={{ gridTemplateColumns: `3.4rem repeat(${w.tage.length}, minmax(160px, 1fr))`, gridTemplateRows: `auto repeat(${times.length || 1}, auto)` }}>
+            <div className="times" aria-hidden>
+              {times.map((time, ri) => (
+                <span key={time} style={{ gridRow: ri + 2 }}>
+                  {time}
+                </span>
+              ))}
+            </div>
             {w.tage.map((t, di) => (
-              <section key={t.datum} style={{ "--i": di } as CSSProperties} className={isToday(t.datum) ? "day today" : "day"} aria-label={`${t.tag} ${dm(t.datum)}`}>
+              <section key={t.datum} style={{ "--i": di, gridColumn: di + 2 } as CSSProperties} className={isToday(t.datum) ? "day today" : "day"} aria-label={`${t.tag} ${dm(t.datum)}`}>
                 <h2>
                   <span>{t.tag}</span> {dm(t.datum)}
                 </h2>
-                {t.stunden.length === 0 && <p className="free">frei</p>}
-                {t.stunden.map((s) => (
-                  <LessonCard key={`${s.uid}`} s={s} past={t.datum < data!.heute} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
-                ))}
+                {t.stunden.length === 0 && (
+                  <p className="free" style={{ gridRow: 2 }}>
+                    frei
+                  </p>
+                )}
+                {times.map((time, ri) => {
+                  const here = t.stunden.filter((s) => s.von === time);
+                  return here.length === 0 ? null : (
+                    <div key={time} className="slot" style={{ gridRow: ri + 2 }}>
+                      {here.map((s) => (
+                        <LessonCard key={`${s.uid}`} s={s} past={t.datum < data!.heute} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
+                      ))}
+                    </div>
+                  );
+                })}
               </section>
             ))}
           </div>
@@ -137,7 +162,16 @@ export function Start({ tree, onSetup, onAsk, onChanged }: StartProps) {
 
       <Overview tree={tree} onAsk={onAsk} />
 
-      {open && <Details s={open} onClose={() => setOpen(null)} onAsk={(t) => { setOpen(null); onAsk(t); }} onFiles={(f) => void drop(open, f)} />}
+      {open && (
+        <Details
+          s={open}
+          onClose={() => setOpen(null)}
+          onAsk={(t) => { setOpen(null); onAsk(t); }}
+          onFiles={(f) => void drop(open, f)}
+          onNewClass={() => { setOpen(null); onNewClass(); }}
+          onAssigned={() => { setOpen(null); void load(day); onChanged(); }}
+        />
+      )}
     </div>
   );
 }
@@ -179,7 +213,7 @@ function LessonCard({ s, past, onOpen, onDrop }: { s: WochenStunde; past: boolea
   );
 }
 
-function Details({ s, onClose, onAsk, onFiles }: { s: WochenStunde; onClose: () => void; onAsk: (t: string) => void; onFiles: (f: FileList) => void }) {
+function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: WochenStunde; onClose: () => void; onAsk: (t: string) => void; onFiles: (f: FileList) => void; onNewClass: () => void; onAssigned: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const files = s.material ? s.material.split(", ").filter(Boolean) : [];
   const base = s.klasse && s.fach && s.reihe ? `Klassen/${s.klasse}/${s.fach}/${s.reihe}/Material/` : undefined;
@@ -239,7 +273,7 @@ function Details({ s, onClose, onAsk, onFiles }: { s: WochenStunde; onClose: () 
             </dd>
           </dl>
         ) : (
-          <p>Zu dieser Stunde habe ich noch keine Klasse. Ordne sie im Stundenplan zu, dann zeige ich dir hier Thema und Material.</p>
+          <AssignInline s={s} onNewClass={onNewClass} onAssigned={onAssigned} />
         )}
         {s.klasse && (
           <div className="modal-actions">
@@ -289,5 +323,87 @@ function Overview({ tree, onAsk }: { tree: KlasseInfo[]; onAsk: (t: string) => v
         )}
       </div>
     </section>
+  );
+}
+
+/** Lets the teacher say right at the lesson which class it belongs to. The choice counts for every lesson of the same kind. */
+function AssignInline({ s, onNewClass, onAssigned }: { s: WochenStunde; onNewClass: () => void; onAssigned: () => void }) {
+  const [data, setData] = useState<Awaited<ReturnType<typeof getTitel>> | null>(null);
+  const [choice, setChoice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const entry = data?.titel.find((t) => t.titel === s.titel && (t.gruppe ?? "") === (s.gruppe ?? ""));
+
+  useEffect(() => {
+    getTitel().then((r) => {
+      setData(r);
+      const mine = r.titel.find((t) => t.titel === s.titel && (t.gruppe ?? "") === (s.gruppe ?? ""));
+      if (mine?.vorschlag) setChoice(`${mine.vorschlag.klasse}|${mine.vorschlag.fach}`);
+    }).catch(() => setProblem("Die Klassen konnten nicht geladen werden."));
+  }, [s.titel, s.gruppe]);
+
+  const options = data?.klassen.flatMap((k) => k.faecher.map((f) => ({ value: `${k.name}|${f}`, label: `${k.name} · ${f}` }))) ?? [];
+  const save = async (value: "ignorieren" | string) => {
+    if (!data || !entry) return;
+    setBusy(true);
+    setProblem(null);
+    // The whole assignment is saved, so everything assigned before stays.
+    const all: Record<string, { klasse: string; fach: string } | null> = {};
+    for (const t of data.titel) if (t.zuordnung !== undefined) all[t.schluessel] = t.zuordnung;
+    all[entry.schluessel] = value === "ignorieren" ? null : { klasse: value.split("|")[0]!, fach: value.split("|").slice(1).join("|") };
+    const error = await speichereZuordnung(all);
+    setBusy(false);
+    if (error) setProblem(error);
+    else onAssigned();
+  };
+
+  const what = [s.titel, s.gruppe].filter(Boolean).join(" · ") || "Dieser Eintrag";
+  return (
+    <div className="assign-inline">
+      <h3>Zu welcher Klasse gehört das?</h3>
+      <p className="muted">
+        „{what}“ steht {entry && entry.anzahl > 1 ? `${entry.anzahl}× ` : ""}in deinem Stundenplan. Deine Wahl gilt für alle diese Stunden.
+      </p>
+      {data && options.length === 0 ? (
+        <>
+          <p>Du hast noch keine Klasse angelegt. Lege zuerst eine an, dann kannst du ihr diese Stunde zuordnen.</p>
+          <div className="modal-actions">
+            <button type="button" className="primary" onClick={onNewClass}>
+              Klasse anlegen
+            </button>
+            <button type="button" className="ghost" disabled={busy} onClick={() => void save("ignorieren")}>
+              Gehört nicht zu mir
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <label className="field">
+            <span>Klasse und Fach</span>
+            <select value={choice} onChange={(e) => setChoice(e.target.value)}>
+              <option value="">Bitte wählen …</option>
+              {options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {entry?.vorschlag && choice === `${entry.vorschlag.klasse}|${entry.vorschlag.fach}` && <p className="muted small-note">Das ist mein Vorschlag, passend zum Namen im Stundenplan.</p>}
+          <div className="modal-actions">
+            <button type="button" className="primary" disabled={busy || !choice} onClick={() => void save(choice)}>
+              Zuordnen
+            </button>
+            <button type="button" className="ghost" disabled={busy} onClick={() => void save("ignorieren")}>
+              Gehört nicht zu mir (ausblenden)
+            </button>
+          </div>
+          <button type="button" className="link" onClick={onNewClass}>
+            Die Klasse gibt es noch nicht? Neue Klasse anlegen
+          </button>
+        </>
+      )}
+      {problem && <p className="error">{problem}</p>}
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
 import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
 import { AUTO_RETRY, classifyFailure, MAX_AUTO_RETRIES, retryDelay, type Failure } from "./errors.ts";
@@ -72,9 +73,12 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   const questionTool = fragenTool((fragen, signal) => askQuestions(fragen, signal));
   const tools = [...baseTools, questionTool as (typeof baseTools)[number]];
 
+  const sessionId = randomUUID();
   const agent = new Agent({
     initialState: { systemPrompt: buildPrompt(deps.skills ?? []), model, tools },
     streamFn: models.streamSimple.bind(models),
+    // OpenCode routes requests by this id, others use it for caching.
+    sessionId,
     getApiKey: async () => keyFor(settings.provider, settings.apiKey),
     beforeToolCall: async ({ toolCall, args }, signal) => {
       const tool = tools.find((t) => t.name === toolCall.name);
@@ -116,7 +120,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
       const reply = await models.completeSimple(
         model,
         { systemPrompt: SUMMARY_SYSTEM, messages: [{ role: "user", content: transcript, timestamp: Date.now() }] },
-        { apiKey: keyFor(settings.provider, settings.apiKey) },
+        { apiKey: keyFor(settings.provider, settings.apiKey), sessionId },
       );
       // The summary costs tokens too, so it counts in the totals and in the monthly sum.
       if (reply.usage.totalTokens > 0) {

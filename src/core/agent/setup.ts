@@ -1,6 +1,9 @@
+import { randomUUID } from "node:crypto";
 import { deflateSync } from "node:zlib";
 import { Type, type Context } from "@earendil-works/pi-ai";
 import { CUSTOM_ID, CustomProviderError, keyFor } from "./custom.ts";
+import { classifyFailure } from "./errors.ts";
+import { diagnoseNetwork, type NetDiagnosis } from "./netcheck.ts";
 import { PROVIDERS, resolveModel } from "./models.ts";
 import { dateTool } from "./tools.ts";
 import type { AgentSettings, ConnectionResult, ProviderOption } from "./types.ts";
@@ -65,6 +68,7 @@ const textOf = (content: { type: string; text?: string }[]) =>
 export async function testConnection(
   settings: AgentSettings,
   resolve: typeof resolveModel = resolveModel,
+  diagnose: (url: string) => Promise<NetDiagnosis> = diagnoseNetwork,
 ): Promise<ConnectionResult> {
   const checks: ConnectionResult["checks"] = [
     { id: "chat", label: "Antworten", state: "skipped" },
@@ -74,7 +78,8 @@ export async function testConnection(
   const set = (id: string, state: "ok" | "failed") => {
     checks.find((c) => c.id === id)!.state = state;
   };
-  const opts = { apiKey: keyFor(settings.provider, settings.apiKey), maxTokens: 200 };
+  // Some providers (OpenCode) route by a session id, so every request carries one.
+  const opts = { apiKey: keyFor(settings.provider, settings.apiKey), maxTokens: 200, sessionId: randomUUID() };
   const now = () => Date.now();
 
   let resolved;
@@ -95,15 +100,7 @@ export async function testConnection(
     set("chat", "ok");
   } catch (err) {
     const raw = err instanceof Error ? err.message : String(err);
-    const own = settings.provider === CUSTOM_ID;
-    const hint = /api key|apikey|unauthor|401|403|authenticat/i.test(raw)
-      ? "Der Zugangsschlüssel wurde nicht angenommen. Bitte prüfe, ob du ihn vollständig kopiert hast."
-      : own && /ECONNREFUSED|ENOTFOUND|EAI_AGAIN|fetch failed|connect|ETIMEDOUT|connection error/i.test(raw)
-        ? "Ich erreiche den Server unter dieser Adresse nicht. Läuft er, und stimmt die Adresse?"
-        : own && /404|not found|model|does not exist/i.test(raw)
-          ? "Der Server kennt dieses Modell oder diesen Pfad nicht. Prüfe den Modellnamen und ob die Adresse auf „/v1“ endet."
-          : "Ich komme nicht an die KI heran. Bitte prüfe die Internetverbindung und versuche es noch einmal.";
-    return { passed: false, checks, hint };
+    return failedChat(raw, settings, model.baseUrl, diagnose, checks);
   }
 
   try {
@@ -153,4 +150,26 @@ export async function testConnection(
     checks,
     hint: failed.length ? failed.map((f) => hints[f]).filter(Boolean).join(" ") + " Bitte wähle ein anderes Modell." : undefined,
   };
+}
+
+/** Turns a failed first request into a hint the teacher can act on, plus technical details for whoever helps. */
+async function failedChat(raw: string, settings: AgentSettings, baseUrl: string, diagnose: (url: string) => Promise<NetDiagnosis>, checks: ConnectionResult["checks"]): Promise<ConnectionResult> {
+  const failure = classifyFailure(raw);
+  const own = settings.provider === CUSTOM_ID;
+  let hint = failure.message;
+  let net: NetDiagnosis | undefined;
+  if (failure.kind === "offline" || failure.kind === "cut" || failure.kind === "unknown") {
+    net = await diagnose(baseUrl);
+    hint = net.reachable
+      ? "Der Anbieter ist erreichbar, hat die Anfrage aber nicht angenommen. Bitte prüfe Zugangsschlüssel und Modell."
+      : own && /^(ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|TIMEOUT)$/.test(net.code)
+        ? "Ich erreiche den Server unter dieser Adresse nicht. Läuft er, und stimmt die Adresse?"
+        : net.text;
+  } else if (own && failure.kind === "model") {
+    hint = "Der Server kennt dieses Modell oder diesen Pfad nicht. Prüfe den Modellnamen und ob die Adresse auf „/v1“ endet.";
+  }
+  const secret = settings.apiKey;
+  const clean = (text: string) => (secret ? text.split(secret).join("***") : text).slice(0, 400);
+  const detail = [`Fehler: ${clean(raw)}`, net ? `Netz: ${net.code}` : "", `Adresse: ${(() => { try { return new URL(baseUrl).origin; } catch { return baseUrl; } })()}`].filter(Boolean).join("\n");
+  return { passed: false, checks, hint, detail };
 }

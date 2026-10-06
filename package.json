@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "vite build",
-    "start": "tsx src/server/index.ts",
+    "start": "node scripts/start.mjs",
     "test": "vitest run",
     "typecheck": "tsc",
     "eval": "tsx scripts/eval.mts"

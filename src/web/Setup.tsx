@@ -216,6 +216,12 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
               ))}
             </ul>
             {result.hint && <p>{result.hint}</p>}
+            {result.detail && (
+              <details className="tech-detail">
+                <summary>Technische Angaben (für die IT oder für Hilfe)</summary>
+                <pre>{result.detail}</pre>
+              </details>
+            )}
           </div>
         )}
 
