@@ -2,6 +2,7 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
+import { bildNamen, fixtureBild } from "./bilder.ts";
 import { PROGRAMM } from "./checks.ts";
 import { parseCsv } from "./csv.ts";
 import { judgeCase, judgePrompt, parseVerdicts } from "./judge.ts";
@@ -37,6 +38,19 @@ describe("the criteria and test sets in evals/", () => {
     const bundled = (await readdir(join(process.cwd(), "skills"))).filter((n) => !n.startsWith("."));
     for (const name of suites) expect(bundled, `Zu evals/${name} fehlt die Anleitung`).toContain(name);
     for (const name of ["arbeitsblatt", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check"]) expect(suites).toContain(name);
+  });
+});
+
+describe("pictures for test cases", () => {
+  it("are drawn from invented sheets and every test case names one that exists", async () => {
+    const b = await fixtureBild("telephoning");
+    expect(b.mimeType).toBe("image/png");
+    expect(Buffer.from(b.data, "base64").subarray(1, 4).toString()).toBe("PNG");
+    expect(b.text).toContain("Telephoning");
+    expect(b.text).toContain("I'll put you through.");
+    const cases = (await loadSuites(evalsDir)).flatMap((s) => s.faelle);
+    for (const name of cases.flatMap((c) => c.bilder ?? [])) expect(bildNamen(), name).toContain(name);
+    expect(cases.filter((c) => c.bilder?.length).length).toBeGreaterThanOrEqual(2);
   });
 });
 

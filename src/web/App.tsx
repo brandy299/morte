@@ -525,6 +525,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                       {q}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    style={{ "--i": SUGGESTIONS.length } as CSSProperties}
+                    onClick={() => {
+                      setInput((t) => t || "Bau mir so etwas wie auf diesem Bild, mit eigenen Aufgaben.");
+                      fileRef.current?.click();
+                    }}
+                  >
+                    Aus einem Foto ein Blatt bauen
+                  </button>
                 </div>
               </div>
             )}
