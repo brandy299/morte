@@ -197,6 +197,35 @@ export function createApp(state: AppState) {
     });
   });
 
+  // "Nochmal versuchen": goes on with the failed answer instead of asking the question a second time.
+  app.post("/api/chat/retry", async (c) => {
+    const session = state.session;
+    const conversation = state.conversation;
+    if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
+    if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
+    const failed = conversation?.anzeige.at(-1);
+    if (!conversation || failed?.role !== "assistant" || !session.canRetry()) {
+      return c.json({ error: "Es gibt nichts zu wiederholen. Bitte stelle deine Frage noch einmal." }, 409);
+    }
+    busy = true;
+    conversation.anzeige.pop();
+    let answer: StoredMessage = { ...failed, error: undefined, retryable: undefined };
+    return streamSSE(c, async (stream) => {
+      stream.onAbort(() => session.abort());
+      try {
+        await session.retry((event) => {
+          answer = applyEvent(answer, event);
+          void stream.writeSSE({ data: JSON.stringify(event) });
+        });
+      } finally {
+        conversation.anzeige.push(settle(answer));
+        const { messages, usage } = session.history();
+        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
+        busy = false;
+      }
+    });
+  });
+
   app.post("/api/chat/confirm", async (c) => {
     const { id, allow } = await c.req.json<{ id: string; allow: boolean }>();
     state.session?.answer(id, Boolean(allow));

@@ -13,7 +13,10 @@ export type ChatEvent =
   | { type: "material"; title: string; name: string; path: string; preview?: boolean }
   /** The teacher must say yes or no before a tool changes files. Answer with ChatSession.answer(id, allow). */
   | { type: "confirm"; id: string; question: string }
-  | { type: "error"; message: string }
+  /** A try failed for a short-lived reason and is repeated after `seconds`. The text of the failed try (`dropText` characters) is withdrawn. */
+  | { type: "retry"; attempt: number; max: number; seconds: number; message: string; dropText: number }
+  /** The answer failed for good. `retryable`: the teacher can press "Nochmal versuchen". `dropText`: characters of the failed try to withdraw. */
+  | { type: "error"; message: string; retryable?: boolean; dropText?: number }
   | { type: "done" };
 
 /** Running numbers of the current conversation. Cost is an estimate in US dollars. */
@@ -37,6 +40,10 @@ export interface ImageAttachment {
 export interface ChatSession {
   /** Sends one user message and streams events until the answer is complete. */
   send(text: string, onEvent: (event: ChatEvent) => void, images?: ImageAttachment[]): Promise<void>;
+  /** Tries the last question again after a failure, without asking it twice. Same events as `send`. */
+  retry(onEvent: (event: ChatEvent) => void): Promise<void>;
+  /** There is a failed answer that `retry` can take up. */
+  canRetry(): boolean;
   usage(): UsageSnapshot;
   /** What is needed to continue this conversation later: the model's messages (pictures reduced to text) and the usage numbers. */
   history(): { messages: unknown[]; usage: UsageSnapshot };

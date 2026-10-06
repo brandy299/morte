@@ -26,6 +26,19 @@ describe("transcript", () => {
   });
 });
 
+describe("transcript after a failed try", () => {
+  it("withdraws the text of a failed try and keeps the error until the next try", () => {
+    let m: StoredMessage = { role: "assistant", text: "", steps: [] };
+    m = applyEvent(m, { type: "text", delta: "Gut: " });
+    m = applyEvent(m, { type: "text", delta: "halbe Antwort" });
+    m = applyEvent(m, { type: "error", message: "Verbindung weg", retryable: true, dropText: "halbe Antwort".length });
+    expect(m).toMatchObject({ text: "Gut: ", error: "Verbindung weg", retryable: true });
+    m = applyEvent(m, { type: "retry", attempt: 0, max: 3, seconds: 0, message: "", dropText: 0 });
+    expect(m.error).toBeUndefined();
+    expect(m.retryable).toBeUndefined();
+  });
+});
+
 describe("store", () => {
   it("saves, lists newest first, loads and deletes", async () => {
     const a = newConversationId();

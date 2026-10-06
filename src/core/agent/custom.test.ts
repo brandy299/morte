@@ -123,10 +123,10 @@ describe("own OpenAI-compatible server", () => {
 
   it("shows a calm message when the server fails in the middle of a chat", async () => {
     mock.status = 500;
-    const session = createChatSession({ provider: "custom", model: "m", baseUrl: mock.url });
+    const session = createChatSession({ provider: "custom", model: "m", baseUrl: mock.url }, { sleep: async () => {} });
     const events: ChatEvent[] = [];
     await session.send("Hallo", (e) => events.push(e));
-    expect(events).toContainEqual({ type: "error", message: expect.stringMatching(/nicht geklappt/) });
+    expect(events).toContainEqual(expect.objectContaining({ type: "error", retryable: true, message: expect.stringMatching(/überlastet/) }));
     expect(events.at(-1)).toEqual({ type: "done" });
   });
 });
