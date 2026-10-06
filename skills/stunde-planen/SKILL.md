@@ -18,7 +18,7 @@ Du schreibst den Inhalt. Das Werkzeug zeichnet die Seite und prüft, ob die Minu
    - **Zeiten ehrlich schätzen:** Der Einstieg dauert selten länger als ein Fünftel. Plane die Sicherung nicht weg: Sie bekommt mindestens fünf Minuten. Lass etwas Luft für Organisation und Verzögerungen.
    - **Sozialform wechseln**, wenn es dem Lernen dient (Einzelarbeit, Partnerarbeit, Gruppenarbeit, Plenum). Wechsel kosten Zeit.
    - **Eine Phase, eine Handlung.** "Was passiert" beschreibt, was die Lehrkraft tut und was die Lernenden tun, in ein bis drei Sätzen.
-   - **Material** nur nennen, was es gibt oder was du in dieser Sitzung erstellst. Erfinde keine Folien, Videos oder Links.
+   - **Material** nur nennen, was es gibt oder was du in dieser Sitzung erstellst. Schlägst du etwas vor, das es noch nicht gibt (zum Beispiel ein Arbeitsblatt), schreib „(noch zu erstellen)“ dahinter und biete an, es zu machen. Erfinde keine Folien, Videos, Handouts oder Links.
    - **Differenzierung** kurz: Wer schneller fertig ist, wer Hilfe braucht. Nur wenn es zur Stunde passt.
    - **Darauf achten:** typische Stolpersteine. Nur das, was du für dieses Thema wirklich erwartest.
 4. **Erdung.** Nenne keine Lehrplan-Fundstellen oder Kompetenzbezeichnungen, die dir nicht vorliegen. Hat die Klasse einen Lehrplan, lies zuerst die passende Stelle (Gliederung, dann nur den Abschnitt) und richte die Lernziele danach aus. Das Werkzeug setzt selbst einen ehrlichen Hinweis auf die Seite, wenn kein Lehrplan hinterlegt ist.
