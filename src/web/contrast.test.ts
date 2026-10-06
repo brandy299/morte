@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 /** Guards the colors: text must stay readable (WCAG AA, 4.5:1) when someone changes the palette. */
 const css = readFileSync(new URL("./styles.css", import.meta.url), "utf8");
-const token = (name: string) => new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(css)?.[1] ?? "";
 const luminance = (hex: string) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
   return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
@@ -13,15 +12,40 @@ const ratio = (a: string, b: string) => {
   return (hi! + 0.05) / (lo! + 0.05);
 };
 
-describe("colors", () => {
+/** Color values of one theme: the light basics, overridden by every block whose selector is in `selectors`. */
+function theme(selectors: string[]): (name: string) => string {
+  const values: Record<string, string> = {};
+  const blocks = [...css.matchAll(/(:root[^{]*)\{([^}]*)\}/g)];
+  const wanted = [":root", ...selectors];
+  for (const selector of wanted) {
+    for (const [, sel, body] of blocks) {
+      if (sel!.trim() !== selector) continue;
+      for (const m of body!.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)) values[m[1]!] = m[2]!;
+    }
+  }
+  return (name) => values[name] ?? "";
+}
+
+const themes: Record<string, string[]> = {
+  hell: [],
+  dunkel: [':root[data-theme="dark"]'],
+  ...Object.fromEntries(["salbei", "blau", "pflaume"].flatMap((a) => [[`hell ${a}`, [`:root[data-accent="${a}"]`]], [`dunkel ${a}`, [':root[data-theme="dark"]', `:root[data-accent="${a}"]`, `:root[data-theme="dark"][data-accent="${a}"]`]]])),
+};
+
+describe.each(Object.entries(themes))("colors (%s)", (_name, selectors) => {
+  const t = theme(selectors);
   const surfaces = ["paper", "paper-deep", "card", "accent-wash"];
   it.each(["ink", "ink-soft", "accent-deep", "danger-ink", "ok"])("%s is readable on every surface", (text) => {
     for (const surface of surfaces) {
-      expect(token(text), text).not.toBe("");
-      expect(ratio(token(text), token(surface)), `${text} auf ${surface}`).toBeGreaterThanOrEqual(4.5);
+      expect(t(text), text).not.toBe("");
+      expect(ratio(t(text), t(surface)), `${text} auf ${surface}`).toBeGreaterThanOrEqual(4.5);
     }
   });
   it("button text is readable on the accent color", () => {
-    expect(ratio(token("accent-ink"), token("accent"))).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(t("accent-ink"), t("accent"))).toBeGreaterThanOrEqual(4.5);
+  });
+  it("status colors are readable on their washes", () => {
+    expect(ratio(t("danger-ink"), t("danger-wash"))).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(t("ok-ink"), t("ok-wash"))).toBeGreaterThanOrEqual(4.5);
   });
 });

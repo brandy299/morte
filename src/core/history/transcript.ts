@@ -11,7 +11,14 @@ export interface StoredMessage {
   steps: { id: string; label: string; state: "running" | "done" | "failed" }[];
   materials?: { title: string; name: string; path: string }[];
   error?: string;
+  /** Questions the assistant asked and what the teacher chose. */
+  fragen?: { frage: string; antwort: string; empfohlen: boolean; eigene?: boolean }[];
+  /** The failed answer can be tried again ("Nochmal versuchen"). */
+  retryable?: boolean;
 }
+
+/** Withdraws the last `n` characters, the text of a try that failed. */
+const dropText = (text: string, n: number | undefined) => (n ? text.slice(0, Math.max(0, text.length - n)) : text);
 
 /** Applies one chat event to the assistant message it belongs to. */
 export function applyEvent(m: StoredMessage, e: ChatEvent): StoredMessage {
@@ -24,8 +31,12 @@ export function applyEvent(m: StoredMessage, e: ChatEvent): StoredMessage {
       return { ...m, steps: m.steps.map((s) => (s.id === e.id ? { ...s, state: e.ok ? "done" : "failed" } : s)) };
     case "material":
       return { ...m, materials: [...(m.materials ?? []), { title: e.title, name: e.name, path: e.path }] };
+    case "fragen_beantwortet":
+      return { ...m, fragen: [...(m.fragen ?? []), ...e.antworten] };
+    case "retry":
+      return { ...m, text: dropText(m.text, e.dropText), error: undefined, retryable: undefined };
     case "error":
-      return { ...m, error: e.message };
+      return { ...m, text: dropText(m.text, e.dropText), error: e.message, retryable: e.retryable };
     default:
       return m;
   }

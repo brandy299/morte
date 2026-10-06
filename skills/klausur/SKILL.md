@@ -12,7 +12,7 @@ Es gibt keine festen Bereiche und keinen festen Notenschlüssel. Jede Schule und
 
 ## Ablauf
 
-1. **Klären, höchstens zwei Rückfragen in einer Runde.** Nötig sind: Klasse oder Kurs, Thema (oder Reihe) und Dauer. Hat die Lehrkraft alles genannt, frag nicht nach. Biete in derselben Runde an: "Soll ich gleich einen Entwurf machen?" Erfinde keine Dauer.
+1. **Klären, höchstens zwei Rückfragen in einer Runde.** Stell die Rückfragen mit `fragen_stellen`, jede mit einer empfohlenen Antwort und dem Grund dafür. Nötig sind: Klasse oder Kurs, Thema (oder Reihe) und Dauer. Hat die Lehrkraft alles genannt, frag nicht nach. Biete in derselben Runde an: "Soll ich gleich einen Entwurf machen?" Erfinde keine Dauer.
 2. **Klasse und Stoff kennen.** Gibt es die Klasse im Arbeitsordner: erst `klasse_lesen`, dann `stand_lesen`, dann `reihe_lesen` für die passende Reihe. Die Klausur prüft, was wirklich behandelt wurde, nicht mehr. Schulform, Stufe und Kursniveau bestimmen Anspruch und Aufgabenform (siehe unten).
 3. **Bewertungsregeln holen.** Rufe `bewertung_lesen` für die Klasse auf.
    - Es gibt Regeln: Nutze genau diese Bereiche und diesen Notenschlüssel. Jede Teilaufgabe nennt dann einen der Bereiche mit der Kurzbezeichnung aus den Regeln.

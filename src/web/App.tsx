@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
@@ -8,6 +8,9 @@ import { Vorlagen } from "./Vorlagen.tsx";
 import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
+import { Onboarding } from "./Onboarding.tsx";
+import { Fragen, FragenRueckblick } from "./Fragen.tsx";
+import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
 
 interface Step {
@@ -25,12 +28,22 @@ interface Message {
   steps: Step[];
   materials?: Material[];
   confirm?: { id: string; question: string };
+  /** Questions waiting for the teacher. */
+  offeneFragen?: { id: string; fragen: Frage[] };
+  /** Questions that were answered. */
+  fragen?: Gegeben[];
   error?: string;
+  /** The failed answer can be tried again. */
+  retryable?: boolean;
+  /** Shown while the app repeats a failed try on its own. */
+  retryNote?: string;
 }
 
 export function App() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
+  // First start: the welcome steps run until the teacher finishes them, also after the key was saved on the way.
+  const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const [newClassOpen, setNewClassOpen] = useState(false);
   const [lehrplanOpen, setLehrplanOpen] = useState(false);
   const [stundenplanOpen, setStundenplanOpen] = useState(false);
@@ -70,7 +83,11 @@ export function App() {
     if (c.id === currentId) show([]);
     void refreshHistory();
   };
-  const refresh = () => getStatus().then(setStatus);
+  const refresh = () =>
+    getStatus().then((next) => {
+      setStatus(next);
+      setOnboarding((o) => o ?? !next.configured);
+    });
   useEffect(() => {
     void refresh();
     void refreshTree();
@@ -81,14 +98,17 @@ export function App() {
   if (!status || !startView) return null;
   // First start: only the setup. Afterwards the chat stays mounted behind the other screens,
   // so an answer that is still being written and the conversation on screen are not lost.
-  if (!status.configured) {
+  if (onboarding || !status.configured) {
     return (
-      <Setup
+      <Onboarding
         status={status}
-        onDone={() => {
-          void refresh();
-          show([]);
+        onConfigured={() => void refresh()}
+        onFinish={(next) => {
+          setOnboarding(false);
           void refreshHistory();
+          show([]);
+          if (next === "stundenplan") setStundenplanOpen(true);
+          if (next === "klasse") setNewClassOpen(true);
         }}
       />
     );
@@ -119,9 +139,9 @@ export function App() {
         />
       </div>
       {setupOpen && (
-        <Setup
+        <Einstellungen
           status={status}
-          onCancel={() => setSetupOpen(false)}
+          onClose={() => setSetupOpen(false)}
           onDone={() => {
             // Saving builds a new session on the server, so the conversation on screen starts again too.
             setSetupOpen(false);
@@ -221,6 +241,17 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachProblem, setAttachProblem] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [online, setOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const up = () => setOnline(true);
+    const down = () => setOnline(false);
+    window.addEventListener("online", up);
+    window.addEventListener("offline", down);
+    return () => {
+      window.removeEventListener("online", up);
+      window.removeEventListener("offline", down);
+    };
+  }, []);
   const [usage, setUsage] = useState<UsageSnapshot | undefined>();
   const [preview, setPreview] = useState<Material | null>(null);
   // A material step is running: the preview opens at once with a placeholder and is replaced by the file.
@@ -319,7 +350,23 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   const handleEvent = (e: ChatEvent) => {
     switch (e.type) {
       case "text":
-        patchLast((m) => ({ ...m, text: m.text + e.delta }));
+        patchLast((m) => ({ ...m, text: m.text + e.delta, retryNote: undefined }));
+        break;
+      case "fragen":
+        setBuilding(null);
+        patchLast((m) => ({ ...m, offeneFragen: { id: e.id, fragen: e.fragen } }));
+        break;
+      case "fragen_beantwortet":
+        patchLast((m) => ({ ...m, offeneFragen: undefined, fragen: [...(m.fragen ?? []), ...e.antworten] }));
+        break;
+      case "retry":
+        patchLast((m) => ({
+          ...m,
+          text: m.text.slice(0, Math.max(0, m.text.length - e.dropText)),
+          error: undefined,
+          retryable: undefined,
+          retryNote: e.attempt > 0 ? `${e.message} Neuer Versuch in ${e.seconds} ${e.seconds === 1 ? "Sekunde" : "Sekunden"} (${e.attempt} von ${e.max}) …` : undefined,
+        }));
         break;
       case "thinking":
         setThinking(e.active);
@@ -354,7 +401,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, confirm: { id: e.id, question: e.question } }));
         break;
       case "error":
-        patchLast((m) => ({ ...m, error: e.message }));
+        patchLast((m) => ({ ...m, text: m.text.slice(0, Math.max(0, m.text.length - (e.dropText ?? 0))), error: e.message, retryable: e.retryable, retryNote: undefined }));
         break;
     }
   };
@@ -379,19 +426,41 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
       { role: "user", text, images: sent.flatMap((a) => (a.preview ? [a.preview] : [])), dateien: sent.filter((a) => a.text !== undefined).map((a) => a.name), steps: [] },
       { role: "assistant", text: "", steps: [] },
     ]);
+    await stream((signal, onEvent) => sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), onEvent, signal));
+  };
+
+  /** Runs one request to the assistant and takes care of what happens when the connection breaks. */
+  async function stream(run: (signal: AbortSignal, onEvent: (e: ChatEvent) => void) => Promise<void>) {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    let finished = false;
     try {
-      await sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), handleEvent, ctrl.signal);
+      await run(ctrl.signal, (e) => {
+        if (e.type === "done") finished = true;
+        handleEvent(e);
+      });
+      // The answer ended without the closing sign: the connection to the app broke.
+      if (!finished && !ctrl.signal.aborted) patchLast((m) => ({ ...m, error: "Die Verbindung wurde unterbrochen.", retryable: true, retryNote: undefined }));
     } catch (err) {
-      if (!ctrl.signal.aborted) patchLast((m) => ({ ...m, error: err instanceof Error ? err.message : "Das hat nicht geklappt." }));
+      if (!ctrl.signal.aborted) {
+        const broken = err instanceof TypeError;
+        patchLast((m) => ({ ...m, error: broken ? "Ich erreiche morte gerade nicht. Läuft das Programm noch?" : err instanceof Error ? err.message : "Das hat nicht geklappt.", retryable: broken || undefined, retryNote: undefined }));
+      }
     } finally {
       setWorking(false);
       setThinking(false);
       setBuilding(null);
+      patchLast((m) => (m.retryNote ? { ...m, retryNote: undefined } : m));
       refreshTree();
       refreshHistory();
     }
+  }
+
+  const retry = async () => {
+    if (working) return;
+    setWorking(true);
+    patchLast((m) => ({ ...m, error: undefined, retryable: undefined }));
+    await stream((signal, onEvent) => retryMessage(onEvent, signal));
   };
 
   /** Puts a question into the input field and shows the chat, so the teacher can read it and send it. */
@@ -421,7 +490,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   const running = last?.steps.find((s) => s.state === "running");
   const statusLine = !working
     ? null
-    : last?.confirm
+    : last?.retryNote
+      ? last.retryNote
+      : last?.offeneFragen
+        ? "Ich warte auf deine Antworten …"
+        : last?.confirm
       ? "Ich warte auf deine Antwort …"
       : running
       ? `${running.label} …`
@@ -657,7 +730,18 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                     </div>
                   </div>
                 )}
-                {m.error && <p className="error">{m.error}</p>}
+                {m.fragen && m.fragen.length > 0 && <FragenRueckblick fragen={m.fragen} />}
+                {m.offeneFragen && <Fragen key={m.offeneFragen.id} id={m.offeneFragen.id} fragen={m.offeneFragen.fragen} />}
+                {m.error && (
+                  <div className="error-box" role="alert">
+                    <p className="error">{m.error}</p>
+                    {m.retryable && !working && i === messages.length - 1 && (
+                      <button type="button" className="ghost small" onClick={() => void retry()}>
+                        Nochmal versuchen
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             {statusLine && (
@@ -674,6 +758,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           <div className="drop-overlay" aria-hidden>
             <p>Hier loslassen, um die Dateien anzuhängen</p>
           </div>
+        )}
+        {!online && (
+          <p className="offline-bar" role="status">
+            Du bist gerade offline. Sobald das Internet wieder da ist, kannst du weiterschreiben.
+          </p>
         )}
         <form
           className="composer"

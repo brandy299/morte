@@ -9,12 +9,22 @@ import {
   type SetupStatus,
 } from "./api.ts";
 
-export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDone: () => void; onCancel?: () => void }) {
+/** Where to get a key, in plain words, per provider. */
+const KEY_HELP: Record<string, { text: string; url?: string }> = {
+  anthropic: { text: "Melde dich bei Anthropic an, lege ein Guthaben an (ein paar Euro reichen zum Start) und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://console.anthropic.com/settings/keys" },
+  openai: { text: "Melde dich bei OpenAI an, lege ein Guthaben an und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://platform.openai.com/api-keys" },
+  openrouter: { text: "OpenRouter ist ein Zugang zu vielen Modellen mit nur einem Schlüssel und einem Guthaben. Anmelden, Guthaben aufladen, Schlüssel erstellen. Du kannst dort eine Ausgabengrenze für den Schlüssel setzen.", url: "https://openrouter.ai/keys" },
+  deepseek: { text: "Melde dich bei DeepSeek an, lade etwas Guthaben auf und erstelle einen Schlüssel. In manchen Schulnetzen ist DeepSeek gesperrt. Dann geht es über OpenRouter.", url: "https://platform.deepseek.com/api_keys" },
+  "opencode-go": { text: "Den Schlüssel findest du in deinem Konto bei OpenCode, wenn du das Go-Abo hast." },
+};
+
+export function Setup({ status, onDone, onCancel, embedded }: { status: SetupStatus; onDone: () => void; onCancel?: () => void; embedded?: boolean }) {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [providerId, setProviderId] = useState(status.provider ?? "anthropic");
   const [modelId, setModelId] = useState(status.model ?? "");
   const [apiKey, setApiKey] = useState("");
   const [advanced, setAdvanced] = useState(false);
+  const [filter, setFilter] = useState("");
   const [baseUrl, setBaseUrl] = useState(status.baseUrl ?? "");
   const [contextWindow, setContextWindow] = useState(status.contextWindow ? String(status.contextWindow) : "");
   const [testing, setTesting] = useState(false);
@@ -27,10 +37,12 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
 
   const provider = providers.find((p) => p.id === providerId);
   const models = provider?.models ?? [];
-  const shown = advanced ? models : models.filter((m) => m.recommended);
+  const needle = filter.trim().toLowerCase();
+  // A model chosen earlier stays in the list, also when it is not recommended or the search does not match it.
+  const shown = models.filter((m) => m.id === modelId || (advanced ? !needle || `${m.name} ${m.id}`.toLowerCase().includes(needle) : m.recommended));
   const custom = Boolean(provider?.custom);
   // For an own server the teacher types the model name; otherwise it comes from the list.
-  const chosen = custom ? modelId.trim() : modelId && models.some((m) => m.id === modelId) ? modelId : (models[0]?.id ?? "");
+  const chosen = custom ? modelId.trim() : modelId && shown.some((m) => m.id === modelId) ? modelId : (shown[0]?.id ?? "");
   const alreadyStored = status.configured && status.provider === providerId;
   const body = () => ({
     provider: providerId,
@@ -66,19 +78,9 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
     }
   };
 
-  return (
-    <main className="setup">
-      <div className="setup-card">
-        {onCancel && (
-          <button type="button" className="link back" onClick={onCancel}>
-            ← Zurück zum Gespräch
-          </button>
-        )}
-        <div className="brand">
-          <span className="brand-mark" aria-hidden />
-          morte
-        </div>
-        <h1>Welche KI soll dir helfen?</h1>
+  const inner = (
+    <>
+        {embedded ? <h2>Welche KI soll dir helfen?</h2> : <h1>Welche KI soll dir helfen?</h1>}
         <p className="lead">
           Dafür brauche ich einen Zugangsschlüssel von deinem KI-Anbieter. Er bleibt auf diesem Computer
           {status.storage === "file" ? " (in einer Datei nur für dich)" : " (im Schlüsselbund)"} und kommt nie in
@@ -126,6 +128,19 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
             }}
           />
         </label>
+        {KEY_HELP[providerId] && (
+          <details className="key-help">
+            <summary>Wo bekomme ich einen Schlüssel?</summary>
+            <p>{KEY_HELP[providerId]!.text}</p>
+            {KEY_HELP[providerId]!.url && (
+              <p>
+                <a href={KEY_HELP[providerId]!.url} target="_blank" rel="noopener noreferrer">
+                  {KEY_HELP[providerId]!.url!.replace("https://", "")}
+                </a>
+              </p>
+            )}
+          </details>
+        )}
 
         {custom ? (
           <>
@@ -145,6 +160,12 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
           </>
         ) : (
           <>
+        {advanced && (
+          <label className="field">
+            <span>Modell suchen</span>
+            <input value={filter} placeholder="zum Beispiel deepseek, glm, qwen" onChange={(e) => setFilter(e.target.value)} />
+          </label>
+        )}
         <label className="field">
           <span>Modell</span>
           <select
@@ -164,7 +185,7 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
           </select>
         </label>
         <button className="link" type="button" onClick={() => setAdvanced((a) => !a)}>
-          {advanced ? "Nur empfohlene Modelle zeigen" : "Erweitert: alle Modelle zeigen"}
+          {advanced ? "Nur empfohlene Modelle zeigen" : "Alle Modelle zeigen und suchen"}
         </button>
           </>
         )}
@@ -175,7 +196,7 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
           </button>
           {result?.passed && (
             <button className="primary" onClick={save}>
-              Speichern und loslegen
+              {embedded ? "Speichern und weiter" : "Speichern und loslegen"}
             </button>
           )}
         </div>
@@ -208,6 +229,23 @@ export function Setup({ status, onDone, onCancel }: { status: SetupStatus; onDon
         >
           Erst einmal ohne KI ansehen
         </button>
+    </>
+  );
+
+  if (embedded) return <div className="embedded">{inner}</div>;
+  return (
+    <main className="setup">
+      <div className="setup-card">
+        {onCancel && (
+          <button type="button" className="link back" onClick={onCancel}>
+            ← Zurück zum Gespräch
+          </button>
+        )}
+        <div className="brand">
+          <span className="brand-mark" aria-hidden />
+          morte
+        </div>
+        {inner}
       </div>
     </main>
   );

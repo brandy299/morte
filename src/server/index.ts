@@ -1,8 +1,9 @@
+import { changeDataDir, openDataDir, ordnerInfo, OrdnerError, pickFolder, resetDataDir } from "../core/ordner/index.ts";
 import { AnhangError, extractFile, MAX_FILES, MAX_TOTAL_CHARS, withFiles, type SentFile } from "../core/anhang/extract.ts";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
-import { Hono, type MiddlewareHandler } from "hono";
+import { Hono, type Context, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
@@ -134,6 +135,21 @@ export function createApp(state: AppState) {
     });
   });
 
+  // Data folder: show, open in Finder/Explorer, pick, move.
+  app.get("/api/ordner", (c) => c.json(ordnerInfo()));
+  const ordnerAction = (run: (c: Context) => Promise<unknown>) => async (c: Context) => {
+    try {
+      return c.json({ ...ordnerInfo(), ...((await run(c)) as object | undefined) });
+    } catch (e) {
+      if (e instanceof OrdnerError) return c.json({ error: e.message }, 400);
+      throw e;
+    }
+  };
+  app.post("/api/ordner/oeffnen", ordnerAction(() => openDataDir()));
+  app.post("/api/ordner/waehlen", async (c) => c.json({ pfad: (await pickFolder()) ?? null }));
+  app.post("/api/ordner/aendern", ordnerAction(async (c) => changeDataDir(String((await c.req.json<{ pfad?: string }>()).pfad ?? ""))));
+  app.post("/api/ordner/standard", ordnerAction(() => resetDataDir()));
+
   // Reads one attached file and returns its text. Nothing is stored; the browser sends the text along with the question.
   app.post("/api/anhang", async (c) => {
     const name = decodeURIComponent(c.req.query("name") ?? "");
@@ -172,6 +188,42 @@ export function createApp(state: AppState) {
           },
           images,
         );
+      } finally {
+        conversation.anzeige.push(settle(answer));
+        const { messages, usage } = session.history();
+        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
+        busy = false;
+      }
+    });
+  });
+
+  // "Nochmal versuchen": goes on with the failed answer instead of asking the question a second time.
+  // The teacher's choices for the questions the assistant asked (null: skipped).
+  app.post("/api/chat/fragen", async (c) => {
+    const { id, antworten } = await c.req.json<{ id?: string; antworten?: unknown }>();
+    const ok = state.session?.answerQuestions(String(id), antworten === null ? undefined : antworten) ?? false;
+    return ok ? c.json({ ok: true }) : c.json({ error: "Die Antworten passen nicht zu den Fragen." }, 400);
+  });
+
+  app.post("/api/chat/retry", async (c) => {
+    const session = state.session;
+    const conversation = state.conversation;
+    if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
+    if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
+    const failed = conversation?.anzeige.at(-1);
+    if (!conversation || failed?.role !== "assistant" || !session.canRetry()) {
+      return c.json({ error: "Es gibt nichts zu wiederholen. Bitte stelle deine Frage noch einmal." }, 409);
+    }
+    busy = true;
+    conversation.anzeige.pop();
+    let answer: StoredMessage = { ...failed, error: undefined, retryable: undefined };
+    return streamSSE(c, async (stream) => {
+      stream.onAbort(() => session.abort());
+      try {
+        await session.retry((event) => {
+          answer = applyEvent(answer, event);
+          void stream.writeSSE({ data: JSON.stringify(event) });
+        });
       } finally {
         conversation.anzeige.push(settle(answer));
         const { messages, usage } = session.history();

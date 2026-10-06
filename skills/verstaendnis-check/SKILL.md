@@ -10,7 +10,7 @@ Du schreibst wenige, gezielte Fragen. Das Werkzeug zeichnet das Blatt und ein L�
 
 ## Ablauf
 
-1. **Klären, höchstens eine Rückfrage.** Nötig sind Klasse (oder Kurs) und Thema. Hat die Lehrkraft eine Stunde genannt, nimm deren Thema aus der Reihe. Frag nur, was du nicht herausfinden kannst. Biete an: "Soll ich gleich einen Entwurf machen?"
+1. **Klären, höchstens eine Rückfrage.** Stell die Rückfragen mit `fragen_stellen`, jede mit einer empfohlenen Antwort und dem Grund dafür. Nötig sind Klasse (oder Kurs) und Thema. Hat die Lehrkraft eine Stunde genannt, nimm deren Thema aus der Reihe. Frag nur, was du nicht herausfinden kannst. Biete an: "Soll ich gleich einen Entwurf machen?"
 2. **Klasse und Stunde kennen.** `klasse_lesen`, `stand_lesen`, bei Bedarf `reihe_lesen` und `material_lesen`. Der Check prüft, was in der Stunde wirklich dran war, nicht mehr.
 3. **Fragen schreiben.**
    - **Drei bis sechs Fragen**, jede prüft einen Kernpunkt der Stunde. Weniger ist besser als mehr.

@@ -14,6 +14,10 @@ export interface UsageInfo {
 }
 export const getUsage = async (): Promise<UsageInfo> => (await fetch("/api/usage")).json();
 
+export interface Antwort { text: string; erklaerung: string }
+export interface Frage { frage: string; antworten: Antwort[]; empfohlen: number; grund: string }
+export interface Gegeben { frage: string; antwort: string; empfohlen: boolean; eigene?: boolean }
+
 export type ChatEvent =
   | { type: "text"; delta: string }
   | { type: "step_start"; id: string; label: string; material?: boolean }
@@ -22,7 +26,10 @@ export type ChatEvent =
   | { type: "usage"; usage: UsageSnapshot }
   | { type: "material"; title: string; name: string; path: string; preview?: boolean }
   | { type: "confirm"; id: string; question: string }
-  | { type: "error"; message: string }
+  | { type: "fragen"; id: string; fragen: Frage[] }
+  | { type: "fragen_beantwortet"; id: string; antworten: Gegeben[] }
+  | { type: "retry"; attempt: number; max: number; seconds: number; message: string; dropText: number }
+  | { type: "error"; message: string; retryable?: boolean; dropText?: number }
   | { type: "done" };
 
 /** Reads server-sent events from a response stream and hands each one to `onEvent`. */
@@ -43,7 +50,6 @@ async function readEvents<T>(body: ReadableStream<Uint8Array<ArrayBuffer>>, onEv
   }
 }
 
-/** Sends a message and reads the server-sent events from the response stream. */
 export interface FileText { name: string; text: string }
 export interface FileRead { art: string; text: string; info?: string; gekuerzt: boolean; bilder?: ImageAttachment[] }
 
@@ -58,19 +64,21 @@ export async function readFileOnServer(file: File): Promise<FileRead | string> {
   }
 }
 
-export async function sendMessage(text: string, images: ImageAttachment[], files: FileText[], onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ text, images, dateien: files }),
-    signal,
-  });
+/** Posts to a chat route and reads the server-sent events from the response stream. */
+async function streamChat(path: string, body: unknown, onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
+  const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal });
   if (!res.ok || !res.body) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? "Keine Verbindung zum Assistenten.");
+    const answer = await res.json().catch(() => ({}));
+    throw new Error(answer.error ?? "Keine Verbindung zum Assistenten.");
   }
   await readEvents(res.body, onEvent);
 }
+
+export const sendMessage = (text: string, images: ImageAttachment[], files: FileText[], onEvent: (e: ChatEvent) => void, signal: AbortSignal) =>
+  streamChat("/api/chat", { text, images, dateien: files }, onEvent, signal);
+
+/** Goes on with a failed answer ("Nochmal versuchen") without asking the question again. */
+export const retryMessage = (onEvent: (e: ChatEvent) => void, signal: AbortSignal) => streamChat("/api/chat/retry", {}, onEvent, signal);
 
 export async function resetChat() {
   await fetch("/api/chat/reset", { method: "POST" });
@@ -132,7 +140,9 @@ export interface StoredMessage {
   dateien?: string[];
   steps: { id: string; label: string; state: "running" | "done" | "failed" }[];
   materials?: Material[];
+  fragen?: Gegeben[];
   error?: string;
+  retryable?: boolean;
 }
 
 export const getHistory = async (): Promise<{ gespraeche: ConversationInfo[]; aktuell?: string }> => (await fetch("/api/history")).json();
@@ -244,3 +254,24 @@ export async function legeAb(l: { klasse: string; fach: string; datum: string; v
 export interface VorlageInfo { name: string; titel: string; beschreibung: string; eigene: boolean }
 export const getVorlagen = async (): Promise<VorlageInfo[]> => (await (await fetch("/api/vorlagen")).json()).vorlagen;
 export const entferneVorlage = (name: string) => fetch(`/api/vorlagen/${encodeURIComponent(name)}`, { method: "DELETE" });
+
+// ---------- Datenordner ----------
+
+export interface OrdnerInfo { pfad: string; fest: boolean; standard: string; plattform: string; waehlen: boolean }
+const ordnerCall = async (path: string, body?: unknown): Promise<OrdnerInfo & { error?: string }> => {
+  const res = await fetch(`/api/ordner${path}`, body === undefined ? { method: path ? "POST" : "GET" } : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? "Das hat nicht geklappt.");
+  return data;
+};
+export const getOrdner = () => ordnerCall("");
+export const openOrdner = () => ordnerCall("/oeffnen");
+export const resetOrdner = () => ordnerCall("/standard");
+export const moveOrdner = (pfad: string) => ordnerCall("/aendern", { pfad });
+export const chooseOrdner = async (): Promise<string | null> => (await (await fetch("/api/ordner/waehlen", { method: "POST" })).json()).pfad;
+
+/** Sends the choices for the assistant's questions. `null` skips them. Returns a problem text, or null when it worked. */
+export async function answerFragen(id: string, antworten: { antwort: string; eigene?: boolean }[] | null): Promise<string | null> {
+  const res = await fetch("/api/chat/fragen", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, antworten }) });
+  return res.ok ? null : ((await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.");
+}
