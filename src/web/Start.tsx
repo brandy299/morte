@@ -1,4 +1,5 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { classColors, classVar } from "./klassenfarbe.ts";
 import { zipUrl, getTitel, getWoche, legeAb, speichereZuordnung, type KlasseInfo, type WocheAntwort, type WochenStunde } from "./api.ts";
 
 const long = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "long" });
@@ -62,9 +63,12 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
   };
 
   const w = data?.woche;
+  const colors = classColors(tree.map((k) => k.name));
   const isToday = (d: string) => d === data?.heute;
   // Every start time of the week, earliest first ("07:30" before "08:00").
   const times = [...new Set(w?.tage.flatMap((t) => t.stunden.map((x) => x.von)) ?? [])].sort();
+  // Classes that have a lesson this week, in the order of the colors.
+  const legend = [...new Set(w?.tage.flatMap((t) => t.stunden.flatMap((x) => (x.klasse ? [x.klasse] : []))) ?? [])].sort((a, b) => (colors.get(a) ?? 0) - (colors.get(b) ?? 0));
   const todays = w?.tage.find((t) => isToday(t.datum))?.stunden.length ?? 0;
 
   return (
@@ -122,6 +126,16 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
               </li>
             )}
           </ul>
+          {legend.length > 0 && (
+            <ul className="legend" aria-label="Farben der Klassen">
+              {legend.map((name) => (
+                <li key={name}>
+                  <span className="legend-dot" style={{ background: classVar(colors, name) }} aria-hidden />
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
           {w.nichtZugeordnet > 0 && <p className="muted assign-hint">Tipp: Klick eine Stunde an, um sie einer deiner Klassen zuzuordnen. Aufsichten und Pausen kannst du dort ausblenden.</p>}
 
           {/* One row per start time of the whole week, so a lesson at 8:00 on Monday sits level with 8:00 on Tuesday,
@@ -149,7 +163,7 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
                   return here.length === 0 ? null : (
                     <div key={time} className="slot" style={{ gridRow: ri + 2 }}>
                       {here.map((s) => (
-                        <LessonCard key={`${s.uid}`} s={s} past={t.datum < data!.heute} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
+                        <LessonCard key={`${s.uid}`} s={s} color={classVar(colors, s.klasse)} past={t.datum < data!.heute} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
                       ))}
                     </div>
                   );
@@ -178,13 +192,14 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
 
 const isTodayInWeek = (w: NonNullable<WocheAntwort["woche"]>, heute: string) => w.tage.some((t) => t.datum === heute);
 
-function LessonCard({ s, past, onOpen, onDrop }: { s: WochenStunde; past: boolean; onOpen: () => void; onDrop: (files: FileList) => void }) {
+function LessonCard({ s, past, color, onOpen, onDrop }: { s: WochenStunde; past: boolean; color?: string; onOpen: () => void; onDrop: (files: FileList) => void }) {
   const [over, setOver] = useState(false);
   const title = s.klasse ?? ([s.titel, s.gruppe].filter(Boolean).join(" · ") || "Ohne Titel");
   return (
     <button
       type="button"
-      className={`lesson ${s.zustand}${over ? " over" : ""}${past ? " past" : ""}`}
+      className={`lesson ${s.zustand}${over ? " over" : ""}${past ? " past" : ""}${color ? " colored" : ""}`}
+      style={color ? ({ "--k": color } as CSSProperties) : undefined}
       onClick={onOpen}
       onDragOver={(e) => {
         e.preventDefault();
@@ -299,13 +314,14 @@ function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: Wo
 
 function Overview({ tree, onAsk }: { tree: KlasseInfo[]; onAsk: (t: string) => void }) {
   if (tree.length === 0) return null;
+  const colorMap = classColors(tree.map((k) => k.name));
   return (
     <section className="overview" aria-label="Deine Klassen">
       <h2>Deine Klassen</h2>
       <div className="class-grid">
         {tree.map((k) =>
           k.faecher.map((f) => (
-            <button type="button" key={`${k.name}|${f.name}`} className="class-card" onClick={() => onAsk(`Wo stehen wir in ${k.name}, ${f.name}?`)}>
+            <button type="button" key={`${k.name}|${f.name}`} className="class-card colored" style={{ "--k": classVar(colorMap, k.name) } as CSSProperties} onClick={() => onAsk(`Wo stehen wir in ${k.name}, ${f.name}?`)}>
               <strong>{k.name}</strong>
               <span className="muted">{f.name}</span>
               {f.reihen.length === 0 ? (

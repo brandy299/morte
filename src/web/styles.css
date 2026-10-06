@@ -34,6 +34,7 @@
   --shadow: 0 10px 30px rgba(35, 32, 27, 0.14);
   --serif: "Fraunces", "Source Sans 3", Georgia, serif;
   --sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --k0: #3f6591; --k1: #4f7a52; --k2: #a8741a; --k3: #85476b; --k4: #2f7f84; --k5: #a8483a; --k6: #5b6b7d; --k7: #6f7d1f;
 }
 
 /* ---------- Color themes (set by theme.ts: data-theme = light | dark, data-accent, data-calm) ---------- */
@@ -60,6 +61,7 @@
   --lift: 0 2px 10px rgba(0, 0, 0, 0.35);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
+  --k0: #7fa6d6; --k1: #84bb88; --k2: #d6a24a; --k3: #cf8fb3; --k4: #62b5ba; --k5: #de8a7a; --k6: #9aabbd; --k7: #aebb55;
 }
 :root[data-accent="salbei"] { --accent: #4f6f52; --accent-deep: #3d5a40; --accent-wash: #e1eadf; --accent-ink: #f6faf4; }
 :root[data-accent="blau"] { --accent: #3f6591; --accent-deep: #2f5079; --accent-wash: #dde7f2; --accent-ink: #f5f9fd; }
@@ -616,3 +618,16 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .export-link:hover { color: var(--accent-deep); border-color: var(--line); }
 .zip-link { display: inline-block; margin-top: 12px; font-size: 15px; color: var(--accent-deep); }
 .zip-link:hover { text-decoration-thickness: 2px; }
+
+/* ---------- One color per class ---------- */
+.lesson.colored { background: color-mix(in srgb, var(--k) 12%, var(--card)); border-color: color-mix(in srgb, var(--k) 38%, var(--line)); border-style: solid; }
+.lesson.colored::before { background: var(--k); }
+.lesson.colored.past:not(.over) { background: color-mix(in srgb, var(--k) 6%, var(--paper-deep)); border-color: transparent; }
+.lesson.colored:hover { border-color: var(--k); }
+.lesson.colored.nicht-geplant { border-style: dashed; }
+.class-card.colored { border-top: 4px solid var(--k); }
+.legend { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 12px; padding: 0; font-size: 14.5px; color: var(--ink-soft); }
+.legend li { display: inline-flex; align-items: center; gap: 7px; }
+.legend-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; flex: none; margin-right: 6px; }
+.legend li .legend-dot { margin-right: 0; }
+.tree-node.k { display: flex; align-items: center; }

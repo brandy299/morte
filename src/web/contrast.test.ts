@@ -20,7 +20,7 @@ function theme(selectors: string[]): (name: string) => string {
   for (const selector of wanted) {
     for (const [, sel, body] of blocks) {
       if (sel!.trim() !== selector) continue;
-      for (const m of body!.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)) values[m[1]!] = m[2]!;
+      for (const m of body!.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})/g)) values[m[1]!] = m[2]!;
     }
   }
   return (name) => values[name] ?? "";
@@ -43,6 +43,18 @@ describe.each(Object.entries(themes))("colors (%s)", (_name, selectors) => {
   });
   it("button text is readable on the accent color", () => {
     expect(ratio(t("accent-ink"), t("accent"))).toBeGreaterThanOrEqual(4.5);
+  });
+  it("text is readable on a lesson card tinted with each class color", () => {
+    const mix = (a: string, b: string, share: number) => `#${[1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * share + parseInt(b.slice(i, i + 2), 16) * (1 - share)).toString(16).padStart(2, "0")).join("")}`;
+    for (let k = 0; k < 8; k++) {
+      const color = t(`k${k}`);
+      expect(color, `k${k}`).not.toBe("");
+      const tint = mix(color, t("card"), 0.12);
+      expect(ratio(t("ink"), tint), `ink auf k${k}`).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(t("ink-soft"), tint), `ink-soft auf k${k}`).toBeGreaterThanOrEqual(4.5);
+      // The color itself carries the stripe and the dot: it must stand out from the page.
+      expect(ratio(color, t("paper")), `k${k} auf Papier`).toBeGreaterThanOrEqual(2.6);
+    }
   });
   it("status colors are readable on their washes", () => {
     expect(ratio(t("danger-ink"), t("danger-wash"))).toBeGreaterThanOrEqual(4.5);

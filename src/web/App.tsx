@@ -9,6 +9,7 @@ import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Onboarding } from "./Onboarding.tsx";
+import { classColors, classVar } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { Setup } from "./Setup.tsx";
@@ -584,6 +585,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           {tree.map((k) => (
             <div key={k.name} className="tree-klasse">
               <button type="button" className="tree-node k" onClick={() => ask(`Wo stehen wir in ${k.name}?`)}>
+                <span className="legend-dot" style={{ background: classVar(classColors(tree.map((x) => x.name)), k.name) }} aria-hidden />
                 {k.name}
               </button>
               {k.faecher.map((f) => (
