@@ -27,3 +27,28 @@ Anteil bestandener Kriterien. **Das ist eine Messung mit sehr wenigen Läufen.**
 ## Was die Prüfung nicht sagt
 
 Ob die Aufgaben fachlich gut sind, entscheidet am Ende nur eine Lehrkraft. Die Kriterien sind von mir geschrieben und noch von keiner Lehrkraft gegengelesen. Mit einem stärkeren Modell für das Material (statt Haiku) dürften viele Fehler verschwinden. Auch das sollte gemessen werden.
+
+# Zweite Messung: DeepSeek v4.1 flash (2026-10-06)
+
+Material: `deepseek/deepseek-v4.1-flash` über OpenRouter (0,30 und 1,20 US-$ je Million Tokens), Prüfer wieder Claude Sonnet 4.5. Jeder Testsatz zweimal gespielt, also 4 Läufe je Anleitung, zusammen etwa 2,30 US-$.
+
+| Anleitung | Haiku 4.5 (Lauf 2) | DeepSeek flash |
+|---|---|---|
+| Arbeitsblatt | 86 % | 85 % vorher, **93 %** mit den neuen Aufgabenarten |
+| Differenzieren | 85 % | 94 % |
+| Klausur | 89 % | 96 % |
+| Lernsituation | 72 % | 97 % |
+| Stunde planen | 89 % | 96 % |
+| Stunde vorbereiten | 83 % | 89 % |
+| Verständnis-Check | 88 % | 89 % |
+
+Das Modell, das ein Zehntel von Haiku kostet, schneidet gleich gut oder besser ab. Es fragt weniger unnötig nach und legt nach dem „Ja“ zuverlässiger an.
+
+## Was die Messung noch zeigte
+
+- **Aufgabenarten:** Beim Arbeitsblatt fehlten in beiden Modellen oft die Teile von Zuordnungen und Lückentexten. Seit es Zuordnung, Lückentext, Auswahl und Tabelle als eigene Felder gibt und das Programm die Lösung schreibt, ist dieser Fehler nicht mehr aufgetreten.
+- **Verwechslung der Anleitungen:** „Mach mir einen kurzen Test zum Lebenslauf“ führte einmal zur Klausur statt zum Verständnis-Check. Beide Beschreibungen grenzen sich jetzt ausdrücklich ab.
+- **Messfehler im Prüfer:** Er kannte `Klasse.md` und `Stand.md` nicht und hielt echte Angaben („zwei Lernende sprechen zu Hause kein Deutsch“) für erfunden. Jetzt sieht er den Arbeitsordner.
+- **Seitenlimit:** Es gilt für die Blätter der Lernenden, nicht für das Lösungsblatt der Lehrkraft.
+- **Offen:** Die Blätter der Verständnis-Checks laufen manchmal auf zwei Seiten, und Wochentage werden gelegentlich noch erfunden. Der Rest der Fehler sind einzelne Aussetzer. Vier Läufe je Anleitung zeigen Richtungen, keine genauen Zahlen.
+- **Laufzeit:** Ein Prüflauf braucht etwa 30 Minuten. Er läuft nur, solange die Sitzung aktiv ist. Zwischen meinen Antworten wird die Umgebung angehalten, deshalb sah es so aus, als dauere es ewig.
