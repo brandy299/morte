@@ -589,3 +589,6 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .ask-summary li { display: flex; flex-direction: column; }
 .ask-summary span { color: var(--ink-soft); }
 .ask-summary .ask-badge { background: var(--accent-wash); color: var(--accent-deep); }
+.tech-detail { margin-top: 10px; font-size: 14px; }
+.tech-detail summary { cursor: pointer; width: fit-content; color: var(--ink-soft); }
+.tech-detail pre { margin: 8px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--paper); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; user-select: all; }

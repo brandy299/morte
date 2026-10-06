@@ -95,7 +95,13 @@ describe("own OpenAI-compatible server", () => {
   });
 
   it("says plainly when the server is not reachable, and when the model or path is wrong", async () => {
-    const down = await testConnection({ provider: "custom", model: "m", baseUrl: "http://127.0.0.1:9/v1" });
+    const closed = await new Promise<number>((resolve) => {
+      const probe = createServer().listen(0, "127.0.0.1", () => {
+        const { port } = probe.address() as { port: number };
+        probe.close(() => resolve(port));
+      });
+    });
+    const down = await testConnection({ provider: "custom", model: "m", baseUrl: `http://127.0.0.1:${closed}/v1` });
     expect(down.passed).toBe(false);
     expect(down.hint).toMatch(/erreiche den Server/);
     mock.status = 404;

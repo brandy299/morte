@@ -98,4 +98,6 @@ export interface ConnectionResult {
   checks: { id: "chat" | "tools" | "vision"; label: string; state: CheckState }[];
   /** Plain-language hint for the teacher when something failed. */
   hint?: string;
+  /** Technical details for whoever helps (the IT, the developer). Never contains the key. */
+  detail?: string;
 }

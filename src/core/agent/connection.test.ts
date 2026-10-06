@@ -1,6 +1,8 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
+import { createModels } from "@earendil-works/pi-ai";
+import { opencodeGoProvider } from "@earendil-works/pi-ai/providers/opencode-go";
 import { createChatSession, type ChatEvent } from "./index.ts";
 
 type Step = "ok" | "cut" | "hang" | number;
@@ -10,12 +12,14 @@ const chunk = (content: string, finish?: string) =>
 /** A model server that behaves as scripted: one step per request, the last step repeats. */
 async function fakeModel(steps: Step[]) {
   const seen: string[] = [];
+  const headers: Record<string, string | string[] | undefined>[] = [];
   let n = 0;
   const server: Server = createServer((req, res) => {
     let body = "";
     req.on("data", (d) => (body += d));
     req.on("end", () => {
       seen.push(body);
+      headers.push(req.headers);
       const step = steps[Math.min(n++, steps.length - 1)]!;
       if (typeof step === "number") {
         res.writeHead(step, { "content-type": "application/json" });
@@ -36,7 +40,7 @@ async function fakeModel(steps: Step[]) {
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
   servers.push(server);
   const port = (server.address() as AddressInfo).port;
-  return { url: `http://127.0.0.1:${port}/v1`, seen, requests: () => n };
+  return { url: `http://127.0.0.1:${port}/v1`, seen, headers, requests: () => n };
 }
 const servers: Server[] = [];
 afterEach(() => {
@@ -131,5 +135,16 @@ describe("connection problems", () => {
     await run;
     expect(events.some((e) => e.type === "retry" || e.type === "error")).toBe(false);
     expect(events.at(-1)?.type).toBe("done");
+  });
+
+  it("sends OpenCode's routing header with every request (chat and summary alike)", async () => {
+    const m = await fakeModel(["ok"]);
+    const models = createModels();
+    models.setProvider(opencodeGoProvider());
+    const model = { ...models.getModel("opencode-go", "deepseek-v4.1-flash")!, baseUrl: m.url };
+    const events: ChatEvent[] = [];
+    await createChatSession({ provider: "opencode-go", apiKey: "k" }, { resolve: () => ({ models, model }) }).send("Hallo", (e) => events.push(e));
+    expect(events.some((e) => e.type === "error")).toBe(false);
+    expect(m.headers[0]!["x-opencode-session"]).toMatch(/^[0-9a-f-]{36}$/);
   });
 });

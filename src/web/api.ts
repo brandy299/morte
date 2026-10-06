@@ -90,6 +90,7 @@ export interface ConnectionResult {
   passed: boolean;
   checks: { id: string; label: string; state: "ok" | "failed" | "skipped" }[];
   hint?: string;
+  detail?: string;
 }
 export interface SetupStatus { configured: boolean; provider?: string; model?: string; baseUrl?: string; contextWindow?: number; storage?: "keychain" | "file" }
 
