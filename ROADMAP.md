@@ -84,6 +84,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 - [ ] E-Mail und iServ im Dashboard
 - [ ] Erklärvideos über die bestehende Render-Pipeline (Szenendatei, Vorschaubogen, MP4), Standard ohne Stimme
+- [ ] Sitzplan pro Klasse: Foto vom aufgemalten Plan, die App erkennt die Tische, die Lehrkraft korrigiert in einem kleinen Editor. Erst nur das Raumlayout mit Platznummern, ohne Namen (Datenschutz, siehe Offene Fragen)
 - [ ] Voice-Eingabe, um mit dem Assistenten zu sprechen
 - [ ] Optional: Sprachausgabe (z. B. Voice Studio), nur auf ausdrücklichen Wunsch
 
@@ -95,6 +96,8 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [ ] Optional: Schülerebene, lokal und pseudonymisiert, nur nach Rücksprache mit der Schule
 
 ## Offene Fragen
+
+- Sitzplan: Ein echter Sitzplan enthält Namen. Das verträgt sich nicht mit der Regel "keine Schülernamen in Prompts". Vorschlag: Das Modell sieht nur das Layout (Foto mit abgedeckten Namen), Namen trägt die Lehrkraft lokal ein und sie verlassen den Rechner nie. Braucht eine Entscheidung und eine Entscheidungsdatei, bevor es gebaut wird.
 
 - Wie wird das Fähigkeits-Testbild beim Provider-Test gestaltet?
 - Welche Lizenz soll der Harness langfristig haben, falls Teile aus anderen Projekten dazukommen?
