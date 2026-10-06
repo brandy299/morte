@@ -143,7 +143,7 @@ describe("running a case", () => {
     const t = await runCase({ ...kase({ material: true, eintrag: "14.10." }), nachrichten: ["Arbeitsblatt zum Anschreiben am 14.10."] }, { provider: "x" }, { resolve: () => ({ models, model: faux.getModel() }) });
     expect(t.turns[0]!.assistant).toContain("Das Blatt ist fertig");
     expect(t.turns[0]!.steps).toContain("Arbeitsblatt erstellen");
-    expect(t.turns[0]!.fragen[0]).toContain("Darf ich das Arbeitsblatt");
+    expect(t.turns[0]!.fragen).toEqual([]); // a new worksheet needs no confirmation
     expect(t.files.map((f) => f.name)).toEqual(expect.arrayContaining([expect.stringMatching(/Arbeitsblatt-Das-Anschreiben\.pdf/), expect.stringMatching(/Loesung.*Lösungsblatt/)]));
     expect(t.files.find((f) => f.art === "pdf" && !/Lösungsblatt/.test(f.name))).toMatchObject({ seiten: 1, text: expect.stringContaining("Nenne zwei Teile") });
     expect(t.tabelle).toMatch(/\| 14\.10\. \|.*Arbeitsblatt-Das-Anschreiben\.pdf/);

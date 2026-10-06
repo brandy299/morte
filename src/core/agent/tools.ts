@@ -325,10 +325,6 @@ const arbeitsblattErstellen = defineTool({
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
   }),
-  ask: (a) =>
-    a.klasse && a.reihe
-      ? `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich das Arbeitsblatt „${a.titel}“${a.niveau ? ` (${a.niveau})` : ""} erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, datum, stunde, word, ...content } = args;
     const sheet = parseArbeitsblatt({
@@ -393,10 +389,6 @@ const stundenverlaufErstellen = defineTool({
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     word: wordParam,
   }),
-  ask: (a) =>
-    a.klasse && a.reihe
-      ? `Darf ich die Stundenplanung „${a.titel}“ erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich die Stundenplanung „${a.titel}“ erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, stunde, word, ...content } = args;
     const plan = parseVerlauf({
@@ -542,10 +534,6 @@ const klausurErstellen = defineTool({
     bereiche: Type.Optional(Type.Array(bereichSchema)),
     notenschluessel: Type.Optional(Type.Array(noteSchema)),
   }),
-  ask: (a) =>
-    a.klasse && a.reihe
-      ? `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und in ${a.klasse}, ${a.reihe} ablegen?`
-      : `Darf ich die Klausur „${a.titel}“ mit Erwartungshorizont erstellen und speichern?`,
   async execute(_id, args) {
     const { reihe, stunde, bereiche, notenschluessel, word, ...content } = args;
     const own = content.klasse ? await readBewertung(content.klasse).catch(() => undefined) : undefined;
