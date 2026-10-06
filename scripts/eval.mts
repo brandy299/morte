@@ -40,6 +40,14 @@ const stamp = new Date().toISOString();
 const now = `${stamp.slice(0, 10)} ${stamp.slice(11, 16)}`;
 const parts: string[] = [`# Prüfung der Anleitungen`, "", `Datum: ${now}  `, `Modell für das Material: ${gen.provider}/${gen.model}  `, `Prüfer: ${judgeSpec ? `${judgeSpec.provider}/${judgeSpec.model}` : "keiner (nur Programmprüfungen)"}`, ""];
 const json: Record<string, CaseResult[]> = {};
+const dir = join(process.cwd(), "evals", "ergebnisse");
+const base = join(dir, `${stamp.slice(0, 10)}_${stamp.slice(11, 16).replace(":", "")}_${gen.model.replace(/[^\w.-]+/g, "-")}`);
+/** Written after every skill, so a crash or a stop does not lose what is done. */
+const save = async () => {
+  await mkdir(dir, { recursive: true });
+  await writeFile(`${base}.md`, [...parts, `Kosten bisher: etwa ${spent.toFixed(2)} US-$.`].join("\n"));
+  await writeFile(`${base}.json`, JSON.stringify(json, null, 2));
+};
 
 for (const suite of suites) {
   const results: CaseResult[] = [];
@@ -49,30 +57,37 @@ for (const suite of suites) {
       break;
     }
     process.stderr.write(`${suite.skill} / ${c.id} … `);
-    try {
-      const t = await runCase(c, { ...gen, apiKey });
-      spent += t.kosten;
-      const verdicts: Verdict[] = suite.kriterien.filter((k) => k.art === "Programm").map((k) => {
-        const check = PROGRAMM[k.id];
-        if (!check) throw new Error(`Für das Programmkriterium ${k.id} gibt es keine Prüfung.`);
-        return { id: k.id, ...check(c, t) };
-      });
-      if (judge) verdicts.push(...(await judgeCase(judge, c, t, suite.kriterien.filter((k) => k.art === "Prüfer"))));
-      results.push({ fall: c, verdicts, kosten: t.kosten, transkript: t });
-      process.stderr.write(`${verdicts.filter((v) => v.bestanden === false).length} nicht bestanden (bisher ${spent.toFixed(2)} US-$)\n`);
-    } catch (err) {
-      results.push({ fall: c, verdicts: [], fehler: (err as Error).message, kosten: 0 });
-      process.stderr.write(`Fehler: ${(err as Error).message}\n`);
+    // Rate limits and a judge that answers badly happen now and then: one more try before the case counts as failed.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const t = await runCase(c, { ...gen, apiKey });
+        spent += t.kosten;
+        const verdicts: Verdict[] = suite.kriterien.filter((k) => k.art === "Programm").map((k) => {
+          const check = PROGRAMM[k.id];
+          if (!check) throw new Error(`Für das Programmkriterium ${k.id} gibt es keine Prüfung.`);
+          return { id: k.id, ...check(c, t) };
+        });
+        if (judge) verdicts.push(...(await judgeCase(judge, c, t, suite.kriterien.filter((k) => k.art === "Prüfer"))));
+        results.push({ fall: c, verdicts, kosten: t.kosten, transkript: t });
+        process.stderr.write(`${verdicts.filter((v) => v.bestanden === false).length} nicht bestanden (bisher ${spent.toFixed(2)} US-$)\n`);
+        break;
+      } catch (err) {
+        if (attempt < 2) {
+          process.stderr.write(`Fehler (${(err as Error).message.slice(0, 80)}), neuer Versuch … `);
+          await new Promise((r) => setTimeout(r, 15_000));
+          continue;
+        }
+        results.push({ fall: c, verdicts: [], fehler: (err as Error).message, kosten: 0 });
+        process.stderr.write(`Fehler: ${(err as Error).message.slice(0, 120)}\n`);
+        break;
+      }
     }
   }
   json[suite.skill] = results;
   parts.push(markdown({ skill: suite.skill, kriterien: suite.kriterien, results, modell: gen.model, pruefer: judgeSpec?.model ?? "", datum: now }), "");
+  await save();
 }
-
-parts.push(`Gesamtkosten: etwa ${spent.toFixed(2)} US-$.`);
-const dir = join(process.cwd(), "evals", "ergebnisse");
-await mkdir(dir, { recursive: true });
-const base = join(dir, `${stamp.slice(0, 10)}_${stamp.slice(11, 16).replace(":", "")}_${gen.model.replace(/[^\w.-]+/g, "-")}`);
-await writeFile(`${base}.md`, parts.join("\n"));
-await writeFile(`${base}.json`, JSON.stringify(json, null, 2));
+await save();
 console.log(`Ergebnis: ${base}.md`);
+
+

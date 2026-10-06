@@ -15,6 +15,15 @@ morte ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materi
 - Texte in der Oberfläche, Meldungen und Doku: Deutsch, in einfacher Sprache ohne Fachbegriffe. Nutzer sind Lehrkräfte ohne technischen Hintergrund.
 - Code, Bezeichner und Code-Kommentare: Englisch.
 
+## Code schreiben
+
+- **Erst prüfen, dann bauen.** Vor neuem Code fragen: Braucht es das wirklich? Gibt es das schon im Projekt (Hilfsfunktion, Baustein, Muster)? Kann es die Standardbibliothek von Node oder der Browser? Löst es eine Bibliothek, die schon eingebunden ist? Erst danach schreiben, und dann so wenig wie möglich.
+- **Keine neue Abhängigkeit ohne Not.** Wird doch eine gebraucht, gelten die Regeln unten (Lizenz, nichts außerhalb der App) und die Frage an den Nutzer, wenn sie nicht in den Dokumenten steht.
+- **Nichts auf Vorrat.** Keine Abstraktion, Einstellung oder Datei, die niemand gebraucht hat. Löschen ist besser als Hinzufügen.
+- **Ursache statt Symptom.** Bei einem Fehler alle Stellen suchen, die dieselbe Funktion benutzen, und sie einmal an der gemeinsamen Stelle beheben. Erst verstehen, dann den kleinsten richtigen Eingriff machen. Der kleinste Eingriff an der falschen Stelle ist ein zweiter Fehler.
+- **Nicht sparen bei:** Prüfung von Eingaben an den Grenzen (Dateien, Links, Modellantworten), Fehlern, die Daten kosten würden, Datenschutz, Sicherheit und Barrierefreiheit.
+- **Jede nicht triviale Logik bekommt einen Test**, der fehlschlägt, wenn sie bricht. Gebaute Funktionen mit einem echten Lauf ansehen (Oberfläche, erzeugte Dateien), nicht nur mit Tests.
+
 ## Nicht verhandelbar
 
 - **Datenschutz:** Keine Schülernamen, Noten oder Fotos von Klassenarbeiten in Prompts, Logs, Beispieldaten oder Commits. Es gibt nur Klassen und Kurse. Beispieldaten sind frei erfunden.

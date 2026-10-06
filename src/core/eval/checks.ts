@@ -15,7 +15,8 @@ export const PROGRAMM: Record<string, Check> = {
     return hit ? fail(`In einer Antwort steht „${hit}“.`) : ok("Keine Werkzeug- oder Dateinamen in den Antworten.");
   },
   "G-SEITEN": (c, t) => {
-    const pdfs = t.files.filter((f) => f.art === "pdf" && f.seiten !== undefined);
+    // The limit is for what students get. A teacher's copy with explanations may be longer.
+    const pdfs = t.files.filter((f) => f.art === "pdf" && f.seiten !== undefined && !/Lösungsblatt|Erwartungshorizont/.test(f.name));
     if (pdfs.length === 0) return na;
     const max = c.erwartet.maxSeiten ?? 2;
     const long = pdfs.filter((f) => (f.seiten ?? 0) > max);

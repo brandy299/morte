@@ -1,7 +1,7 @@
 /** The same material as the PDFs, drawn as Word files the teacher can edit. Content and checks come from the PDF side. */
 import { grenzen } from "../workspace/bewertung.ts";
 import type { AblaufSchritt } from "../workspace/index.ts";
-import type { Arbeitsblatt } from "./arbeitsblatt.ts";
+import { koerper, loesungText, type Arbeitsblatt } from "./arbeitsblatt.ts";
 import { gesamtpunkte, punkteAufgabe, verteilung, type Klausur } from "./klausur.ts";
 import { num } from "./layout.ts";
 import type { Lernsituation } from "./lernsituation.ts";
@@ -21,7 +21,8 @@ export async function arbeitsblattWord(a: Arbeitsblatt, opts: { lehrerexemplar?:
       hilfe: t.hilfe,
       punkte: t.punkte ? `${t.punkte} P.` : undefined,
       zeilen: key ? 0 : t.zeilen,
-      antwort: key ? (t.loesung ?? "—") : undefined,
+      antwort: key ? (loesungText(a, i) ?? "—") : undefined,
+      koerper: koerper(a, i),
     });
   }
   return w.build(a.fuss);

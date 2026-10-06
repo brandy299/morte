@@ -6,7 +6,7 @@ import type { AgentSettings } from "../agent/types.ts";
 import { readPdf } from "../lehrplan/pdf.ts";
 import { readMaterialText } from "../material/read.ts";
 import { listSkills } from "../skills/index.ts";
-import { createClass, createReihe, initWorkspace, readStand, writeStand } from "../workspace/index.ts";
+import { createClass, createReihe, initWorkspace, readKlasse, readStand, writeStand } from "../workspace/index.ts";
 import { writeBewertung } from "../workspace/bewertung.ts";
 import { dataDir } from "../paths.ts";
 import type { EvalCase, FileInfo, Transcript, Turn } from "./types.ts";
@@ -87,7 +87,7 @@ async function tables(): Promise<string> {
  * Plays one test case in a fresh invented working folder: sends each message, says yes to every question
  * "May I ...?", and collects what the assistant said, what it did and what it left behind.
  */
-export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> = {}): Promise<Transcript> {
+export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> & { timeoutMs?: number } = {}): Promise<Transcript> {
   const before = process.env.MORTE_HOME;
   const home = await mkdtemp(join(tmpdir(), "morte-eval-"));
   process.env.MORTE_HOME = home;
@@ -98,6 +98,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     const turns: Turn[] = [];
     for (const user of c.nachrichten) {
       const turn: Turn = { user, assistant: "", steps: [], fragen: [] };
+      // A model request that never answers must not block the whole run: after the time limit the answer is cut off.
+      const timer = setTimeout(() => session.abort(), deps.timeoutMs ?? 240_000);
       await session.send(user, (e) => {
         if (e.type === "text") turn.assistant += e.delta;
         else if (e.type === "step_start") turn.steps.push(e.label);
@@ -105,11 +107,12 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
           turn.fragen.push(e.question);
           session.answer(e.id, true);
         } else if (e.type === "error") turn.assistant += `\n[Fehler: ${e.message}]`;
-      });
+      }).finally(() => clearTimeout(timer));
       turns.push(turn);
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run
-    return { turns, files: await collectFiles(), tabelle: await tables(), kosten: session.usage().cost };
+    const ordner = `Klasse.md:\n${(await readKlasse(KLASSE)).trim()}\n\nStand.md:\n${(await readStand(KLASSE, FACH)).trim()}`;
+    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, kosten: session.usage().cost };
   } finally {
     if (before === undefined) delete process.env.MORTE_HOME;
     else process.env.MORTE_HOME = before;

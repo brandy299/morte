@@ -4,7 +4,7 @@ import type { Criterion, EvalCase, Transcript, Verdict } from "./types.ts";
 const SYSTEM = `Du bist ein strenger, fairer Prüfer für Unterrichtsmaterial und die Gespräche, in denen es entsteht. Du bekommst:
 1. das Gespräch zwischen einer Lehrkraft und einem Assistenten,
 2. das erstellte Material als Text (Lösungsblätter sind als solche benannt),
-3. die Stundentabelle der Reihe nach dem Gespräch,
+3. die Stundentabelle der Reihe nach dem Gespräch und den Arbeitsordner (Klasse.md, Stand.md), den der Assistent lesen konnte,
 4. eine Liste von Kriterien.
 
 Regeln:
@@ -21,7 +21,7 @@ export function judgePrompt(c: EvalCase, t: Transcript, kriterien: Criterion[]):
     ? t.files.map((f) => `=== ${f.name}${f.seiten ? ` (${f.seiten} Seiten)` : ""} ===\n${f.text.trim() || "(kein lesbarer Text)"}`).join("\n\n")
     : "(Es wurde kein Material erstellt.)";
   const list = kriterien.map((k) => `${k.id} [${k.gruppe}] ${k.kriterium}\n   Bestanden wenn: ${k.bestandenWenn}${k.bedingung ? `\n   Gilt nur, wenn: ${k.bedingung}` : ""}`).join("\n");
-  return `Fall: ${c.id} (Anleitung: ${c.skill})\nDie Klasse hat keinen hinterlegten Lehrplan. Alle Namen, Betriebe und Daten sind erfunden.\n\n## GESPRÄCH\n${talk}\n\n## MATERIAL\n${material}\n\n## STUNDENTABELLE\n${t.tabelle || "(leer)"}\n\n## KRITERIEN\n${list}`;
+  return `Fall: ${c.id} (Anleitung: ${c.skill})\nDie Klasse hat keinen hinterlegten Lehrplan. Alle Namen, Betriebe und Daten sind erfunden.\n\n## GESPRÄCH\n${talk}\n\n## MATERIAL\n${material}\n\n## ARBEITSORDNER (das konnte der Assistent nachlesen)\n${t.ordner ?? "(nicht mitgegeben)"}\n\n## STUNDENTABELLE\n${t.tabelle || "(leer)"}\n\n## KRITERIEN\n${list}`;
 }
 
 /** Reads the judge's answer. Takes the first JSON array in the text, so a few stray words around it do no harm. */
@@ -46,6 +46,6 @@ export function parseVerdicts(answer: string, kriterien: Criterion[]): Verdict[]
 
 export async function judgeCase(judge: Completer, c: EvalCase, t: Transcript, kriterien: Criterion[]): Promise<Verdict[]> {
   if (kriterien.length === 0) return [];
-  const answer = await judge.complete({ system: SYSTEM, text: judgePrompt(c, t, kriterien) });
+  const answer = await judge.complete({ system: SYSTEM, text: judgePrompt(c, t, kriterien) }, AbortSignal.timeout(180_000));
   return parseVerdicts(answer, kriterien);
 }

@@ -1,7 +1,7 @@
 ---
 name: verstaendnis-check
 title: Verständnis-Check
-description: Erstellt einen kurzen Verständnis-Check (drei bis sechs Fragen, etwa fünf Minuten, zum Beispiel am Ende der Stunde) als druckfertiges Blatt mit Lösungen und typischen Fehlvorstellungen für die Lehrkraft. Nutze es bei Wünschen wie "Verständnis-Check", "Exit Ticket", "kurzer Test am Ende", "Blitzabfrage", "Lernstandskontrolle", "Quiz zum Thema", "Multiple Choice". Nicht für benotete Klausuren (dafür Klausur) und nicht für ein Übungsblatt mit vielen Aufgaben (dafür Arbeitsblatt).
+description: Erstellt einen kurzen Verständnis-Check (drei bis sechs Fragen, etwa fünf Minuten, zum Beispiel am Ende der Stunde) als druckfertiges Blatt mit Lösungen und typischen Fehlvorstellungen für die Lehrkraft. Nutze es bei Wünschen wie "Verständnis-Check", "Exit Ticket", "kurzer Test am Ende", "Blitzabfrage", "Lernstandskontrolle", "Quiz zum Thema", "Multiple Choice". Nicht für benotete Klausuren und Klassenarbeiten (dafür Klausur) und nicht für ein Übungsblatt mit vielen Aufgaben (dafür Arbeitsblatt).
 ---
 
 # Verständnis-Check
@@ -14,10 +14,10 @@ Du schreibst wenige, gezielte Fragen. Das Werkzeug zeichnet das Blatt und ein L�
 2. **Klasse und Stunde kennen.** `klasse_lesen`, `stand_lesen`, bei Bedarf `reihe_lesen` und `material_lesen`. Der Check prüft, was in der Stunde wirklich dran war, nicht mehr.
 3. **Fragen schreiben.**
    - **Drei bis sechs Fragen**, jede prüft einen Kernpunkt der Stunde. Weniger ist besser als mehr.
-   - **Mischung:** meist Auswahlfragen (Multiple Choice mit drei bis vier Antworten, Buchstaben A bis D im Fragetext, `zeilen` auf 0), dazu eine kurze Frage mit eigener Antwort (ein bis zwei Zeilen) oder eine kleine Rechnung. Für Fächer ohne Auswahlfragen passt auch "Richtig oder falsch? Begründe in einem Satz."
+   - **Mischung:** meist Auswahlfragen (`art` `auswahl` mit `optionen` und `richtig`, drei bis vier Antworten, das Programm setzt die Buchstaben A bis D und schreibt die richtige Antwort ins Lösungsblatt), dazu eine kurze Frage mit eigener Antwort (ein bis zwei Zeilen) oder eine kleine Rechnung. Für Fächer ohne Auswahlfragen passt auch "Richtig oder falsch? Begründe in einem Satz."
    - **Falsche Antworten aus echten Fehlvorstellungen:** Jede falsche Antwort entspricht einem Fehler, den Lernende wirklich machen (verwechselter Begriff, falsche Reihenfolge, Rechenfehler an typischer Stelle). Keine albernen oder offensichtlich falschen Antworten. Die richtige Antwort steht nicht immer an derselben Stelle und ist nicht immer die längste.
    - **Eine Frage, ein Gedanke.** Klare Sprache, ein eindeutiger Auftrag, keine Verneinungen wie "Welche Aussage ist NICHT falsch?".
-   - **Lösung** (`loesung`) bei jeder Frage: die richtige Antwort und in einem Satz, welchen Fehler jede falsche Antwort verrät ("B: verwechselt relativen und absoluten Bezug"). So weiß die Lehrkraft, wo sie nachsteuern muss.
+   - **Lösung** (`loesung`) bei jeder Frage: Die richtige Antwort ergänzt das Programm selbst. Schreib in `loesung` in einem Satz, welchen Fehler jede falsche Antwort verrät ("B: verwechselt relativen und absoluten Bezug"). So weiß die Lehrkraft, wo sie nachsteuern muss.
    - **Kurz:** eine Seite, ohne Punkte. Titel wie "Kurz gecheckt: Zellbezüge".
    - Keine Schülernamen, keine Bilder, nichts aus Lehrwerken abschreiben.
 4. **Erdung.** Keine Lehrplan-Fundstellen erfinden. Hat die Klasse einen Lehrplan, richte die Fragen an den Kompetenzen dort aus.

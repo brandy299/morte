@@ -52,6 +52,8 @@ export interface Transcript {
   files: FileInfo[];
   /** Lesson table of the series as saved at the end. */
   tabelle: string;
+  /** Klasse.md and Stand.md as the assistant could read them, so the judge knows what is really in the folder. */
+  ordner?: string;
   /** Text of Reihe.md before the run, to see what changed. */
   kosten: number;
 }
