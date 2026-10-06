@@ -4,9 +4,10 @@
  * The fonts are ones every Word has (Georgia for headings, Calibri for text), so nothing needs to be embedded.
  */
 import {
-  AlignmentType, BorderStyle, Document, Footer, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
+  AlignmentType, BorderStyle, Document, Footer, HeightRule, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
   type ParagraphChild,
 } from "docx";
+import type { Koerper } from "./aufgabentypen.ts";
 import { printable } from "./layout.ts";
 
 export const SERIF_W = "Georgia";
@@ -40,8 +41,8 @@ export interface WordDoc {
   /** Row of small facts, e.g. "45 Minuten · 14.10.". */
   facts(items: string[]): void;
   /** One numbered task: number, text, optional hint, points, lines or answer. */
-  task(opts: { nr: string; text: string; hilfe?: string; punkte?: string; zeilen?: number; antwort?: string; indent?: boolean }): void;
-  table(columns: { title: string; share: number; bold?: boolean; right?: boolean }[], rows: string[][], opts?: { noHeader?: boolean }): void;
+  task(opts: { nr: string; text: string; hilfe?: string; punkte?: string; zeilen?: number; antwort?: string; indent?: boolean; koerper?: Koerper }): void;
+  table(columns: { title: string; share: number; bold?: boolean; right?: boolean }[], rows: string[][], opts?: { noHeader?: boolean; minHeight?: number }): void;
   pageBreak(): void;
   build(footnote?: string): Promise<Buffer>;
 }
@@ -112,12 +113,12 @@ export function newWord(title: string): WordDoc {
     facts(items) {
       if (items.length) doc.paragraph(items.join("   ·   "), { color: SOFT, after: 160 });
     },
-    task({ nr, text, hilfe, punkte, zeilen = 0, antwort, indent }) {
+    task({ nr, text, hilfe, punkte, zeilen = 0, antwort, indent, koerper }) {
       const left = twip(11);
       const tabs = [{ type: TabStopType.LEFT, position: left }, { type: TabStopType.RIGHT, position: PAGE_W }];
       children.push(
         new Paragraph({
-          keepNext: Boolean(hilfe || zeilen || antwort),
+          keepNext: Boolean(hilfe || zeilen || antwort || koerper),
           spacing: { before: indent ? 40 : 160, after: 60, line: 276 },
           indent: { left, hanging: left },
           tabStops: tabs,
@@ -137,6 +138,23 @@ export function newWord(title: string): WordDoc {
             children: [new TextRun({ text: "Tipp: ", font: SANS_W, size: 19, bold: true, italics: true, color: SOFT }), ...lines(hilfe, { font: SANS_W, size: 19, italics: true, color: SOFT })],
           }),
         );
+      }
+      if (koerper) {
+        if (koerper.art === "zuordnung") {
+          doc.table(
+            [{ title: "", share: 0.5 }, { title: "", share: 0.5 }],
+            koerper.links.map((l, i) => [`${l}      ____`, koerper.rechts[i]!]),
+            { noHeader: true, minHeight: 380 },
+          );
+        } else if (koerper.art === "luecken") {
+          for (const t of koerper.saetze) doc.paragraph(t, { indent: left, after: 100 });
+          if (koerper.wortliste) doc.paragraph(`Wörter:   ${koerper.wortliste}`, { indent: left, bold: true, size: 10, after: 120 });
+        } else if (koerper.art === "auswahl") {
+          for (const o of koerper.optionen) doc.paragraph(o, { indent: left + twip(4), after: 40 });
+        } else {
+          const share = 1 / koerper.spalten.length;
+          doc.table(koerper.spalten.map((title) => ({ title, share })), koerper.zeilen, { minHeight: 440 });
+        }
       }
       if (antwort) {
         const shade = { type: ShadingType.CLEAR, fill: BOX, color: "auto" } as const;
@@ -178,7 +196,7 @@ export function newWord(title: string): WordDoc {
           columnWidths: widths,
           rows: [
             ...(opts.noHeader ? [] : [new TableRow({ tableHeader: true, cantSplit: true, children: columns.map((c, i) => cell(c.title, i, true)) })]),
-            ...rows.map((r) => new TableRow({ cantSplit: true, children: r.map((t, i) => cell(t, i, false)) })),
+            ...rows.map((r) => new TableRow({ cantSplit: true, height: opts.minHeight ? { value: opts.minHeight, rule: HeightRule.ATLEAST } : undefined, children: r.map((t, i) => cell(t, i, false)) })),
           ],
         }),
         new Paragraph({ spacing: { after: 160 }, children: [] }),
