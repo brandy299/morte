@@ -87,7 +87,7 @@ async function tables(): Promise<string> {
  * Plays one test case in a fresh invented working folder: sends each message, says yes to every question
  * "May I ...?", and collects what the assistant said, what it did and what it left behind.
  */
-export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> = {}): Promise<Transcript> {
+export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> & { timeoutMs?: number } = {}): Promise<Transcript> {
   const before = process.env.MORTE_HOME;
   const home = await mkdtemp(join(tmpdir(), "morte-eval-"));
   process.env.MORTE_HOME = home;
@@ -98,6 +98,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     const turns: Turn[] = [];
     for (const user of c.nachrichten) {
       const turn: Turn = { user, assistant: "", steps: [], fragen: [] };
+      // A model request that never answers must not block the whole run: after the time limit the answer is cut off.
+      const timer = setTimeout(() => session.abort(), deps.timeoutMs ?? 240_000);
       await session.send(user, (e) => {
         if (e.type === "text") turn.assistant += e.delta;
         else if (e.type === "step_start") turn.steps.push(e.label);
@@ -105,7 +107,7 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
           turn.fragen.push(e.question);
           session.answer(e.id, true);
         } else if (e.type === "error") turn.assistant += `\n[Fehler: ${e.message}]`;
-      });
+      }).finally(() => clearTimeout(timer));
       turns.push(turn);
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run

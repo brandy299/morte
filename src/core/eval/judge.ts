@@ -46,6 +46,6 @@ export function parseVerdicts(answer: string, kriterien: Criterion[]): Verdict[]
 
 export async function judgeCase(judge: Completer, c: EvalCase, t: Transcript, kriterien: Criterion[]): Promise<Verdict[]> {
   if (kriterien.length === 0) return [];
-  const answer = await judge.complete({ system: SYSTEM, text: judgePrompt(c, t, kriterien) });
+  const answer = await judge.complete({ system: SYSTEM, text: judgePrompt(c, t, kriterien) }, AbortSignal.timeout(180_000));
   return parseVerdicts(answer, kriterien);
 }
