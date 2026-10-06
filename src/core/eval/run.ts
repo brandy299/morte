@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { createChatSession, type SessionDeps } from "../agent/index.ts";
 import type { AgentSettings } from "../agent/types.ts";
 import { readPdf } from "../lehrplan/pdf.ts";
+import { fixtureBild } from "./bilder.ts";
 import { readMaterialText } from "../material/read.ts";
 import { listSkills } from "../skills/index.ts";
 import { createClass, createReihe, initWorkspace, readKlasse, readStand, writeStand } from "../workspace/index.ts";
@@ -96,7 +97,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     const { skills } = await listSkills();
     const session = createChatSession(settings, { skills, resolve: deps.resolve });
     const turns: Turn[] = [];
-    for (const user of c.nachrichten) {
+    const bilder = await Promise.all((c.bilder ?? []).map(fixtureBild));
+    for (const [n, user] of c.nachrichten.entries()) {
       const turn: Turn = { user, assistant: "", steps: [], fragen: [] };
       // A model request that never answers must not block the whole run: after the time limit the answer is cut off.
       const timer = setTimeout(() => session.abort(), deps.timeoutMs ?? 240_000);
@@ -107,12 +109,12 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
           turn.fragen.push(e.question);
           session.answer(e.id, true);
         } else if (e.type === "error") turn.assistant += `\n[Fehler: ${e.message}]`;
-      }).finally(() => clearTimeout(timer));
+      }, n === 0 ? bilder.map(({ data, mimeType }) => ({ data, mimeType })) : []).finally(() => clearTimeout(timer));
       turns.push(turn);
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run
     const ordner = `Klasse.md:\n${(await readKlasse(KLASSE)).trim()}\n\nStand.md:\n${(await readStand(KLASSE, FACH)).trim()}`;
-    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, kosten: session.usage().cost };
+    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, vorlage: bilder.length ? bilder.map((b) => b.text).join("\n\n") : undefined, kosten: session.usage().cost };
   } finally {
     if (before === undefined) delete process.env.MORTE_HOME;
     else process.env.MORTE_HOME = before;

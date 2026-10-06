@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -64,7 +64,7 @@ Stand: 2026-10-05 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [ ] Geführter Fragenkatalog für Material (Schulform, Bildungsgang oder Fach und Stufe, Lernfeld, Kursniveau, Bewertung, Anzahl Klausuren)
 - [~] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise. Bewertung steht: Anforderungsbereiche und Notenschlüssel trägt jede Lehrkraft selbst ein, nichts ist fest (Entscheidung 003). Plan.md steht über den Import (Bildschirm "Lehrpläne", Entscheidung 004). Offen: Hinweise.md (schulinterne Vorgaben) und eine Eingabemaske für die Bewertungsregeln in der Oberfläche
 - [~] Bildungsplan-Import: PDF in saubere Markdown-Gliederung umwandeln (Text aus der PDF, Modell formt, Wortlaut wird geprüft, Scans per Bild, Kosten vorab sichtbar), pro Klasse zuordnen, vom Agenten stufenweise lesbar (`lehrplan_lesen`, `lehrplan_suchen`). Siehe `docs/entscheidungen/004-lehrplaene-lesen.md`. Mit einem echten Modell noch nicht erprobt
-- [ ] Foto oder Screenshot hochladen mit "Bau mir so etwas" (Vision), mit Hinweis zu Namen und Klassenarbeiten
+- [~] Foto oder Screenshot hochladen mit "Bau mir so etwas" (Vision), mit Hinweis zu Namen und Klassenarbeiten. Fertig: Anleitung `foto-nachbauen` (eigene Inhalte statt Abschreiben, Machart und Aufgabenarten der Vorlage), Knopf auf der Startseite des Gesprächs, große Handyfotos werden vor dem Senden verkleinert, Hinweis zu Namen am Bild. Mit DeepSeek v4.1 flash an gezeichneten Beispielblättern gemessen (94 %). Dateien anhängen wie in der Claude-App: mehrere auf einmal, per Ziehen ins Fenster, Einfügen oder Knopf; PDF (Scans werden als Bild gelesen), Word, OpenOffice, Excel (xlsx, xls), ods, csv, PowerPoint, Folien, Text, RTF, HTML (siehe `docs/entscheidungen/007-dateien-anhaengen.md`). Nicht getestet: echte, schiefe oder handschriftliche Fotos
 - [~] Gesamtes Material einheitlich in eigener, besonderer Optik (gemeinsame Zeichenschicht `src/core/material/layout.ts`, Arbeitsblatt, Klausur, Erwartungshorizont und Lernsituation stehen, weitere Materialarten folgen)
 - [x] Eigene Schriften für Oberfläche und PDF (Fraunces und Source Sans 3, mitgeliefert, mit Griechisch, Kyrillisch und Sonderbuchstaben), Oberfläche überarbeitet: Eingabefeld als eine Karte, ruhige Seitenleiste, Menü auf schmalen Fenstern
 

@@ -6,6 +6,8 @@ export interface StoredMessage {
   text: string;
   /** Number of attached pictures. The pictures themselves are not kept. */
   bilder?: number;
+  /** Names of attached files. Their content is not kept. */
+  dateien?: string[];
   steps: { id: string; label: string; state: "running" | "done" | "failed" }[];
   materials?: { title: string; name: string; path: string }[];
   error?: string;

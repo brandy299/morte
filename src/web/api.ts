@@ -44,11 +44,25 @@ async function readEvents<T>(body: ReadableStream<Uint8Array<ArrayBuffer>>, onEv
 }
 
 /** Sends a message and reads the server-sent events from the response stream. */
-export async function sendMessage(text: string, images: ImageAttachment[], onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
+export interface FileText { name: string; text: string }
+export interface FileRead { art: string; text: string; info?: string; gekuerzt: boolean; bilder?: ImageAttachment[] }
+
+/** Lets the server read an attached file (PDF, Word, Excel, …). Returns a plain-German problem text when it cannot be read. */
+export async function readFileOnServer(file: File): Promise<FileRead | string> {
+  try {
+    const res = await fetch(`/api/anhang?name=${encodeURIComponent(file.name)}`, { method: "POST", body: file });
+    const body = await res.json().catch(() => ({}));
+    return res.ok ? body : `„${file.name}“: ${body.error ?? "Das konnte ich nicht lesen."}`;
+  } catch {
+    return `„${file.name}“ konnte ich nicht hochladen.`;
+  }
+}
+
+export async function sendMessage(text: string, images: ImageAttachment[], files: FileText[], onEvent: (e: ChatEvent) => void, signal: AbortSignal) {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ text, images }),
+    body: JSON.stringify({ text, images, dateien: files }),
     signal,
   });
   if (!res.ok || !res.body) {
@@ -115,6 +129,7 @@ export interface StoredMessage {
   role: "user" | "assistant";
   text: string;
   bilder?: number;
+  dateien?: string[];
   steps: { id: string; label: string; state: "running" | "done" | "failed" }[];
   materials?: Material[];
   error?: string;

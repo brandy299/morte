@@ -21,7 +21,7 @@ export function judgePrompt(c: EvalCase, t: Transcript, kriterien: Criterion[]):
     ? t.files.map((f) => `=== ${f.name}${f.seiten ? ` (${f.seiten} Seiten)` : ""} ===\n${f.text.trim() || "(kein lesbarer Text)"}`).join("\n\n")
     : "(Es wurde kein Material erstellt.)";
   const list = kriterien.map((k) => `${k.id} [${k.gruppe}] ${k.kriterium}\n   Bestanden wenn: ${k.bestandenWenn}${k.bedingung ? `\n   Gilt nur, wenn: ${k.bedingung}` : ""}`).join("\n");
-  return `Fall: ${c.id} (Anleitung: ${c.skill})\nDie Klasse hat keinen hinterlegten Lehrplan. Alle Namen, Betriebe und Daten sind erfunden.\n\n## GESPRÄCH\n${talk}\n\n## MATERIAL\n${material}\n\n## ARBEITSORDNER (das konnte der Assistent nachlesen)\n${t.ordner ?? "(nicht mitgegeben)"}\n\n## STUNDENTABELLE\n${t.tabelle || "(leer)"}\n\n## KRITERIEN\n${list}`;
+  return `Fall: ${c.id} (Anleitung: ${c.skill})\nDie Klasse hat keinen hinterlegten Lehrplan. Alle Namen, Betriebe und Daten sind erfunden.\n\n## GESPRÄCH\n${talk}\n\n## MATERIAL\n${material}${t.vorlage ? `\n\n## VORLAGE (der Text auf dem Bild, das die Lehrkraft angehängt hat)\n${t.vorlage}` : ""}\n\n## ARBEITSORDNER (das konnte der Assistent nachlesen)\n${t.ordner ?? "(nicht mitgegeben)"}\n\n## STUNDENTABELLE\n${t.tabelle || "(leer)"}\n\n## KRITERIEN\n${list}`;
 }
 
 /** Reads the judge's answer. Takes the first JSON array in the text, so a few stray words around it do no harm. */

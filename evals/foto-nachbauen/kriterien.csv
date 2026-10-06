@@ -1,0 +1,6 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+F-P1,P — Pädagogik,Vorlage erkannt,"Der Assistent benennt kurz, was auf dem Bild ist (Art des Blattes, Thema, Aufgabenarten), und das stimmt mit der VORLAGE überein.",Vergleiche mit dem Text der Vorlage.,,Prüfer
+F-P2,P — Pädagogik,"Eigene Inhalte, nichts wörtlich","Das neue Material enthält keine Aufgabensätze, Beispielsätze oder Wortpaare der Vorlage unverändert. Einzelne Fachwörter und feste Wendungen, die zum Thema gehören, sind erlaubt.",Zähle wörtliche Übernahmen. Mehr als zwei ganze Sätze oder Paare aus der Vorlage genügen zum Durchfallen.,Es gibt neues Material.,Prüfer
+F-P3,P — Pädagogik,Gleiche Machart,"Die neuen Aufgaben folgen der Machart der Vorlage: dieselben Aufgabenarten in ähnlicher Reihenfolge (eine Zuordnung bleibt eine Zuordnung, ein Lückentext ein Lückentext) und ähnlicher Umfang.",,Es gibt neues Material.,Prüfer
+F-P4,P — Pädagogik,Thema wie gewünscht,"Das Thema des neuen Materials ist das, was die Lehrkraft genannt hat. Steht dazu nichts da, ist es das Thema der Vorlage.",,Es gibt neues Material.,Prüfer
+F-M1,M — Gespräch,"Sagt, was neu und was übernommen ist","Die Schlussantwort sagt in ein, zwei Sätzen, worin das neue Material der Vorlage folgt und dass die Inhalte neu geschrieben sind.",,Es gibt neues Material.,Prüfer

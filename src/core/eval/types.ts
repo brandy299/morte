@@ -16,6 +16,8 @@ export interface EvalCase {
   skill: string;
   /** What the teacher types, one message per turn. Later turns answer the assistant's questions. */
   nachrichten: string[];
+  /** Pictures attached to the first message, by name (see bilder.ts). */
+  bilder?: string[];
   /** What the program can expect, so checks know what applies. */
   erwartet: {
     /** A file must be created. */
@@ -54,6 +56,8 @@ export interface Transcript {
   tabelle: string;
   /** Klasse.md and Stand.md as the assistant could read them, so the judge knows what is really in the folder. */
   ordner?: string;
+  /** Text on the pictures that were attached, so the judge can compare. */
+  vorlage?: string;
   /** Text of Reihe.md before the run, to see what changed. */
   kosten: number;
 }

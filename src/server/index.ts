@@ -1,3 +1,4 @@
+import { AnhangError, extractFile, MAX_FILES, MAX_TOTAL_CHARS, withFiles, type SentFile } from "../core/anhang/extract.ts";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
@@ -18,7 +19,7 @@ export type { AppState };
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const MAX_IMAGES = 4;
+const MAX_IMAGES = 8;
 interface SetupBody {
   provider: string;
   model: string;
@@ -133,23 +134,38 @@ export function createApp(state: AppState) {
     });
   });
 
+  // Reads one attached file and returns its text. Nothing is stored; the browser sends the text along with the question.
+  app.post("/api/anhang", async (c) => {
+    const name = decodeURIComponent(c.req.query("name") ?? "");
+    try {
+      const { scanSeiten, ...rest } = await extractFile(Buffer.from(await c.req.arrayBuffer()), name);
+      return c.json({ ...rest, bilder: scanSeiten?.map((png) => ({ mimeType: "image/png", data: png.toString("base64") })) });
+    } catch (e) {
+      if (e instanceof AnhangError) return c.json({ error: e.message }, 400);
+      throw e;
+    }
+  });
+
   app.post("/api/chat", async (c) => {
     const session = state.session;
     if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
-    const { text, images = [] } = await c.req.json<{ text?: string; images?: ImageAttachment[] }>();
+    const { text, images = [], dateien = [] } = await c.req.json<{ text?: string; images?: ImageAttachment[]; dateien?: SentFile[] }>();
     if (!text?.trim()) return c.json({ error: "Bitte schreibe zuerst etwas." }, 400);
     const bad = images.length > MAX_IMAGES || images.some((i) => !IMAGE_TYPES.includes(i.mimeType) || i.data.length > MAX_IMAGE_BASE64);
-    if (bad) return c.json({ error: "Bilder gehen nur als JPG, PNG, WebP oder GIF, höchstens vier Stück und jeweils unter 5 MB." }, 400);
+    if (bad) return c.json({ error: "Bilder gehen nur als JPG, PNG, WebP oder GIF, höchstens acht Stück und jeweils unter 5 MB." }, 400);
+    if (dateien.length > MAX_FILES || dateien.some((f) => typeof f.name !== "string" || typeof f.text !== "string") || dateien.reduce((n, f) => n + f.text.length, 0) > MAX_TOTAL_CHARS) {
+      return c.json({ error: "Es passen höchstens fünf Dateien und nicht zu viel Text in eine Nachricht." }, 400);
+    }
     if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
     busy = true;
     const conversation = (state.conversation ??= { id: newConversationId(), titel: titleFrom(text), anzeige: [] });
     let answer: StoredMessage = { role: "assistant", text: "", steps: [] };
-    conversation.anzeige.push({ role: "user", text, bilder: images.length || undefined, steps: [] });
+    conversation.anzeige.push({ role: "user", text, bilder: images.length || undefined, dateien: dateien.length ? dateien.map((f) => f.name) : undefined, steps: [] });
     return streamSSE(c, async (stream) => {
       stream.onAbort(() => session.abort());
       try {
         await session.send(
-          text,
+          withFiles(text, dateien),
           (event) => {
             answer = applyEvent(answer, event);
             void stream.writeSSE({ data: JSON.stringify(event) });
