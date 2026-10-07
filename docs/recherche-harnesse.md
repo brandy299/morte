@@ -38,6 +38,16 @@ Quelle: opencode.ai/docs und opencode.ai/v2/docs, Stand 2026-10-05. Es ist ein C
 - **Rechte pro Skill:** `allow`, `deny` und `ask`, mit Platzhaltern (`internal-*`). Eine Idee für die spätere Schulebene (Phase 6), zum Beispiel um mitgelieferte Skills auszublenden. Vorher nicht nötig.
 - **Eigene Befehle, Plugins, MCP:** Für Pult nicht vorgesehen. Der Agent bekommt feste Werkzeuge.
 
+## goose, ausgewertet
+
+Quelle: README, `CUSTOM_DISTROS.md` und goose-docs.ai, Stand 2026-10-07. Projekt `aaif-goose/goose` (früher Block), jetzt bei der Agentic AI Foundation der Linux Foundation. Lizenz Apache-2.0 (LICENSE geprüft). Allgemeiner KI-Agent als Desktop-App, Befehlszeile und Schnittstelle, in Rust gebaut. Code ist für uns nicht brauchbar (wir sind TypeScript), Ideen schon. Die Seite zu den Berechtigungen ließ sich nicht lesen, dazu ist nichts belegt.
+
+- **Zusammenfassen bei vollem Kontext:** Auto-Compaction bei 80 Prozent des Limits, wie bei uns. Gut zu wissen, dass die Schwelle dort ebenfalls so gewählt ist. **Dazu:** ältere Werkzeug-Ergebnisse werden getrennt gekürzt, neuere bleiben vollständig. Bei uns wächst der Kontext durch gelesene Reihen und Klassen, das könnte sich lohnen. Nicht eilig.
+- **Recipes (Rezepte):** Eine Datei beschreibt einen wiederholbaren Auftrag: Titel, Anleitung, Startnachricht, **Parameter mit Typ und Pflichtangabe** (`required`, `optional` mit Standardwert, `user_prompt` = nachfragen), **Aktivitäten als anklickbare Startvorschläge**, Modell, Unteraufträge. Rezepte lassen sich per Link teilen und liegen in einer Bibliothek. Das ist unser Skill plus Fragenkatalog in einem Format. **Für Pult nützlich:** die Parameter-Idee für den "Geführten Fragenkatalog" (Phase 3) und die Startvorschläge je Anleitung.
+- **Eigene Verteilungen ("white labelling"):** Eine `init-config.yaml` setzt beim ersten Start Anbieter und Modell vor, Umgebungsvariablen haben Vorrang vor der Konfiguration, Telemetrie lässt sich abschalten. **Für Phase 6 nützlich:** eine Voreinstellungsdatei, mit der die Fachschaft oder Schule Anbieter, Modell und Bewertungsregeln vorgibt, damit Kolleginnen und Kollegen nur noch ihren Zugang eintragen.
+- **ACP-Anbieter:** goose nutzt vorhandene Claude- oder ChatGPT-Abos über Zusatzprogramme (Node, Befehlszeilen-Anmeldung). Der Wunsch dahinter (kein Schlüssel nötig) ist richtig, der Weg widerspricht "Alles in der App". Nicht übernehmen.
+- **Telemetrie:** goose sendet optional Nutzungsdaten (PostHog). Pult sendet nichts und soll das so lassen.
+
 ## skills.sh, ausgewertet
 
 Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheitsprüfungen und Dokumentation. Betreiber ist Vercel. Die Rangliste beruht auf anonymen Installationszahlen der `skills`-Befehlszeile (`npx skills add owner/repo`). Es ist ein Verzeichnis, kein Prüfsiegel: Vercel schreibt selbst, dass es Qualität und Sicherheit der Skills nicht garantiert. Die Sicherheitsseite fasst Prüfungen von drei Diensten zusammen, bei etlichen Skills mit "Med Risk" oder "High Risk".
