@@ -1,6 +1,6 @@
 import { Agent } from "@earendil-works/pi-agent-core";
 import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
-import { resolveModel } from "./models.ts";
+import { ModelNotAllowed, modelProblem, resolveModel } from "./models.ts";
 import { tools } from "./tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
 
@@ -38,6 +38,8 @@ export interface SessionDeps {
 export function createChatSession(settings: AgentSettings, deps: SessionDeps = {}): ChatSession {
   const { models, model, onTurnEnd } = (deps.resolve ?? resolveModel)(settings);
   const vision = model.input.includes("image");
+  const problem = settings.provider === "demo" ? undefined : modelProblem(model);
+  if (problem) throw new ModelNotAllowed(problem);
   const totals = { input: 0, output: 0, cost: 0, context: 0 };
   const snapshot = (): UsageSnapshot => ({
     inputTokens: totals.input,

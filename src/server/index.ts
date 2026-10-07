@@ -1,9 +1,10 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { createChatSession, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
+import { createChatSession, fetchBalance, listProviders, ModelNotAllowed, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { createClass, initWorkspace, listTree, materialFile, UserError } from "../core/workspace/index.ts";
 import { listSkills } from "../core/skills/index.ts";
@@ -17,6 +18,10 @@ export interface AppState {
   configured: { provider: string; model: string } | undefined;
   /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
   choice?: { provider: string; model?: string };
+  /** Fingerprint of the last provider, model and key that passed the connection test. Saving needs a match. */
+  passed?: string;
+  /** Plain-language reason why the saved model is not used, shown on the setup page. */
+  notice?: string;
 }
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -25,8 +30,12 @@ const MAX_IMAGE_BASE64 = 7_000_000; // about 5 MB of image
 
 const keyName = (provider: string) => `apikey:${provider}`;
 
-async function buildSession(state: AppState, choice: { provider: string; model?: string }) {
-  const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
+/** Identifies a tested choice without keeping the key itself. */
+const fingerprint = (provider: string, model: string, key?: string) =>
+  createHash("sha256").update(`${provider}\0${model}\0${key ?? ""}`).digest("hex");
+
+async function buildSession(state: AppState, choice: { provider: string; model?: string }, key?: string) {
+  const apiKey = choice.provider === "demo" ? undefined : (key ?? (await state.secrets.get(keyName(choice.provider))));
   state.choice = choice;
   state.session?.abort();
   const { skills } = await listSkills();
@@ -37,33 +46,55 @@ export async function loadState(secrets: SecretStore): Promise<AppState> {
   const state: AppState = { secrets, session: undefined, configured: undefined };
   const saved = await loadProviderSettings();
   if (saved) {
-    state.configured = saved;
-    await buildSession(state, saved);
+    try {
+      await buildSession(state, saved);
+      state.configured = saved;
+    } catch (err) {
+      // A saved model that is not allowed (or gone) is never used. The teacher is asked to choose again.
+      state.notice =
+        err instanceof ModelNotAllowed ? err.message : "Das bisher gewählte Modell lässt sich nicht mehr verwenden. Bitte wähle ein neues.";
+    }
   }
   return state;
 }
 
-export function createApp(state: AppState) {
+/** `testConnection` can be replaced in tests, so they need no network. */
+export function createApp(state: AppState, deps: { testConnection?: typeof testConnection } = {}) {
+  const runTest = deps.testConnection ?? testConnection;
   const app = new Hono();
   let busy = false;
 
   app.get("/api/setup/status", (c) =>
-    c.json({ configured: Boolean(state.session), ...state.configured, storage: state.secrets.kind }),
+    c.json({ configured: Boolean(state.session), ...state.configured, storage: state.secrets.kind, notice: state.notice }),
   );
   app.get("/api/setup/options", (c) => c.json({ providers: listProviders() }));
 
   app.post("/api/setup/test", async (c) => {
     const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
     const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
-    return c.json(await testConnection({ provider, model, apiKey: key }));
+    const result = await runTest({ provider, model, apiKey: key });
+    state.passed = result.passed ? fingerprint(provider, model, key) : undefined;
+    return c.json(result);
   });
 
   app.post("/api/setup/save", async (c) => {
     const { provider, model, apiKey } = await c.req.json<{ provider: string; model: string; apiKey?: string }>();
+    // Only a model that passed the test can be saved, whatever the page did before. A direct call gets the test too.
+    const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
+    if (state.passed !== fingerprint(provider, model, key)) {
+      const result = await runTest({ provider, model, apiKey: key });
+      if (!result.passed) return c.json({ error: result.hint ?? "Das Modell passt noch nicht.", result }, 422);
+    }
+    try {
+      await buildSession(state, { provider, model }, key);
+    } catch (err) {
+      if (err instanceof ModelNotAllowed) return c.json({ error: err.message }, 422);
+      throw err;
+    }
     if (apiKey?.trim()) await state.secrets.set(keyName(provider), apiKey.trim());
     await saveProviderSettings({ provider, model });
     state.configured = { provider, model };
-    await buildSession(state, { provider, model });
+    state.notice = undefined;
     return c.json({ ok: true });
   });
 

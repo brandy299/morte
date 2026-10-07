@@ -1,6 +1,7 @@
 export { createChatSession, type SessionDeps } from "./session.ts";
 export { fetchBalance } from "./balance.ts";
 export { listProviders, testConnection } from "./setup.ts";
+export { ModelNotAllowed, modelProblem } from "./models.ts";
 export type {
   AgentSettings,
   ChatEvent,

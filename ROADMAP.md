@@ -41,7 +41,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [~] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent` (Claude, OpenAI, DeepSeek stehen, OpenAI-kompatibel fehlt noch)
 - [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
 - [x] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
-- [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
+- [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert". Modelle ohne Bilder erscheinen nicht, Speichern verlangt den bestandenen Test (auch bei direktem Aufruf), ein früher gespeichertes unzulässiges Modell wird beim Start nicht benutzt und der Grund steht auf der Einrichtungsseite
 
 ## Phase 2: Ordnerstruktur und Klassen
 

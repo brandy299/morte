@@ -45,8 +45,13 @@ export function Setup({ status, onDone }: { status: SetupStatus; onDone: () => v
   };
 
   const save = async () => {
-    await saveSetup({ provider: providerId, model: chosen, apiKey });
-    onDone();
+    setProblem(null);
+    try {
+      await saveSetup({ provider: providerId, model: chosen, apiKey });
+      onDone();
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : "Das Speichern hat nicht geklappt.");
+    }
   };
 
   return (
@@ -56,6 +61,11 @@ export function Setup({ status, onDone }: { status: SetupStatus; onDone: () => v
           <img src="/pult-logo.svg" alt="Pult" />
         </div>
         <h1>Welche KI soll dir helfen?</h1>
+        {status.notice && (
+          <p className="error" role="alert">
+            {status.notice}
+          </p>
+        )}
         <p className="lead">
           Dafür brauche ich einen Zugangsschlüssel von deinem KI-Anbieter. Er bleibt auf diesem Computer
           {status.storage === "file" ? " (in einer Datei nur für dich)" : " (im Schlüsselbund)"} und kommt nie in
@@ -107,7 +117,6 @@ export function Setup({ status, onDone }: { status: SetupStatus; onDone: () => v
               <option key={m.id} value={m.id}>
                 {m.name}
                 {m.recommended ? " (empfohlen)" : ""}
-                {advanced && !m.vision ? " – ohne Bilder" : ""}
               </option>
             ))}
           </select>

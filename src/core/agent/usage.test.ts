@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText } from "@earendil-works/pi-ai";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createChatSession, fetchBalance, type ChatEvent } from "./index.ts";
+import { createChatSession, fetchBalance, ModelNotAllowed, type ChatEvent } from "./index.ts";
 import { addUsage, monthUsage } from "../usage/index.ts";
 
 function session(onUsage?: (d: { input: number; output: number; cost: number }) => void, vision = true) {
@@ -41,11 +41,9 @@ describe("usage", () => {
     expect(await monthUsage()).toEqual({ input: 30, output: 10, cost: 0.03 });
   });
 
-  it("refuses images for a model without vision, in plain words", async () => {
-    const s = session(undefined, false);
-    const events: ChatEvent[] = [];
-    await s.send("Was ist das?", (e) => events.push(e), [{ data: "AAAA", mimeType: "image/png" }]);
-    expect(events).toContainEqual(expect.objectContaining({ type: "error", message: expect.stringContaining("keine Bilder") }));
+  it("does not build a session around a model without vision, and says so in plain words", () => {
+    expect(() => session(undefined, false)).toThrow(ModelNotAllowed);
+    expect(() => session(undefined, false)).toThrow(/keine Bilder/);
   });
 });
 

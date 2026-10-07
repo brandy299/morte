@@ -64,7 +64,7 @@ export interface ConnectionResult {
   checks: { id: string; label: string; state: "ok" | "failed" | "skipped" }[];
   hint?: string;
 }
-export interface SetupStatus { configured: boolean; provider?: string; model?: string; storage?: "keychain" | "file" }
+export interface SetupStatus { configured: boolean; provider?: string; model?: string; storage?: "keychain" | "file"; notice?: string }
 
 const post = async <T,>(url: string, body?: unknown): Promise<T> => {
   const res = await fetch(url, {
@@ -79,7 +79,14 @@ const post = async <T,>(url: string, body?: unknown): Promise<T> => {
 export const getStatus = async (): Promise<SetupStatus> => (await fetch("/api/setup/status")).json();
 export const getOptions = async (): Promise<ProviderOption[]> => (await (await fetch("/api/setup/options")).json()).providers;
 export const testSetup = (b: { provider: string; model: string; apiKey: string }) => post<ConnectionResult>("/api/setup/test", b);
-export const saveSetup = (b: { provider: string; model: string; apiKey: string }) => post<{ ok: true }>("/api/setup/save", b);
+export const saveSetup = async (b: { provider: string; model: string; apiKey: string }): Promise<{ ok: true }> => {
+  const res = await fetch("/api/setup/save", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}) as { error?: string });
+    throw new Error(body.error ?? "Das Speichern hat nicht geklappt.");
+  }
+  return res.json();
+};
 export const startDemo = () => post<{ ok: true }>("/api/setup/demo");
 
 export interface ReiheInfo { name: string; stunden: number; gehalten: number; ohneMaterial: number }
