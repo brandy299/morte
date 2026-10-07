@@ -1,4 +1,4 @@
-# Entscheidung 004: Das Programm heißt Pult
+# Entscheidung 010: Das Programm heißt Pult
 
 Datum: 2026-10-06 · Status: angenommen (Wahl von Yannik)
 

@@ -1,0 +1,27 @@
+import type { ChatSession, createCompleter, testConnection } from "../core/agent/index.ts";
+import type { StoredMessage } from "../core/history/index.ts";
+import type { SecretStore } from "../core/secrets/index.ts";
+
+/** Holds the current chat session; it is rebuilt after the setup changes provider, model or key. */
+export interface AppState {
+  secrets: SecretStore;
+  session: ChatSession | undefined;
+  configured: { provider: string; model: string } | undefined;
+  /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
+  choice?: { provider: string; model?: string; baseUrl?: string; contextWindow?: number };
+  /** The conversation on screen. Saved after every answer, so it can be reopened later. */
+  /** For tests: builds the one-off model access used outside the chat. */
+  makeCompleter?: typeof createCompleter;
+  conversation?: { id: string; titel: string; anzeige: StoredMessage[] };
+  /** For tests: replaces the connection test, so they need no network. */
+  runTest?: typeof testConnection;
+  /** Fingerprint of the last choice (provider, model, key, address) that passed the connection test. Saving needs a match. */
+  passed?: string;
+  /** Plain-language reason why the saved model is not used, shown on the setup page. */
+  notice?: string;
+}
+
+export const keyName = (provider: string) => `apikey:${provider}`;
+
+/** The stored API key of a provider, if there is one. */
+export const loadSecret = (state: AppState, provider: string) => state.secrets.get(keyName(provider));

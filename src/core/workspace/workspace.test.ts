@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -96,6 +96,42 @@ describe("workspace", () => {
     const md = await readReihe("11a", "Business English", "Bewerbung");
     expect(md).toContain("| 12.10. | Mo 1 | Lebenslauf | a.pdf | gehalten |");
     expect(md).toContain("| 14.10. | Mi 3 | Interview | b.pdf | Material fertig |");
+  });
+
+  it("keeps the planned topic when a file is attached to an existing lesson", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    await setStunde("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "Mi 3", thema: "Vorstellungsgespräch" });
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "Mi 3", thema: "Arbeitsblatt Interview" }, "b.pdf");
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toContain("| 14.10. | Mi 3 | Vorstellungsgespräch | b.pdf | Material fertig |");
+  });
+
+  it("finds the planned row by date when the lesson name is not given", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    // A planned row from the series planning has a date and a topic but no lesson name yet.
+    await setStunde("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "x", thema: "Interview" });
+    const file = join(home, "Klassen", "11a", "Business English", "01 Bewerbung", "Reihe.md");
+    await writeFile(file, (await readFile(file, "utf8")).replace("| 14.10. | x |", "| 14.10. |  |"));
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "14.10.", stunde: "", thema: "Blatt" }, "b.pdf");
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("| 14.10. |  | Interview | b.pdf | Material fertig |");
+    expect(md.match(/\| 14\.10\./g)).toHaveLength(1);
+  });
+
+  it("fills the planned row of that date when the lesson name comes later", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    await setStunde("11a", "Business English", "Bewerbung", { datum: "19.10.", stunde: "x", thema: "Zellbezüge" });
+    const file = join(home, "Klassen", "11a", "Business English", "01 Bewerbung", "Reihe.md");
+    await writeFile(file, (await readFile(file, "utf8")).replace("| 19.10. | x |", "| 19.10. |  |"));
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "19.10.", stunde: "Mi 3", thema: "Blatt" }, "b.pdf");
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("| 19.10. | Mi 3 | Zellbezüge | b.pdf | Material fertig |");
+    expect(md.match(/\| 19\.10\./g)).toHaveLength(1);
+  });
+
+  it("does not create a second class or subject that differs only in case", async () => {
+    await expect(createClass({ name: "11A", schulform: "Gymnasium", stufe: "11", faecher: ["x"] })).rejects.toThrow(/gibt es schon/);
+    await createClass({ name: "9c", schulform: "Gymnasium", stufe: "9", faecher: ["Englisch", "englisch", "ENGLISCH"] });
+    expect((await readKlasse("9c")).match(/^Fächer: (.*)$/m)![1]).toBe("Englisch");
   });
 
   it("only serves PDFs from Klassen and Exporte", async () => {

@@ -1,0 +1,6 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+B-P1,P — Pädagogik,Wo ihr steht und was dran ist,"Die Notiz sagt kurz, wo die Klasse steht und was in der Stunde dran ist, passend zu Stand und Stundentabelle.",,,Prüfer
+B-P2,P — Pädagogik,"Sagt, was fehlt","Die Notiz nennt ehrlich, was noch fehlt (zum Beispiel kein Material zur Stunde) und bietet an, es zu erstellen.",,,Prüfer
+B-P3,P — Pädagogik,Zum Mitnehmen,"Die Notiz nennt zwei bis drei konkrete Punkte, an die die Lehrkraft denken sollte, ohne etwas zu erfinden.",,,Prüfer
+B-R1,R — Anspruch,Nur was im Ordner steht,"Alles, was die Notiz über Klasse, Stand, Termine und Material sagt, steht im Arbeitsordner (Stand und Stundentabelle). Es werden keine Wochentage, Uhrzeiten, Räume oder Inhalte erfunden.",,,Prüfer
+B-O1,O — Form,Kurz,Die Notiz passt auf eine Bildschirmseite und ist ohne Technik gesprochen.,,,Prüfer

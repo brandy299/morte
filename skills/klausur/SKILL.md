@@ -1,6 +1,7 @@
 ---
 name: klausur
-description: Erstellt eine Klausur oder einen schriftlichen Test zusammen mit dem Erwartungshorizont (Lösungen mit Punkten) als zwei druckfertige PDFs in Graustufen. Nutzt die Bewertungsregeln der Lehrkraft (Anforderungsbereiche, Notenschlüssel), falls hinterlegt. Nutze es bei Wünschen wie "Klausur", "Klassenarbeit", "Test", "Leistungsüberprüfung", "Erwartungshorizont", "EHZ", "schriftliche Arbeit". Nicht für Übungsblätter ohne Bewertung (dafür Arbeitsblatt), nicht für die Planung von Stunden oder Reihen und nicht für das Eintragen von Notenschlüsseln (dafür Bewertung).
+title: Klausur mit Erwartungshorizont
+description: Erstellt eine Klausur oder einen schriftlichen Test zusammen mit dem Erwartungshorizont (Lösungen mit Punkten) als zwei druckfertige PDFs in Graustufen. Nutzt die Bewertungsregeln der Lehrkraft (Anforderungsbereiche, Notenschlüssel), falls hinterlegt. Nutze es bei Wünschen wie "Klausur", "Klassenarbeit", "Test", "Leistungsüberprüfung", "Erwartungshorizont", "EHZ", "schriftliche Arbeit". Nicht für kurze Verständnis-Checks oder Blitztests am Stundenende (dafür Verständnis-Check), nicht für Übungsblätter ohne Bewertung (dafür Arbeitsblatt), nicht für die Planung von Stunden oder Reihen und nicht für das Eintragen von Notenschlüsseln (dafür Bewertung).
 ---
 
 # Klausur mit Erwartungshorizont
@@ -11,7 +12,7 @@ Es gibt keine festen Bereiche und keinen festen Notenschlüssel. Jede Schule und
 
 ## Ablauf
 
-1. **Klären, höchstens zwei Rückfragen in einer Runde.** Nötig sind: Klasse oder Kurs, Thema (oder Reihe) und Dauer. Hat die Lehrkraft alles genannt, frag nicht nach. Biete in derselben Runde an: "Soll ich gleich einen Entwurf machen?" Erfinde keine Dauer.
+1. **Klären, höchstens zwei Rückfragen in einer Runde.** Stell die Rückfragen mit `fragen_stellen`, jede mit einer empfohlenen Antwort und dem Grund dafür. Nötig sind: Klasse oder Kurs, Thema (oder Reihe) und Dauer. Hat die Lehrkraft alles genannt, frag nicht nach. Biete in derselben Runde an: "Soll ich gleich einen Entwurf machen?" Erfinde keine Dauer.
 2. **Klasse und Stoff kennen.** Gibt es die Klasse im Arbeitsordner: erst `klasse_lesen`, dann `stand_lesen`, dann `reihe_lesen` für die passende Reihe. Die Klausur prüft, was wirklich behandelt wurde, nicht mehr. Schulform, Stufe und Kursniveau bestimmen Anspruch und Aufgabenform (siehe unten).
 3. **Bewertungsregeln holen.** Rufe `bewertung_lesen` für die Klasse auf.
    - Es gibt Regeln: Nutze genau diese Bereiche und diesen Notenschlüssel. Jede Teilaufgabe nennt dann einen der Bereiche mit der Kurzbezeichnung aus den Regeln.
@@ -24,8 +25,8 @@ Es gibt keine festen Bereiche und keinen festen Notenschlüssel. Jede Schule und
    - Ein Einstieg (Situation, Text, Daten) nur, wenn mehrere Teilaufgaben darauf aufbauen.
    - Keine Farben, keine Bilder, nichts, das in Schwarz-Weiß nicht trägt. Keine Namen von Schülerinnen und Schülern.
 5. **Erwartungshorizont schreiben.** Zu jeder Teilaufgabe steht, was eine gute Antwort enthält und wofür es wie viele Punkte gibt ("2 P. für ..., 1 P. für ..."). Die Punkte der Vergabe ergeben die Punkte der Teilaufgabe. Bei offenen Aufgaben nenne Kriterien und Beispiele für gute Lösungen, aber lass andere gute Lösungen ausdrücklich zu ("auch andere begründete Lösungen").
-6. **Erdung.** Nenne keine Lehrplan-Fundstellen, Kompetenzbezeichnungen oder Operatorenlisten, die dir nicht vorliegen. Das Werkzeug setzt selbst einen ehrlichen Hinweis auf die Klausur, wenn kein Lehrplan hinterlegt ist.
-7. **Erstellen.** Rufe `klausur_erstellen` auf. Nennt die Lehrkraft Klasse, Fach und Reihe, gib sie mit an, damit beides im richtigen Ordner landet. Kennst du Datum und Stunde, gib auch sie an, dann wird der Termin in der Stundentabelle eingetragen.
+6. **Erdung.** Nenne keine Lehrplan-Fundstellen, Kompetenzbezeichnungen oder Operatorenlisten, die dir nicht vorliegen. Das Werkzeug setzt selbst einen ehrlichen Hinweis auf die Klausur, wenn kein Lehrplan hinterlegt ist. Hat die Klasse einen Lehrplan, lies zuerst die passende Stelle (Gliederung ansehen, dann nur den Abschnitt zum Thema) und richte die Aufgaben und ihre Anforderungen danach aus. Was dort nicht steht, nimmst du nicht an.
+7. **Erstellen.** Rufe `klausur_erstellen` auf. Nennt die Lehrkraft Klasse, Fach und Reihe, gib sie mit an, damit beides im richtigen Ordner landet. Kennst du Datum und Stunde, gib auch sie an, dann wird der Termin in der Stundentabelle eingetragen. Will die Lehrkraft das Ergebnis selbst in Word bearbeiten (Anpassen, Bearbeiten, Weitergeben an Kolleginnen und Kollegen), setze `word` auf wahr: Dann liegt neben dem PDF eine Word-Datei.
 8. **Prüfen.** Meldet das Werkzeug einen Fehler (zum Beispiel einen unbekannten Bereich), behebe ihn und erstelle neu. Passt die Länge nicht zur Dauer, kürze oder ergänze.
 9. **Antworten.** Sag in zwei, drei Sätzen, was die Lehrkraft bekommt ("Die Klausur und der Erwartungshorizont sind fertig, du siehst sie rechts"), wie viele Punkte sie hat und welcher Notenschlüssel gilt oder dass noch keiner hinterlegt ist. Biete eine passende Anpassung an (zum Beispiel leichter, kürzer, mehr Aufgaben im Bereich II). Nenne nie Dateinamen, Werkzeugnamen oder Fachwörter wie "PDF-Erzeugung".
 

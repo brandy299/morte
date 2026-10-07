@@ -1,0 +1,23 @@
+[
+  {
+    "id": "sp-vollstaendig",
+    "nachrichten": [
+      "Plane die Stunde am 14.10. in der Reihe Bewerbung der 11a (Business English) zum Thema Anschreiben. Es sind 45 Minuten. Alle Angaben sind da, leg los."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 2
+    }
+  },
+  {
+    "id": "sp-doppelstunde",
+    "nachrichten": [
+      "Plane mir eine Doppelstunde zum Vorstellungsgespräch.",
+      "11a, Business English, Reihe Bewerbung, am 21.10., 90 Minuten."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 2
+    }
+  }
+]

@@ -108,10 +108,12 @@ export async function createClass(input: NewClass): Promise<string> {
   if (!SCHULFORMEN.includes(input.schulform as (typeof SCHULFORMEN)[number])) {
     throw new UserError("Bitte wähle eine Schulform aus.");
   }
-  const faecher = [...new Set(input.faecher.map((f) => cleanName(f, "den Fachnamen")))];
+  const seenFach = new Set<string>();
+  const faecher = input.faecher.map((f) => cleanName(f, "den Fachnamen")).filter((f) => !seenFach.has(f.toLowerCase()) && seenFach.add(f.toLowerCase()));
   if (faecher.length === 0) throw new UserError("Bitte gib mindestens ein Fach an.");
   const dir = join(klassenDir(), name);
-  if (await exists(dir)) throw new UserError(`Die Klasse ${name} gibt es schon.`);
+  // Lookups ignore case ("11a" finds "11A"), so a second class that differs only in case could never be reached.
+  if ((await subdirs(klassenDir())).some((k) => k.toLowerCase() === name.toLowerCase())) throw new UserError(`Die Klasse ${name} gibt es schon.`);
 
   await mkdir(dir, { recursive: true });
   const oneLine = (s?: string) => (s ?? "").replace(/\s+/g, " ").trim();
@@ -150,6 +152,54 @@ export async function readReihe(klasse: string, fach: string, reihe: string): Pr
   const { dir } = await resolveFach(klasse, fach);
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
   return readText(join(dir, r, "Reihe.md"));
+}
+
+/** Names of the files in the Material folder of a series. */
+export async function listMaterial(klasse: string, fach: string, reihe: string): Promise<string[]> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  try {
+    return (await readdir(join(dir, r, "Material"))).filter((n) => materialType(n)).sort();
+  } catch {
+    return [];
+  }
+}
+
+export interface MaterialEntry { klasse: string; fach: string; reihe: string; name: string; path: string; size: number; modified: string }
+
+/** Every material file of every class, newest first, for the overview page. `path` is what /api/material takes. */
+export async function listAllMaterial(): Promise<MaterialEntry[]> {
+  const result: MaterialEntry[] = [];
+  for (const klasse of await subdirs(klassenDir())) {
+    for (const fach of await subdirs(join(klassenDir(), klasse))) {
+      for (const reihe of await subdirs(join(klassenDir(), klasse, fach))) {
+        const folder = join(klassenDir(), klasse, fach, reihe, "Material");
+        let names: string[] = [];
+        try {
+          names = (await readdir(folder)).filter((n) => materialType(n));
+        } catch {
+          continue;
+        }
+        for (const name of names) {
+          const info = await stat(join(folder, name)).catch(() => undefined);
+          if (!info?.isFile()) continue;
+          result.push({ klasse, fach, reihe, name, path: `Klassen/${klasse}/${fach}/${reihe}/Material/${name}`, size: info.size, modified: info.mtime.toISOString() });
+        }
+      }
+    }
+  }
+  return result.sort((a, b) => b.modified.localeCompare(a.modified) || a.name.localeCompare(b.name, "de", { numeric: true }));
+}
+
+/** Full path of one file in the Material folder of a series. Only the file name counts, never a path. */
+export async function materialDatei(klasse: string, fach: string, reihe: string, datei: string): Promise<string> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  const name = datei.split(/[\\/]/).pop() ?? "";
+  if (!name || name !== datei.trim() || !materialType(name) || !(await exists(join(dir, r, "Material", name)))) {
+    throw new UserError(`Die Datei „${datei}“ gibt es in dieser Reihe nicht.`);
+  }
+  return join(dir, r, "Material", name);
 }
 
 async function resolveFach(klasse: string, fach: string) {
@@ -274,14 +324,19 @@ export async function materialLuecken(klasse?: string): Promise<Luecke[]> {
 
 /** "14.10." becomes "2026-10-14" (current year). Anything else falls back to today. */
 function isoDate(datum?: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test((datum ?? "").trim())) return datum!.trim();
   const m = /^(\d{1,2})\.(\d{1,2})\.?(\d{4})?$/.exec((datum ?? "").trim());
   if (!m) return today();
   const year = m[3] ?? today().slice(0, 4);
   return `${year}-${m[2]!.padStart(2, "0")}-${m[1]!.padStart(2, "0")}`;
 }
 
-const slug = (s: string) =>
-  s.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 50) || "Material";
+const slug = (s: string) => {
+  const full = s.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "");
+  // A long title is cut at a word edge, not in the middle of a word.
+  const cut = full.length > 50 ? full.slice(0, 50).replace(/-[^-]*$/, "") : full;
+  return (cut.length >= 20 || full.length <= 50 ? cut : full.slice(0, 50)) || "Material";
+};
 
 export interface SavedMaterial {
   name: string;
@@ -295,7 +350,7 @@ export interface SavedMaterial {
  */
 export async function saveMaterial(
   pdf: Buffer,
-  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string },
+  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string; ext?: "pdf" | "docx" },
 ): Promise<SavedMaterial> {
   let dir = join(root(), "Exporte");
   let rel = "Exporte";
@@ -308,10 +363,35 @@ export async function saveMaterial(
   await mkdir(dir, { recursive: true });
   const stunde = (where.stunde ?? "").replace(/\s+/g, "");
   const base = [isoDate(where.datum), stunde && slug(stunde), `${where.art}-${slug(where.titel)}`].filter(Boolean).join("_");
-  let name = `${base}.pdf`;
-  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.pdf`;
+  const ext = where.ext ?? "pdf";
+  let name = `${base}.${ext}`;
+  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.${ext}`;
   await writeFile(join(dir, name), pdf);
   return { name, path: `${rel}/${name}` };
+}
+
+/**
+ * Puts a file the teacher brought (worksheet from a colleague, slides, picture) into the Material folder of a series.
+ * The name keeps the original, with the date in front: 2026-10-14_Mi0945_Arbeitsblatt-Lebenslauf.docx.
+ */
+export async function saveMaterialFile(
+  klasse: string, fach: string, reihe: string,
+  file: { name: string; data: Buffer }, prefix: { datum: string; stunde?: string },
+): Promise<SavedMaterial> {
+  const ext = extensionOf(file.name);
+  if (!ext || !MATERIAL_TYPES[ext]) throw new UserError(`Diesen Dateityp nehme ich nicht an. Erlaubt sind: ${MATERIAL_ENDUNGEN.join(", ")}.`);
+  if (file.data.length > 25 * 1024 * 1024) throw new UserError("Die Datei ist größer als 25 MB.");
+  if (file.data.length === 0) throw new UserError("Die Datei ist leer.");
+  const f = await resolveFach(klasse, fach);
+  const r = await resolveDir(f.dir, reihe, "Die Reihe", stripNumber);
+  const dir = join(f.dir, r, "Material");
+  await mkdir(dir, { recursive: true });
+  const stem = file.name.replace(/\.[^.]+$/, "");
+  const base = [isoDate(prefix.datum), prefix.stunde && slug(prefix.stunde), slug(stem)].filter(Boolean).join("_");
+  let name = `${base}.${ext}`;
+  for (let i = 2; await exists(join(dir, name)); i++) name = `${base}-${i}.${ext}`;
+  await writeFile(join(dir, name), file.data);
+  return { name, path: `Klassen/${f.klasse}/${f.fach}/${r}/Material/${name}` };
 }
 
 /**
@@ -321,26 +401,90 @@ export async function saveMaterial(
 export async function attachMaterial(
   klasse: string, fach: string, reihe: string,
   stunde: { datum: string; stunde: string; thema?: string }, datei: string,
+  opts: { append?: boolean } = {},
 ): Promise<void> {
   const { dir } = await resolveFach(klasse, fach);
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
   const file = join(dir, r, "Reihe.md");
   const markdown = await readText(file);
-  const old = parseStunden(markdown).find((s) => `${s.datum}|${s.stunde}`.toLowerCase() === `${stunde.datum}|${stunde.stunde}`.toLowerCase());
+  const rows = parseStunden(markdown);
+  const old = findStunde(rows, stunde);
   await setStunde(klasse, fach, reihe, {
-    datum: stunde.datum,
-    stunde: stunde.stunde,
-    thema: stunde.thema,
-    material: datei,
+    // A planned row is addressed by its number, so rows without a lesson name work too.
+    ...(old ? { nr: rows.indexOf(old) + 1 } : { datum: stunde.datum }),
+    stunde: old?.stunde || stunde.stunde,
+    thema: old?.thema ? undefined : stunde.thema, // a planned topic stays, the file title only fills an empty one
+    material: opts.append && old?.material ? (old.material.split(", ").includes(datei) ? old.material : `${old.material}, ${datei}`) : datei,
     status: old?.status === "gehalten" ? "gehalten" : "Material fertig",
   });
 }
 
-/** Resolves a download path from the browser to a real PDF file inside Klassen/ or Exporte/. */
+/**
+ * Finds the row of a lesson: same date and lesson name, or, when the name is missing on either side,
+ * the only row of that date that has no name yet (the series planning writes dates first and names later).
+ */
+function findStunde(rows: Stunde[], want: { datum: string; stunde: string }): Stunde | undefined {
+  const key = (s: { datum: string; stunde: string }) => `${s.datum}|${s.stunde}`.toLowerCase();
+  const exact = rows.find((s) => key(s) === key(want));
+  if (exact) return exact;
+  const sameDate = rows.filter((s) => s.datum.toLowerCase() === want.datum.toLowerCase());
+  if (!want.stunde) return sameDate.length === 1 ? sameDate[0] : undefined;
+  const unnamed = sameDate.filter((s) => !s.stunde);
+  return unnamed.length === 1 ? unnamed[0] : undefined;
+}
+
+/**
+ * Notes the topic of a planned lesson in the table without touching its status or material list.
+ * An existing row (found by date, or by date and lesson name) only gets a topic when it has none.
+ * A lesson that is not in the table yet is added as "geplant" when its name is known.
+ */
+export async function notePlannedLesson(
+  klasse: string, fach: string, reihe: string, stunde: { datum: string; stunde: string; thema: string },
+): Promise<"eingetragen" | "ergaenzt" | "schon-da"> {
+  const { dir } = await resolveFach(klasse, fach);
+  const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
+  const rows = parseStunden(await readText(join(dir, r, "Reihe.md")));
+  const old = findStunde(rows, stunde);
+  if (old) {
+    if (old.thema) return "schon-da";
+    await setStunde(klasse, fach, reihe, { nr: rows.indexOf(old) + 1, thema: stunde.thema });
+    return "ergaenzt";
+  }
+  await setStunde(klasse, fach, reihe, { datum: stunde.datum, stunde: stunde.stunde, thema: stunde.thema });
+  return "eingetragen";
+}
+
+/** File types a teacher may put on a lesson, with the type the browser needs. Nothing that could run. */
+const MATERIAL_TYPES: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  odt: "application/vnd.oasis.opendocument.text",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  odp: "application/vnd.oasis.opendocument.presentation",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ods: "application/vnd.oasis.opendocument.spreadsheet",
+  txt: "text/plain; charset=utf-8",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+};
+export const MATERIAL_ENDUNGEN = Object.keys(MATERIAL_TYPES);
+const extensionOf = (file: string) => /\.([A-Za-z0-9]+)$/.exec(file)?.[1]?.toLowerCase();
+/** Content type of a material file by its ending, or undefined when the type is not allowed. */
+export const materialType = (file: string): string | undefined => MATERIAL_TYPES[extensionOf(file) ?? ""];
+/** Only PDFs and pictures are shown inline in the preview, everything else is a download. */
+export const materialInline = (file: string) => /^(application\/pdf|image\/)/.test(materialType(file) ?? "");
+
+/** Resolves a download path from the browser to a real file inside Klassen/ or Exporte/. */
 export async function materialFile(relative: string): Promise<string | undefined> {
   const { realpath } = await import("node:fs/promises");
   const [top] = relative.split("/");
-  if (!["Klassen", "Exporte"].includes(top ?? "") || !relative.toLowerCase().endsWith(".pdf")) return undefined;
+  if (!["Klassen", "Exporte"].includes(top ?? "") || !materialType(relative)) return undefined;
   try {
     const base = await realpath(root());
     const target = await realpath(join(base, relative));
@@ -350,13 +494,20 @@ export async function materialFile(relative: string): Promise<string | undefined
   }
 }
 
+/** The Lehrplan folder name that a Klasse.md text names, if any. This is the only place that reads the line. */
+export const lehrplanOf = (klasseMd: string): string | undefined => /^Lehrplan:[ \t]*(\S.*)$/m.exec(klasseMd)?.[1]?.trim() || undefined;
+
+/** Klasse.md text with the Lehrplan line set to `name` (empty string clears it). */
+export const withLehrplan = (klasseMd: string, name: string): string =>
+  /^Lehrplan:.*$/m.test(klasseMd) ? klasseMd.replace(/^Lehrplan:.*$/m, `Lehrplan: ${name}`.trimEnd()) : `${klasseMd.trimEnd()}\nLehrplan: ${name}\n`;
+
 /**
  * True when Klasse.md names a Lehrplan folder that really holds a Plan.md.
  * Without it, material carries an honest note instead of invented curriculum references.
  */
 export async function hasLehrplan(klasse: string): Promise<boolean> {
   try {
-    const name = /^Lehrplan:[ \t]*(\S.*)$/m.exec(await readKlasse(klasse))?.[1]?.trim();
+    const name = lehrplanOf(await readKlasse(klasse));
     if (!name) return false;
     const dir = await resolveDir(join(root(), "Lehrpläne"), name, "Der Lehrplan");
     return (await readText(join(root(), "Lehrpläne", dir, "Plan.md"))).trim().length > 0;

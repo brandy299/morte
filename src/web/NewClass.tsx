@@ -54,7 +54,7 @@ export function NewClass({ onDone, onCancel }: { onDone: (name: string) => void;
   };
 
   return (
-    <div className="setup">
+    <main className="setup">
       <form
         className="setup-card"
         onSubmit={(e) => {
@@ -155,6 +155,6 @@ export function NewClass({ onDone, onCancel }: { onDone: (name: string) => void;
           )}
         </div>
       </form>
-    </div>
+    </main>
   );
 }

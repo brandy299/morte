@@ -112,10 +112,88 @@ describe("worksheet tool", () => {
       events.push(e);
       if (e.type === "confirm") s.answer(e.id, true);
     });
+    expect(events).toContainEqual(expect.objectContaining({ type: "step_start", label: "Arbeitsblatt erstellen", material: true }));
     const material = events.find((e) => e.type === "material");
     expect(material).toMatchObject({ title: "Interview Basics", path: expect.stringContaining("01 Bewerbung/Material/") });
     expect(await readFile(join(home, (material as { path: string }).path))).toBeInstanceOf(Buffer);
     expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/\| 14\.10\. \| Mi 3 \| Interview Basics \| .*Arbeitsblatt-Interview-Basics\.pdf \| Material fertig \|/);
+  });
+
+  it("makes a teacher's copy with the answers, keeps several versions on one lesson and can read them back", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const call = (niveau: string) =>
+      fauxToolCall("arbeitsblatt_erstellen", {
+        titel: "Interview Basics", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3", niveau,
+        aufgaben: [{ text: "Nenne eine typische Frage im Interview.", zeilen: 2, loesung: "Zum Beispiel: Tell me about yourself." }],
+      });
+    const s = session([
+      fauxAssistantMessage([call("Basis")], { stopReason: "toolUse" }),
+      fauxAssistantMessage([call("Erweiterung")], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("material_lesen", { klasse: "11a", fach: "Business English", reihe: "Bewerbung" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Zwei Niveaus bitte", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    const materials = events.filter((e) => e.type === "material") as { title: string; path: string }[];
+    expect(materials.map((m) => m.title)).toEqual(["Interview Basics · Basis", "Interview Basics · Basis (Lösung)", "Interview Basics · Erweiterung", "Interview Basics · Erweiterung (Lösung)"]);
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("Arbeitsblatt-Interview-Basics-Basis.pdf, ");
+    expect(md).toContain("Arbeitsblatt-Interview-Basics-Erweiterung.pdf");
+    expect(md).not.toContain("Loesung"); // the teacher's copy is not a student material
+    const pdf = materials[1]!.path;
+    expect(pdf).toContain("Loesung-Interview-Basics-Basis");
+    const listing = JSON.stringify(s.history().messages);
+    expect(listing).toContain("Loesung-Interview-Basics-Basis.pdf");
+  });
+
+  it("saves an editable Word version next to the PDF, lists it in the table and can read it back", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const s = session([
+      fauxAssistantMessage(
+        [fauxToolCall("arbeitsblatt_erstellen", {
+          titel: "Interview Basics", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3", word: true,
+          aufgaben: [{ text: "Nenne eine typische Frage im Interview.", zeilen: 2, loesung: "Tell me about yourself." }],
+        })],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxToolCall("material_lesen", { klasse: "11a", fach: "Business English", reihe: "Bewerbung", datei: "2026-10-14_Mi3_Arbeitsblatt-Interview-Basics.docx" })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Arbeitsblatt, auch als Word", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    const cards = (events.filter((e) => e.type === "material") as { title: string; path: string }[]).map((m) => [m.title, m.path.split(".").pop()]);
+    expect(cards).toEqual([["Interview Basics", "pdf"], ["Interview Basics (Lösung)", "pdf"], ["Interview Basics (Word)", "docx"], ["Interview Basics (Lösung, Word)", "docx"]]);
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/Arbeitsblatt-Interview-Basics\.pdf, .*Arbeitsblatt-Interview-Basics\.docx \| Material fertig/);
+    expect(JSON.stringify(s.history().messages)).toContain("Nenne eine typische Frage im Interview.");
+  });
+
+  it("plans a lesson, notes only the topic in the table and leaves the status alone", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const plan = {
+      titel: "Vorstellungsgespräch", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3", dauer: 45,
+      lernziele: ["Typische Fragen beantworten"],
+      phasen: [{ minuten: 15, phase: "Einstieg", inhalt: "Video" }, { minuten: 30, phase: "Erarbeitung", inhalt: "Rollenspiel", sozialform: "Partnerarbeit" }],
+    };
+    const s = session([
+      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", plan as never)], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("stundenverlauf_erstellen", { ...plan, dauer: 90 } as never)], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Fertig.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Plane die Stunde", (e) => {
+      events.push(e);
+      if (e.type === "confirm") s.answer(e.id, true);
+    });
+    expect(events).toContainEqual(expect.objectContaining({ type: "step_start", label: "Stunde planen", material: true }));
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toContain("| 14.10. | Mi 3 | Vorstellungsgespräch |  | geplant |");
+    // The second call has minutes that do not fit: the tool says so instead of drawing something wrong.
+    expect(events.filter((e) => e.type === "step_end")).toContainEqual({ type: "step_end", id: expect.any(String), ok: false });
   });
 
   it("saves the teacher's rules, then builds exam and answer key with them and files the exam in the Reihe", async () => {
@@ -257,3 +335,12 @@ describe("lernsituation tool", () => {
   });
 });
 
+
+describe("confirmation before changes", () => {
+  it("asks only where existing things are replaced, deleted or changed, never for new material", async () => {
+    const { tools } = await import("./tools.ts");
+    const asking = tools.filter((t) => t.ask).map((t) => t.name).sort();
+    expect(asking).toEqual(["bewertung_speichern", "lernsituation_erstellen", "stand_schreiben", "stunde_eintragen", "vorlage_entfernen", "vorlage_speichern"]);
+    for (const name of ["arbeitsblatt_erstellen", "klausur_erstellen", "stundenverlauf_erstellen"]) expect(tools.find((t) => t.name === name)?.ask, name).toBeUndefined();
+  });
+});

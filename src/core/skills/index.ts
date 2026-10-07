@@ -11,6 +11,8 @@ export type SkillLevel = "mitgeliefert" | "persönlich";
 
 export interface SkillInfo {
   name: string;
+  /** Name as the teacher reads it, e.g. "Verständnis-Check". Falls back to the name. */
+  title: string;
   description: string;
   level: SkillLevel;
   dir: string;
@@ -66,7 +68,7 @@ async function scan(root: string, level: SkillLevel, found: Map<string, SkillInf
     if (!parsed) problems.push({ dir, problem: "SKILL.md hat keinen Kopfbereich." });
     else if (!name || !NAME.test(name) || name.length > 64 || name !== folder) problems.push({ dir, problem: "Der Name fehlt oder passt nicht zum Ordner." });
     else if (!description || description.length > 1024) problems.push({ dir, problem: "Die Beschreibung fehlt oder ist zu lang." });
-    else found.set(name, { name, description, level, dir });
+    else found.set(name, { name, title: parsed.meta.title?.trim() || name, description, level, dir });
   }
 }
 

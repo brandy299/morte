@@ -4,6 +4,7 @@
  * Everything is black, white and gray on purpose: many schools do not print in color.
  * The PDF is drawn directly (pdfkit), so nothing has to be installed next to the app.
  */
+import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
 
 export class MaterialError extends Error {}
@@ -28,28 +29,83 @@ export const SOFT = "#555555";
 export const LINE = "#999999";
 export const BOX = "#ececec";
 
-export const SERIF = "Times-Bold";
-export const SANS = "Helvetica";
-export const SANS_BOLD = "Helvetica-Bold";
-export const SANS_ITALIC = "Helvetica-Oblique";
-export const SANS_BOLD_ITALIC = "Helvetica-BoldOblique";
+// Fonts are bundled with the app (assets/fonts, SIL Open Font License), nothing is installed on the computer.
+// Display = Fraunces (titles, Latin letters only). Sans = Source Sans 3 (body text, wide coverage: Latin, Greek, Cyrillic, math signs).
+export const SERIF = "Display";
+export const SANS = "Sans";
+export const SANS_BOLD = "Sans-Bold";
+export const SANS_SEMIBOLD = "Sans-Semibold";
+export const SANS_ITALIC = "Sans-Italic";
+export const SANS_BOLD_ITALIC = "Sans-BoldItalic";
 
-// pdfkit's built-in fonts (Times, Helvetica) only know Western European text (Windows-1252).
-const REPLACE: Record<string, string> = {
-  "→": "->", "←": "<-", "↔": "<->", "•": "-", "’": "'", "‘": "'", "‚": ",", "−": "-", "×": "x", "✓": "ok", "✔": "ok", "–": "-", "—": "-", " ": " ", "\t": " ",
+const FONT_DIR = fileURLToPath(new URL("../../../assets/fonts/", import.meta.url));
+const FONT_FILES: Record<string, string> = {
+  [SERIF]: "Fraunces_600SemiBold.ttf",
+  [SANS]: "SourceSans3_400Regular.ttf",
+  [SANS_SEMIBOLD]: "SourceSans3_600SemiBold.ttf",
+  [SANS_BOLD]: "SourceSans3_700Bold.ttf",
+  [SANS_ITALIC]: "SourceSans3_400Regular_Italic.ttf",
+  [SANS_BOLD_ITALIC]: "SourceSans3_700Bold_Italic.ttf",
 };
-const WIN1252_EXTRA = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
 
-/** Keeps text printable in the standard fonts. Anything it cannot draw becomes "?" instead of garbage. */
+/** Font name -> file, for drawing code that does not use pdfkit (pictures for Word files). */
+export const fontFile = (name: string) => FONT_DIR + FONT_FILES[name]!;
+export const FONT_NAMES = Object.keys(FONT_FILES);
+
+let scratch: PDFKit.PDFDocument | undefined;
+/** Width of a single line of text in points, measured with the real font. For laying out drawings. */
+export function textWidth(text: string, font: string, size: number): number {
+  if (!scratch) {
+    scratch = new PDFDocument();
+    registerFonts(scratch);
+  }
+  return scratch.font(font).fontSize(size).widthOfString(printable(text));
+}
+
+function registerFonts(doc: PDFKit.PDFDocument) {
+  for (const [name, file] of Object.entries(FONT_FILES)) doc.registerFont(name, FONT_DIR + file);
+}
+
+/** Which characters a font can draw. Read from the font file once. */
+type Covers = (codePoint: number) => boolean;
+let coverage: { sans: Covers; display: Covers } | undefined;
+
+function fontCoverage(): NonNullable<typeof coverage> {
+  if (!coverage) {
+    const doc = new PDFDocument();
+    registerFonts(doc);
+    const of = (name: string): Covers => {
+      doc.font(name);
+      // pdfkit keeps the parsed font file on its current font object.
+      const font = (doc as unknown as { _font: { font: { hasGlyphForCodePoint(cp: number): boolean } } })._font.font;
+      return (cp) => font.hasGlyphForCodePoint(cp);
+    };
+    coverage = { sans: of(SANS), display: of(SERIF) };
+  }
+  return coverage;
+}
+
+/** Characters that only disturb the layout. */
+const INVISIBLE = /[\u200b-\u200d\u2060\ufeff\ufe0f]/g;
+
+/**
+ * Prepares model text for drawing: normal spaces, no invisible characters,
+ * and "?" for anything the body font cannot draw (for example emoji), instead of an empty box.
+ */
 export function printable(text: string): string {
+  const { sans } = fontCoverage();
   let out = "";
-  for (const ch of text.normalize("NFC")) {
-    const c = ch.codePointAt(0)!;
-    const ok = c === 0x0a || (c >= 0x20 && c <= 0x7e) || (c >= 0xa0 && c <= 0xff) || WIN1252_EXTRA.includes(ch);
-    // "–" and "—" are fine in Windows-1252 but map them to "-" for a calm look in the tasks.
-    out += REPLACE[ch] ?? (ok ? ch : "?");
+  for (const ch of text.normalize("NFC").replace(INVISIBLE, "").replace(/[\u00a0\u2007\u202f\t]/g, " ")) {
+    const cp = ch.codePointAt(0)!;
+    out += cp === 0x0a || sans(cp) ? ch : "?";
   }
   return out;
+}
+
+/** The title font when it can draw every character of `text`, otherwise bold body font (titles in Greek or Cyrillic). */
+export function displayFont(text: string): string {
+  const { display } = fontCoverage();
+  return [...printable(text)].every((ch) => ch === "\n" || display(ch.codePointAt(0)!)) ? SERIF : SANS_BOLD;
 }
 
 /** Number with a German decimal comma, without trailing zeros: 2.5 -> "2,5". */
@@ -85,6 +141,7 @@ export interface Sheet {
 
 export function newSheet(title: string): Sheet {
   const doc = new PDFDocument({ size: "A4", margins: M, bufferPages: true, info: { Title: printable(title), Producer: "Pult" } });
+  registerFonts(doc);
   const chunks: Buffer[] = [];
   doc.on("data", (c: Buffer) => chunks.push(c));
   const done = new Promise<void>((resolve) => doc.on("end", resolve));
@@ -108,27 +165,26 @@ export function newSheet(title: string): Sheet {
       return doc.heightOfString(printable(text), { width: w, lineGap: 2.5 });
     },
     header({ kicker, title: heading, fields = [] }) {
-      const fieldsW = fields.length ? mm(62) : 0;
-      const titleW = width - fieldsW - (fields.length ? mm(8) : 0);
-      doc.save().rect(left, sheet.y, width, 3).fill(INK).restore();
-      sheet.y += mm(7);
-      const headTop = sheet.y;
+      // One quiet line on top: the kicker on the left, the write-in fields (name, date) on the right. Then the title, then a thin rule.
+      const slots = fields.map((label) => ({ label, w: /datum/i.test(label) ? mm(32) : mm(54) }));
+      const fieldsW = slots.reduce((n, f) => n + f.w + mm(4), 0);
+      const rowTop = sheet.y;
       if (kicker) {
-        doc.font(SANS).fontSize(8).fillColor(SOFT).text(printable(kicker).toUpperCase(), left, sheet.y, { width: titleW, characterSpacing: 1.1, lineBreak: false });
-        sheet.y += 13;
+        doc.font(SANS).fontSize(7.5).fillColor(SOFT).text(printable(kicker).toUpperCase(), left, rowTop + 4, { width: width - fieldsW - mm(4), characterSpacing: 1.1, lineBreak: false, ellipsis: true });
       }
-      doc.font(SERIF).fontSize(22).fillColor(INK).text(printable(heading), left, sheet.y, { width: titleW, lineGap: 1 });
-      const titleBottom = doc.y;
-      const fx = left + width - fieldsW;
-      for (const [i, label] of fields.entries()) {
-        const fy = headTop + 6 + i * mm(9);
-        doc.font(SANS).fontSize(9).fillColor(SOFT).text(label, fx, fy, { lineBreak: false });
-        doc.save().moveTo(fx, fy + 14).lineTo(fx + fieldsW, fy + 14).lineWidth(0.8).strokeColor("#777777").stroke().restore();
+      let fx = left + width - fieldsW + mm(4);
+      for (const f of slots) {
+        const label = f.label.replace(/:\s*$/, "");
+        doc.font(SANS).fontSize(8.5).fillColor(SOFT).text(label, fx, rowTop + 3, { lineBreak: false });
+        const lx = fx + doc.widthOfString(label) + 4;
+        doc.save().moveTo(lx, rowTop + 12).lineTo(fx + f.w, rowTop + 12).lineWidth(0.6).strokeColor("#888888").stroke().restore();
+        fx += f.w + mm(4);
       }
-      const fieldsBottom = fields.length ? headTop + 6 + (fields.length - 1) * mm(9) + 16 : 0;
-      sheet.y = Math.max(titleBottom, fieldsBottom) + mm(5);
-      doc.save().moveTo(left, sheet.y).lineTo(left + width, sheet.y).lineWidth(1).strokeColor(INK).stroke().restore();
-      sheet.y += mm(7);
+      sheet.y = rowTop + (kicker || slots.length ? mm(7.5) : 0);
+      doc.font(displayFont(heading)).fontSize(19).fillColor(INK).text(printable(heading), left, sheet.y, { width, lineGap: 1 });
+      sheet.y = doc.y + mm(3);
+      doc.save().moveTo(left, sheet.y).lineTo(left + width, sheet.y).lineWidth(0.7).strokeColor(INK).stroke().restore();
+      sheet.y += mm(6);
     },
     paragraph(text, o = {}) {
       const font = o.font ?? SANS;
@@ -140,20 +196,20 @@ export function newSheet(title: string): Sheet {
       sheet.y += h + (o.gap ?? mm(6));
     },
     box({ title: boxTitle, text }) {
-      const pad = mm(4);
+      const pad = mm(3.2);
       const inner = width - 2 * pad - 4;
-      const titleH = boxTitle ? sheet.height(boxTitle, SERIF, 11, inner) + 4 : 0;
+      const titleH = boxTitle ? sheet.height(boxTitle, displayFont(boxTitle), 11, inner) + 4 : 0;
       const textH = sheet.height(text, SANS, 10.5, inner);
       const h = titleH + textH + 2 * pad;
       sheet.room(h);
       doc.save().rect(left, sheet.y, width, h).fill(BOX).rect(left, sheet.y, 4, h).fill(INK).restore();
       let ty = sheet.y + pad;
       if (boxTitle) {
-        doc.font(SERIF).fontSize(11).fillColor(INK).text(printable(boxTitle), left + 4 + pad, ty, { width: inner });
+        doc.font(displayFont(boxTitle)).fontSize(11).fillColor(INK).text(printable(boxTitle), left + 4 + pad, ty, { width: inner });
         ty += titleH;
       }
       doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(text), left + 4 + pad, ty, { width: inner, lineGap: 2.5 });
-      sheet.y += h + mm(7);
+      sheet.y += h + mm(6);
     },
     async finish(note) {
       // Footer on every page: small note left, page number right. Margins are lifted so pdfkit does not add a page.
@@ -164,7 +220,7 @@ export function newSheet(title: string): Sheet {
         const fy = PAGE.h - mm(12);
         doc.font(SANS).fontSize(8).fillColor(SOFT);
         if (note) doc.text(printable(note), left, fy, { width: width / 2, lineBreak: false });
-        const label = `Pult - Seite ${p + 1} von ${count}`;
+        const label = `Pult · Seite ${p + 1} von ${count}`;
         doc.text(label, left + width / 2, fy, { width: width / 2, align: "right", lineBreak: false });
         const s = 8.5 / MARK.h;
         const mx = left + width - doc.widthOfString(label) - 4 - MARK.w * s;

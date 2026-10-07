@@ -9,6 +9,14 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#b4532a" />
+    <script>
+      // Sets the saved look before the first paint, so a dark window does not flash light (same rules as theme.ts).
+      try {
+        var l = JSON.parse(localStorage.getItem("pult-aussehen") || localStorage.getItem("morte-aussehen") || "{}");
+        var d = document.documentElement;
+        d.dataset.theme = l.mode === "dunkel" || (l.mode !== "hell" && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -14,6 +14,6 @@ Kolleginnen und Kollegen sollen nichts außer Pult selbst installieren müssen. 
 
 ## Folgen
 
-- Die Schriften sind vorerst die eingebauten von pdfkit (Times, Helvetica). Sie kennen nur westeuropäische Zeichen (Windows-1252). Anderes (zum Beispiel türkische oder polnische Sonderbuchstaben) wird als "?" gedruckt. Abhilfe: eine freie Schrift (SIL OFL) in der App mitliefern und einbetten. Offen, bis eine Schrift gewählt ist.
+- **Schriften:** Statt der eingebauten pdfkit-Schriften (nur westeuropäische Zeichen) liefert Pult zwei freie Schriften mit (SIL OFL): Fraunces für Titel und Source Sans 3 für Text, siehe `assets/fonts/NOTICE.md`. Sie gelten für PDF und Oberfläche, es wird nichts aus dem Netz geladen. Zeichen, die keine der beiden kann (zum Beispiel Emoji), werden als "?" gedruckt.
 - Erklärvideos (Phase 5) brauchen einen Browser zum Rendern. In der Electron-Verpackung (Phase 6) ist Chromium schon enthalten. Bis dahin bleibt das Video-Thema offen, es darf keine Zusatzinstallation verlangen.
 - Native Bausteine wie `@napi-rs/keyring` kommen fertig gebaut mit dem npm-Paket. Wo der Schlüsselbund fehlt, gibt es den Rückfall auf eine Datei.

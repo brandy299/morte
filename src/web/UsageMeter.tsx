@@ -27,7 +27,8 @@ export function UsageMeter({ usage }: { usage?: UsageSnapshot }) {
     };
   }, [open]);
 
-  if (!usage) return null;
+  // Stays out of sight until there is something to show, so it never looks like a loading spinner.
+  if (!usage || (usage.contextTokens === 0 && usage.inputTokens === 0)) return null;
   const fill = usage.contextWindow > 0 ? Math.min(1, usage.contextTokens / usage.contextWindow) : 0;
   const percent = Math.round(fill * 100);
   const warn = fill >= 0.8;
@@ -36,8 +37,8 @@ export function UsageMeter({ usage }: { usage?: UsageSnapshot }) {
 
   return (
     <div className="meter" ref={box}>
-      <button type="button" className={warn ? "ring warn" : "ring"} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={`Verbrauch und Gedächtnis, ${percent} Prozent voll`}>
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden>
+      <button type="button" className={warn ? "ring warn" : "ring"} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label={`Verbrauch und Gedächtnis, ${percent} Prozent voll`} title={`Gedächtnis dieses Gesprächs: ${percent} % voll`}>
+        <svg width="22" height="22" viewBox="0 0 20 20" aria-hidden>
           <circle cx="10" cy="10" r={r} className="ring-bg" />
           <circle cx="10" cy="10" r={r} className="ring-fg" strokeDasharray={`${c * fill} ${c}`} transform="rotate(-90 10 10)" />
         </svg>

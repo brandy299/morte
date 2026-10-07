@@ -39,7 +39,8 @@ describe("only models that can do the job are accepted", () => {
     const secrets = memoryStore();
     const state = await loadState(secrets);
     const test = vi.fn(async () => fail);
-    const app = createApp(state, { testConnection: test });
+    state.runTest = test as never;
+    const app = createApp(state);
     const res = await post(app, "/api/setup/save", { ...good, apiKey: "sk-geheim" });
     expect(res.status).toBe(422);
     expect((await res.json()).error).toContain("Dateiaufgaben");
@@ -53,7 +54,8 @@ describe("only models that can do the job are accepted", () => {
     const secrets = memoryStore();
     const state = await loadState(secrets);
     const test = vi.fn(async () => pass);
-    const app = createApp(state, { testConnection: test });
+    state.runTest = test as never;
+    const app = createApp(state);
     await post(app, "/api/setup/test", { ...good, apiKey: "sk-a" });
     const res = await post(app, "/api/setup/save", { ...good, apiKey: "sk-a" });
     expect(res.status).toBe(200);
@@ -66,7 +68,8 @@ describe("only models that can do the job are accepted", () => {
   it("tests again when the model or key differs from the one that passed", async () => {
     const state = await loadState(memoryStore());
     const test = vi.fn(async () => pass);
-    const app = createApp(state, { testConnection: test });
+    state.runTest = test as never;
+    const app = createApp(state);
     await post(app, "/api/setup/test", { ...good, apiKey: "sk-a" });
     await post(app, "/api/setup/save", { ...good, model: "claude-haiku-4-5", apiKey: "sk-a" });
     await post(app, "/api/setup/save", { ...good, apiKey: "sk-andere" });
@@ -76,7 +79,8 @@ describe("only models that can do the job are accepted", () => {
   it("refuses a model without images even when a test says yes, and stores nothing", async () => {
     const secrets = memoryStore();
     const state = await loadState(secrets);
-    const app = createApp(state, { testConnection: async () => pass });
+    state.runTest = (async () => pass) as never;
+    const app = createApp(state);
     const res = await post(app, "/api/setup/save", { ...noVision, apiKey: "sk-x" });
     expect(res.status).toBe(422);
     expect((await res.json()).error).toContain("keine Bilder");
@@ -114,6 +118,29 @@ describe("only models that can do the job are accepted", () => {
     const status = await (await createApp(state).request("/api/setup/status")).json();
     expect(status).toMatchObject({ configured: true, model: good.model });
     expect(status.notice).toBeUndefined();
+  });
+
+  it("an own server is only saved after its test passed, because its abilities are only assumed", async () => {
+    const secrets = memoryStore();
+    const state = await loadState(secrets);
+    const own = { provider: "custom", model: "llama", baseUrl: "http://localhost:11434/v1", apiKey: "geheim" };
+    state.runTest = (async () => fail) as never;
+    const refused = await post(createApp(state), "/api/setup/save", own);
+    expect(refused.status).toBe(422);
+    expect(secrets.data).toEqual({});
+    expect(await providerFile()).toBeUndefined();
+    state.runTest = (async () => pass) as never;
+    expect((await post(createApp(state), "/api/setup/save", own)).status).toBe(200);
+    expect(secrets.data).toEqual({ "apikey:custom": "geheim" });
+  });
+
+  it("answers an unknown model at once, without testing", async () => {
+    const state = await loadState(memoryStore());
+    const test = vi.fn(async () => pass);
+    state.runTest = test as never;
+    const res = await post(createApp(state), "/api/setup/save", { provider: "anthropic", model: "gibt-es-nicht" });
+    expect(res.status).toBe(400);
+    expect(test).not.toHaveBeenCalled();
   });
 
   it("keeps the demo mode working", async () => {
