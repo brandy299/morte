@@ -5,11 +5,13 @@
  * Options: --skill a,b   only these skills     --limit 3   stop when the cost passes this many US dollars
  *          --ohne-pruefer   only the checks the program can decide (no judge, much cheaper)
  *          --wdh 2   play every test case this many times (models answer differently each time)
+ *          --pruefer jev   rough, fast check with Jev (TypeSafe) instead of a language model, about a cent for all cases.
+ *                          Needs TYPESAFE_API_KEY. Good after changing a skill, not for the numbers in BASELINE.md.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createCompleter } from "../src/core/agent/index.ts";
-import { judgeCase, loadSuites, markdown, PROGRAMM, runCase, type CaseResult, type Verdict } from "../src/core/eval/index.ts";
+import { JEV_MODEL, JEV_PRICE, jevJudgeCase, judgeCase, loadSuites, markdown, PROGRAMM, runCase, type CaseResult, type Verdict } from "../src/core/eval/index.ts";
 
 const args = process.argv.slice(2);
 const opt = (name: string) => {
@@ -27,7 +29,10 @@ const gen = split(opt("modell"), "--modell");
 const apiKey = process.env.PULT_EVAL_API_KEY;
 if (!apiKey) throw new Error("PULT_EVAL_API_KEY ist nicht gesetzt. Den Schlüssel nie in einen Befehl oder Quelltext schreiben, sondern als Umgebungsvariable setzen.");
 const ohnePruefer = flag("ohne-pruefer");
-const judgeSpec = ohnePruefer ? undefined : split(opt("pruefer"), "--pruefer");
+const useJev = !ohnePruefer && opt("pruefer") === "jev";
+const jevKey = useJev ? process.env.TYPESAFE_API_KEY : undefined;
+if (useJev && !jevKey) throw new Error("TYPESAFE_API_KEY ist nicht gesetzt. Den Schlüssel als Umgebungsvariable setzen, nie in einen Befehl oder Quelltext.");
+const judgeSpec = ohnePruefer || useJev ? undefined : split(opt("pruefer"), "--pruefer");
 const limit = Number(opt("limit") ?? 3);
 const only = opt("skill")?.split(",");
 const repeats = Math.max(1, Number(opt("wdh") ?? 1));
@@ -38,7 +43,7 @@ const judge = judgeSpec ? createCompleter({ ...judgeSpec, apiKey: process.env.PU
 const suites = await loadSuites(join(process.cwd(), "evals"), only);
 const stamp = new Date().toISOString();
 const now = `${stamp.slice(0, 10)} ${stamp.slice(11, 16)}`;
-const parts: string[] = [`# Prüfung der Anleitungen`, "", `Datum: ${now}  `, `Modell für das Material: ${gen.provider}/${gen.model}  `, `Prüfer: ${judgeSpec ? `${judgeSpec.provider}/${judgeSpec.model}` : "keiner (nur Programmprüfungen)"}`, ""];
+const parts: string[] = [`# Prüfung der Anleitungen`, "", `Datum: ${now}  `, `Modell für das Material: ${gen.provider}/${gen.model}  `, `Prüfer: ${useJev ? `${JEV_MODEL} (grober Vortest, nicht mit einem Sprachmodell als Prüfer vergleichbar)` : judgeSpec ? `${judgeSpec.provider}/${judgeSpec.model}` : "keiner (nur Programmprüfungen)"}`, ""];
 const json: Record<string, CaseResult[]> = {};
 const dir = join(process.cwd(), "evals", "ergebnisse");
 const base = join(dir, `${stamp.slice(0, 10)}_${stamp.slice(11, 16).replace(":", "")}_${gen.model.replace(/[^\w.-]+/g, "-")}`);
@@ -67,7 +72,13 @@ for (const suite of suites) {
           if (!check) throw new Error(`Für das Programmkriterium ${k.id} gibt es keine Prüfung.`);
           return { id: k.id, ...check(c, t) };
         });
-        if (judge) verdicts.push(...(await judgeCase(judge, c, t, suite.kriterien.filter((k) => k.art === "Prüfer"))));
+        const pruefer = suite.kriterien.filter((k) => k.art === "Prüfer");
+        if (judge) verdicts.push(...(await judgeCase(judge, c, t, pruefer)));
+        if (jevKey) {
+          const jev = await jevJudgeCase(c, t, pruefer, { apiKey: jevKey, signal: AbortSignal.timeout(60_000) });
+          spent += jev.tokens * JEV_PRICE;
+          verdicts.push(...jev.verdicts);
+        }
         results.push({ fall: c, verdicts, kosten: t.kosten, transkript: t });
         process.stderr.write(`${verdicts.filter((v) => v.bestanden === false).length} nicht bestanden (bisher ${spent.toFixed(2)} US-$)\n`);
         break;
@@ -84,7 +95,7 @@ for (const suite of suites) {
     }
   }
   json[suite.skill] = results;
-  parts.push(markdown({ skill: suite.skill, kriterien: suite.kriterien, results, modell: gen.model, pruefer: judgeSpec?.model ?? "", datum: now }), "");
+  parts.push(markdown({ skill: suite.skill, kriterien: suite.kriterien, results, modell: gen.model, pruefer: useJev ? JEV_MODEL : (judgeSpec?.model ?? ""), datum: now }), "");
   await save();
 }
 await save();
