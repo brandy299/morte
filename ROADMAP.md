@@ -104,8 +104,8 @@ Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 ## Phase 5: Erweiterungen
 
 - [ ] E-Mail und iServ im Dashboard
-- [ ] Erklärvideos über die bestehende Render-Pipeline (Szenendatei, Vorschaubogen, MP4), Standard ohne Stimme
-  - Offen vorab: Wie wird aus einer Animation im Browser ein MP4, ohne dass Kolleginnen und Kollegen etwas installieren (Bild für Bild aufnehmen und zusammensetzen, mitgelieferter Encoder)? Lizenz von GSAP und Encoder prüfen
+- [ ] Erklärstücke und Motion Graphics: erst als eigenständige HTML-Datei (Szenenbeschreibung vom Modell, Look und Takt vom Programm, #14), danach MP4 aus derselben Animation (Bild für Bild mit `seek(t)`, Kodierer des Browsers, keine Zusatzinstallation). Standard ohne Stimme. Siehe `docs/entscheidungen/017-erklaerstuecke-html-dann-mp4.md`
+  - Offen vorab für MP4: H.264 im Kodierer von Electron auf Mac und Windows (sonst WebM), Rechenzeit der Wasserfarben-Filter
 - [ ] Sitzplan pro Klasse: Foto vom aufgemalten Plan, die App erkennt die Tische, die Lehrkraft korrigiert in einem kleinen Editor. Erst nur das Raumlayout mit Platznummern, ohne Namen (Datenschutz, siehe Offene Fragen)
 - [ ] Voice-Eingabe, um mit dem Assistenten zu sprechen
 - [ ] Optional: Sprachausgabe (z. B. Voice Studio), nur auf ausdrücklichen Wunsch
