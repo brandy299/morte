@@ -2,6 +2,10 @@
 
 Stand: 2026-10-08 · Verfasser: Recherche-Agent · Auslöser: Eine Kollegin oder ein Kollege im Probelauf unterrichtet Mathematik (Antwort von Yannik vom 2026-10-08).
 
+## Wer braucht es: Berufskolleg
+
+Antwort von Yannik (2026-10-08): Die Mathe-Lehrkraft unterrichtet am Berufskolleg in Handelsschule I und II, Höhere Handelsschule und Berufsschule (zum Beispiel Büromanagement). Yannik kann Mathe nicht fachlich beurteilen. **Annahme (nicht bestätigt):** Prozent-, Zins- und Dreisatzrechnung, Kalkulation, lineare und quadratische Funktionen. Das braucht Brüche, Hochzahlen, Wurzeln, Indizes und Gleichungen, aber kaum Matrizen, Integrale oder Stochastik. Die Probeformeln in Teil 1 sind breiter als nötig, die Abnahmekriterien in #20 nehmen kaufmännische Beispiele (Zinsformel, Prozentwert, pq-Formel).
+
 ## Ausgangslage im Code
 
 - Pult kennt keine Formelschreibweise. Im ganzen Quelltext gibt es keine Stelle, die LaTeX erkennt oder setzt (Suche nach `latex`, `katex`, `mathjax`, `formula`).
@@ -68,6 +72,8 @@ Das Modell rechnet unzuverlässig, besonders günstige Modelle. In Pult rechnet 
 - MPL-2.0 ist mit Apache-2.0 vereinbar, solange Pyodide als Paket mitgeliefert und nicht verändert wird. Das gehört in die Entscheidungsdatei, wenn es gebaut wird.
 - Wie ein **eigenes Werkzeug** für den Agenten aussehen soll: Eingabe wäre ein Ausdruck und eine Behauptung (z. B. "ist `x^2-1 = (x-1)(x+1)`?"), nicht freier Python-Code. Passt zu "feste, lehrerspezifische Werkzeuge, keine freie Shell".
 
+**Für das Berufskolleg wahrscheinlich ausreichend:** Zahlen einsetzen und vergleichen (Zinsen, Prozentwerte, Dreisatz, Funktionswerte) braucht keine Computeralgebra. Ein kleiner Auswerter in JavaScript würde viele Aufgaben prüfen. Das ist eine Vermutung und wird mit echten Aufgaben der Lehrkraft getestet, bevor etwas gebaut wird.
+
 **Was ohne Pyodide schon geht:** Die Lösung zweimal vom Modell rechnen lassen und vergleichen ist teurer und nicht verlässlicher. Eine Prüfung nur auf Zahlenwerte (Auswertung in JavaScript) deckt viele Schulaufgaben ab (Gleichung einsetzen, Term vergleichen), ist aber kein Ersatz für Umformungen. Das wäre ein kleinerer erster Schritt ohne 19 MB. **Ungeprüft, ob das reicht.**
 
 ## Teil 3: Anleitungen und Prüfläufe für Mathematik
@@ -85,6 +91,7 @@ Das Modell rechnet unzuverlässig, besonders günstige Modelle. In Pult rechnet 
 
 ## Offen
 
+0. Entschieden: Formeln in Word als Bild (#21). Wie echte Word-Formeln aussehen, bleibt ungeprüft und ist nur relevant, wenn Lehrkräfte sie in Word bearbeiten wollen.
 1. Wie die Formeln in Word wirklich aussehen (muss geöffnet werden).
 2. Inline-Formeln im Fließtext des PDFs.
 3. Welche Mathe-Themen die Kollegin unterrichtet (Schulform, Jahrgang). Das bestimmt, ob Funktionsgraphen, Geometrie oder Stochastik zuerst gebraucht werden.

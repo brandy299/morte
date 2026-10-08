@@ -7,9 +7,10 @@ Stand: 2026-10-08 (aktualisiert nach Yanniks Antworten zu Fächern, Themen und G
 - **Erste Nutzer:** er selbst, danach zwei bis drei Kolleginnen und Kollegen. Kein Installer, keine Schul-Voreinstellung jetzt.
 - **Kosten:** jede Lehrkraft mit eigenem Schlüssel. Pult muss also mit günstigen Modellen verlässlich sein.
 - **Wichtigstes Ergebnis in vier Wochen:** Robustheit und Qualität.
-- **Fächer der Kolleginnen und Kollegen im Probelauf:** **Mathematik, Englisch und INWI** (Wirtschaft und Verwaltung). Damit sind die ersten Fächer festgelegt. Naturwissenschaften und Gesellschaftswissenschaften kommen später.
+- **Fächer der Kolleginnen und Kollegen im Probelauf:** **Mathematik, Englisch und INWI** (Wirtschaft und Verwaltung) am **Berufskolleg**, dazu **Geschichte und Sozialwissenschaften an einem Gymnasium**. Bildungsgänge am Berufskolleg: Handelsschule I und II, Höhere Handelsschule, Berufsschule (zum Beispiel Büromanagement). Naturwissenschaften kommen später.
+- **Betriebssysteme:** Mac **und** Windows. Beides ist bisher nicht getestet (nur Linux). Gehört in die Abnahme jedes neuen Bausteins und in den Probelauf (#18).
 - **Beispielthemen für den Probelauf:** "Geschäftsbriefe in Word erstellen", "Business Letters auf Englisch verfassen", "Bewerbungstraining (Anschreiben und Lebenslauf erstellen)". Die zehn Themen für die Messung werden daraus abgeleitet.
-- **Fachliche Gegenlese:** Yannik, vorerst allein ("erstmal").
+- **Fachliche Gegenlese:** Yannik, vorerst allein ("erstmal"), **Termin: Samstag, 2026-10-10**. Für **Mathematik kann er nicht gegenlesen** (eigene Aussage). Dafür muss die Mathe-Lehrkraft aus dem Probelauf die Kriterien und die Beispielblätter prüfen. Ohne sie gibt es keine Aussage zur fachlichen Güte in Mathe.
 - **Didaktischer Wizard:** Yannik bietet an, ihn zu scrapen oder als gesammelte Ressource zu geben. Ungeklärt: Besitzer, Nutzungsbedingungen, ob Personendaten enthalten sind. Vorgehen siehe "Offen".
 - **Zusätzlich, parallel:** tolle Animationen (Motion Graphics) **mit jedem zugelassenen Modell**.
 
@@ -60,10 +61,12 @@ Recherche: `docs/recherche/mathe-formeln.md`. Kernaussage: Pult setzt heute **ke
 
 | Schritt | Was | Issue |
 |---|---|---|
-| 1 | Formelsatz im PDF | kommt nach Zustimmung |
-| 2 | Formeln in Word (Bild oder echte Word-Formel, Entscheidung nötig) | kommt nach Zustimmung |
-| 3 | Mathe-Anleitung und Prüfläufe, Kriterien von Yannik | kommt nach Zustimmung |
-| 4 | Rechenprüfung (SymPy), erst nach Test, ob eine Auswertung ohne Pyodide reicht | später |
+| 1 | Formelsatz im PDF | #20 |
+| 2 | Formeln in Word, als Bild (von der Recherche entschieden, umkehrbar) | #21, nach #20 |
+| 3 | Mathe-Anleitung und Prüfläufe, Kriterien von der Mathe-Lehrkraft | Issue folgt, sobald die Lehrkraft Themen und Kriterien liefert |
+| 4 | Rechenprüfung (Zahlen auswerten), erst nach Test mit echten Aufgaben | später |
+
+**Mathe am Berufskolleg** heißt voraussichtlich Prozent-, Zins- und Dreisatzrechnung, Kalkulation, lineare und quadratische Funktionen. Das ist eine Annahme aus den Bildungsgängen, **nicht** vom Kollegen bestätigt. Sie macht Stochastik, Geometrie und Pyodide zunächst unwichtig.
 
 Englisch und INWI brauchen nach heutigem Stand keine neuen Bausteine, aber eigene Anleitungen und Prüfläufe: **Geschäftsbrief** (Form nach DIN 5008, Word-Ausgabe), **Business Letter** (englische Konventionen), **Bewerbung** (Anschreiben und Lebenslauf). Ob die mitgelieferten Anleitungen das schon abdecken, ist nicht geprüft und gehört in die Messung (#16).
 
@@ -75,8 +78,8 @@ Englisch und INWI brauchen nach heutigem Stand keine neuen Bausteine, aber eigen
 
 ## Offen (braucht eine Entscheidung von Yannik)
 
-1. **Betriebssysteme der Kolleginnen und Kollegen im Probelauf** (Fächer sind geklärt: Mathe, Englisch, INWI).
-2. **Fester Termin für die Gegenlese** (Yannik liest, vorerst allein).
+1. **Mathe-Lehrkraft nennen und fragen:** Welche Themen kommen in den ersten Wochen dran, was soll ein gutes Blatt können, welche Aufgaben sind typisch (zwei, drei echte, anonyme Beispielaufgaben)? Daraus entstehen Themen und Kriterien für Mathe.
+2. **Gymnasium (Geschichte, Sozialwissenschaften):** ein anderer Rahmen als das Berufskolleg (Lehrplan, Bewertung, Quellenarbeit). Die Recherche prüft, welche Bausteine fehlen, sobald Themen genannt sind.
 3. **Zehn Themen für die Messung**, aus den Beispielen oben abgeleitet. Yannik ergänzt Mathe-Themen (Schulform, Jahrgang).
 3a. **Didaktischer Wizard:** Besitzer und Nutzungsbedingungen klären. Bevorzugt eine **schon exportierte Datei** statt Zugriff auf das laufende System, in `docs/recherche/`. Keine Zugangsdaten im Chat. Verwendet werden Aufbau und Ideen, kein Wortlaut, solange die Rechte nicht geklärt sind. Vorher prüfen, ob Namen von Schülern oder Lehrkräften enthalten sind.
 4. **Schlüssel für die Messung** (OpenRouter oder DeepSeek reichen) und Freigabe der Kostenschätzung vor jedem langen Prüflauf.
