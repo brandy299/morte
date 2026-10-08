@@ -18,7 +18,7 @@ Du schreibst nur den Inhalt der Folien. Aufbau, Schrift und Farben macht das Wer
 3. **Folien schreiben.**
    - **Eine Aussage pro Folie.** Der Folientitel sagt sie in einer Zeile, am besten als kurze Aussage („Das Menüband sammelt alle Befehle“) statt nur als Stichwort.
    - **Stichpunkte statt Sätze**, höchstens sechs pro Folie, jeder höchstens eine Zeile lang. Was erklärt werden muss, gehört in die **Notizen** (`notizen`), nicht auf die Folie.
-   - **Schaubilder** für Abläufe, Aufbau, Kreisläufe, Zeitverläufe und Zahlen (`schaubild`), wie beim Arbeitsblatt. Eine Folie mit Schaubild hat höchstens drei kurze Stichpunkte daneben.
+   - **Schaubilder** für Abläufe, Aufbau, Kreisläufe, Zeitverläufe und Zahlen (`schaubild`), wie beim Arbeitsblatt. Soll die Oberfläche eines Programms gezeigt werden, nimm `oberflaeche` (Skizze des Fensters mit benannten Bereichen). Eine Folie mit Schaubild hat höchstens drei kurze Stichpunkte daneben.
    - **Gliederung:** Bei mehr als etwa acht Folien teilen Abschnittsfolien (`art: abschnitt`) den Vortrag in Teile.
    - **Anfang und Ende:** Nach der Titelfolie eine Folie mit dem Ziel oder der Leitfrage. Zum Schluss eine Folie mit dem Wichtigsten in drei Punkten oder einer Aufgabe für die Klasse.
    - **Nichts erfinden.** Zahlen, Daten und Zitate nur, wenn sie stimmen. Erfundene Beispielzahlen kennzeichnest du auf der Folie als Beispiel.
