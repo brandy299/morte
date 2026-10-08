@@ -88,7 +88,8 @@ describe("setting a formula", () => {
       "\\begin{cases} x + y = 5 \\\\ x - y = 1 \\end{cases}",
       "\\text{für } x > 0",
       "\\text{Ausgaben in €}",
-    ]) expect(setzeFormel(tex, true), tex).toBeDefined();
+      "\\frac{60}{4} = \\frac{x}{7} \\Rightarrow x = \\frac{60 \\cdot 7}{4}",
+    ]) for (const anzeige of [true, false]) expect(setzeFormel(tex, anzeige), `${tex} (${anzeige ? "abgesetzt" : "im Satz"})`).toBeDefined();
   });
 });
 
