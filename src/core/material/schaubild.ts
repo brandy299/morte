@@ -8,7 +8,11 @@
 import { MaterialError, SANS, SANS_BOLD, str, textWidth } from "./layout.ts";
 import { mischen } from "./mischen.ts";
 
-export type SchaubildArt = "ablauf" | "hierarchie" | "kreislauf" | "zeitstrahl" | "saeulen";
+export type SchaubildArt = "ablauf" | "hierarchie" | "kreislauf" | "zeitstrahl" | "saeulen" | "oberflaeche";
+
+/** Where an area sits in the sketch of a program window. */
+export const LAGEN = ["titel", "menue", "links", "mitte", "rechts", "unten", "status"] as const;
+export type Lage = (typeof LAGEN)[number];
 
 export interface Knoten {
   id: string;
@@ -19,6 +23,8 @@ export interface Knoten {
   leer?: boolean;
   /** Drawn with a heavy edge and a gray fill. */
   betont?: boolean;
+  /** Window sketch only: where the area sits (titel, menue, links, mitte, rechts, unten, status). */
+  lage?: Lage;
 }
 
 export interface Schaubild {
@@ -41,7 +47,7 @@ export interface Schaubild {
   wortliste?: boolean;
 }
 
-const ARTEN: SchaubildArt[] = ["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen"];
+const ARTEN: SchaubildArt[] = ["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen", "oberflaeche"];
 
 // ---------- checking what the model sent ----------
 
@@ -70,7 +76,7 @@ export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}
 
   const list = Array.isArray(o.knoten) ? o.knoten : [];
   const custom = Array.isArray(o.verbindungen) && o.verbindungen.length > 0;
-  const [min, max] = art === "kreislauf" ? [custom ? 2 : 3, 8] : art === "zeitstrahl" ? [2, 8] : [2, 12];
+  const [min, max] = art === "kreislauf" ? [custom ? 2 : 3, 8] : art === "zeitstrahl" ? [2, 8] : art === "oberflaeche" ? [2, LAGEN.length] : [2, 12];
   if (list.length < min || list.length > max) throw new MaterialError(`${where}: ${art} braucht ${min} bis ${max} Kästchen (knoten), es sind ${list.length}.`);
   const seen = new Set<string>();
   const knoten = list.map((k, i): Knoten => {
@@ -82,11 +88,22 @@ export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}
     if (e.leer === true && (e.text === undefined || e.text === null || String(e.text).trim() === "")) {
       throw new MaterialError(`${where}: Kästchen ${i + 1} bleibt für die Lernenden leer, braucht aber trotzdem seinen Text. Er ist die Lösung für die Lehrkraft.`);
     }
-    const text = str(e.text, `Text von Kästchen ${i + 1} in ${stelle}`, art === "zeitstrahl" ? 120 : 90, true)!;
+    const text = str(e.text, `Text von Kästchen ${i + 1} in ${stelle}`, art === "zeitstrahl" ? 120 : art === "oberflaeche" ? 60 : 90, true)!;
     const datum = art === "zeitstrahl" ? str(e.datum, `Datum von Ereignis ${i + 1} in ${stelle}`, 30, true) : undefined;
-    return { id, text, datum, leer: e.leer === true, betont: e.betont === true };
+    let lage: Lage | undefined;
+    if (art === "oberflaeche") {
+      if (!LAGEN.includes(e.lage as Lage)) throw new MaterialError(`${where}: Bereich ${i + 1} braucht eine Lage. Erlaubt: ${LAGEN.join(", ")} (titel = Titelleiste oben, menue = Menüband, links und rechts = Seitenleisten, mitte = Arbeitsfläche, unten = Bereich unter der Arbeitsfläche, status = Statusleiste ganz unten).`);
+      lage = e.lage as Lage;
+    }
+    return { id, text, datum, leer: e.leer === true, betont: e.betont === true, lage };
   });
   if (art === "zeitstrahl") return { ...base, knoten, wortliste: o.wortliste === true };
+  if (art === "oberflaeche") {
+    const lagen = knoten.map((k) => k.lage!);
+    const doppelt = lagen.find((l, i) => lagen.indexOf(l) !== i);
+    if (doppelt) throw new MaterialError(`${where}: Die Lage „${doppelt}“ kommt zweimal vor. Jeder Bereich des Fensters hat seinen eigenen Platz.`);
+    return { ...base, knoten, wortliste: o.wortliste === true };
+  }
   const mitte = art === "kreislauf" ? str(o.mitte, `der Text in der Mitte in ${stelle}`, 60) : undefined;
 
   const links = Array.isArray(o.verbindungen) ? o.verbindungen : [];
@@ -195,6 +212,7 @@ function leave(b: { x: number; y: number; w: number; h: number }, p: [number, nu
 
 /** Builds the scene for a diagram `w` points wide. `loesung`: blank boxes and bars show their content. */
 export function szeneVon(s: Schaubild, w: number, loesung: boolean): Szene {
+  if (s.art === "oberflaeche") return oberflaeche(s, w, loesung);
   const scene = s.art === "saeulen" ? saeulen(s, w, loesung) : s.art === "zeitstrahl" ? zeitstrahl(s, w) : s.art === "kreislauf" ? kreislauf(s, w, loesung) : geschichtet(s, w, loesung);
   return scene;
 }
@@ -221,6 +239,55 @@ function kasten(k: Knoten, x: number, y: number, w: number, h: number, zeilen: s
   const nr = nummern.get(k.id);
   const hidden = k.leer && !loesung;
   return { k: "kasten", x, y, w, h, zeilen: hidden ? [] : zeilen, stil: hidden ? "leer" : k.betont ? "betont" : "normal", nr };
+}
+
+/**
+ * Sketch of a program window: title bar, menu band, side panels, work area, area below it and status bar, as far as the
+ * model named them. The program places them, so they never overlap. Blank areas are numbered like blank boxes elsewhere.
+ */
+function oberflaeche(s: Schaubild, W: number, loesung: boolean): Szene {
+  const nummern = leereNummern(s);
+  const by = new Map(s.knoten.map((k) => [k.lage!, k]));
+  const PADW = 6;
+  const GAP = 4;
+  const inner = W - 2 * PADW;
+  const sideW = Math.max(72, inner * 0.24);
+  const centerX = PADW + (by.has("links") ? sideW + GAP : 0);
+  const centerW = inner - (by.has("links") ? sideW + GAP : 0) - (by.has("rechts") ? sideW + GAP : 0);
+  const widthOf = (l: Lage) => (l === "links" || l === "rechts" ? sideW : l === "mitte" || l === "unten" ? centerW : inner);
+  const lines = new Map(s.knoten.map((k) => [k.lage!, umbrechen(k.text, widthOf(k.lage!) - 2 * PAD)]));
+  // A blank area is at least two lines high, so there is room to write.
+  const need = (l: Lage) => (by.has(l) ? boxHeight(Math.max(lines.get(l)!.length, by.get(l)!.leer ? 2 : 0)) : 0);
+  const bar = (l: Lage, min: number) => (by.has(l) ? Math.max(min, need(l)) : 0);
+  const titelH = bar("titel", 24);
+  const menueH = bar("menue", 40);
+  const statusH = bar("status", 24);
+  const untenH = bar("unten", 38);
+  const wanted = W * 0.3;
+  const midH = Math.max(wanted, need("links"), need("rechts"), need("mitte") + (by.has("unten") ? untenH + GAP : 0), untenH);
+  const formen: Form[] = [];
+  const place = (l: Lage, x: number, y: number, w: number, h: number) => {
+    const k = by.get(l);
+    if (k) formen.push(kasten(k, x, y, w, h, lines.get(l)!, nummern, loesung));
+  };
+  let y = PADW;
+  place("titel", PADW, y, inner, titelH);
+  if (titelH) y += titelH + GAP;
+  place("menue", PADW, y, inner, menueH);
+  if (menueH) y += menueH + GAP;
+  place("links", PADW, y, sideW, midH);
+  place("rechts", W - PADW - sideW, y, sideW, midH);
+  const mitteH = by.has("unten") ? midH - untenH - GAP : midH;
+  place("mitte", centerX, y, centerW, mitteH);
+  place("unten", centerX, y + midH - untenH, centerW, untenH);
+  y += midH;
+  if (statusH) {
+    y += GAP;
+    place("status", PADW, y, inner, statusH);
+    y += statusH;
+  }
+  const h = y + PADW;
+  return { w: W, h, formen: [{ k: "kasten", x: 0, y: 0, w: W, h, zeilen: [], stil: "normal" }, ...formen] };
 }
 
 /** Flow and structure: boxes in layers, arrows between the layers. */

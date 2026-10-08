@@ -185,3 +185,91 @@ describe("blank boxes", () => {
     expect(() => parseSchaubild(raw, 4, "Folie 4")).toThrow(/^Folie 4 \(Schaubild\)/);
   });
 });
+
+describe("window sketch (oberflaeche)", () => {
+  const fenster = {
+    art: "oberflaeche",
+    wortliste: true,
+    knoten: [
+      { id: "t", lage: "titel", text: "Titelleiste" },
+      { id: "m", lage: "menue", text: "Menüband mit Registerkarten", leer: true },
+      { id: "l", lage: "links", text: "Folienbereich", leer: true },
+      { id: "c", lage: "mitte", text: "Arbeitsfläche", leer: true },
+      { id: "r", lage: "rechts", text: "Aufgabenbereich" },
+      { id: "u", lage: "unten", text: "Notizfeld", leer: true },
+      { id: "s", lage: "status", text: "Statusleiste" },
+    ],
+  };
+  const boxes = (scene: ReturnType<typeof szeneVon>) => scene.formen.filter((f): f is Extract<Form, { k: "kasten" }> => f.k === "kasten");
+
+  it("tells the model plainly what is missing or wrong", () => {
+    const ohneLage = { ...fenster, knoten: [{ id: "a", text: "x" }, { id: "b", lage: "mitte", text: "y" }] };
+    expect(() => parseSchaubild(ohneLage, 1)).toThrow(/Bereich 1 braucht eine Lage\. Erlaubt: titel, menue, links, mitte, rechts, unten, status/);
+    const doppelt = { ...fenster, knoten: [{ id: "a", lage: "mitte", text: "x" }, { id: "b", lage: "mitte", text: "y" }] };
+    expect(() => parseSchaubild(doppelt, 1)).toThrow("Die Lage „mitte“ kommt zweimal vor.");
+    expect(() => parseSchaubild({ ...fenster, knoten: [fenster.knoten[0]] }, 1)).toThrow(/braucht 2 bis 7 Kästchen/);
+  });
+
+  it("places every area inside the window, without overlap, in the right order", () => {
+    const [frame, ...zones] = boxes(szeneVon(parseSchaubild(fenster, 1), 460, false));
+    expect(zones).toHaveLength(7);
+    for (const z of zones) {
+      expect(z.x).toBeGreaterThanOrEqual(frame!.x);
+      expect(z.y).toBeGreaterThanOrEqual(frame!.y);
+      expect(z.x + z.w).toBeLessThanOrEqual(frame!.x + frame!.w);
+      expect(z.y + z.h).toBeLessThanOrEqual(frame!.y + frame!.h);
+    }
+    for (const [i, a] of zones.entries()) {
+      for (const b of zones.slice(i + 1)) {
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        expect(apart, `${a.zeilen.join(" ")} und ${b.zeilen.join(" ")}`).toBe(true);
+      }
+    }
+    // Title bar on top, menu band below it, status bar at the bottom, the side panels left and right of the work area.
+    const at = (text: string) => zones.find((z) => z.zeilen.join(" ").startsWith(text))!;
+    const titel = at("Titelleiste");
+    const status = at("Statusleiste");
+    const rechts = at("Aufgabenbereich");
+    // Blank areas show no text, so they are found by their number: menu band 1, side panel 2, work area 3, notes 4.
+    const nr = (n: number) => zones.find((z) => z.nr === n)!;
+    const [menue, links, mitte, unten] = [nr(1), nr(2), nr(3), nr(4)];
+    expect(titel.y).toBeLessThan(menue.y);
+    expect(menue.y + menue.h).toBeLessThanOrEqual(links.y);
+    expect(links.x + links.w).toBeLessThanOrEqual(mitte.x);
+    expect(mitte.x + mitte.w).toBeLessThanOrEqual(rechts.x);
+    expect(mitte.y + mitte.h).toBeLessThanOrEqual(unten.y);
+    expect(unten.y + unten.h).toBeLessThanOrEqual(status.y);
+  });
+
+  it("numbers the blank areas, hides their text for students and shows it in the key, with the same size", () => {
+    const s = parseSchaubild(fenster, 1);
+    const student = boxes(szeneVon(s, 460, false)).slice(1);
+    const key = boxes(szeneVon(s, 460, true)).slice(1);
+    expect(student.filter((b) => b.stil === "leer").map((b) => [b.nr, b.zeilen.length])).toEqual([[1, 0], [2, 0], [3, 0], [4, 0]]);
+    expect(key.map((b) => b.zeilen.join(" "))).toContain("Menüband mit Registerkarten");
+    expect(student.map((b) => [b.x, b.y, b.w, b.h])).toEqual(key.map((b) => [b.x, b.y, b.w, b.h]));
+    expect(versteckt(s, "seed").loesung).toBe("1 = Menüband mit Registerkarten,  2 = Folienbereich,  3 = Arbeitsfläche,  4 = Notizfeld");
+    expect(versteckt(s, "seed").wortliste).toContain("Notizfeld");
+  });
+
+  it("makes an area taller instead of letting its text run over the edge", () => {
+    const lang = { art: "oberflaeche", knoten: [{ id: "l", lage: "links", text: "Ein langer Text über die Seitenleiste mit vielen Wörtern" }, { id: "c", lage: "mitte", text: "Mitte" }] };
+    const [frame, links] = boxes(szeneVon(parseSchaubild(lang, 1), 300, false));
+    expect(links!.zeilen.length).toBeGreaterThan(3);
+    expect(links!.h).toBeGreaterThanOrEqual(links!.zeilen.length * 11.5);
+    expect(links!.y + links!.h).toBeLessThanOrEqual(frame!.h);
+    expect(frame!.h).toBeGreaterThan(300 * 0.3); // the window grew with the text
+  });
+
+  it("is drawn on a worksheet and in the Word file", async () => {
+    const aufgaben = [{ text: "Beschrifte die Skizze.", art: "schaubild", schaubild: fenster }];
+    const blatt = parseArbeitsblatt({ titel: "Fenster", aufgaben });
+    const { pdf, pages } = await renderArbeitsblatt(blatt);
+    expect(pages).toBe(1);
+    const pdfFile = await readPdf(pdf);
+    expect(pdfFile.pages.flatMap((p) => p.rows.map((r) => r.text)).join("\n")).toContain("Titelleiste");
+    await pdfFile.close();
+    const files = unzipSync(await arbeitsblattWord(blatt));
+    expect(Object.keys(files).some((n) => n.startsWith("word/media/"))).toBe(true);
+  });
+});

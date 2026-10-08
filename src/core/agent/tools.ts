@@ -288,7 +288,7 @@ const skillDateiLesen = defineTool({
 
 /** A diagram the program draws. Shared by worksheets and slides. */
 const schaubildParam = Type.Object({
-  art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen"], { description: "ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers" }),
+  art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen", "oberflaeche"], { description: "ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers. oberflaeche: a sketch of a program window (title bar, menu band, side panels, work area, area below it, status bar) to explain where things are in a program; give every area a lage" }),
   titel: Type.Optional(Type.String({ description: "Caption below the diagram" })),
   knoten: Type.Optional(Type.Array(Type.Object({
     id: Type.String({ description: "Short unique name, used in verbindungen" }),
@@ -296,7 +296,8 @@ const schaubildParam = Type.Object({
     datum: Type.Optional(Type.String({ description: "zeitstrahl: the date or year" })),
     leer: Type.Optional(Type.Boolean({ description: "Leave the box empty for the students to fill in. Still give its text: it is the solution. The program numbers these boxes and writes the key for the teacher" })),
     betont: Type.Optional(Type.Boolean({ description: "Heavy edge and gray fill, for the most important box" })),
-  }), { description: "ablauf, hierarchie, kreislauf: 2 to 12 boxes (kreislauf 3 to 8, zeitstrahl 2 to 8, in order)" })),
+    lage: Type.Optional(StringEnum(["titel", "menue", "links", "mitte", "rechts", "unten", "status"], { description: "oberflaeche only, required there, each lage once: titel = title bar at the top, menue = menu band / ribbon, links and rechts = side panels, mitte = work area, unten = area below the work area (e.g. notes), status = status bar at the bottom" })),
+  }), { description: "ablauf, hierarchie, kreislauf: 2 to 12 boxes (kreislauf 3 to 8, zeitstrahl 2 to 8, in order; oberflaeche 2 to 7 areas)" })),
   verbindungen: Type.Optional(Type.Array(Type.Object({ von: Type.String(), nach: Type.String(), text: Type.Optional(Type.String({ description: "Label on the arrow, a few words" })), leer: Type.Optional(Type.Boolean({ description: "Leave the label empty for the students to fill in (text is then the solution)" })) }), { description: "Arrows between boxes by id. ablauf: leave out for a simple chain in the order of the boxes. hierarchie: required (from the upper to the lower box). kreislauf: leave out for a ring in the order of the boxes, or give your own arrows, also in both directions between two boxes (2 boxes are enough then), for example the flows of goods and money between households and companies. No arrows back in ablauf and hierarchie: use kreislauf for cycles" })),
   richtung: Type.Optional(StringEnum(["waagerecht", "senkrecht"], { description: "ablauf, hierarchie: left to right or top to bottom. Leave out and the program chooses" })),
   mitte: Type.Optional(Type.String({ description: "kreislauf: text in the middle" })),
