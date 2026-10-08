@@ -281,3 +281,14 @@ export async function answerFragen(id: string, antworten: { antwort: string; eig
 }
 
 export const getMaterialListe = async (): Promise<MaterialDatei[]> => (await (await fetch("/api/material/liste")).json()).dateien;
+
+export interface SchuleInfo { name: string; hasLogo: boolean }
+const schuleAntwort = async (res: Response): Promise<SchuleInfo> => {
+  if (res.ok) return res.json();
+  throw new Error((await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.");
+};
+export const getSchule = async (): Promise<SchuleInfo> => (await fetch("/api/schule")).json();
+export const saveSchulname = async (name: string) => schuleAntwort(await fetch("/api/schule", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) }));
+export const saveSchullogo = async (file: File) => schuleAntwort(await fetch("/api/schule/logo", { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file }));
+export const removeSchullogo = async () => schuleAntwort(await fetch("/api/schule/logo", { method: "DELETE" }));
+export const schullogoUrl = (version: number) => `/api/schule/logo?v=${version}`;

@@ -21,6 +21,7 @@ import { stundenplanRoutes } from "./stundenplan.ts";
 import { keyName, type AppState } from "./state.ts";
 
 export type { AppState };
+import { loadSchule, logoBytes, MAX_LOGO_BYTES, removeLogo, saveLogo, saveSchulname } from "../core/schule/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -183,6 +184,39 @@ export function createApp(state: AppState) {
       if (e instanceof AnhangError) return c.json({ error: e.message }, 400);
       throw e;
     }
+  });
+
+  // School head on all material: name and logo, saved in the data folder.
+  const schoolError = (e: unknown, c: Context) => {
+    if (e instanceof UserError) return c.json({ error: e.message }, 400);
+    throw e;
+  };
+  app.get("/api/schule", async (c) => c.json(await loadSchule()));
+  app.put("/api/schule", async (c) => {
+    try {
+      const { name } = await c.req.json<{ name?: unknown }>();
+      await saveSchulname(typeof name === "string" ? name : "");
+      return c.json(await loadSchule());
+    } catch (e) {
+      return schoolError(e, c);
+    }
+  });
+  app.get("/api/schule/logo", async (c) => {
+    const png = await logoBytes();
+    return png ? c.body(new Uint8Array(png), 200, { "content-type": "image/png", "cache-control": "no-store", "x-content-type-options": "nosniff" }) : c.notFound();
+  });
+  app.post("/api/schule/logo", async (c) => {
+    if (Number(c.req.header("content-length") ?? 0) > MAX_LOGO_BYTES) return c.json({ error: "Die Datei ist zu groß. Ein Logo darf höchstens 3 MB haben." }, 413);
+    try {
+      await saveLogo(Buffer.from(await c.req.arrayBuffer()));
+      return c.json(await loadSchule());
+    } catch (e) {
+      return schoolError(e, c);
+    }
+  });
+  app.delete("/api/schule/logo", async (c) => {
+    await removeLogo();
+    return c.json(await loadSchule());
   });
 
   app.post("/api/chat", async (c) => {
