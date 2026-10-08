@@ -38,6 +38,7 @@ Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Verbrauch (Tokens, geschätzte Kosten, Monatssumme), Kontext-Füllstand und Guthaben (nur wo der Anbieter es hergibt: DeepSeek, OpenRouter) versteckt hinter einem kleinen Ring am Eingabefeld
 - [x] Bilder anhängen (Büroklammer, Ziehen, Einfügen) mit Datenschutz-Hinweis. PDF und Word folgen in Phase 3
 - [x] Gesprächsverlauf: frühere Gespräche in der Seitenleiste, wieder öffnen (mit Schritten, Dateien und Verbrauch) und löschen. Gespeichert unter `Gespräche/` im Datenordner, nur auf diesem Computer
+- [x] Ablaufprotokoll pro Gespräch: Dauer, Zeit bis zur ersten Ausgabe, Mengen und Ende jeder Modellanfrage, Dauer und Fehlerfelder jedes Werkzeugs, Warten auf die Lehrkraft, Wiederholungen. Nur Zeiten und Mengen, keine Inhalte. Steht im Gesprächsexport unter "Ablauf"
 - [x] Lange Gespräche: Ab etwa 80 Prozent Kontext-Füllstand den älteren Teil automatisch zusammenfassen, die letzten Beiträge bleiben wörtlich. Hinweis in einfacher Sprache, keine Rückfrage. Bei "Eingabe zu lang" vom Anbieter einmal erneut versuchen (Ideen aus `docs/recherche-harnesse.md`). Der Hinweis erscheint als Schritt in der Schrittliste; scheitert die Zusammenfassung, läuft das Gespräch unverändert weiter
 - [x] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent`: Claude, OpenAI, OpenRouter, DeepSeek und jeder OpenAI-kompatible Server (Schulserver, LM Studio, Ollama), geprüft gegen einen echten HTTP-Mock mit Streaming und Werkzeugaufruf. http:// nur für den eigenen Computer und private Adressen Mit einem echten Modell (OpenRouter, Claude Haiku 4.5) geprüft: Verbindungstest, Reihe planen, Arbeitsblatt erstellen und in die Stundentabelle eintragen, Lehrplan umwandeln.
 - [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
@@ -64,6 +65,10 @@ Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Seite "Material": alle erstellten Dateien nach Klasse, Fach und Reihe, mit Suche, Filter nach Klasse und Art, Ansehen, Herunterladen und Auswahl als ZIP
 - [ ] Ordner `Wissen/` pro Klasse (eigene Texte und Unterlagen), von der KI per Stichwortsuche lesbar (zuerst ohne Embeddings, an einem echten Beispiel besprechen)
 - [ ] Interaktive HTML-Materialien (Quiz, Lernpfad, Übung) als einzelne Datei, die ohne Internet im Browser läuft. Optional Animationen mit GSAP und 3D mit Three.js: Three.js steht unter MIT; bei GSAP zuerst die Lizenzbedingungen prüfen (kostenlos, aber nicht Open Source), bevor wir es mitliefern. Skills mit Motion-Design-Hinweisen (z. B. `athevon/genjutsu`) nur als Ideenquelle, Lizenz vorher ansehen
+- [~] Sperrliste für Modelle, die nicht verlässlich genug arbeiten (Mechanismus fertig und an allen Stellen erzwungen, die Liste ist leer). Offen: Modelle eintragen, sobald alle Anleitungen gemessen sind und eine Schwelle festliegt (#16). Siehe `docs/entscheidungen/014-sperrliste.md`
+- [x] Schulkopf auf allem Material: Name der Schule und Logo (in Grau) im Kopf von Arbeitsblatt, Klausur, Erwartungshorizont, Lernsituation und Stundenverlauf, als PDF und Word. Einstellungen, Reiter "Schule". Siehe `docs/entscheidungen/013-schulkopf.md`
+- [x] Alte Anhänge und Bilder verlassen das Gedächtnis des Modells (Hinweis statt Inhalt ab halbvollem Gedächtnis, letzte Runde bleibt, zu große Nachricht wird mit klarer Meldung abgelehnt, Anzeige unverändert). Siehe `docs/entscheidungen/012-alte-anhaenge-kuerzen.md`
+- [x] Formeln im PDF (LaTeX im Text, gesetzt mit MathJax und svg-to-pdfkit, im Satz und abgesetzt, mit Umbruch und Rohtext bei Fehlern; Word folgt in #21). Siehe `docs/entscheidungen/011-formeln-im-pdf.md`
 - [ ] Geführter Fragenkatalog für Material (Schulform, Bildungsgang oder Fach und Stufe, Lernfeld, Kursniveau, Bewertung, Anzahl Klausuren)
 - [~] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise. Bewertung steht: Anforderungsbereiche und Notenschlüssel trägt jede Lehrkraft selbst ein, nichts ist fest (Entscheidung 003). Plan.md steht über den Import (Bildschirm "Lehrpläne", Entscheidung 004). Offen: Hinweise.md (schulinterne Vorgaben) und eine Eingabemaske für die Bewertungsregeln in der Oberfläche
 - [~] Bildungsplan-Import: PDF in saubere Markdown-Gliederung umwandeln (Text aus der PDF, Modell formt, Wortlaut wird geprüft, Scans per Bild, Kosten vorab sichtbar), pro Klasse zuordnen, vom Agenten stufenweise lesbar (`lehrplan_lesen`, `lehrplan_suchen`). Siehe `docs/entscheidungen/004-lehrplaene-lesen.md`. Mit einem echten Modell noch nicht erprobt
@@ -105,6 +110,7 @@ Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 6: Ausrollen für Kollegen
 
+- [~] Probelauf mit zwei bis drei Kolleginnen und Kollegen: Anleitung `docs/probelauf.md` und Rückmeldebogen `docs/probelauf-rueckmeldebogen.docx` (`npm run bogen`) stehen. Offen: Test mit einer Person, die Pult nicht kennt (beobachtet, nicht erklärt), `npm start` auf Windows, Test des Bogens in Word
 - [ ] Installer als normales Programm, Mac und Windows
 - [ ] Login und DSGVO-konformes Backend (EU-Hosting, Auftragsverarbeitung, Auswahl nach Datenschutz kennzeichnen)
 - [ ] Abstimmung mit Schulleitung und Datenschutzbeauftragten

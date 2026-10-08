@@ -107,6 +107,21 @@ describe("renderArbeitsblatt", () => {
     expect(execFileSync("pdftotext", [file, "-"]).toString()).toContain("Aufgabe Nummer 12");
   });
 
+  it("starts a long introduction on the first page and continues it on the next, without empty pages", async () => {
+    const absatz = (n: number) => `${n}) Abschnitt ${n}: ${"Hier steht eine ausführliche Erklärung zur Oberfläche des Programms. ".repeat(5)}`;
+    const einleitung = Array.from({ length: 9 }, (_, i) => absatz(i + 1)).join("\n\n");
+    const lines = Array.from({ length: 50 }, (_, i) => `Zeile ${i + 1} einer sehr langen Liste ohne Leerzeilen.`).join("\n");
+    for (const text of [einleitung, lines]) {
+      const { pdf, pages } = await renderArbeitsblatt(parseArbeitsblatt({ titel: "Lange Einleitung", einleitung: text, merkkasten: { titel: "Merke", text: "Kurz." }, aufgaben: [{ text: "Aufgabe Nummer 1", zeilen: 2 }] }));
+      if (!hasPoppler) continue;
+      const file = await toFile(pdf);
+      const page = (p: number) => execFileSync("pdftotext", ["-f", String(p), "-l", String(p), file, "-"]).toString();
+      expect(page(1)).toMatch(/Abschnitt 1|Zeile 1 /);
+      for (let p = 1; p <= pages; p++) expect(page(p), `page ${p}`).toMatch(/Abschnitt|Zeile|Aufgabe Nummer/);
+      expect(pages).toBe(2);
+    }
+  });
+
   it("uses only gray values", async () => {
     if (!hasPoppler) return;
     const { pdf } = await renderArbeitsblatt(parseArbeitsblatt(sample));
