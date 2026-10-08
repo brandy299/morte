@@ -4,13 +4,14 @@
  * The fonts are ones every Word has (Georgia for headings, Calibri for text), so nothing needs to be embedded.
  */
 import {
-  AlignmentType, BorderStyle, Document, Footer, HeightRule, ImageRun, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, WidthType,
+  AlignmentType, BorderStyle, Document, Footer, Header, HeightRule, ImageRun, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, VerticalAlign, WidthType,
   type ParagraphChild,
 } from "docx";
 import type { Koerper } from "./aufgabentypen.ts";
 import { szeneVon } from "./schaubild.ts";
 import { szeneAlsPng } from "./schaubild-zeichnen.ts";
-import { printable } from "./layout.ts";
+import { logoSize, printable } from "./layout.ts";
+import { schulkopf, type Schulkopf } from "../schule/index.ts";
 
 export const SERIF_W = "Georgia";
 export const SANS_W = "Calibri";
@@ -47,6 +48,30 @@ export interface WordDoc {
   table(columns: { title: string; share: number; bold?: boolean; right?: boolean }[], rows: string[][], opts?: { noHeader?: boolean; minHeight?: number }): void;
   pageBreak(): void;
   build(footnote?: string): Promise<Buffer>;
+}
+
+const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } as const;
+
+/** The school head for the header of the first page: logo and name side by side, a thin rule below. Same box for the logo as in the PDF. */
+function schoolHeader(school: Schulkopf): Header {
+  const logo = school.logo ? logoSize(school.logo.width, school.logo.height) : undefined;
+  const px = (pt: number) => Math.round((pt * 96) / 72);
+  const cell = (width: number, children: Paragraph[]) =>
+    new TableCell({ width: { size: width, type: WidthType.DXA }, verticalAlign: VerticalAlign.CENTER, borders: { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER }, margins: { top: 0, bottom: 0, left: 0, right: 80 }, children });
+  const logoW = logo ? Math.round(logo.w * 20) + twip(4) : 0;
+  const cells: TableCell[] = [];
+  if (logo && school.logo) {
+    cells.push(cell(logoW, [new Paragraph({ children: [new ImageRun({ type: "png", data: school.logo.png, transformation: { width: px(logo.w), height: px(logo.h) }, altText: { name: "Schullogo", description: "Logo der Schule", title: "Schullogo" } })] })]));
+  }
+  if (school.name) {
+    cells.push(cell(PAGE_W - logoW, [new Paragraph({ children: [new TextRun({ text: printable(school.name), font: SANS_W, size: 22, bold: true, color: INK })] })]));
+  }
+  return new Header({
+    children: [
+      new Table({ width: { size: PAGE_W, type: WidthType.DXA }, columnWidths: cells.length === 2 ? [logoW, PAGE_W - logoW] : [PAGE_W], borders: { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER, insideHorizontal: NO_BORDER, insideVertical: NO_BORDER }, rows: [new TableRow({ children: cells })] }),
+      new Paragraph({ spacing: { before: 60, after: 120 }, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: LINE, space: 1 } }, children: [] }),
+    ],
+  });
 }
 
 export function newWord(title: string): WordDoc {
@@ -219,29 +244,32 @@ export function newWord(title: string): WordDoc {
       );
     },
     async build(footnote) {
+      const school = schulkopf();
+      const footer = () =>
+        new Footer({
+          children: [
+            new Paragraph({
+              tabStops: [{ type: TabStopType.RIGHT, position: PAGE_W }],
+              children: [
+                new TextRun({ text: printable(footnote ?? ""), font: SANS_W, size: 15, color: SOFT }),
+                new TextRun({ text: "\tPult · Seite ", font: SANS_W, size: 15, color: SOFT }),
+                new TextRun({ children: [PageNumber.CURRENT], font: SANS_W, size: 15, color: SOFT }),
+                new TextRun({ text: " von ", font: SANS_W, size: 15, color: SOFT }),
+                new TextRun({ children: [PageNumber.TOTAL_PAGES], font: SANS_W, size: 15, color: SOFT }),
+              ],
+            }),
+          ],
+        });
       const file = new Document({
         title: printable(title),
         creator: "Pult",
         styles: { default: { document: { run: { font: SANS_W, size: 21, color: INK } } } },
         sections: [
           {
-            properties: { page: { size: { width: twip(210), height: twip(297) }, margin: { top: twip(15), bottom: twip(18), left: twip(16), right: twip(16) } } },
-            footers: {
-              default: new Footer({
-                children: [
-                  new Paragraph({
-                    tabStops: [{ type: TabStopType.RIGHT, position: PAGE_W }],
-                    children: [
-                      new TextRun({ text: printable(footnote ?? ""), font: SANS_W, size: 15, color: SOFT }),
-                      new TextRun({ text: "\tPult · Seite ", font: SANS_W, size: 15, color: SOFT }),
-                      new TextRun({ children: [PageNumber.CURRENT], font: SANS_W, size: 15, color: SOFT }),
-                      new TextRun({ text: " von ", font: SANS_W, size: 15, color: SOFT }),
-                      new TextRun({ children: [PageNumber.TOTAL_PAGES], font: SANS_W, size: 15, color: SOFT }),
-                    ],
-                  }),
-                ],
-              }),
-            },
+            // The school head belongs on the first page only, like the PDF. Word wants "different first page" for that.
+            properties: { ...(school ? { titlePage: true } : {}), page: { size: { width: twip(210), height: twip(297) }, margin: { top: twip(15), bottom: twip(18), left: twip(16), right: twip(16) } } },
+            ...(school ? { headers: { first: schoolHeader(school) } } : {}),
+            footers: { default: footer(), ...(school ? { first: footer() } : {}) },
             children,
           },
         ],
