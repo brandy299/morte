@@ -83,6 +83,27 @@ Zum Ansehen: `anime.umd.min.js` aus `animejs@4.5.0/dist/bundles` und `assets/fon
 
 **Empfehlung:** Fall A jetzt (#14 ergänzen), Fall B erst nach der Messung zu #14 und nur, wenn ein Kollege oder eine Kollegin es will. Der Entwurf der Szenenbeschreibung bleibt dafür offen: Jede Szene hat eine Dauer. Ein optionaler **Sprechtext je Szene** (der Text, den die Lehrkraft dazu sagt) wäre die natürliche Erweiterung, weil das Programm daraus die Szenendauer schätzen und später Zeitmarken ableiten kann. Er wird erst gebaut, wenn Fall B beschlossen ist ("nichts auf Vorrat").
 
+### Stimme: VoiceStudio geprüft (2026-10-08)
+
+Gemeint ist `debpalash/VoiceStudio` (Sprachausgabe, Stimmklonen, Vertonung, lokal). Gelesen wurden die Seite des Projekts und die Lizenzdatei über die Webseite, nicht der Quelltext.
+
+| Punkt | Befund |
+|---|---|
+| Lizenz | **AGPL-3.0** (Lizenzdatei geprüft). Das Projekt weist darauf hin, dass die Sprachmodelle eigene Lizenzen haben und vor kommerzieller Nutzung zu prüfen sind |
+| Aufbau | Electron-App mit **Python-Backend**, Einrichtung über ein Skript. Läuft am besten mit Grafikkarte (NVIDIA, Apple Silicon). Ohne Grafikkarte langsamer und rund 5 GB Platz für die CPU-Fassung von PyTorch. Intel-Macs nur mit entferntem Rechner |
+| Schnittstelle | Es gibt eine lokale Schnittstelle und MCP. Ob sie OpenAI-kompatibel ist und welchen Port sie nutzt, steht nicht auf der Seite (Drittseiten behaupten "OpenAI-kompatibel, Port 3900", **nicht bestätigt**) |
+| Deutsch | nur pauschal "646 Sprachen", nicht einzeln belegt. Qualität auf Deutsch **ungeprüft** |
+| Wortzeiten | nicht erwähnt |
+| Engine | Standard ist k2-fsa/OmniVoice. Deren Lizenz und Modellgrößen **nicht geprüft** |
+
+**Urteil:**
+- **Einbauen oder Code übernehmen: nein.** AGPL steht in `CLAUDE.md` ("wird nicht kopiert"). Eine mitgelieferte Fassung würde Pult unter die AGPL ziehen.
+- **Als getrenntes Programm, das die Lehrkraft selbst installiert und das Pult über die lokale Schnittstelle anspricht: rechtlich wahrscheinlich möglich** (eigenständiges Programm, kein Zusammenbau), aber das ist keine Rechtsauskunft. Praktisch scheitert es an **"Alles in der App"**: Kollegen müssten ein zweites Programm mit Python, großen Modellen und idealerweise Grafikkarte einrichten. Das ist für den Probelauf zu viel.
+- **Stimmklonen** ist für Pult nicht nötig und heikel (Stimmen von Kolleginnen oder Schülern nur mit Erlaubnis).
+- **Merken** als optionale Brücke für Einzelne (Yannik) in einer späteren Phase, nicht als Baustein.
+
+**Wege ohne Zusatzprogramm, ungeprüft:** (1) Die Lehrkraft nimmt ihre Stimme selbst auf und Pult legt die Aufnahme zu den Szenen (Fall B mit Zeiten von Hand oder aus der Schätzung). (2) Die **Sprachausgabe des Browsers** (Web Speech API) in der HTML-Datei: kostet nichts und liefert Wortgrenzen als Ereignis. Welche deutschen Stimmen auf Windows und Mac schon vorhanden sind und wie sie klingen, ist **nicht geprüft** und hängt vom Betriebssystem ab. (3) Sprachausgabe über den Anbieter, bei dem die Lehrkraft ohnehin einen Schlüssel hat (Kosten, Datenschutz und Anbietervielfalt ungeprüft, "Provider austauschbar" gilt auch hier).
+
 ## Offen
 
 1. **Messung "Stufe 1 mit mehreren Modellen"** (zehn Themen, drei Modelle). Macht die Recherche, sobald ein Schlüssel und der Szenen-Baustein da sind.
