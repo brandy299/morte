@@ -54,6 +54,25 @@ describe("conversation history", () => {
     expect(state.conversation!.anzeige).toHaveLength(4);
   });
 
+  it("saves the log with the conversation, keeps when it began and puts it into the export", async () => {
+    await ask("Erste Frage");
+    const id = state.conversation!.id;
+    const begun = state.conversation!.erstellt;
+    await new Promise((r) => setTimeout(r, 15));
+    await ask("Zweite Frage");
+    const md = await (await app.request(`/api/history/${id}/export`)).text();
+    expect(md).toContain(`- Begonnen: ${begun}, zuletzt: `);
+    expect(md).not.toContain(`zuletzt: ${begun}`);
+    expect(md).toContain("## Ablauf");
+    expect(md.match(/\*\*Nachricht der Lehrkraft, bis zur fertigen Antwort\*\*/g)).toHaveLength(2);
+    // Reopened, the log goes on.
+    await app.request("/api/chat/reset", { method: "POST" });
+    await app.request("/api/history/open", json({ id }));
+    await ask("Dritte Frage");
+    const again = await (await app.request(`/api/history/${id}/export`)).text();
+    expect(again.match(/\*\*Nachricht der Lehrkraft, bis zur fertigen Antwort\*\*/g)).toHaveLength(3);
+  });
+
   it("answers plainly for a conversation that is gone, and deletes", async () => {
     const gone = await app.request("/api/history/open", json({ id: "00000000-0000-0000-0000-000000000000" }));
     expect(gone.status).toBe(404);
