@@ -32,6 +32,8 @@ export interface EvalCase {
     fassungen?: number;
     /** No file may be created in the first turn (the plan is shown first). */
     erstVorschlag?: boolean;
+    /** Text that must stand in the saved assessment rules or templates at the end (see Transcript.gespeichert). */
+    gespeichert?: string;
   };
 }
 
@@ -58,6 +60,8 @@ export interface Transcript {
   ordner?: string;
   /** Text on the pictures that were attached, so the judge can compare. */
   vorlage?: string;
+  /** What stands in the saved assessment rules and in the teacher's own templates at the end, so the judge can see what was written there. */
+  gespeichert?: string;
   /** Text of Reihe.md before the run, to see what changed. */
   kosten: number;
 }

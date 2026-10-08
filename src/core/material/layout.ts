@@ -7,6 +7,9 @@
 import { fileURLToPath } from "node:url";
 import PDFDocument from "pdfkit";
 import { schulkopf, type Schulkopf } from "../schule/index.ts";
+import SVGtoPDF from "svg-to-pdfkit";
+import { FORMEL_SCHRIFT, formelSvg, setFormelSchrift } from "./formel.ts";
+import { klartext, setzeSatz, type Maße, type SatzOptionen } from "./formel-satz.ts";
 
 export class MaterialError extends Error {}
 
@@ -62,6 +65,9 @@ export function textWidth(text: string, font: string, size: number): number {
   }
   return scratch.font(font).fontSize(size).widthOfString(printable(text));
 }
+
+// Text inside formulas is measured in the body font, the same as it is drawn.
+setFormelSchrift((t) => textWidth(t, SANS, 1));
 
 function registerFonts(doc: PDFKit.PDFDocument) {
   for (const [name, file] of Object.entries(FONT_FILES)) doc.registerFont(name, FONT_DIR + file);
@@ -163,6 +169,32 @@ function schoolHead(sheet: Sheet, school: Schulkopf): number {
   return rowH + SCHOOL_GAP + mm(1);
 }
 
+export interface Lead { text: string; font: string }
+export interface TextOptions {
+  font?: string;
+  size?: number;
+  color?: string;
+  width?: number;
+  lineGap?: number;
+  align?: "left" | "center" | "right";
+  lead?: Lead;
+}
+
+/** Measures text with the real fonts of a document, for the line breaking of text with formulas. */
+function measures(doc: PDFKit.PDFDocument): Maße {
+  const fontOf = (name: string) => (doc.font(name) as unknown as { _font: { ascender: number } })._font;
+  return {
+    breite: (t, f, s) => doc.font(f).fontSize(s).widthOfString(t),
+    ascent: (f, s) => (fontOf(f).ascender / 1000) * s,
+    zeile: (f, s) => doc.font(f).fontSize(s).currentLineHeight(true),
+  };
+}
+
+/** Sets the text with formulas, or `undefined` when the text has none. */
+function formulaBlock(doc: PDFKit.PDFDocument, text: string, o: SatzOptionen) {
+  return setzeSatz(text, { ...o, clean: printable }, measures(doc));
+}
+
 export interface Sheet {
   doc: PDFKit.PDFDocument;
   left: number;
@@ -171,7 +203,13 @@ export interface Sheet {
   y: number;
   /** Starts a new page when `h` does not fit anymore. */
   room(h: number): void;
-  height(text: string, font: string, size: number, w: number): number;
+  /** Height of a text block as `text` draws it, with formulas. `lead` is a label in front, as for `text`. */
+  height(text: string, font: string, size: number, w: number, o?: { lineGap?: number; lead?: Lead }): number;
+  /**
+   * Draws a text block at x, y and returns its height. Formulas (`\\( \\)`, `$ $`, `\\[ \\]`) are set as formulas, everything else
+   * goes through pdfkit as before. Splits nothing, call `room` first.
+   */
+  text(text: string, x: number, y: number, o?: TextOptions): number;
   /** Draws the page header: heavy rule, small kicker line, title, optional write-in fields, thin rule. */
   header(opts: { kicker?: string; title: string; fields?: string[] }): void;
   /** Writes a text block at the current position and moves down. Splits nothing, call `room` first. */
@@ -203,9 +241,35 @@ export function newSheet(title: string): Sheet {
         sheet.y = M.top;
       }
     },
-    height(text, font, size, w) {
+    height(text, font, size, w, o = {}) {
+      const lineGap = o.lineGap ?? 2.5;
+      const rich = formulaBlock(doc, text, { font, size, width: w, lineGap, lead: o.lead });
+      if (rich) return rich.hoehe;
       doc.font(font).fontSize(size);
-      return doc.heightOfString(printable(text), { width: w, lineGap: 2.5 });
+      return doc.heightOfString(printable(o.lead ? `${o.lead.text} ${klartext(text)}` : klartext(text)!), { width: w, lineGap });
+    },
+    text(text, x, y, o = {}) {
+      const font = o.font ?? SANS;
+      const size = o.size ?? 11;
+      const color = o.color ?? INK;
+      const w = o.width ?? width;
+      const lineGap = o.lineGap ?? 2.5;
+      const rich = formulaBlock(doc, text, { font, size, width: w, lineGap, align: o.align, lead: o.lead });
+      if (!rich) {
+        const plain = klartext(text)!;
+        if (o.lead) {
+          // The label and the text continue on the same line, each in its own font.
+          doc.font(o.lead.font).fontSize(size).fillColor(color).text(`${o.lead.text} `, x, y, { continued: true, width: w, lineGap });
+          doc.font(font).text(printable(plain), { align: o.align });
+        } else doc.font(font).fontSize(size).fillColor(color).text(printable(plain), x, y, { width: w, lineGap, align: o.align });
+        return sheet.height(text, font, size, w, { lineGap, lead: o.lead });
+      }
+      for (const op of rich.ops) {
+        if (op.t === "text") doc.font(op.font).fontSize(size).fillColor(color).text(op.text, x + op.x, y + op.y, { lineBreak: false });
+        // Letters that MathJax has no shape for (umlauts, euro) come as text in the family "serif": they are drawn in the body font.
+        else SVGtoPDF(doc, formelSvg(op.g, op.size), x + op.x, y + op.y, { assumePt: true, fontCallback: (family) => (family === FORMEL_SCHRIFT ? SANS : SANS) });
+      }
+      return rich.hoehe;
     },
     header({ kicker, title: heading, fields = [] }) {
       const school = schulkopf();
@@ -237,7 +301,7 @@ export function newSheet(title: string): Sheet {
       const w = o.width ?? width;
       const h = sheet.height(text, font, size, w);
       sheet.room(h);
-      doc.font(font).fontSize(size).fillColor(o.color ?? INK).text(printable(text), o.x ?? left, sheet.y, { width: w, lineGap: 2.5 });
+      sheet.text(text, o.x ?? left, sheet.y, { font, size, color: o.color, width: w });
       sheet.y += h + (o.gap ?? mm(6));
     },
     box({ title: boxTitle, text }) {
@@ -253,7 +317,7 @@ export function newSheet(title: string): Sheet {
         doc.font(displayFont(boxTitle)).fontSize(11).fillColor(INK).text(printable(boxTitle), left + 4 + pad, ty, { width: inner });
         ty += titleH;
       }
-      doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(text), left + 4 + pad, ty, { width: inner, lineGap: 2.5 });
+      sheet.text(text, left + 4 + pad, ty, { size: 10.5, width: inner });
       sheet.y += h + mm(6);
     },
     async finish(note) {
@@ -320,7 +384,7 @@ export function table(sheet: Sheet, columns: Column[], rows: string[][], opts: {
       drawHeader();
     }
     for (const [i, cell] of row.entries()) {
-      doc.font(columns[i]!.bold ? SANS_BOLD : SANS).fontSize(size).fillColor(INK).text(printable(cell), xs[i]! + pad, sheet.y + 5, { width: ws[i]! - 2 * pad, align: columns[i]!.align ?? "left", lineGap: 2.5 });
+      sheet.text(cell, xs[i]! + pad, sheet.y + 5, { font: columns[i]!.bold ? SANS_BOLD : SANS, size, width: ws[i]! - 2 * pad, align: columns[i]!.align ?? "left" });
     }
     doc.save().moveTo(left, sheet.y + h).lineTo(left + width, sheet.y + h).lineWidth(0.5).strokeColor(LINE).stroke().restore();
     sheet.y += h;

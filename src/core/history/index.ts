@@ -17,6 +17,8 @@ export interface Conversation {
   modell: unknown[];
   /** Usage numbers of this conversation, so the ring shows the right fill after reopening. */
   verbrauch?: unknown;
+  /** Times and counts of every model request and tool (no content). Opaque to everything but the agent layer and the export. */
+  ablauf?: unknown[];
 }
 
 export interface ConversationInfo {
