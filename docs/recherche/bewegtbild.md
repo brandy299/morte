@@ -68,6 +68,21 @@ Zum Ansehen: `anime.umd.min.js` aus `animejs@4.5.0/dist/bundles` und `assets/fon
 
 `docs/recherche/motion-leitfaden.md` enthält Yanniks Leitfaden "Motion Graphics aus Code" mit Einschätzung. Kurz: Der Kern (Szene als Funktion der Zeit) stimmt mit der Probe überein. GSAP, Playwright und ffmpeg passen nicht zu Pult. Übernommen sind Probe-Modus, Prüfsummen, Titel Wort für Wort, Säulen aus Tabellenwerten und "erst Szenenplan, dann Bau" (als Ergänzung in #14).
 
+## Sprache und Takt (Frage von Yannik, 2026-10-08)
+
+**Frage:** Wenn zum Erklärstück gesprochen wird, müssen Text und Animation auf denselben Zeitmarken sitzen. Ist das festgehalten?
+
+**Stand:** Der Leitfaden nennt es als Muster 5 ("Takt aus dem Ton"), es ist aber zurückgestellt: `CLAUDE.md` sagt, Erklärvideos haben standardmäßig keine Stimme (nur Musik), Sprache nur auf ausdrücklichen Wunsch. #14 hat Ton, Musik und Stimme deshalb als Nicht-Ziel.
+
+**Die Anforderung stimmt.** Zwei Fälle, die verschieden zu lösen sind:
+
+| Fall | Was nötig ist | Aufwand |
+|---|---|---|
+| **A. Die Lehrkraft spricht live am Beamer** (der häufigste Fall im Unterricht) | Kein Ton in der Datei. Die Lehrkraft bestimmt den Takt: eine Taste (oder Klick) geht zur nächsten Szene oder zum nächsten Schritt, Zurück geht auch. Zeitmarken braucht es nicht, die Szenen sind die Marken | klein, gehört in #14 |
+| **B. Aufgenommene oder vorgelesene Stimme in der Datei** | Eine Audiodatei und für jede Szene und jedes Element eine **Startzeit in Sekunden**. Quellen für Zeitmarken: (1) Schätzung aus dem Text (ungefähr 2 bis 2,5 Wörter je Sekunde bei ruhigem Deutsch, **geschätzt, nicht gemessen**), (2) Wortzeiten, die ein Sprachdienst mitliefert, (3) Zeiten von Hand. Die Stimme selbst kommt von der Lehrkraft (Aufnahme) oder aus einer Sprachausgabe | groß. Ein Sprachdienst wäre ein zweiter Anbieter neben dem Modell, eine eingebaute Sprachausgabe verletzt vermutlich "Alles in der App". Beides ist **nicht untersucht** |
+
+**Empfehlung:** Fall A jetzt (#14 ergänzen), Fall B erst nach der Messung zu #14 und nur, wenn ein Kollege oder eine Kollegin es will. Der Entwurf der Szenenbeschreibung bleibt dafür offen: Jede Szene hat eine Dauer. Ein optionaler **Sprechtext je Szene** (der Text, den die Lehrkraft dazu sagt) wäre die natürliche Erweiterung, weil das Programm daraus die Szenendauer schätzen und später Zeitmarken ableiten kann. Er wird erst gebaut, wenn Fall B beschlossen ist ("nichts auf Vorrat").
+
 ## Offen
 
 1. **Messung "Stufe 1 mit mehreren Modellen"** (zehn Themen, drei Modelle). Macht die Recherche, sobald ein Schlüssel und der Szenen-Baustein da sind.
