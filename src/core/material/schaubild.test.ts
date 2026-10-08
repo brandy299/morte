@@ -177,3 +177,11 @@ describe("in a worksheet", () => {
     await expect(renderArbeitsblatt(parseArbeitsblatt({ titel: "x", aufgaben: [{ text: "y", schaubild: many }] }))).rejects.toThrow(/zu groß/);
   });
 });
+
+describe("blank boxes", () => {
+  it("say plainly that a box left blank for the students still needs its text", () => {
+    const raw = { art: "hierarchie", knoten: [{ id: "a", text: "Fenster" }, { id: "b", text: "", leer: true }], verbindungen: [{ von: "a", nach: "b" }] };
+    expect(() => parseSchaubild(raw, 2)).toThrow("Aufgabe 2 (Schaubild): Kästchen 2 bleibt für die Lernenden leer, braucht aber trotzdem seinen Text. Er ist die Lösung für die Lehrkraft.");
+    expect(() => parseSchaubild(raw, 4, "Folie 4")).toThrow(/^Folie 4 \(Schaubild\)/);
+  });
+});

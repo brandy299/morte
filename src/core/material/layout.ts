@@ -69,7 +69,7 @@ export function textWidth(text: string, font: string, size: number): number {
 // Text inside formulas is measured in the body font, the same as it is drawn.
 setFormelSchrift((t) => textWidth(t, SANS, 1));
 
-function registerFonts(doc: PDFKit.PDFDocument) {
+export function registerFonts(doc: PDFKit.PDFDocument) {
   for (const [name, file] of Object.entries(FONT_FILES)) doc.registerFont(name, FONT_DIR + file);
 }
 

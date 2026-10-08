@@ -30,6 +30,7 @@
     "mathjax-full": "3.2.2",
     "pdfjs-dist": "^6.4.299",
     "pdfkit": "^0.20.2",
+    "pptxgenjs": "4.0.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",

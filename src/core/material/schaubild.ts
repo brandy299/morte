@@ -46,12 +46,13 @@ const ARTEN: SchaubildArt[] = ["ablauf", "hierarchie", "kreislauf", "zeitstrahl"
 // ---------- checking what the model sent ----------
 
 /** Checks a diagram from the model. Messages tell the model what to correct. */
-export function parseSchaubild(raw: unknown, nr: number): Schaubild {
+/** `stelle` names where the diagram stands in the messages, e.g. "Aufgabe 2" or "Folie 4". */
+export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}`): Schaubild {
   const o = (raw ?? {}) as Record<string, unknown>;
-  const where = `Aufgabe ${nr} (Schaubild)`;
+  const where = `${stelle} (Schaubild)`;
   const art = o.art as SchaubildArt;
   if (!ARTEN.includes(art)) throw new MaterialError(`${where}: Die Art „${String(o.art)}“ gibt es nicht. Erlaubt: ${ARTEN.join(", ")}.`);
-  const titel = str(o.titel, `der Titel des Schaubilds in Aufgabe ${nr}`, 140);
+  const titel = str(o.titel, `der Titel des Schaubilds in ${stelle}`, 140);
   const base = { art, titel, knoten: [] as Knoten[], verbindungen: [] as Schaubild["verbindungen"], saeulen: [] as Schaubild["saeulen"] };
 
   if (art === "saeulen") {
@@ -61,10 +62,10 @@ export function parseSchaubild(raw: unknown, nr: number): Schaubild {
       const e = (s ?? {}) as Record<string, unknown>;
       const wert = Number(e.wert);
       if (!Number.isFinite(wert) || wert < 0) throw new MaterialError(`${where}: Säule ${i + 1} braucht einen Wert von 0 oder mehr.`);
-      return { name: str(e.name, `Name von Säule ${i + 1} in Aufgabe ${nr}`, 40, true)!, wert };
+      return { name: str(e.name, `Name von Säule ${i + 1} in ${stelle}`, 40, true)!, wert };
     });
     if (saeulen.every((s) => s.wert === 0)) throw new MaterialError(`${where}: Alle Werte sind 0.`);
-    return { ...base, saeulen, einheit: str(o.einheit, `die Einheit in Aufgabe ${nr}`, 20), leerSaeulen: o.leer === true };
+    return { ...base, saeulen, einheit: str(o.einheit, `die Einheit in ${stelle}`, 20), leerSaeulen: o.leer === true };
   }
 
   const list = Array.isArray(o.knoten) ? o.knoten : [];
@@ -77,12 +78,16 @@ export function parseSchaubild(raw: unknown, nr: number): Schaubild {
     const id = String(e.id ?? i + 1).trim();
     if (seen.has(id)) throw new MaterialError(`${where}: Die Kennung „${id}“ kommt doppelt vor.`);
     seen.add(id);
-    const text = str(e.text, `Text von Kästchen ${i + 1} in Aufgabe ${nr}`, art === "zeitstrahl" ? 120 : 90, true)!;
-    const datum = art === "zeitstrahl" ? str(e.datum, `Datum von Ereignis ${i + 1} in Aufgabe ${nr}`, 30, true) : undefined;
+    // A box left blank for the students still needs its text: it is the solution on the teacher's copy.
+    if (e.leer === true && (e.text === undefined || e.text === null || String(e.text).trim() === "")) {
+      throw new MaterialError(`${where}: Kästchen ${i + 1} bleibt für die Lernenden leer, braucht aber trotzdem seinen Text. Er ist die Lösung für die Lehrkraft.`);
+    }
+    const text = str(e.text, `Text von Kästchen ${i + 1} in ${stelle}`, art === "zeitstrahl" ? 120 : 90, true)!;
+    const datum = art === "zeitstrahl" ? str(e.datum, `Datum von Ereignis ${i + 1} in ${stelle}`, 30, true) : undefined;
     return { id, text, datum, leer: e.leer === true, betont: e.betont === true };
   });
   if (art === "zeitstrahl") return { ...base, knoten, wortliste: o.wortliste === true };
-  const mitte = art === "kreislauf" ? str(o.mitte, `der Text in der Mitte in Aufgabe ${nr}`, 60) : undefined;
+  const mitte = art === "kreislauf" ? str(o.mitte, `der Text in der Mitte in ${stelle}`, 60) : undefined;
 
   const links = Array.isArray(o.verbindungen) ? o.verbindungen : [];
   if (art === "hierarchie" && links.length === 0) throw new MaterialError(`${where}: Eine Hierarchie braucht Pfeile (verbindungen: von, nach), sonst ist nicht klar, was worunter steht.`);
@@ -93,7 +98,7 @@ export function parseSchaubild(raw: unknown, nr: number): Schaubild {
         const nach = String(e.nach ?? "").trim();
         if (!seen.has(von) || !seen.has(nach)) throw new MaterialError(`${where}: Pfeil ${i + 1} nennt ein Kästchen, das es nicht gibt („${von}“ nach „${nach}“). Nimm die Kennungen aus knoten.`);
         if (von === nach) throw new MaterialError(`${where}: Pfeil ${i + 1} zeigt auf dasselbe Kästchen.`);
-        const text = str(e.text, `Beschriftung von Pfeil ${i + 1} in Aufgabe ${nr}`, 40);
+        const text = str(e.text, `Beschriftung von Pfeil ${i + 1} in ${stelle}`, 40);
         if (e.leer === true && !text) throw new MaterialError(`${where}: Pfeil ${i + 1} soll leer bleiben, aber es fehlt der Text für die Lösung. Gib text an und setze leer.`);
         return { von, nach, text, leer: e.leer === true };
       })

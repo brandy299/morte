@@ -217,8 +217,10 @@ interface ChatProps {
   onSettings: () => void;
 }
 
-const isWord = (m: Material) => /\.docx?$/i.test(m.path);
-const VARIANTS: Record<string, string> = { "": "Blatt", "Lösung": "Lösung", "Word": "Word", "Lösung, Word": "Lösung als Word" };
+/** Word and PowerPoint files are downloaded; the preview shows PDFs only. */
+const isDownload = (m: Material) => /\.(docx?|pptx)$/i.test(m.path);
+const isSlides = (m: Material) => /\.pptx$/i.test(m.path);
+const VARIANTS: Record<string, string> = { "": "Blatt", "Lösung": "Lösung", "Word": "Word", "Lösung, Word": "Lösung als Word", "PowerPoint": "PowerPoint" };
 
 /**
  * One card per finished piece of material: the sheet, its solution and the Word versions as buttons on one card.
@@ -249,12 +251,12 @@ function groupMaterials(materials: Material[]): { title: string; parts: { label:
     const m = /^(.*?)(?: \(([^()]*)\))?$/.exec(file.title)!;
     const [title, variant] = m[2] !== undefined && m[2] in VARIANTS ? [m[1]!, m[2]] : [file.title, ""];
     if (!groups.has(title)) groups.set(title, new Map());
-    groups.get(title)!.set(isWord(file) && variant === "" ? "Word" : variant, file);
+    groups.get(title)!.set(isDownload(file) && variant === "" ? "Word" : variant, file);
   }
   const order = Object.keys(VARIANTS).map((k) => (k === "" ? "" : k));
   return [...groups].map(([title, variants]) => ({
     title,
-    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: VARIANTS[variant] ?? variant, file })),
+    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: variant === "" && [...variants.values()].some(isSlides) ? "Folien" : (VARIANTS[variant] ?? variant), file })),
   }));
 }
 
@@ -747,12 +749,12 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 {groupMaterials(m.materials ?? []).map((g) => (
                   <div key={g.title} className="file-group">
                     <div className="file-group-head">
-                      <span className="file-icon" aria-hidden>{g.parts.some((p) => !isWord(p.file)) ? "PDF" : "DOC"}</span>
+                      <span className="file-icon" aria-hidden>{g.parts.some((p) => isSlides(p.file)) ? "PPT" : g.parts.some((p) => !isDownload(p.file)) ? "PDF" : "DOC"}</span>
                       <strong>{g.title}</strong>
                     </div>
                     <div className="file-actions">
                       {g.parts.map((p) =>
-                        isWord(p.file) ? (
+                        isDownload(p.file) ? (
                           <a key={p.file.path} className="file-action" href={materialUrl(p.file, true)} download={p.file.name}>
                             {p.label} <small>herunterladen</small>
                           </a>
