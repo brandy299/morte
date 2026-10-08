@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { chooseOrdner, getOrdner, moveOrdner, openOrdner, resetOrdner, type OrdnerInfo, type SetupStatus } from "./api.ts";
+import { Schule } from "./Schule.tsx";
 import { Setup } from "./Setup.tsx";
 import { LookPicker } from "./LookPicker.tsx";
 
-type Tab = "aussehen" | "ordner" | "ki" | "datenschutz";
+type Tab = "aussehen" | "ordner" | "schule" | "ki" | "datenschutz";
 const TABS: { id: Tab; label: string }[] = [
   { id: "aussehen", label: "Aussehen" },
   { id: "ordner", label: "Ordner" },
+  { id: "schule", label: "Schule" },
   { id: "ki", label: "KI-Anbieter" },
   { id: "datenschutz", label: "Datenschutz" },
 ];
@@ -101,7 +103,7 @@ function Datenschutz() {
       <h2>Was zu deinem KI-Anbieter geht</h2>
       <p className="lead">Deine Fragen, der Text aus angehängten Dateien und Bildern und die Teile deines Arbeitsordners, die ich für eine Aufgabe lese.</p>
       <h2>Was nie dabei sein soll</h2>
-      <p className="lead">Namen von Schülerinnen und Schülern, Noten und Klassenarbeiten mit Namen. Morte fragt nicht danach. Bitte hänge auch nichts dergleichen an.</p>
+      <p className="lead">Namen von Schülerinnen und Schülern, Noten und Klassenarbeiten mit Namen. Pult fragt nicht danach. Bitte hänge auch nichts dergleichen an.</p>
     </div>
   );
 }
@@ -129,6 +131,7 @@ export function Einstellungen({ status, onClose, onDone }: { status: SetupStatus
             </div>
           )}
           {tab === "ordner" && <Ordner />}
+          {tab === "schule" && <Schule />}
           {tab === "ki" && <Setup status={status} embedded onDone={onDone} />}
           {tab === "datenschutz" && <Datenschutz />}
         </div>

@@ -9,6 +9,7 @@ import PDFDocument from "pdfkit";
 import SVGtoPDF from "svg-to-pdfkit";
 import { FORMEL_SCHRIFT, formelSvg, setFormelSchrift } from "./formel.ts";
 import { klartext, setzeSatz, type Maße, type SatzOptionen } from "./formel-satz.ts";
+import { schulkopf, type Schulkopf } from "../schule/index.ts";
 
 export class MaterialError extends Error {}
 
@@ -152,6 +153,48 @@ function formulaBlock(doc: PDFKit.PDFDocument, text: string, o: SatzOptionen) {
   return setzeSatz(text, { ...o, clean: printable }, measures(doc));
 }
 
+/** Room for the school head: the logo fits into this box, whatever its shape. */
+export const SCHOOL_LOGO_BOX = { w: mm(44), h: mm(13) };
+const SCHOOL_GAP = mm(3.5);
+
+/** Size of a logo in points when it is fitted into the box (never larger than the box, never distorted). */
+export function logoSize(w: number, h: number): { w: number; h: number } {
+  const scale = Math.min(SCHOOL_LOGO_BOX.w / w, SCHOOL_LOGO_BOX.h / h);
+  return { w: w * scale, h: h * scale };
+}
+
+/**
+ * Draws the school head at the current position: logo on the left, the name next to it, a thin rule below.
+ * Returns how far the drawing moved down, so the title and the kicker line below it never overlap.
+ */
+function schoolHead(sheet: Sheet, school: Schulkopf): number {
+  const { doc, left, width } = sheet;
+  const logo = school.logo ? logoSize(school.logo.width, school.logo.height) : undefined;
+  const nameX = left + (logo ? logo.w + mm(4) : 0);
+  const nameW = width - (nameX - left);
+  let name: { text: string; size: number; h: number } | undefined;
+  if (school.name) {
+    // Two lines at most. A long name gets smaller, and as a last resort ends with "…".
+    const text = printable(school.name);
+    for (const size of [11, 9.5, 8.5]) {
+      doc.font(SANS_SEMIBOLD).fontSize(size);
+      const h = doc.heightOfString(text, { width: nameW, lineGap: 1 });
+      const oneLine = doc.currentLineHeight(true) + 1;
+      name = { text, size, h: Math.min(h, oneLine * 2) };
+      if (h <= oneLine * 2 + 0.01) break;
+    }
+  }
+  const rowH = Math.max(logo?.h ?? 0, name?.h ?? 0);
+  const top = sheet.y;
+  if (logo && school.logo) doc.image(school.logo.png, left, top + (rowH - logo.h) / 2, { width: logo.w, height: logo.h });
+  if (name) {
+    doc.font(SANS_SEMIBOLD).fontSize(name.size).fillColor(INK).text(name.text, nameX, top + (rowH - name.h) / 2, { width: nameW, height: name.h, lineGap: 1, ellipsis: true });
+  }
+  const ruleY = top + rowH + SCHOOL_GAP / 2;
+  doc.save().moveTo(left, ruleY).lineTo(left + width, ruleY).lineWidth(0.5).strokeColor(LINE).stroke().restore();
+  return rowH + SCHOOL_GAP + mm(1);
+}
+
 export interface Sheet {
   doc: PDFKit.PDFDocument;
   left: number;
@@ -229,6 +272,8 @@ export function newSheet(title: string): Sheet {
       return rich.hoehe;
     },
     header({ kicker, title: heading, fields = [] }) {
+      const school = schulkopf();
+      if (school) sheet.y += schoolHead(sheet, school);
       // One quiet line on top: the kicker on the left, the write-in fields (name, date) on the right. Then the title, then a thin rule.
       const slots = fields.map((label) => ({ label, w: /datum/i.test(label) ? mm(32) : mm(54) }));
       const fieldsW = slots.reduce((n, f) => n + f.w + mm(4), 0);
