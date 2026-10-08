@@ -8,6 +8,7 @@ Pult ist ein schlanker KI-Arbeitsplatz für Lehrkräfte (Chat, geführte Materia
 - Hake erledigte Punkte in `ROADMAP.md` ab und halte das Datum "Stand" aktuell.
 - Bei einer Entscheidung, die aus den Dokumenten nicht hervorgeht (Tech-Stack, Bibliothek, Name), frag den Nutzer, statt zu raten.
 - Bevor du etwas als fertig meldest, führe es aus und prüfe es: Tests laufen, die Oberfläche wurde angesehen, erzeugte Dateien wurden geöffnet.
+- Nach einer Änderung an einer mitgelieferten Anleitung zuerst der schnelle Vortest mit Jev (`npm run eval -- … --pruefer jev`, rund ein Cent). Die Zahlen für `evals/BASELINE.md` und die Sperrliste misst ein Sprachmodell als Prüfer. Siehe `docs/entscheidungen/015-jev-vortest.md`.
 - Nichts erfinden: Fehlt eine Angabe, bleibt das Feld leer oder du fragst nach.
 
 ## Sprache
