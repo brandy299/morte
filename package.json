@@ -13,7 +13,8 @@
     "start": "node scripts/start.mjs",
     "test": "vitest run",
     "typecheck": "tsc",
-    "eval": "tsx scripts/eval.mts"
+    "eval": "tsx scripts/eval.mts",
+    "bogen": "tsx scripts/bogen.mts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "1.0.3",
