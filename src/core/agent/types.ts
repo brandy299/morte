@@ -1,3 +1,4 @@
+import type { LogEntry } from "./ablauf.ts";
 import type { Frage, Gegeben } from "./fragen.ts";
 /**
  * Events the rest of the app sees. No pi types leave src/core/agent,
@@ -51,9 +52,9 @@ export interface ChatSession {
   canRetry(): boolean;
   usage(): UsageSnapshot;
   /** What is needed to continue this conversation later: the model's messages (pictures reduced to text) and the usage numbers. */
-  history(): { messages: unknown[]; usage: UsageSnapshot };
+  history(): { messages: unknown[]; usage: UsageSnapshot; log: LogEntry[] };
   /** Continues an earlier conversation. Replaces the current one. */
-  restore(state: { messages: unknown[]; usage?: Partial<UsageSnapshot> }): void;
+  restore(state: { messages: unknown[]; usage?: Partial<UsageSnapshot>; log?: unknown[] }): void;
   /** Answers a `confirm` event. */
   answer(id: string, allow: boolean): void;
   /** Answers a `fragen` event with one choice per question. `undefined` skips the questions. Returns false when the choices do not fit. */
