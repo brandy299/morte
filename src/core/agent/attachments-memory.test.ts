@@ -33,8 +33,8 @@ const events = async (run: (on: (e: ChatEvent) => void) => Promise<void>) => {
 
 describe("old attachments leave the model's memory", () => {
   it("replaces pictures and file text with notes one round later, once the memory is half full, and keeps the last rounds", async () => {
-    // A memory of 20,000 tokens. The instructions and tool descriptions take about 7,000, one file of 30,000 characters (7,500 tokens) the rest to more than half.
-    const { session, seen } = make(20_000);
+    // A memory of 24,000 tokens. The instructions and tool descriptions take about 8,000 (more tools, more tokens: raise the memory here when this grows), one file of 30,000 characters (7,500 tokens) the rest to more than half.
+    const { session, seen } = make(24_000);
     await session.send(withFiles("Mach daraus ein Blatt.", [file("arbeitsblatt.docx", 30_000)]), () => {}, [{ data: "AAAA", mimeType: "image/png" }]);
     expect(text(firstUser(seen[0]!))).toContain("Inhalt von arbeitsblatt.docx");
 
