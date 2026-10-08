@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -105,6 +105,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 ## Phase 6: Ausrollen für Kollegen
 
+- [~] Probelauf mit zwei bis drei Kolleginnen und Kollegen: Anleitung `docs/probelauf.md` und Rückmeldebogen `docs/probelauf-rueckmeldebogen.docx` (`npm run bogen`) stehen. Offen: Test mit einer Person, die Pult nicht kennt (beobachtet, nicht erklärt), `npm start` auf Windows, Test des Bogens in Word
 - [ ] Installer als normales Programm, Mac und Windows
 - [ ] Login und DSGVO-konformes Backend (EU-Hosting, Auftragsverarbeitung, Auswahl nach Datenschutz kennzeichnen)
 - [ ] Abstimmung mit Schulleitung und Datenschutzbeauftragten
