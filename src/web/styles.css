@@ -19,6 +19,8 @@
   --accent: #b4532a;
   --accent-deep: #9a4421;
   --accent-wash: #f3dfd3;
+  /* Marked text: clearly visible on every surface, also on the teacher's own messages. */
+  --selection: #dbae98;
   --accent-ink: #fff8ef;
   --ok: #3f6b4f;
   --danger-ink: #8a2d12;
@@ -48,6 +50,8 @@
   --accent: #d97a4c;
   --accent-deep: #eb9a70;
   --accent-wash: #3b2b21;
+  /* Marked text: clearly visible on every surface, also on the teacher's own messages. */
+  --selection: #72462f;
   --accent-ink: #1d1208;
   --ok: #8fc79f;
   --danger-ink: #f2ae94;
@@ -63,12 +67,12 @@
   color-scheme: dark;
   --k0: #7fa6d6; --k1: #84bb88; --k2: #d6a24a; --k3: #cf8fb3; --k4: #62b5ba; --k5: #de8a7a; --k6: #9aabbd; --k7: #aebb55;
 }
-:root[data-accent="salbei"] { --accent: #4f6f52; --accent-deep: #3d5a40; --accent-wash: #e1eadf; --accent-ink: #f6faf4; }
-:root[data-accent="blau"] { --accent: #3f6591; --accent-deep: #2f5079; --accent-wash: #dde7f2; --accent-ink: #f5f9fd; }
-:root[data-accent="pflaume"] { --accent: #85476b; --accent-deep: #6e3858; --accent-wash: #eedde7; --accent-ink: #fdf6fa; }
-:root[data-theme="dark"][data-accent="salbei"] { --accent: #6fa073; --accent-deep: #94c398; --accent-wash: #243329; --accent-ink: #0d1a0f; }
-:root[data-theme="dark"][data-accent="blau"] { --accent: #6b9bd0; --accent-deep: #94b9e3; --accent-wash: #212e3d; --accent-ink: #08131f; }
-:root[data-theme="dark"][data-accent="pflaume"] { --accent: #c47ba3; --accent-deep: #dba0c0; --accent-wash: #3a2433; --accent-ink: #1c0c15; }
+:root[data-accent="salbei"] { --accent: #4f6f52; --accent-deep: #3d5a40; --accent-wash: #e1eadf; --accent-ink: #f6faf4; --selection: #aebaaa; }
+:root[data-accent="blau"] { --accent: #3f6591; --accent-deep: #2f5079; --accent-wash: #dde7f2; --accent-ink: #f5f9fd; --selection: #a6b6c6; }
+:root[data-accent="pflaume"] { --accent: #85476b; --accent-deep: #6e3858; --accent-wash: #eedde7; --accent-ink: #fdf6fa; --selection: #c6a8b5; }
+:root[data-theme="dark"][data-accent="salbei"] { --accent: #6fa073; --accent-deep: #94c398; --accent-wash: #243329; --accent-ink: #0d1a0f; --selection: #425741; }
+:root[data-theme="dark"][data-accent="blau"] { --accent: #6b9bd0; --accent-deep: #94b9e3; --accent-wash: #212e3d; --accent-ink: #08131f; --selection: #40556b; }
+:root[data-theme="dark"][data-accent="pflaume"] { --accent: #c47ba3; --accent-deep: #dba0c0; --accent-wash: #3a2433; --accent-ink: #1c0c15; --selection: #684657; }
 :root[data-calm] *, :root[data-calm] *::before, :root[data-calm] *::after { animation: none !important; transition: none !important; }
 
 * { box-sizing: border-box; }
@@ -79,7 +83,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: default; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-::selection { background: var(--accent-wash); }
+::selection { background: var(--selection); }
 
 /* Buttons used everywhere */
 .primary { padding: 12px 20px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font-weight: 600; transition: background 0.15s; }
@@ -620,6 +624,13 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .chat-bar { display: flex; justify-content: flex-end; padding: 8px 20px 0; }
 .export-link { font-size: 14px; color: var(--ink-soft); text-decoration: none; padding: 4px 12px; border-radius: 999px; border: 1px solid transparent; transition: border-color 0.15s, color 0.15s; }
 .export-link:hover { color: var(--accent-deep); border-color: var(--line); }
+.copy-msg { display: block; margin-top: 6px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink-soft); font: inherit; font-family: var(--sans); font-size: 13px; cursor: pointer; transition: opacity 0.15s, border-color 0.15s; }
+/* Next to the teacher's own bubble, so the bubble keeps its size. */
+.msg.user { position: relative; }
+.msg.user .copy-msg { position: absolute; right: calc(100% + 8px); top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap; }
+.copy-msg:hover { border-color: var(--ink-soft); color: var(--ink); }
+/* With a mouse the button appears on hover; on touch screens it always shows. */
+@media (hover: hover) { .copy-msg { opacity: 0; } .msg:hover .copy-msg, .copy-msg:focus-visible { opacity: 1; } }
 .zip-link { display: inline-block; margin-top: 12px; font-size: 15px; color: var(--accent-deep); }
 .zip-link:hover { text-decoration-thickness: 2px; }
 

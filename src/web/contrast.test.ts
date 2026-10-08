@@ -41,6 +41,11 @@ describe.each(Object.entries(themes))("colors (%s)", (_name, selectors) => {
       expect(ratio(t(text), t(surface)), `${text} auf ${surface}`).toBeGreaterThanOrEqual(4.5);
     }
   });
+  it("marked text stands out on every surface and stays readable", () => {
+    expect(t("selection")).not.toBe("");
+    for (const surface of ["paper", "paper-deep", "card"]) expect(ratio(t("selection"), t(surface)), `Markierung auf ${surface}`).toBeGreaterThanOrEqual(1.5);
+    expect(ratio(t("ink"), t("selection"))).toBeGreaterThanOrEqual(4.5);
+  });
   it("button text is readable on the accent color", () => {
     expect(ratio(t("accent-ink"), t("accent"))).toBeGreaterThanOrEqual(4.5);
   });

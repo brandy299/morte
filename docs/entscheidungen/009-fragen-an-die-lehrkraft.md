@@ -13,6 +13,7 @@ Fehlen dem Assistenten mehrere Angaben, stellt er sie nicht als Fließtext, sond
 - Immer möglich: "Etwas anderes" mit eigenem Text, "Alle Empfehlungen übernehmen" und "Überspringen". Zurückgehen und ändern geht bis zum Senden.
 - Die Antworten werden geprüft: Sie müssen zu den gestellten Fragen passen, eigene Antworten sind auf 600 Zeichen begrenzt.
 - "Anhalten" beendet das Warten. Im Gespräch bleiben die Fragen und Antworten sichtbar (mit "empfohlen" am Rand), gespeichert wird ohne den Text der Begründung.
+- Kann der Assistent etwas nicht und bietet eine Alternative an, fragt er mit `fragen_stellen` (Alternative als Empfehlung, dazu „Nein, etwas anderes“) und stellt im selben Aufruf die übrigen offenen Fragen. Vorher stand diese Frage im Text, dabei kamen Rückfragen ohne Auswahl heraus (Rückmeldung von Yannik, 2026-10-08).
 - Eine einzelne Ja/Nein-Rückfrage darf weiter im Text stehen. Fragen nach Dingen, die der Assistent selbst entscheiden soll (zum Beispiel "Soll ich einen Entwurf machen?"), sind verboten.
 - Die Anleitungen (Skills) verweisen auf das Werkzeug. Im Prüflauf (`npm run eval`) gibt es keine Lehrkraft, dort werden die Empfehlungen übernommen.
 
