@@ -18,7 +18,7 @@ github.com/vastsa/pi-desktop, Stand 0.16.x "Early Preview"
 - **Nutzen:** Sehr gute Referenz. Es zeigt, dass pi als Kern einer Desktop-App trägt, und wie Electron, Sidecar, Provider-Einstellungen und Sprachfunktionen zusammenspielen. Ideen übernehmen ja, Code nicht kopieren.
 
 ### B) pi als Bibliothek: `@earendil-works/pi-ai` + `@earendil-works/pi-agent-core`
-github.com/badlogic/pi-mono, Version 1.0.3, Lizenz MIT, TypeScript, sehr aktiv
+github.com/badlogic/pi-mono, bei der Entscheidung Version 1.0.3 (seit 2026-10-08: 1.1.0, wegen neuer Modelle im Katalog, z. B. Claude Haiku 5.5 über OpenCode Go), Lizenz MIT, TypeScript, sehr aktiv
 
 - **pi-ai:** einheitliche API für viele Anbieter, darunter Anthropic, OpenAI, DeepSeek, Google, Mistral, OpenRouter und jede OpenAI-kompatible Schnittstelle (auch lokale wie Ollama). Streaming, Tool-Calling, Bilder, Abbruch, Token- und Kostenzählung, Wechsel des Modells mitten im Gespräch.
 - **Eingebauter Modellkatalog:** Der Chat-Katalog enthält nur Modelle mit Tool-Calling, und jedes Modell sagt, ob es Bilder versteht (`model.input.includes('image')`). Damit lässt sich unsere Mindestanforderung (Tool-Calling und Vision) direkt prüfen, ohne eigene Modellprofile zu pflegen.
