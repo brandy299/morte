@@ -69,6 +69,8 @@ Recherche: `docs/recherche/mathe-formeln.md`. Kernaussage: Pult setzt heute **ke
 
 **Mathe am Berufskolleg** heißt voraussichtlich Prozent-, Zins- und Dreisatzrechnung, Kalkulation, lineare und quadratische Funktionen. Das ist eine Annahme aus den Bildungsgängen, **nicht** vom Kollegen bestätigt. Sie macht Stochastik, Geometrie und Pyodide zunächst unwichtig.
 
+**Geschichte (Gymnasium)** braucht Bilder aus Wikimedia Commons mit Lizenzangabe (#22; Recherche `docs/recherche/bilder-commons.md`). Entscheidung von Yannik: Symbole wie das Hakenkreuz dürfen im Unterrichtsmaterial vorkommen, Pult sperrt sie nicht, und es sind echte Quellen von Commons, nicht selbst gezeichnet. Offen: Zitate nur mit Quellenangabe (Regel für die Geschichts-Anleitung), kommt nach der Gegenlese am Samstag.
+
 Englisch und INWI brauchen nach heutigem Stand keine neuen Bausteine, aber eigene Anleitungen und Prüfläufe: **Geschäftsbrief** (Form nach DIN 5008, Word-Ausgabe), **Business Letter** (englische Konventionen), **Bewerbung** (Anschreiben und Lebenslauf). Ob die mitgelieferten Anleitungen das schon abdecken, ist nicht geprüft und gehört in die Messung (#16).
 
 ## Nicht jetzt
