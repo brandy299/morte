@@ -135,6 +135,23 @@ describe("the report", () => {
 });
 
 describe("saved rules and own templates", () => {
+  it("the check G-GESPEICHERT looks at what really stands in the folder, not at what the assistant says", () => {
+    const kase2 = (gespeichert?: string) => kase({ gespeichert });
+    const said = transcript({ turns: [turn("Die Vorlage ist gespeichert.")] });
+    expect(PROGRAMM["G-GESPEICHERT"]!(kase2(), said).bestanden).toBeNull();
+    expect(PROGRAMM["G-GESPEICHERT"]!(kase2("=== Eigene Vorlage:"), said).bestanden).toBe(false);
+    expect(PROGRAMM["G-GESPEICHERT"]!(kase2("=== Eigene Vorlage:"), transcript({ gespeichert: "=== Eigene Vorlage: x ===\ntext" })).bestanden).toBe(true);
+  });
+
+  it("the judge is asked again when its answer is no list, and the case is not played again", async () => {
+    let asked = 0;
+    const judge = { vision: false, complete: async () => (++asked < 3 ? "Ich denke, alles ist gut." : '[{"id":"P1","bestanden":true,"grund":"x"}]') };
+    expect(await judgeCase(judge, kase(), transcript(), [crit("P1")])).toEqual([{ id: "P1", bestanden: true, grund: "x" }]);
+    expect(asked).toBe(3);
+    const bad = { vision: false, complete: async () => "nie JSON" };
+    await expect(judgeCase(bad, kase(), transcript(), [crit("P1")])).rejects.toThrow(/kein JSON/);
+  });
+
   it("are collected at the end of a run and shown to the judge", async () => {
     const faux = fauxProvider();
     faux.setResponses([

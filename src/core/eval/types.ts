@@ -32,6 +32,8 @@ export interface EvalCase {
     fassungen?: number;
     /** No file may be created in the first turn (the plan is shown first). */
     erstVorschlag?: boolean;
+    /** Text that must stand in the saved assessment rules or templates at the end (see Transcript.gespeichert). */
+    gespeichert?: string;
   };
 }
 

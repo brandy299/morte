@@ -45,8 +45,15 @@ export function parseVerdicts(answer: string, kriterien: Criterion[]): Verdict[]
   });
 }
 
+/** Asks the judge. When its answer is no usable list, only the judge is asked again (up to three times), so the case does not have to be played anew. */
 export async function judgeCase(judge: Completer, c: EvalCase, t: Transcript, kriterien: Criterion[]): Promise<Verdict[]> {
   if (kriterien.length === 0) return [];
-  const answer = await judge.complete({ system: SYSTEM, text: judgePrompt(c, t, kriterien) }, AbortSignal.timeout(180_000));
-  return parseVerdicts(answer, kriterien);
+  for (let attempt = 1; ; attempt++) {
+    const answer = await judge.complete({ system: SYSTEM, text: judgePrompt(c, t, kriterien) }, AbortSignal.timeout(180_000));
+    try {
+      return parseVerdicts(answer, kriterien);
+    } catch (err) {
+      if (attempt >= 3) throw err;
+    }
+  }
 }

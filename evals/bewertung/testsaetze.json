@@ -2,17 +2,23 @@
   {
     "id": "be-vollstaendig",
     "nachrichten": [
-      "Für die 11a gelten bei uns neue Regeln für Klausuren, bitte trag sie ein und ersetze die alten. Anforderungsbereiche: I Wiedergeben 25 Prozent, II Anwenden 50 Prozent, III Beurteilen 25 Prozent. Notenschlüssel: 1 ab 90 Prozent, 2 ab 80, 3 ab 65, 4 ab 50, 5 ab 25, 6 darunter. Mehr gibt es nicht."
+      "Für die 11a gelten bei uns neue Regeln für Klausuren, bitte trag sie ein und ersetze die alten. Anforderungsbereiche: I Wiedergeben 25 Prozent, II Anwenden 50 Prozent, III Beurteilen 25 Prozent. Notenschlüssel: 1 ab 90 Prozent, 2 ab 80, 3 ab 65, 4 ab 50, 5 ab 25, 6 darunter. Mehr gibt es nicht.",
+      "Ja, das stimmt so. Bitte speichern."
     ],
-    "erwartet": {}
+    "erwartet": {
+      "gespeichert": "- 1: ab 90 %"
+    }
   },
   {
     "id": "be-knapp",
     "nachrichten": [
       "Ich möchte meinen Notenschlüssel eintragen. Eine 1 gibt es bei uns ab 90 Prozent, eine 2 ab 80.",
-      "Das gilt für die 11a. Die 3 gibt es ab 65, die 4 ab 50, die 5 ab 25 und die 6 darunter. Anforderungsbereiche haben wir keine."
+      "Das gilt für die 11a. Die 3 gibt es ab 65, die 4 ab 50, die 5 ab 25 und die 6 darunter. Anforderungsbereiche haben wir keine.",
+      "Ja, das stimmt so. Bitte speichern."
     ],
-    "erwartet": {}
+    "erwartet": {
+      "gespeichert": "- 1: ab 90 %"
+    }
   },
   {
     "id": "be-lesen",
