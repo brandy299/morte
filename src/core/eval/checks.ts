@@ -49,6 +49,10 @@ export const PROGRAMM: Record<string, Check> = {
     const sheets = t.files.filter((f) => f.art === "pdf" && /Arbeitsblatt-/.test(f.name));
     return sheets.length === c.erwartet.fassungen ? ok(`${sheets.length} Fassungen erstellt.`) : fail(`${sheets.length} statt ${c.erwartet.fassungen} Fassungen erstellt.`);
   },
+  "G-GESPEICHERT": (c, t) => {
+    if (!c.erwartet.gespeichert) return na;
+    return t.gespeichert?.includes(c.erwartet.gespeichert) ? ok("Das Erwartete steht gespeichert im Arbeitsordner.") : fail("Es wurde nicht gespeichert, was die Lehrkraft verlangt hat, auch wenn der Assistent es vielleicht behauptet.");
+  },
   "G-VORSCHLAG": (c, t) => {
     if (!c.erwartet.erstVorschlag) return na;
     const first = t.turns[0];

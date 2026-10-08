@@ -63,7 +63,7 @@ function fact(sheet: Sheet, label: string, value: string): void {
   const h = sheet.height(value, SANS, 10.5, width - labelW);
   sheet.room(h + 6);
   doc.font(SANS).fontSize(7.5).fillColor(SOFT).text(printable(label).toUpperCase(), left, sheet.y + 2.5, { width: labelW, characterSpacing: 1, lineBreak: false });
-  doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(value), left + labelW, sheet.y, { width: width - labelW, lineGap: 2.5 });
+  sheet.text(value, left + labelW, sheet.y, { size: 10.5, width: width - labelW });
   sheet.y += h + 6;
 }
 
