@@ -48,6 +48,26 @@ Quelle: README, `CUSTOM_DISTROS.md` und goose-docs.ai, Stand 2026-10-07. Projekt
 - **ACP-Anbieter:** goose nutzt vorhandene Claude- oder ChatGPT-Abos über Zusatzprogramme (Node, Befehlszeilen-Anmeldung). Der Wunsch dahinter (kein Schlüssel nötig) ist richtig, der Weg widerspricht "Alles in der App". Nicht übernehmen.
 - **Telemetrie:** goose sendet optional Nutzungsdaten (PostHog). Pult sendet nichts und soll das so lassen.
 
+## DeepSeek Harness, ausgewertet
+
+Quelle: GitHub-Themenseite `deepseek-harness` (20 von 14.287 Einträgen gesehen, Liste über einen Zusammenfasser, nicht einzeln geprüft), dazu README, `SAFETY.md`, `docs/architecture.md` und `docs/subsystems/compaction.md` des Originals `deepseek-ai/deepseek-harness`, Stand 2026-10-08. Lizenz MIT (LICENSE geprüft), TypeScript, "developer preview", die README warnt vor Brüchen. Nicht gelesen: der Code selbst.
+
+**Die Themenseite ist fast nur Lärm.** Die meisten Einträge sind Plugins, Oberflächen und Sammlungen rund um `dsh` (Seitenleisten, Marktplatz, Guthaben-Widget, Speicher-Schichten) oder haben mit dem Thema wenig zu tun. Schulbezug: keiner. Die Sternezahlen (teils 30.000 bis 100.000 bei Projekten mit wenigen Wochen) sind mit Vorsicht zu lesen, ich habe sie nicht geprüft.
+
+**Der Kern von `dsh` ist das Gegenteil von Pult.**
+- "Alles ist ein Plugin": Modell, Werkzeuge, Sitzungsprotokoll, sogar die Hauptschleife lassen sich austauschen (Rahmenwerk Cordis). Pult will das Gegenteil: wenige feste Werkzeuge, ein Agent.
+- Es ist ein Programmier-Agent. Er führt vom Modell erzeugten Code und Befehle aus. Die eigene `SAFETY.md` sagt, dass Berechtigungsabfragen und Sandbox das nicht sicher machen. Pult schließt genau das aus (keine freie Shell).
+- Plugins laufen mit den Rechten der Nutzerin oder des Nutzers. Nicht vereinbar mit "Kolleginnen und Kollegen ohne technischen Hintergrund".
+
+**Was sich trotzdem lohnt (drei unabhängige Quellen sind sich einig):**
+1. **Alte Werkzeug-Ergebnisse getrennt kürzen**, nicht nur das Gespräch zusammenfassen. goose kürzt ältere Werkzeug-Ausgaben im Hintergrund, OpenCode hat die Einstellung `prune`, dsh hat einen eigenen "Tool-Result-Pruner". Dazu kommt bei dsh **"Image Offload"**: alte Bilder verlassen das Gedächtnis, ein Platzhalter bleibt. Bei Pult ist das mehr als eine Spielerei: Anhänge können laut `src/core/anhang/extract.ts` bis zu 80.000 Zeichen Text je Nachricht haben (etwa 20.000 Tokens), dazu bis zu acht Bilder. Das bleibt wortwörtlich im Gespräch, bis die Zusammenfassung greift. Ein eigener Server hat standardmäßig nur 32.000 Tokens Gedächtnis. → Issue.
+2. **Zusammenfassen mit Spur im Protokoll:** dsh schreibt Anfang, Ergebnis und Ende des Zusammenfassens ins Sitzungsprotokoll, mit einer Sperre, die einen Absturz mittendrin erkennbar macht. Bei Pult liegt das Gedächtnis im Arbeitsspeicher und wird mit dem Gespräch gespeichert. Ein Absturz mittendrin kostet höchstens eine Zusammenfassung. Kein Handlungsbedarf, aber gut zu wissen.
+3. **Stabiler Anfang des Prompts:** dsh fügt veränderliche Angaben als eigene Nachricht an, statt den Systemtext zu ändern, damit der Anfang gleich bleibt und der Zwischenspeicher des Anbieters greift (bei DeepSeek bares Geld). Pult ändert den Systemtext im Gespräch nicht, die Voraussetzung ist also erfüllt. Beim Bauen neuer Funktionen beachten: nichts Veränderliches in `SYSTEM_PROMPT` schreiben.
+
+**Was Pult schon hat und dsh auch:** Wieder öffnen eines Gesprächs mit dem Gedächtnis des Modells (`restore`), Zusammenfassen bei vollem Gedächtnis, Rückfragen vor Änderungen, Fortschrittsanzeige aus den Ereignissen, Wiederholung bei Netzfehlern.
+
+**Nicht geprüft:** wie dsh den Nutzer bei langen Aufgaben unterbricht und umlenkt, wie die Plugin-Verwaltung für Nicht-Entwickler aussieht, und ob die Bedienoberfläche etwas Brauchbares kann. Das wäre erst relevant, wenn Pult einmal Erweiterungen von außen zulässt, was nicht geplant ist.
+
 ## skills.sh, ausgewertet
 
 Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheitsprüfungen und Dokumentation. Betreiber ist Vercel. Die Rangliste beruht auf anonymen Installationszahlen der `skills`-Befehlszeile (`npx skills add owner/repo`). Es ist ein Verzeichnis, kein Prüfsiegel: Vercel schreibt selbst, dass es Qualität und Sicherheit der Skills nicht garantiert. Die Sicherheitsseite fasst Prüfungen von drei Diensten zusammen, bei etlichen Skills mit "Med Risk" oder "High Risk".
