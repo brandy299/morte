@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stilprobe Editorial – Pult</title>
+<style>
+/* Stilprobe, kein Produktivcode. Schriften und Farben sind die der App (assets/fonts, docs/marke.md). Alle Daten sind frei erfunden. */
+@font-face { font-family: "Fraunces"; src: url("../../assets/fonts/Fraunces_400Regular.ttf"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "Fraunces"; src: url("../../assets/fonts/Fraunces_400Regular_Italic.ttf"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Fraunces"; src: url("../../assets/fonts/Fraunces_600SemiBold.ttf"); font-weight: 600 700; font-style: normal; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_400Regular.ttf"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_400Regular_Italic.ttf"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_600SemiBold.ttf"); font-weight: 500 600; font-style: normal; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_700Bold.ttf"); font-weight: 700; font-style: normal; }
+
+:root {
+  --paper: #f4efe6; --paper-deep: #ebe4d6; --card: #fbf8f2;
+  --ink: #23201b; --ink-soft: #5f594e; --line: #d9d0bf;
+  --accent: #b4532a; --accent-wash: #f3dfd3;
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Source Sans 3", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: #d8d1c2; }
+body { margin: 0; padding: 32px 24px 80px; font-family: var(--sans); color: var(--ink); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-align: left; }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+
+/* ---------- Rahmen um die Tafeln ---------- */
+.intro { max-width: 1280px; margin: 0 auto 28px; }
+.intro h1 { font-family: var(--serif); font-weight: 400; font-size: 34px; letter-spacing: -0.01em; }
+.intro p { color: var(--ink-soft); max-width: 62ch; margin-top: 6px; }
+.tafel-label { max-width: 1280px; margin: 40px auto 10px; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.tafel-label b { color: var(--accent); margin-right: 8px; }
+.fit { margin: 0 auto; width: 1280px; max-width: 100%; }
+.tafel { width: 1280px; height: 800px; background: var(--paper); transform-origin: 0 0; box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 18px 50px rgba(35,32,27,.18); overflow: hidden; position: relative; }
+
+/* Editorial-Bausteine */
+.kicker { font-family: var(--sans); font-size: 11.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.kicker.rost { color: var(--accent); }
+.rule-thick { border-top: 3px double var(--ink); }
+.rule { border-top: 1px solid var(--ink); }
+.hair { border-top: 1px solid var(--line); }
+
+/* ---------- Tafel 1: App ---------- */
+.app { display: grid; grid-template-columns: 252px 1fr 392px; height: 100%; }
+.side { padding: 26px 22px 18px; border-right: 1px solid var(--ink); display: flex; flex-direction: column; gap: 22px; background: var(--paper-deep); }
+.side .logo { height: 30px; display: block; align-self: flex-start; }
+.side .neu { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); font-weight: 600; font-size: 15px; }
+.side .neu span:last-child { font-family: var(--serif); font-size: 20px; line-height: 1; color: var(--accent); }
+.toc h3 { margin-bottom: 8px; }
+.toc li { display: flex; align-items: baseline; gap: 6px; padding: 3px 0; font-size: 15.5px; }
+.toc li::after { content: ""; order: 2; flex: 1; border-bottom: 1px dotted var(--ink-soft); transform: translateY(-3px); min-width: 12px; }
+.toc li > :first-child { order: 1; }
+.toc li > :last-child { order: 3; font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 14px; }
+.toc li.sub { padding-left: 14px; font-size: 14.5px; color: var(--ink-soft); }
+.toc li.on > :first-child { font-weight: 600; color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.verlauf li { font-family: var(--serif); font-size: 15px; padding: 5px 0; border-top: 1px solid var(--line); color: var(--ink-soft); }
+.verlauf li.on { color: var(--ink); font-style: italic; }
+.side .foot { margin-top: auto; font-size: 14px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; }
+
+.main { display: flex; flex-direction: column; min-width: 0; border-right: 1px solid var(--ink); }
+.head { display: flex; justify-content: space-between; padding: 14px 40px 10px; border-bottom: 3px double var(--ink); }
+.chat { flex: 1; padding: 28px 40px 0 40px; overflow: hidden; display: flex; flex-direction: column; gap: 22px; }
+.notiz { align-self: flex-end; max-width: 78%; border-right: 3px solid var(--accent); padding: 2px 16px 2px 0; text-align: right; font-style: italic; font-family: var(--serif); font-size: 17px; color: var(--ink-soft); }
+.artikel h2 { font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1.06; letter-spacing: -0.02em; margin: 6px 0 10px; }
+.artikel .vorspann { font-family: var(--serif); font-style: italic; font-size: 19px; line-height: 1.4; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--ink); margin-bottom: 14px; }
+.artikel .text { font-family: var(--serif); font-size: 17.5px; line-height: 1.62; columns: 2; column-gap: 28px; column-rule: 1px solid var(--line); hyphens: auto; text-align: left; }
+.artikel .text p + p { margin-top: .6em; }
+.artikel .text p:first-child::first-letter { font-family: var(--serif); font-weight: 600; float: left; font-size: 3.7em; line-height: .8; padding: .06em .08em 0 0; color: var(--accent); }
+.schritte { display: flex; gap: 0; border-top: 1px solid var(--line); margin-top: 16px; padding-top: 10px; font-size: 13.5px; color: var(--ink-soft); }
+.schritte li { flex: 1; display: flex; gap: 8px; align-items: baseline; }
+.schritte li b { font-family: var(--serif); font-size: 17px; color: var(--ink); font-weight: 400; }
+.schritte li.done b { color: var(--accent); }
+.beilage { display: flex; align-items: baseline; gap: 12px; margin-top: 14px; padding: 9px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); font-size: 15px; }
+.beilage .kicker { color: var(--accent); }
+.beilage strong { font-weight: 600; }
+.beilage .grow { flex: 1; }
+.beilage a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 2px; font-weight: 600; }
+.composer { padding: 14px 40px 22px; }
+.composer .feld { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 12px 0; display: flex; gap: 16px; align-items: baseline; }
+.composer .feld p { flex: 1; font-family: var(--serif); font-style: italic; color: var(--ink-soft); font-size: 17px; }
+.composer .senden { font-weight: 600; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; box-shadow: inset 0 -2px 0 var(--accent); padding-bottom: 1px; }
+
+.vorschau { background: var(--paper-deep); padding: 14px 24px 20px; display: flex; flex-direction: column; gap: 12px; }
+.vorschau .vk { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid var(--ink); }
+.vorschau .vk strong { font-family: var(--serif); font-weight: 600; font-size: 17px; }
+.mini { flex: 1; background: #fff; box-shadow: 0 10px 28px rgba(35,32,27,.2); padding: 26px 26px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+
+/* ---------- Blatt (Arbeitsblatt-Optik, genutzt in Tafel 1 und 3) ---------- */
+.blatt { font-family: var(--serif); color: #1c1a16; }
+.blatt .kopf { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #5a554b; padding-bottom: 5px; border-bottom: 2px solid #1c1a16; }
+.blatt h2 { font-weight: 400; font-size: 28px; line-height: 1.05; letter-spacing: -0.02em; margin-top: 12px; }
+.blatt h2 em { color: var(--accent); }
+.blatt .lead { font-style: italic; font-size: 12px; line-height: 1.4; color: #3d392f; margin-top: 6px; }
+.bal { height: 7px; background: #d7d1c3; margin-top: 7px; }
+.bal.s { width: 72%; } .bal.k { width: 45%; }
+
+/* ---------- Tafel 2: Dashboard ---------- */
+.zeitung { height: 100%; padding: 30px 48px 0; display: flex; flex-direction: column; }
+.mast { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; padding-bottom: 10px; }
+.mast .titel { font-family: var(--serif); font-size: 60px; line-height: .95; letter-spacing: -0.03em; text-align: center; }
+.mast .titel i { color: var(--accent); }
+.mast .l { font-size: 12px; color: var(--ink-soft); }
+.mast .r { font-size: 12px; color: var(--ink-soft); text-align: right; }
+.datum { display: flex; justify-content: space-between; padding: 6px 0; border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.seiten { display: grid; grid-template-columns: 1.55fr 1px 1fr 1px 1fr; gap: 0 26px; flex: 1; padding-top: 20px; min-height: 0; }
+.vr { background: var(--ink); opacity: .85; }
+.spalte h2 { font-family: var(--serif); font-weight: 400; font-size: 27px; line-height: 1.08; letter-spacing: -0.015em; margin: 4px 0 12px; }
+.plan { width: 100%; border-collapse: collapse; font-size: 14px; }
+.plan th { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--ink-soft); text-align: left; padding: 0 8px 7px 0; border-bottom: 1px solid var(--ink); }
+.plan th.heute { color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+.plan td { padding: 13px 8px 13px 0; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.25; }
+.plan td.t { font-family: var(--serif); color: var(--ink-soft); width: 44px; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+.plan td b { font-weight: 600; display: block; }
+.plan td small { color: var(--ink-soft); font-size: 12.5px; }
+.plan td.heute { background: linear-gradient(var(--accent-wash), var(--accent-wash)) no-repeat left / 100% 100%; background-color: transparent; padding-left: 8px; }
+.plan td.leer { color: var(--line); }
+.plan td.heute.leer { color: var(--ink-soft); }
+.stand li { padding: 17px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+.stand li:first-child { border-top: 1px solid var(--ink); }
+.stand strong { font-family: var(--serif); font-weight: 600; font-size: 18px; }
+.stand .st { font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; align-self: center; color: var(--ink-soft); }
+.stand .st.neu { color: var(--accent); }
+.stand p { grid-column: 1 / -1; font-family: var(--serif); font-size: 15px; color: var(--ink-soft); line-height: 1.4; }
+.zitat { font-family: var(--serif); font-style: italic; font-size: 25px; line-height: 1.18; letter-spacing: -0.01em; padding: 14px 0; border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); margin-bottom: 18px; }
+.zitat b { font-weight: 400; box-shadow: inset 0 -.3em 0 var(--accent-wash); }
+.zuletzt li { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+.zuletzt li span:first-child { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; border: 1px solid var(--ink); padding: 0 5px; line-height: 1.5; }
+.zuletzt li span:last-child { margin-left: auto; color: var(--ink-soft); font-size: 13px; }
+.fuss { display: flex; justify-content: space-between; padding: 9px 0 14px; border-top: 1px solid var(--ink); font-size: 12px; color: var(--ink-soft); margin-top: 12px; }
+
+/* ---------- Tafel 3: Materialblatt ---------- */
+.zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; padding: 34px 48px 0; height: 100%; }
+.zwei figure figcaption { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.a4 { width: 100%; aspect-ratio: 1 / 1.414; background: #fff; box-shadow: 0 12px 34px rgba(35,32,27,.22); padding: 44px 46px 30px; display: flex; flex-direction: column; font-size: 12.5px; }
+.a4.grau { filter: grayscale(1); }
+.a4 .blatt-inner { flex: 1; display: flex; flex-direction: column; }
+.aufgaben { margin-top: 18px; display: flex; flex-direction: column; gap: 17px; }
+.aufgabe { display: grid; grid-template-columns: 24px 1fr; gap: 8px; line-height: 1.4; font-size: 12.5px; }
+.aufgabe b { font-family: var(--serif); font-weight: 600; font-size: 19px; line-height: 1; color: var(--accent); }
+.aufgabe .zeilen { margin-top: 8px; display: grid; gap: 19px; }
+.aufgabe .zeilen i { border-bottom: 1px solid #aaa294; height: 1px; display: block; }
+.schau { margin-top: 12px; border-top: 1px solid #1c1a16; border-bottom: 1px solid #1c1a16; padding: 8px 0 4px; }
+.schau svg { width: 100%; height: auto; display: block; }
+.schau figcaption { font-family: var(--sans); font-size: 9.5px; letter-spacing: .06em; color: #5a554b; padding-top: 4px; }
+.merk { margin: 18px 0 14px; padding: 8px 12px; border-left: 3px solid var(--accent); background: #f2eee5; font-size: 12px; line-height: 1.4; font-style: italic; }
+.blatt-fuss { margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1c1a16; padding-top: 6px; font-family: var(--sans); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #5a554b; }
+.blatt-fuss img { height: 13px; display: block; }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <div class="kicker rost">Stilprobe 1 von 5</div>
+  <h1>Editorial</h1>
+  <p>Zeitungs- und Buchsatz: Linien statt Kästen, Serifenschrift für alles, was gelesen wird, Rostrot nur als Satzzeichen. Schriften und Farben sind die der App, es kommt nichts Neues dazu. Alle Namen und Inhalte sind erfunden.</p>
+</header>
+
+<!-- ============ Tafel 1 ============ -->
+<div class="tafel-label"><b>1</b>Arbeitsplatz: Seitenleiste, Gespräch, Vorschau</div>
+<div class="fit"><div class="tafel">
+  <div class="app">
+    <aside class="side">
+      <img class="logo" src="../logo/pult-logo.svg" alt="Pult" style="width:auto">
+      <button class="neu"><span>Neues Gespräch</span><span aria-hidden="true">+</span></button>
+      <nav class="toc" aria-label="Klassen">
+        <h3 class="kicker">Klassen</h3>
+        <ul>
+          <li><span>7b</span><span>2</span></li>
+          <li class="sub on"><span>Englisch</span><span>3</span></li>
+          <li class="sub"><span>Politik</span><span>1</span></li>
+          <li><span>9a</span><span>1</span></li>
+          <li class="sub"><span>Mathematik</span><span>4</span></li>
+          <li><span>10c</span><span>1</span></li>
+          <li class="sub"><span>Erdkunde</span><span>2</span></li>
+        </ul>
+      </nav>
+      <div>
+        <h3 class="kicker" style="margin-bottom:6px">Zuletzt</h3>
+        <ul class="verlauf">
+          <li class="on">Arbeitsblatt Simple Past</li>
+          <li>Klausur Bruchrechnung</li>
+          <li>Stundenplanung Wasserkreislauf</li>
+        </ul>
+      </div>
+      <div class="foot">Einstellungen</div>
+    </aside>
+
+    <section class="main">
+      <div class="head"><span class="kicker">7b · Englisch</span><span class="kicker">Donnerstag, 8. Oktober</span></div>
+      <div class="chat">
+        <p class="notiz">Mach mir ein Arbeitsblatt zum Simple Past, 20 Minuten, zwei Niveaus.</p>
+        <article class="artikel">
+          <div class="kicker rost">Antwort · Arbeitsblatt</div>
+          <h2>Simple Past, auf zwei Wegen geübt.</h2>
+          <p class="vorspann">Ein Blatt, zwei Niveaus: Wer sicher ist, schreibt eigene Sätze, wer Hilfe braucht, ergänzt Lücken.</p>
+          <div class="text">
+            <p>Ich habe das Blatt in drei Teile gegliedert: ein kurzer Einstieg mit Beispielen, eine Übung zu den regelmäßigen Verben und eine Schreibaufgabe zum letzten Wochenende. Dazu gibt es ein Schaubild zur Bildung der Verbformen.</p>
+            <p>Die Lösungen stehen auf einer eigenen Seite, damit das Blatt direkt in den Druck gehen kann. In Graustufen bleibt alles gut lesbar.</p>
+          </div>
+          <ol class="schritte" aria-label="Schritte">
+            <li class="done"><b>I</b> Thema geklärt</li>
+            <li class="done"><b>II</b> Aufgaben geschrieben</li>
+            <li class="done"><b>III</b> Schaubild gezeichnet</li>
+            <li class="done"><b>IV</b> PDF erstellt</li>
+          </ol>
+          <div class="beilage"><span class="kicker">Beilage</span><strong>Arbeitsblatt Simple Past</strong><span class="grow num" style="color:var(--ink-soft);font-size:13.5px">PDF · 2 Seiten</span><a href="#">Öffnen</a></div>
+        </article>
+      </div>
+      <div class="composer"><div class="feld"><p>Was soll angepasst werden?</p><button class="senden">Senden</button></div></div>
+    </section>
+
+    <aside class="vorschau">
+      <div class="vk"><strong>Arbeitsblatt Simple Past</strong><span class="kicker">Seite 1 / 2</span></div>
+      <div class="mini blatt">
+        <div class="kopf"><span>Englisch · Klasse 7b</span><span>Name: ______________</span></div>
+        <h2>Yesterday I <em>walked</em>, you <em>talked</em>.</h2>
+        <p class="lead">Regelmäßige Verben bekommen im Simple Past ein <i>-ed</i>. Das merkst du dir am besten mit Beispielen.</p>
+        <div class="bal"></div><div class="bal s"></div><div class="bal k"></div>
+        <div style="height:6px"></div>
+        <div class="bal"></div><div class="bal s"></div><div class="bal"></div><div class="bal k"></div>
+        <div style="height:6px"></div>
+        <div class="bal s"></div><div class="bal"></div>
+      </div>
+    </aside>
+  </div>
+</div></div>
+
+<!-- ============ Tafel 2 ============ -->
+<div class="tafel-label"><b>2</b>Übersicht: Stundenplan und Stand</div>
+<div class="fit"><div class="tafel">
+  <div class="zeitung">
+    <div class="mast">
+      <div class="l">Ausgabe für<br>Klassen 7b · 9a · 10c</div>
+      <div class="titel">Die <i>Woche</i></div>
+      <div class="r">Woche 41<br>Schuljahr 2026/27</div>
+    </div>
+    <div class="datum"><span>Donnerstag, 8. Oktober 2026</span><span>Heute: 4 Stunden</span><span>Morgen: 5 Stunden</span></div>
+
+    <div class="seiten">
+      <section class="spalte">
+        <div class="kicker rost">Stundenplan</div>
+        <h2>Heute vier Stunden, morgen fünf.</h2>
+        <table class="plan">
+          <thead><tr><th></th><th>Mo</th><th>Di</th><th>Mi</th><th class="heute">Do</th><th>Fr</th></tr></thead>
+          <tbody>
+            <tr><td class="t">1</td><td><b>7b</b><small>Englisch</small></td><td class="leer">–</td><td><b>9a</b><small>Mathe</small></td><td class="heute"><b>7b</b><small>Englisch</small></td><td><b>10c</b><small>Erdkunde</small></td></tr>
+            <tr><td class="t">2</td><td><b>7b</b><small>Englisch</small></td><td><b>9a</b><small>Mathe</small></td><td class="leer">–</td><td class="heute"><b>9a</b><small>Mathe</small></td><td><b>10c</b><small>Erdkunde</small></td></tr>
+            <tr><td class="t">3</td><td class="leer">–</td><td><b>10c</b><small>Erdkunde</small></td><td><b>7b</b><small>Politik</small></td><td class="heute leer">Pause</td><td><b>9a</b><small>Mathe</small></td></tr>
+            <tr><td class="t">4</td><td><b>9a</b><small>Mathe</small></td><td><b>7b</b><small>Politik</small></td><td class="leer">–</td><td class="heute"><b>10c</b><small>Erdkunde</small></td><td><b>7b</b><small>Englisch</small></td></tr>
+            <tr><td class="t">5</td><td class="leer">–</td><td class="leer">–</td><td><b>10c</b><small>Erdkunde</small></td><td class="heute"><b>7b</b><small>Politik</small></td><td class="leer">–</td></tr>
+            <tr><td class="t">6</td><td><b>9a</b><small>Mathe</small></td><td class="leer">–</td><td class="leer">–</td><td class="heute leer">–</td><td class="leer">–</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div class="vr"></div>
+
+      <section class="spalte">
+        <div class="kicker rost">Stand der Reihen</div>
+        <h2>Was gerade läuft.</h2>
+        <ul class="stand">
+          <li><strong>7b Englisch</strong><span class="st neu">Material fertig</span><p>Simple Past, Stunde 3 von 6. Arbeitsblatt liegt bereit.</p></li>
+          <li><strong>9a Mathematik</strong><span class="st">geplant</span><p>Bruchrechnung, Klausur am 22. Oktober.</p></li>
+          <li><strong>10c Erdkunde</strong><span class="st">gehalten</span><p>Wasserkreislauf abgeschlossen, Auswertung offen.</p></li>
+          <li><strong>7b Politik</strong><span class="st">geplant</span><p>Noch kein Material.</p></li>
+        </ul>
+      </section>
+
+      <div class="vr"></div>
+
+      <section class="spalte">
+        <div class="kicker rost">Zur Sache</div>
+        <p class="zitat">Die Klausur in der 9a steht in <b>zwei Wochen</b>.</p>
+        <div class="kicker" style="margin-bottom:6px">Zuletzt erstellt</div>
+        <ul class="zuletzt">
+          <li><span>PDF</span>Arbeitsblatt Simple Past<span>heute</span></li>
+          <li><span>PDF</span>Klausur Bruchrechnung<span>Mo</span></li>
+          <li><span>PDF</span>Erwartungshorizont<span>Mo</span></li>
+          <li><span>DOC</span>Stundenplanung Wasser<span>Fr</span></li>
+        </ul>
+        <div class="kicker" style="margin:26px 0 6px">Termine</div>
+        <ul class="zuletzt termine">
+          <li><span>Fr</span>Elternabend 7b, 18 Uhr<span>9. Okt.</span></li>
+          <li><span>Mi</span>Klausur Bruchrechnung, 9a<span>22. Okt.</span></li>
+          <li><span>Do</span>Notenschluss Halbjahr<span>29. Okt.</span></li>
+        </ul>
+      </section>
+    </div>
+    <div class="fuss"><span>Alle Angaben stammen aus deinen Ordnern.</span><span>Seite 1</span></div>
+  </div>
+</div></div>
+
+<!-- ============ Tafel 3 ============ -->
+<div class="tafel-label"><b>3</b>Material: dasselbe Arbeitsblatt in Farbe und in Graustufen</div>
+<div class="fit"><div class="tafel" style="height:960px">
+  <div class="zwei">
+    <figure>
+      <figcaption><span class="kicker">In Farbe</span><span class="kicker">A4</span></figcaption>
+      <div class="a4 blatt" id="blatt-farbe"></div>
+    </figure>
+    <figure>
+      <figcaption><span class="kicker">Im Schwarz-Weiß-Druck</span><span class="kicker">gleiche Datei, Graustufen</span></figcaption>
+      <div class="a4 blatt grau" id="blatt-grau"></div>
+    </figure>
+  </div>
+</div></div>
+
+<template id="blatt">
+  <div class="blatt-inner">
+    <div class="kopf"><span>Erdkunde · Klasse 10c</span><span>Name: ______________</span></div>
+    <h2>Wie das Wasser <em>wieder nach oben</em> kommt.</h2>
+    <p class="lead">Wasser verschwindet nicht, es wandert. Sonne, Wind und Wolken halten es in Bewegung, immer im Kreis.</p>
+    <figure class="schau">
+      <svg viewBox="0 0 440 170" role="img" aria-label="Wasserkreislauf: Verdunstung, Wolke, Regen, Fluss">
+        <defs><marker id="pf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1c1a16"/></marker></defs>
+        <circle cx="46" cy="36" r="16" fill="#e3b04b" stroke="#1c1a16" stroke-width="1.5"/>
+        <path d="M0 146 Q55 136 110 146 T220 146 T330 146 T440 146 V170 H0 Z" fill="#7aa5c9" stroke="#1c1a16" stroke-width="1.5"/>
+        <path d="M250 146 L320 112 L440 112 V146 Z" fill="#9aa88b" stroke="#1c1a16" stroke-width="1.5"/>
+        <g fill="#eef1f4" stroke="#1c1a16" stroke-width="1.5"><ellipse cx="250" cy="52" rx="46" ry="16"/><ellipse cx="226" cy="58" rx="26" ry="12"/><ellipse cx="278" cy="58" rx="26" ry="12"/></g>
+        <g stroke="#1c1a16" stroke-width="1.6" fill="none" marker-end="url(#pf)"><path d="M92 136 C92 108 100 90 150 76 L202 66"/><path d="M270 76 L296 106"/><path d="M350 124 C330 132 300 138 268 142"/></g>
+        <g stroke="#3f6591" stroke-width="2" stroke-linecap="round"><path d="M232 80 l-3 9 M246 82 l-3 9"/></g>
+        <g font-family="Source Sans 3, sans-serif" font-size="11" font-weight="600" fill="#1c1a16">
+          <text x="106" y="112">1 Verdunstung</text><text x="304" y="92">2 Regen</text><text x="366" y="130">3 Fluss</text><text x="218" y="22">Wolke</text>
+        </g>
+      </svg>
+      <figcaption>Abb. 1 · Der Kreislauf des Wassers in drei Schritten</figcaption>
+    </figure>
+    <div class="aufgaben">
+      <div class="aufgabe"><b>1</b><div>Beschreibe in zwei Sätzen, was zwischen Schritt 1 und Schritt 2 passiert.<div class="zeilen"><i></i><i></i></div></div></div>
+      <div class="aufgabe"><b>2</b><div>Erkläre, warum an einem heißen Tag mehr Wasser verdunstet als an einem kühlen.<div class="zeilen"><i></i><i></i></div></div></div>
+      <div class="aufgabe"><b>3</b><div>Nenne einen Ort in deiner Umgebung, an dem du den Kreislauf beobachten kannst.<div class="zeilen"><i></i></div></div></div>
+      <div class="aufgabe"><b>4</b><div>Schreibe auf, wie sich der Kreislauf schließt. Beginne mit „Das Wasser im Meer …“.<div class="zeilen"><i></i><i></i><i></i></div></div></div>
+    </div>
+    <p class="merk">Merke: Das Wasser auf der Erde ist immer dasselbe. Es ändert nur seinen Zustand und seinen Ort.</p>
+    <div class="blatt-fuss"><span>Arbeitsblatt · Wasserkreislauf</span><img src="../logo/pult-zeichen-klein.svg" alt="Pult"><span class="num">Seite 1 / 1</span></div>
+  </div>
+</template>
+
+<script>
+// Fill both sheets from one template and scale the fixed-size boards to the window.
+const t = document.getElementById("blatt");
+for (const id of ["blatt-farbe", "blatt-grau"]) document.getElementById(id).append(t.content.cloneNode(true));
+// Gradients in the template need unique marker ids per copy.
+document.querySelectorAll("#blatt-grau marker").forEach((m) => { m.id = "pf2"; });
+document.querySelectorAll("#blatt-grau [marker-end]").forEach((p) => p.setAttribute("marker-end", "url(#pf2)"));
+function fit() {
+  document.querySelectorAll(".fit").forEach((f) => {
+    const tafel = f.firstElementChild;
+    const s = Math.min(1, (window.innerWidth - 48) / 1280);
+    tafel.style.transform = `scale(${s})`;
+    f.style.width = 1280 * s + "px";
+    f.style.height = tafel.offsetHeight * s + "px";
+  });
+}
+addEventListener("resize", fit);
+document.fonts.ready.then(fit);
+fit();
+</script>
+</body>
+</html>
