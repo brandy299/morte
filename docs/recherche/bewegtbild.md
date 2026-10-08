@@ -64,6 +64,10 @@ Zum Ansehen: `anime.umd.min.js` aus `animejs@4.5.0/dist/bundles` und `assets/fon
 
 **Grenze bei "schönen Illustrationen":** Mit einem festen Katalog sind es Formen (Sonne, Wolke, Hügel, Wasser, Pfeile, Schaubilder, Symbole in Wasserfarben-Behandlung). Frei gezeichnete Szenen zu beliebigen Themen können nur starke Modelle in Stufe 2.
 
+## Leitfaden von Yannik
+
+`docs/recherche/motion-leitfaden.md` enthält Yanniks Leitfaden "Motion Graphics aus Code" mit Einschätzung. Kurz: Der Kern (Szene als Funktion der Zeit) stimmt mit der Probe überein. GSAP, Playwright und ffmpeg passen nicht zu Pult. Übernommen sind Probe-Modus, Prüfsummen, Titel Wort für Wort, Säulen aus Tabellenwerten und "erst Szenenplan, dann Bau" (als Ergänzung in #14).
+
 ## Offen
 
 1. **Messung "Stufe 1 mit mehreren Modellen"** (zehn Themen, drei Modelle). Macht die Recherche, sobald ein Schlüssel und der Szenen-Baustein da sind.
