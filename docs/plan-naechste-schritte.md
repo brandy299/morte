@@ -1,13 +1,16 @@
 # Plan: die nächsten vier Wochen
 
-Stand: 2026-10-08 · Besitzer: Recherche-Agent (Feature- und Planungsrolle) · Vorgaben von Yannik vom 2026-10-08
+Stand: 2026-10-08 (aktualisiert nach Yanniks Antworten zu Fächern, Themen und Gegenlese) · Besitzer: Recherche-Agent (Feature- und Planungsrolle) · Vorgaben von Yannik vom 2026-10-08
 
 ## Ausgangslage (Yanniks Antworten)
 
 - **Erste Nutzer:** er selbst, danach zwei bis drei Kolleginnen und Kollegen. Kein Installer, keine Schul-Voreinstellung jetzt.
 - **Kosten:** jede Lehrkraft mit eigenem Schlüssel. Pult muss also mit günstigen Modellen verlässlich sein.
 - **Wichtigstes Ergebnis in vier Wochen:** Robustheit und Qualität.
-- **Fächer:** Mathematik und Naturwissenschaften, Sprachen, Wirtschaft und Verwaltung, Gesellschaftswissenschaften. In vier Wochen nicht alle. Die Reihenfolge richtet sich nach den Fächern der Kolleginnen und Kollegen im Probelauf.
+- **Fächer der Kolleginnen und Kollegen im Probelauf:** **Mathematik, Englisch und INWI** (Wirtschaft und Verwaltung). Damit sind die ersten Fächer festgelegt. Naturwissenschaften und Gesellschaftswissenschaften kommen später.
+- **Beispielthemen für den Probelauf:** "Geschäftsbriefe in Word erstellen", "Business Letters auf Englisch verfassen", "Bewerbungstraining (Anschreiben und Lebenslauf erstellen)". Die zehn Themen für die Messung werden daraus abgeleitet.
+- **Fachliche Gegenlese:** Yannik, vorerst allein ("erstmal").
+- **Didaktischer Wizard:** Yannik bietet an, ihn zu scrapen oder als gesammelte Ressource zu geben. Ungeklärt: Besitzer, Nutzungsbedingungen, ob Personendaten enthalten sind. Vorgehen siehe "Offen".
 - **Zusätzlich, parallel:** tolle Animationen (Motion Graphics) **mit jedem zugelassenen Modell**.
 
 ## Arbeitsteilung
@@ -51,17 +54,31 @@ Eigene Recherche: `docs/recherche/bewegtbild.md` (mit Probe `docs/recherche/bewe
 
 **Lizenzen:** anime.js (MIT) ja. p5.js und damit p5.brush (LGPL-2.1) nein, GSAP (keine freie Lizenz) nein.
 
+## Strang 3: Mathematik (neu, weil eine Kollegin oder ein Kollege Mathe unterrichtet)
+
+Recherche: `docs/recherche/mathe-formeln.md`. Kernaussage: Pult setzt heute **keine Formeln**, LaTeX würde wörtlich im PDF stehen. Der Weg LaTeX → MathJax → SVG → PDF funktioniert ohne Browser (Probe: 7 Formeln in 98 ms, Apache-2.0), hat aber zwei bekannte Fehler (Überlauf am Rand, Umlaute in `\text{}`) und ist für Formeln im Fließtext und für Word ungeprüft.
+
+| Schritt | Was | Issue |
+|---|---|---|
+| 1 | Formelsatz im PDF | kommt nach Zustimmung |
+| 2 | Formeln in Word (Bild oder echte Word-Formel, Entscheidung nötig) | kommt nach Zustimmung |
+| 3 | Mathe-Anleitung und Prüfläufe, Kriterien von Yannik | kommt nach Zustimmung |
+| 4 | Rechenprüfung (SymPy), erst nach Test, ob eine Auswertung ohne Pyodide reicht | später |
+
+Englisch und INWI brauchen nach heutigem Stand keine neuen Bausteine, aber eigene Anleitungen und Prüfläufe: **Geschäftsbrief** (Form nach DIN 5008, Word-Ausgabe), **Business Letter** (englische Konventionen), **Bewerbung** (Anschreiben und Lebenslauf). Ob die mitgelieferten Anleitungen das schon abdecken, ist nicht geprüft und gehört in die Messung (#16).
+
 ## Nicht jetzt
 
 - Installer, Login, Schul-Voreinstellung (Issue #11 bleibt liegen).
-- Python in der App über Pyodide (SymPy läuft dort, siehe `docs/recherche-werkzeuge-bewertung.md`). Erst, wenn eine Kollegin oder ein Kollege im Probelauf Mathematik oder Naturwissenschaften unterrichtet.
+- Python in der App über Pyodide (SymPy läuft dort, siehe `docs/recherche-werkzeuge-bewertung.md`). Die Bedingung (eine Kollegin oder ein Kollege unterrichtet Mathematik) ist erfüllt, aber zuerst kommt das Setzen der Formeln. Ob die Rechenprüfung Pyodide wirklich braucht, ist offen (`docs/recherche/mathe-formeln.md`).
 - Gepunktete Lade-Orbs, Audio-Takt, Sammlung fremder Prompts, Sitzplan, E-Mail und iServ.
 
 ## Offen (braucht eine Entscheidung von Yannik)
 
-1. **Fächer und Betriebssysteme der Kolleginnen und Kollegen im Probelauf.** Ordnet Woche 3 und das Fach, in dem die Prüfläufe zuerst nachgeschärft werden.
-2. **Wer liest die Prüfkriterien fachlich gegen?** Voraussichtlich Yannik. Mit festem Termin.
-3. **Erklärstück:** zehn Themen aus seinem Unterricht für die Messung.
+1. **Betriebssysteme der Kolleginnen und Kollegen im Probelauf** (Fächer sind geklärt: Mathe, Englisch, INWI).
+2. **Fester Termin für die Gegenlese** (Yannik liest, vorerst allein).
+3. **Zehn Themen für die Messung**, aus den Beispielen oben abgeleitet. Yannik ergänzt Mathe-Themen (Schulform, Jahrgang).
+3a. **Didaktischer Wizard:** Besitzer und Nutzungsbedingungen klären. Bevorzugt eine **schon exportierte Datei** statt Zugriff auf das laufende System, in `docs/recherche/`. Keine Zugangsdaten im Chat. Verwendet werden Aufbau und Ideen, kein Wortlaut, solange die Rechte nicht geklärt sind. Vorher prüfen, ob Namen von Schülern oder Lehrkräften enthalten sind.
 4. **Schlüssel für die Messung** (OpenRouter oder DeepSeek reichen) und Freigabe der Kostenschätzung vor jedem langen Prüflauf.
 5. **Betriebssystem Windows:** bisher nur Linux getestet. Der Probelauf sollte es klären (steht in #18).
 
