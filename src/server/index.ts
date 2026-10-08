@@ -366,14 +366,17 @@ const MIME: Record<string, string> = {
   ".ttf": "font/ttf",
 };
 
-if (process.argv[1]?.endsWith("server/index.ts") || process.argv[1]?.endsWith("server/index.js")) {
+/** True when this file is the program that was started (not imported). Windows writes the path with backslashes. */
+export const isServerEntry = (entry?: string) => /(^|[/\\])server[/\\]index\.(ts|js)$/.test(entry ?? "");
+
+if (isServerEntry(process.argv[1])) {
   await initWorkspace();
   const app = createApp(await loadState(await createSecretStore()));
   const webDir = join(process.cwd(), "dist", "web");
   // Production: serve the built UI. In development Vite serves it and proxies /api here.
   app.get("*", async (c) => {
     const rel = normalize(c.req.path).replace(/^(\.\.[/\\])+/, "");
-    const file = join(webDir, rel === "/" ? "index.html" : rel);
+    const file = join(webDir, c.req.path === "/" ? "index.html" : rel);
     if (!file.startsWith(webDir)) return c.notFound();
     try {
       const body = await readFile(file);
