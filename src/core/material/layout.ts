@@ -212,7 +212,7 @@ export interface Sheet {
   text(text: string, x: number, y: number, o?: TextOptions): number;
   /** Draws the page header: heavy rule, small kicker line, title, optional write-in fields, thin rule. */
   header(opts: { kicker?: string; title: string; fields?: string[] }): void;
-  /** Writes a text block at the current position and moves down. Splits nothing, call `room` first. */
+  /** Writes a text block at the current position and moves down. Breaks to the next page between paragraphs (blank lines). */
   paragraph(text: string, opts?: { font?: string; size?: number; color?: string; width?: number; x?: number; gap?: number }): void;
   /** A gray box with a heavy left edge and an optional title. */
   box(opts: { title?: string; text: string }): void;
@@ -299,10 +299,21 @@ export function newSheet(title: string): Sheet {
       const font = o.font ?? SANS;
       const size = o.size ?? 11;
       const w = o.width ?? width;
-      const h = sheet.height(text, font, size, w);
-      sheet.room(h);
-      sheet.text(text, o.x ?? left, sheet.y, { font, size, color: o.color, width: w });
-      sheet.y += h + (o.gap ?? mm(6));
+      // Each paragraph finds its own room, so a long text continues on the next page instead of leaving
+      // the current one empty. A paragraph taller than a whole page is split at its lines, without extra space.
+      const paras = text.split(/\n\s*\n/).filter((p) => p.trim());
+      const parts = paras.flatMap((p, i) => {
+        const after = i === paras.length - 1 ? (o.gap ?? mm(6)) : mm(3);
+        if (sheet.height(p, font, size, w) <= limit - M.top) return [{ text: p, after }];
+        const lines = p.split("\n");
+        return lines.map((l, j) => ({ text: l, after: j === lines.length - 1 ? after : 2.5 }));
+      });
+      for (const part of parts) {
+        const h = sheet.height(part.text, font, size, w);
+        sheet.room(h);
+        sheet.text(part.text, o.x ?? left, sheet.y, { font, size, color: o.color, width: w });
+        sheet.y += h + part.after;
+      }
     },
     box({ title: boxTitle, text }) {
       const pad = mm(3.2);
