@@ -21,6 +21,7 @@ import { stundenplanRoutes } from "./stundenplan.ts";
 import { keyName, type AppState } from "./state.ts";
 
 export type { AppState };
+import { loadSchule, logoBytes, MAX_LOGO_BYTES, removeLogo, saveLogo, saveSchulname } from "../core/schule/index.ts";
 import { loadProviderSettings, saveProviderSettings } from "../core/settings/index.ts";
 
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -191,6 +192,39 @@ export function createApp(state: AppState) {
     }
   });
 
+  // School head on all material: name and logo, saved in the data folder.
+  const schoolError = (e: unknown, c: Context) => {
+    if (e instanceof UserError) return c.json({ error: e.message }, 400);
+    throw e;
+  };
+  app.get("/api/schule", async (c) => c.json(await loadSchule()));
+  app.put("/api/schule", async (c) => {
+    try {
+      const { name } = await c.req.json<{ name?: unknown }>();
+      await saveSchulname(typeof name === "string" ? name : "");
+      return c.json(await loadSchule());
+    } catch (e) {
+      return schoolError(e, c);
+    }
+  });
+  app.get("/api/schule/logo", async (c) => {
+    const png = await logoBytes();
+    return png ? c.body(new Uint8Array(png), 200, { "content-type": "image/png", "cache-control": "no-store", "x-content-type-options": "nosniff" }) : c.notFound();
+  });
+  app.post("/api/schule/logo", async (c) => {
+    if (Number(c.req.header("content-length") ?? 0) > MAX_LOGO_BYTES) return c.json({ error: "Die Datei ist zu groß. Ein Logo darf höchstens 3 MB haben." }, 413);
+    try {
+      await saveLogo(Buffer.from(await c.req.arrayBuffer()));
+      return c.json(await loadSchule());
+    } catch (e) {
+      return schoolError(e, c);
+    }
+  });
+  app.delete("/api/schule/logo", async (c) => {
+    await removeLogo();
+    return c.json(await loadSchule());
+  });
+
   app.post("/api/chat", async (c) => {
     const session = state.session;
     if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
@@ -203,7 +237,7 @@ export function createApp(state: AppState) {
     }
     if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
     busy = true;
-    const conversation = (state.conversation ??= { id: newConversationId(), titel: titleFrom(text), anzeige: [] });
+    const conversation = (state.conversation ??= { id: newConversationId(), titel: titleFrom(text), erstellt: new Date().toISOString(), anzeige: [] });
     let answer: StoredMessage = { role: "assistant", text: "", steps: [] };
     conversation.anzeige.push({ role: "user", text, bilder: images.length || undefined, dateien: dateien.length ? dateien.map((f) => f.name) : undefined, steps: [] });
     return streamSSE(c, async (stream) => {
@@ -219,8 +253,8 @@ export function createApp(state: AppState) {
         );
       } finally {
         conversation.anzeige.push(settle(answer));
-        const { messages, usage } = session.history();
-        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
+        const { messages, usage, log } = session.history();
+        await saveConversation({ ...conversation, modell: messages, verbrauch: usage, ablauf: log }).catch(() => {});
         busy = false;
       }
     });
@@ -255,8 +289,8 @@ export function createApp(state: AppState) {
         });
       } finally {
         conversation.anzeige.push(settle(answer));
-        const { messages, usage } = session.history();
-        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
+        const { messages, usage, log } = session.history();
+        await saveConversation({ ...conversation, modell: messages, verbrauch: usage, ablauf: log }).catch(() => {});
         busy = false;
       }
     });
@@ -324,8 +358,8 @@ export function createApp(state: AppState) {
     const saved = await loadConversation(id).catch(() => undefined);
     if (!saved || !state.choice) return c.json({ error: "Dieses Gespräch gibt es nicht mehr." }, 404);
     await buildSession(state, state.choice);
-    state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never });
-    state.conversation = { id: saved.id, titel: saved.titel, anzeige: saved.anzeige };
+    state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never, log: saved.ablauf });
+    state.conversation = { id: saved.id, titel: saved.titel, erstellt: saved.erstellt, anzeige: saved.anzeige };
     return c.json({ anzeige: saved.anzeige, usage: state.session!.usage() });
   });
 
@@ -372,14 +406,17 @@ const MIME: Record<string, string> = {
   ".ttf": "font/ttf",
 };
 
-if (process.argv[1]?.endsWith("server/index.ts") || process.argv[1]?.endsWith("server/index.js")) {
+/** True when this file is the program that was started (not imported). Windows writes the path with backslashes. */
+export const isServerEntry = (entry?: string) => /(^|[/\\])server[/\\]index\.(ts|js)$/.test(entry ?? "");
+
+if (isServerEntry(process.argv[1])) {
   await initWorkspace();
   const app = createApp(await loadState(await createSecretStore()));
   const webDir = join(process.cwd(), "dist", "web");
   // Production: serve the built UI. In development Vite serves it and proxies /api here.
   app.get("*", async (c) => {
     const rel = normalize(c.req.path).replace(/^(\.\.[/\\])+/, "");
-    const file = join(webDir, rel === "/" ? "index.html" : rel);
+    const file = join(webDir, c.req.path === "/" ? "index.html" : rel);
     if (!file.startsWith(webDir)) return c.notFound();
     try {
       const body = await readFile(file);

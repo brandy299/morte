@@ -180,7 +180,7 @@ export async function renderKlausur(k: Klausur): Promise<{ pdf: Buffer; pages: n
     if (a.einstieg) {
       const h = einstiegHeight(a) - mm(9);
       doc.save().rect(textX, sheet.y, textW, h + mm(5)).fill(BOX).restore();
-      doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(a.einstieg), textX + mm(4), sheet.y + mm(2.5), { width: textW - mm(8), lineGap: 2.5 });
+      sheet.text(a.einstieg, textX + mm(4), sheet.y + mm(2.5), { size: 10.5, width: textW - mm(8) });
       sheet.y += h + mm(9);
     }
 
@@ -192,7 +192,7 @@ export async function renderKlausur(k: Klausur): Promise<{ pdf: Buffer; pages: n
       sheet.room(h + mm(5));
       y = sheet.y;
       if (!single) doc.font(SANS_BOLD).fontSize(10.5).fillColor(INK).text(`${String.fromCharCode(97 + j)})`, textX, y + 2, { width: labelW, lineBreak: false });
-      doc.font(SANS).fontSize(10.5).fillColor(INK).text(printable(t.text), textX + labelW, y + 2, { width: tw, lineGap: 2.5 });
+      sheet.text(t.text, textX + labelW, y + 2, { size: 10.5, width: tw });
       // Score box for the grader: blank left part, "/ max" on the right.
       const bx = left + width - scoreW;
       doc.save().roundedRect(bx, y, scoreW, 18, 4).lineWidth(0.8).strokeColor(LINE).stroke().restore();

@@ -84,6 +84,20 @@ async function tables(): Promise<string> {
   return out.join("\n\n");
 }
 
+/** The assessment rules and the teacher's own templates as they are at the end of a run. Nothing else is written there by the assistant. */
+async function collectSaved(): Promise<string | undefined> {
+  const blocks: string[] = [];
+  const read = async (dir: string, file: string, title: string) => {
+    for (const name of (await readdir(dir, { withFileTypes: true }).catch(() => [])).filter((e) => e.isDirectory()).map((e) => e.name).sort()) {
+      const text = await readFile(join(dir, name, file), "utf8").catch(() => "");
+      if (text.trim()) blocks.push(`=== ${title}: ${name} ===\n${text.trim()}`);
+    }
+  };
+  await read(join(dataDir(), "Lehrpläne"), "Bewertung.md", "Bewertungsregeln");
+  await read(join(dataDir(), "Skills"), "SKILL.md", "Eigene Vorlage");
+  return blocks.length ? blocks.join("\n\n") : undefined;
+}
+
 /**
  * Plays one test case in a fresh invented working folder: sends each message, says yes to every question
  * "May I ...?", and collects what the assistant said, what it did and what it left behind.
@@ -118,7 +132,7 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run
     const ordner = `Klasse.md:\n${(await readKlasse(KLASSE)).trim()}\n\nStand.md:\n${(await readStand(KLASSE, FACH)).trim()}`;
-    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, vorlage: bilder.length ? bilder.map((b) => b.text).join("\n\n") : undefined, kosten: session.usage().cost };
+    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, gespeichert: await collectSaved(), vorlage: bilder.length ? bilder.map((b) => b.text).join("\n\n") : undefined, kosten: session.usage().cost };
   } finally {
     if (before === undefined) delete process.env.PULT_HOME;
     else process.env.PULT_HOME = before;
