@@ -224,6 +224,25 @@ const VARIANTS: Record<string, string> = { "": "Blatt", "Lösung": "Lösung", "W
  * One card per finished piece of material: the sheet, its solution and the Word versions as buttons on one card.
  * If the same piece was made again (a change was asked for), only the newest files show.
  */
+/** Copies the text of one message, e.g. to paste it into an e-mail. */
+function CopyButton({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setDone(true);
+      setTimeout(() => setDone(false), 1500);
+    } catch {
+      // The browser refused the clipboard. The text can still be marked with the mouse.
+    }
+  };
+  return (
+    <button type="button" className="copy-msg" onClick={() => void copy()} aria-live="polite">
+      {done ? "Kopiert" : "Kopieren"}
+    </button>
+  );
+}
+
 function groupMaterials(materials: Material[]): { title: string; parts: { label: string; file: Material }[] }[] {
   const groups = new Map<string, Map<string, Material>>();
   for (const file of materials) {
@@ -724,6 +743,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 )}
                 {m.bilder ? <p className="muted-note">{m.bilder === 1 ? "1 Bild angehängt" : `${m.bilder} Bilder angehängt`}</p> : null}
                 {m.role === "user" ? <p>{m.text}</p> : m.text && <Markdown>{m.text}</Markdown>}
+                {m.text && !(working && i === messages.length - 1) && <CopyButton text={m.text} />}
                 {groupMaterials(m.materials ?? []).map((g) => (
                   <div key={g.title} className="file-group">
                     <div className="file-group-head">
