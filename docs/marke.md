@@ -39,4 +39,4 @@ Kontraste: Rostrot auf Papier 4,35 : 1, Rostrot auf Weiß 4,99 : 1, Rostrot auf 
 
 ## Herkunft
 
-Entworfen am 2026-10-06 mit dem Logo-Skill `kaankiziltug/logo-design-skill` (MIT) als Werkzeug. Aus dem Skill ist nichts ins Repo gekommen, auch keine Logos aus seiner Vergleichssammlung. Logo und Zeichnungsquelle sind eigene Arbeit unter der Lizenz des Repos. Eine Markenrecherche steht noch aus (siehe Entscheidung 004).
+Entworfen am 2026-10-06 mit dem Logo-Skill `kaankiziltug/logo-design-skill` (MIT) als Werkzeug. Aus dem Skill ist nichts ins Repo gekommen, auch keine Logos aus seiner Vergleichssammlung. Logo und Zeichnungsquelle sind eigene Arbeit unter der Lizenz des Repos. Eine Markenrecherche steht noch aus (siehe Entscheidung 010).
