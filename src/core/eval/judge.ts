@@ -5,11 +5,12 @@ const SYSTEM = `Du bist ein strenger, fairer Prüfer für Unterrichtsmaterial un
 1. das Gespräch zwischen einer Lehrkraft und einem Assistenten,
 2. das erstellte Material als Text (Lösungsblätter sind als solche benannt),
 3. die Stundentabelle der Reihe nach dem Gespräch und den Arbeitsordner (Klasse.md, Stand.md), den der Assistent lesen konnte,
-4. eine Liste von Kriterien.
+4. was am Ende als Bewertungsregeln und als eigene Vorlagen gespeichert ist,
+5. eine Liste von Kriterien.
 
 Regeln:
 - Beurteile jedes Kriterium einzeln mit bestanden (true) oder nicht bestanden (false). Gilt das Kriterium laut seiner Bedingung für diesen Fall nicht, gib null.
-- Kriterien der Gruppe M beurteilst du am Gespräch, alle anderen am Material. Was im Gespräch nur behauptet wird, im Material aber fehlt, zählt als nicht bestanden.
+- Kriterien der Gruppe M beurteilst du am Gespräch, alle anderen am Material, bei Bewertungsregeln und Vorlagen an dem, was gespeichert ist. Was im Gespräch nur behauptet wird, im Material aber fehlt, zählt als nicht bestanden.
 - Prüfe fachlich selbst nach (Rechnungen, Lösungen, Begriffe). Ein fachlicher Fehler in einer Lösung ist ein Fehler.
 - Sei streng bei "Bestanden wenn". Im Zweifel nicht bestanden. Begründe jede Entscheidung in einem Satz mit einer Fundstelle (Aufgabennummer, Phase, Satz).
 - Antworte ausschließlich mit einem JSON-Array, ohne Text davor oder danach: [{"id":"P1","bestanden":true,"grund":"..."}]. Jede Kennung aus der Liste kommt genau einmal vor.`;
@@ -21,7 +22,7 @@ export function judgePrompt(c: EvalCase, t: Transcript, kriterien: Criterion[]):
     ? t.files.map((f) => `=== ${f.name}${f.seiten ? ` (${f.seiten} Seiten)` : ""} ===\n${f.text.trim() || "(kein lesbarer Text)"}`).join("\n\n")
     : "(Es wurde kein Material erstellt.)";
   const list = kriterien.map((k) => `${k.id} [${k.gruppe}] ${k.kriterium}\n   Bestanden wenn: ${k.bestandenWenn}${k.bedingung ? `\n   Gilt nur, wenn: ${k.bedingung}` : ""}`).join("\n");
-  return `Fall: ${c.id} (Anleitung: ${c.skill})\nDie Klasse hat keinen hinterlegten Lehrplan. Alle Namen, Betriebe und Daten sind erfunden.\n\n## GESPRÄCH\n${talk}\n\n## MATERIAL\n${material}${t.vorlage ? `\n\n## VORLAGE (der Text auf dem Bild, das die Lehrkraft angehängt hat)\n${t.vorlage}` : ""}\n\n## ARBEITSORDNER (das konnte der Assistent nachlesen)\n${t.ordner ?? "(nicht mitgegeben)"}\n\n## STUNDENTABELLE\n${t.tabelle || "(leer)"}\n\n## KRITERIEN\n${list}`;
+  return `Fall: ${c.id} (Anleitung: ${c.skill})\nDie Klasse hat keinen hinterlegten Lehrplan. Alle Namen, Betriebe und Daten sind erfunden.\n\n## GESPRÄCH\n${talk}\n\n## MATERIAL\n${material}${t.vorlage ? `\n\n## VORLAGE (der Text auf dem Bild, das die Lehrkraft angehängt hat)\n${t.vorlage}` : ""}\n\n## ARBEITSORDNER (das konnte der Assistent nachlesen)\n${t.ordner ?? "(nicht mitgegeben)"}\n\n## GESPEICHERT (Bewertungsregeln und eigene Vorlagen am Ende des Laufs)\n${t.gespeichert ?? "(nichts)"}\n\n## STUNDENTABELLE\n${t.tabelle || "(leer)"}\n\n## KRITERIEN\n${list}`;
 }
 
 /** Reads the judge's answer. Takes the first JSON array in the text, so a few stray words around it do no harm. */

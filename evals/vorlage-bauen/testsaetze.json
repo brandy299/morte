@@ -1,0 +1,17 @@
+[
+  {
+    "id": "vb-vollstaendig",
+    "nachrichten": [
+      "Bau mir bitte eine eigene Vorlage für Vokabeltests im Fach Business English. Immer so: zehn Vokabeln als Zuordnung Englisch und Deutsch, danach fünf Lückensätze mit Wortliste, alles auf einer Seite, dazu immer ein Lösungsblatt für mich. Du Form, kurze Aufträge. Mehr brauchst du nicht zu wissen, speichere sie gleich und probier sie dann an einem Thema aus."
+    ],
+    "erwartet": {}
+  },
+  {
+    "id": "vb-knapp",
+    "nachrichten": [
+      "Ich will eine eigene Vorlage für meine Arbeitsblätter.",
+      "Für Geschichte am Gymnasium. Am Anfang immer eine Quelle als kurzer Text, danach drei Aufgaben von leicht nach schwer, eine Seite, kein Lösungsblatt, Anrede mit Sie. Speichere es so."
+    ],
+    "erwartet": {}
+  }
+]

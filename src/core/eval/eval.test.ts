@@ -33,11 +33,17 @@ describe("the criteria and test sets in evals/", () => {
     }
   });
 
+  it("have a test case in which details are missing, and one question that is answered later, for the assessment rules and the own templates", async () => {
+    const suites = await loadSuites(evalsDir, ["bewertung", "vorlage-bauen"]);
+    expect(suites.map((x) => x.skill)).toEqual(["bewertung", "vorlage-bauen"]);
+    for (const x of suites) expect(x.faelle.some((f) => f.nachrichten.length >= 2), x.skill).toBe(true);
+  });
+
   it("cover the bundled skills that make material or answer teachers, and name only skills that exist", async () => {
     const suites = (await loadSuites(evalsDir)).map((s) => s.skill);
     const bundled = (await readdir(join(process.cwd(), "skills"))).filter((n) => !n.startsWith("."));
     for (const name of suites) expect(bundled, `Zu evals/${name} fehlt die Anleitung`).toContain(name);
-    for (const name of ["arbeitsblatt", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check"]) expect(suites).toContain(name);
+    for (const name of ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"]) expect(suites).toContain(name);
   });
 });
 
@@ -125,6 +131,36 @@ describe("the report", () => {
     expect(md).toContain("| P1 | P | P1 | 1/2 (50 %) |");
     expect(md).toContain("Aufgabe 3 ist falsch");
     expect(md).toContain("0.30 US-$");
+  });
+});
+
+describe("saved rules and own templates", () => {
+  it("are collected at the end of a run and shown to the judge", async () => {
+    const faux = fauxProvider();
+    faux.setResponses([
+      fauxAssistantMessage(
+        [
+          fauxToolCall("bewertung_speichern", { lehrplan: "Neue Regeln", klassen: ["11a"], bereiche: [{ kurz: "I", name: "Wiedergeben", anteil: 100 }], notenschluessel: [{ note: "1", abProzent: 90 }, { note: "6", abProzent: 0 }] }),
+          fauxToolCall("vorlage_speichern", {
+            titel: "Vokabeltest",
+            beschreibung: "Erstellt Vokabeltests mit Zuordnung und Lückensätzen. Nutze es bei Wünschen wie Vokabeltest oder Wörtertest. Nicht für Klausuren.",
+            anleitung: "1. Frag nach dem Thema und der Klasse, höchstens zwei Dinge.\n2. Schreibe zehn Vokabeln als Zuordnung und fünf Lückensätze mit Wortliste.\n3. Erstelle den Test mit `arbeitsblatt_erstellen`, eine Seite, mit Lösungsblatt.\n4. Antworte in einem Satz ohne Dateinamen und ohne Werkzeugnamen. Halte dich an diese Regeln und erfinde nichts, was die Lehrkraft nicht gesagt hat.",
+          }),
+        ],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxText("Gespeichert.")]),
+    ]);
+    const models = createModels();
+    models.setProvider(faux.provider);
+    const t = await runCase(kase(), { provider: "x" }, { resolve: () => ({ models, model: faux.getModel() }) });
+    expect(t.gespeichert).toContain("Bewertungsregeln: Neue Regeln");
+    expect(t.gespeichert).toContain("ab 90 %");
+    expect(t.gespeichert).toContain("Eigene Vorlage: vokabeltest");
+    expect(t.gespeichert).toContain("Nicht für Klausuren");
+    expect(judgePrompt(kase(), t, [crit("P1")])).toContain("## GESPEICHERT");
+    expect(judgePrompt(kase(), t, [crit("P1")])).toContain("Neue Regeln");
+    expect(judgePrompt(kase(), transcript(), [crit("P1")])).toContain("(nichts)");
   });
 });
 

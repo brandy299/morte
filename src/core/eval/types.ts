@@ -58,6 +58,8 @@ export interface Transcript {
   ordner?: string;
   /** Text on the pictures that were attached, so the judge can compare. */
   vorlage?: string;
+  /** What stands in the saved assessment rules and in the teacher's own templates at the end, so the judge can see what was written there. */
+  gespeichert?: string;
   /** Text of Reihe.md before the run, to see what changed. */
   kosten: number;
 }
