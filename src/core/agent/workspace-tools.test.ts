@@ -117,6 +117,8 @@ describe("worksheet tool", () => {
     expect(material).toMatchObject({ title: "Interview Basics", path: expect.stringContaining("01 Bewerbung/Material/") });
     expect(await readFile(join(home, (material as { path: string }).path))).toBeInstanceOf(Buffer);
     expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/\| 14\.10\. \| Mi 3 \| Interview Basics \| .*Arbeitsblatt-Interview-Basics\.pdf \| Material fertig \|/);
+    const result = (s.history().messages as { role: string; content: { text: string }[] }[]).find((m) => m.role === "toolResult")!;
+    expect(result.content[0]!.text).toMatch(/^Das Arbeitsblatt ist fertig \(1 Seite\) .*\. Es ist in der Stundentabelle am 14\.10\. eingetragen\.$/);
   });
 
   it("makes a teacher's copy with the answers, keeps several versions on one lesson and can read them back", async () => {
