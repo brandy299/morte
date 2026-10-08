@@ -83,6 +83,8 @@ Zum Ansehen: `anime.umd.min.js` aus `animejs@4.5.0/dist/bundles` und `assets/fon
 
 **Empfehlung:** Fall A jetzt (#14 ergänzen), Fall B erst nach der Messung zu #14 und nur, wenn ein Kollege oder eine Kollegin es will. Der Entwurf der Szenenbeschreibung bleibt dafür offen: Jede Szene hat eine Dauer. Ein optionaler **Sprechtext je Szene** (der Text, den die Lehrkraft dazu sagt) wäre die natürliche Erweiterung, weil das Programm daraus die Szenendauer schätzen und später Zeitmarken ableiten kann. Er wird erst gebaut, wenn Fall B beschlossen ist ("nichts auf Vorrat").
 
+**Entscheidung (Yannik, 2026-10-08): erst ohne Stimme.** Der Takt kommt von der Lehrkraft, die live erzählt. Fall A ist als Abnahmekriterien 14 bis 16 in #14 ergänzt, Fall B (Stimme in der Datei, Zeitmarken) wird nicht geplant.
+
 ### Stimme: VoiceStudio geprüft (2026-10-08)
 
 Gemeint ist `debpalash/VoiceStudio` (Sprachausgabe, Stimmklonen, Vertonung, lokal). Gelesen wurden die Seite des Projekts und die Lizenzdatei über die Webseite, nicht der Quelltext.

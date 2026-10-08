@@ -77,6 +77,7 @@ Englisch und INWI brauchen nach heutigem Stand keine neuen Bausteine, aber eigen
 
 - Installer, Login, Schul-Voreinstellung (Issue #11 bleibt liegen).
 - Python in der App über Pyodide (SymPy läuft dort, siehe `docs/recherche-werkzeuge-bewertung.md`). Die Bedingung (eine Kollegin oder ein Kollege unterrichtet Mathematik) ist erfüllt, aber zuerst kommt das Setzen der Formeln. Ob die Rechenprüfung Pyodide wirklich braucht, ist offen (`docs/recherche/mathe-formeln.md`).
+- Stimme und Ton in Erklärstücken (Entscheidung von Yannik 2026-10-08: erst ohne). Die Lehrkraft erzählt live, die Szenen werden per Taste weitergeschaltet (#14). VoiceStudio (AGPL) kommt nicht in Frage, Näheres in `docs/recherche/bewegtbild.md`.
 - Gepunktete Lade-Orbs, Audio-Takt, Sammlung fremder Prompts, Sitzplan, E-Mail und iServ.
 
 ## Offen (braucht eine Entscheidung von Yannik)
