@@ -43,6 +43,7 @@ PULT_EVAL_API_KEY=… npm run eval -- \
 - `--wdh 3` spielt jeden Testsatz dreimal, weil Modelle jedes Mal anders antworten.
 - `--ohne-pruefer` lässt nur die Programmprüfungen laufen (wenige Cent).
 - `--limit 3` bricht ab, wenn die Kosten drei US-Dollar überschreiten.
+- `--pruefer jev` nimmt Jev (TypeSafe) statt eines Sprachmodells als Prüfer: Sekunden statt Minuten, rund ein Cent statt Dollar, aber nur ein grober Vortest (82 % gleiche Urteile wie Sonnet). Braucht `TYPESAFE_API_KEY`. Gedacht für die schnelle Rückmeldung nach einer Änderung an einer Anleitung, nicht für die Zahlen in `BASELINE.md`. Siehe `docs/entscheidungen/015-jev-vortest.md`.
 - Den Schlüssel immer als Umgebungsvariable setzen, nie in den Befehl oder in eine Datei im Repo schreiben. Anbieter und Modell sind frei wählbar, auch eine andere Firma für den Prüfer (`PULT_EVAL_PRUEFER_KEY`).
 
 ## Grenzen
