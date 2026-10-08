@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stilprobe Wabi-Sabi – Pult</title>
+<style>
+/* Stilprobe, kein Produktivcode. Schriften und Markenfarben sind die der App (assets/fonts, docs/marke.md). Alle Daten sind frei erfunden. */
+@font-face { font-family: "Fraunces"; src: url("../../assets/fonts/Fraunces_400Regular.ttf"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "Fraunces"; src: url("../../assets/fonts/Fraunces_400Regular_Italic.ttf"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Fraunces"; src: url("../../assets/fonts/Fraunces_600SemiBold.ttf"); font-weight: 600 700; font-style: normal; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_400Regular.ttf"); font-weight: 400; font-style: normal; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_400Regular_Italic.ttf"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Source Sans 3"; src: url("../../assets/fonts/SourceSans3_600SemiBold.ttf"); font-weight: 500 600; font-style: normal; }
+
+:root {
+  --paper: #f1ebdf; --paper-deep: #e7dfcf; --stone: #ddd2bd; --stone-deep: #cdbfa5;
+  --ink: #2b2620; --ink-soft: #6a6254; --line: #bfb39b;
+  --accent: #b4532a; --accent-wash: #ecd5c4; --moss: #5d6a4e;
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Source Sans 3", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: #d3cab8; }
+body { margin: 0; padding: 32px 24px 80px; font-family: var(--sans); color: var(--ink); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; text-align: left; }
+
+.intro { max-width: 1280px; margin: 0 auto 28px; }
+.intro h1 { font-family: var(--serif); font-weight: 400; font-size: 34px; letter-spacing: -0.01em; }
+.intro p { color: var(--ink-soft); max-width: 62ch; margin-top: 6px; }
+.tafel-label { max-width: 1280px; margin: 40px auto 10px; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.tafel-label b { color: var(--accent); margin-right: 8px; }
+.fit { margin: 0 auto; width: 1280px; max-width: 100%; }
+.tafel { width: 1280px; height: 800px; background: var(--paper); transform-origin: 0 0; box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 18px 50px rgba(43,38,32,.16); overflow: hidden; position: relative; }
+/* Paper grain over everything, very faint */
+.tafel::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .38  0 0 0 0 .28  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>"); }
+
+/* Wabi-sabi building blocks */
+.lab { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.lab.rost { color: var(--accent); }
+.wackel { filter: url(#wackel); }
+.pinsel { position: relative; display: inline-block; }
+.pinsel svg { position: absolute; left: -3%; bottom: -.18em; width: 106%; height: .3em; overflow: visible; }
+.pinsel svg path { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; opacity: .72; filter: url(#wackel); }
+/* Imperfect shapes: eight radii instead of four */
+.unrund { border-radius: 18px 6px 16px 8px / 8px 16px 6px 18px; }
+.unrund2 { border-radius: 8px 18px 7px 15px / 15px 7px 18px 8px; }
+.unrund3 { border-radius: 14px 9px 18px 6px / 7px 17px 9px 15px; }
+.siegel { position: absolute; width: 66px; height: 66px; display: grid; place-items: center; transform: rotate(-9deg); }
+.siegel::before { content: ""; position: absolute; inset: 0; background: var(--accent); border-radius: 50% 46% 53% 47% / 48% 53% 47% 52%; filter: url(#wackel); opacity: .9; }
+.siegel span { position: relative; color: #fff4e6; font: italic 15px/1 var(--serif); }
+.kintsugi { position: absolute; pointer-events: none; overflow: visible; }
+.kintsugi path { fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Tafel 1: App ---------- */
+.app { display: grid; grid-template-columns: 252px 1fr 384px; height: 100%; }
+.side { padding: 32px 22px 22px 28px; display: flex; flex-direction: column; gap: 34px; position: relative; }
+.side::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 2px; background: var(--line); filter: url(#wackel); opacity: .8; }
+.side .logo { height: 30px; display: block; align-self: flex-start; }
+.side .neu { display: flex; align-items: baseline; gap: 10px; font-family: var(--serif); font-style: italic; font-size: 18px; padding: 8px 14px; margin-left: -14px; background: var(--stone); }
+.side .neu span:first-child { font-style: normal; font-size: 22px; line-height: 1; color: var(--accent); }
+.side h3 { margin-bottom: 10px; }
+.klassen li { display: flex; align-items: baseline; gap: 12px; padding: 4px 0; font-size: 16px; }
+.klassen li::before { content: ""; flex: none; width: 7px; height: 7px; border: 1.5px solid var(--ink-soft); border-radius: 52% 46% 55% 45%; transform: translateY(-1px); }
+.klassen li > span:last-child { margin-left: auto; font-size: 13.5px; color: var(--ink-soft); }
+.klassen li.sub { padding-left: 19px; font-size: 15px; color: var(--ink-soft); }
+.klassen li.sub::before { display: none; }
+.klassen li.sub.on { color: var(--ink); background: var(--stone); margin-left: -8px; padding: 4px 10px 4px 27px; font-weight: 600; border-radius: 16px 5px 14px 6px / 6px 14px 5px 16px; }
+.klassen li.sub.on > span:last-child { color: var(--ink-soft); font-weight: 400; }
+.klassen li:not(.sub) { margin-top: 8px; font-family: var(--serif); font-size: 18px; }
+.verlauf li { font-family: var(--serif); font-style: italic; font-size: 15.5px; padding: 3px 0; color: var(--ink-soft); }
+.verlauf li.on { color: var(--ink); }
+.side .foot { margin-top: auto; font-size: 14px; color: var(--ink-soft); }
+
+.main { display: flex; flex-direction: column; min-width: 0; padding: 0 44px 0 70px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; padding: 30px 0 0; }
+.chat { flex: 1; padding-top: 28px; display: flex; flex-direction: column; gap: 26px; overflow: hidden; }
+.notiz { align-self: flex-end; max-width: 66%; font-family: var(--serif); font-style: italic; font-size: 19px; line-height: 1.5; color: var(--ink-soft); padding-left: 18px; position: relative; }
+.notiz::before { content: ""; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; background: var(--accent); border-radius: 50% 46% 53% 47%; opacity: .85; }
+.antwort { max-width: 580px; }
+.antwort h2 { font-family: var(--serif); font-weight: 400; font-size: 41px; line-height: 1.1; letter-spacing: -0.015em; margin: 4px 0 14px; }
+.antwort h2 i { font-style: italic; }
+.antwort .text { font-family: var(--serif); font-size: 18px; line-height: 1.72; color: #3a342b; }
+.antwort .text p + p { margin-top: .75em; }
+.schritte { display: flex; gap: 0; margin-top: 22px; align-items: flex-start; }
+.schritte li { flex: 1; padding-right: 14px; display: flex; flex-direction: column; gap: 7px; font-size: 14px; color: var(--ink-soft); line-height: 1.3; }
+.schritte .stein { display: block; background: var(--ink-soft); }
+.schritte li:nth-child(1) .stein { width: 15px; height: 13px; border-radius: 52% 48% 55% 45% / 58% 47% 53% 42%; }
+.schritte li:nth-child(2) .stein { width: 19px; height: 15px; border-radius: 46% 54% 49% 51% / 53% 45% 55% 47%; }
+.schritte li:nth-child(3) .stein { width: 13px; height: 14px; border-radius: 55% 45% 52% 48% / 48% 56% 44% 52%; }
+.schritte li:nth-child(4) .stein { width: 21px; height: 16px; border-radius: 48% 52% 46% 54% / 56% 48% 52% 44%; background: var(--accent); }
+.beilage { position: relative; margin-top: 30px; background: #f7f1e5; border: 1.5px solid var(--ink-soft); padding: 16px 24px 16px 20px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 18px; }
+.beilage strong { font-family: var(--serif); font-weight: 400; font-size: 21px; line-height: 1.15; display: block; }
+.beilage small { font-size: 14px; color: var(--ink-soft); }
+.beilage .oeffnen { font-family: var(--serif); font-style: italic; font-size: 18px; }
+.beilage .siegel { right: 128px; top: -30px; }
+.composer { padding: 10px 0 26px; }
+.composer .feld { position: relative; padding-bottom: 12px; display: flex; align-items: baseline; gap: 16px; }
+.composer .feld p { flex: 1; font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink-soft); }
+.composer .feld .senden { font-family: var(--serif); font-size: 18px; color: var(--accent); }
+.composer .feld svg { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 8px; overflow: visible; }
+.composer .feld svg path { fill: none; stroke: var(--ink-soft); stroke-width: 1.6; stroke-linecap: round; }
+
+.vorschau { padding: 30px 30px 26px 26px; display: flex; flex-direction: column; gap: 14px; background: var(--paper-deep); position: relative; }
+.vorschau::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--line); filter: url(#wackel); opacity: .8; }
+.vk { display: flex; justify-content: space-between; align-items: baseline; }
+.vk strong { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: 18px; }
+.mini { position: relative; flex: 1; background: #fbf8f1; box-shadow: 0 8px 22px rgba(43,38,32,.16); padding: 34px 28px; display: flex; flex-direction: column; gap: 10px; transform: rotate(-.6deg); }
+.mini .washi { position: absolute; top: -10px; left: 36px; width: 86px; height: 22px; background: rgba(180,83,42,.38); transform: rotate(-3deg); }
+.bal { height: 6px; background: #ddd4c1; border-radius: 3px 5px 3px 5px; }
+.bal.s { width: 72%; } .bal.k { width: 45%; }
+
+/* ---------- Blatt (Arbeitsblatt-Optik) ---------- */
+.blatt { font-family: var(--serif); color: #24201a; }
+.blatt .kopf { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: #6a6254; }
+.blatt h2 { font-weight: 400; font-size: 27px; line-height: 1.1; letter-spacing: -0.015em; margin-top: 12px; }
+.blatt .lead { font-style: italic; font-size: 12px; line-height: 1.5; color: #4a443a; margin-top: 8px; }
+
+/* ---------- Tafel 2: Übersicht ---------- */
+.tag { height: 100%; display: grid; grid-template-columns: 340px 1fr; }
+.tag .links { padding: 54px 20px 36px 56px; position: relative; display: flex; flex-direction: column; }
+.tag .links::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 2px; background: var(--line); filter: url(#wackel); opacity: .8; }
+.tag .wtag { font-family: var(--serif); font-style: italic; font-size: 24px; color: var(--ink-soft); }
+.tag .zahl { position: relative; font-family: var(--serif); font-weight: 400; font-size: 210px; line-height: 1; letter-spacing: -0.04em; margin: 0 0 0 20px; width: 190px; }
+.tag .enso { position: absolute; left: -22px; top: -6px; width: 250px; height: 250px; overflow: visible; }
+.tag .enso path { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; opacity: .7; filter: url(#wackel); }
+.tag .monat { margin-top: 6px; }
+.tag .heute-liste { margin-top: auto; }
+.tag .heute-liste h3 { margin-bottom: 8px; }
+.tag .heute-liste li { display: flex; gap: 12px; align-items: baseline; padding: 5px 0; font-family: var(--serif); font-size: 17px; line-height: 1.3; }
+.tag .heute-liste li::before { content: attr(data-n); font-family: var(--sans); font-size: 12.5px; color: var(--ink-soft); width: 14px; flex: none; }
+.tag .heute-liste li small { display: block; font-family: var(--sans); font-size: 13px; color: var(--ink-soft); }
+.tag .rechts { padding: 54px 52px 34px 54px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 0 48px; grid-template-rows: auto 1fr auto; }
+.tag h2 { grid-column: 1 / -1; font-family: var(--serif); font-weight: 400; font-size: 40px; line-height: 1.1; letter-spacing: -0.015em; margin-bottom: 26px; max-width: 18ch; }
+.plan { display: grid; grid-template-columns: 22px repeat(5, 1fr); gap: 7px 6px; align-content: start; font-size: 13.5px; }
+.plan .d { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); padding: 0 0 4px 4px; }
+.plan .d.heute { color: var(--accent); }
+.plan .n { font-family: var(--serif); font-size: 15px; color: var(--ink-soft); align-self: center; }
+.plan .k { padding: 6px 9px 7px; background: var(--stone); line-height: 1.2; min-height: 40px; }
+.plan .k b { display: block; font-weight: 600; font-size: 14px; }
+.plan .k small { color: var(--ink-soft); font-size: 12.5px; }
+.plan .k.heute { background: var(--stone-deep); box-shadow: inset 0 -2px 0 rgba(180,83,42,.55); }
+.plan .k.pause { background: transparent; border: 1.5px dashed var(--line); color: var(--ink-soft); font-style: italic; font-family: var(--serif); }
+.plan .e { }
+.plan .k:nth-of-type(3n) { border-radius: 14px 6px 12px 5px / 6px 12px 5px 14px; }
+.plan .k:nth-of-type(3n+1) { border-radius: 6px 13px 5px 12px / 12px 5px 13px 6px; }
+.plan .k:nth-of-type(3n+2) { border-radius: 11px 7px 14px 6px / 6px 13px 7px 11px; }
+.stand li { padding: 4px 0 18px; }
+.stand li:nth-child(even) { padding-left: 26px; }
+.stand strong { font-family: var(--serif); font-weight: 600; font-size: 19px; display: block; line-height: 1.2; }
+.stand .st { font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--ink-soft); }
+.stand .st.fertig { color: var(--moss); }
+.stand .st.fertig::before { content: "● "; font-style: normal; font-size: 10px; vertical-align: 2px; }
+.stand .st.offen::before { content: "○ "; font-style: normal; font-size: 10px; vertical-align: 2px; }
+.stand .st.fertig + p, .stand p { font-size: 14px; color: var(--ink-soft); line-height: 1.4; margin-top: 2px; }
+.zettel-reihe { grid-column: 1 / -1; display: flex; gap: 24px; margin-top: 20px; align-items: flex-start; }
+.zettel-reihe .lab { writing-mode: vertical-rl; transform: rotate(180deg); align-self: center; }
+.zettel { position: relative; flex: 1; background: #f8f3e8; padding: 18px 20px 14px; box-shadow: 0 3px 10px rgba(43,38,32,.12); font-size: 14.5px; line-height: 1.35; }
+.zettel:nth-of-type(1) { transform: rotate(-1.2deg); }
+.zettel:nth-of-type(2) { transform: rotate(.7deg) translateY(5px); }
+.zettel:nth-of-type(3) { transform: rotate(-.5deg); }
+.zettel b { display: block; font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.05; margin-bottom: 4px; }
+.zettel .washi { position: absolute; top: -9px; left: 50%; margin-left: -28px; width: 56px; height: 17px; background: rgba(93,106,78,.35); transform: rotate(2deg); }
+.zettel:nth-of-type(1) .washi { background: rgba(180,83,42,.38); }
+
+/* ---------- Tafel 3: Material ---------- */
+.zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; padding: 34px 48px 0; height: 100%; }
+.zwei figcaption { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.a4 { width: 100%; aspect-ratio: 1 / 1.414; background: #fffdf8; box-shadow: 0 10px 30px rgba(43,38,32,.2); padding: 46px 48px 28px; display: flex; flex-direction: column; font-size: 12.5px; position: relative; }
+.a4.grau { filter: grayscale(1); }
+.blatt-inner { flex: 1; display: flex; flex-direction: column; }
+.blatt-inner .kopf .zeichen { display: inline-block; width: 10px; height: 10px; border: 1.5px solid var(--accent); border-radius: 52% 46% 55% 45%; margin-right: 8px; vertical-align: -1px; }
+.blatt-inner h2 { font-size: 31px; line-height: 1.08; max-width: 14ch; margin-top: 18px; }
+.blatt-inner .pinsel svg { height: .26em; }
+.schau { margin-top: 14px; }
+.schau svg { width: 100%; height: auto; display: block; }
+.schau svg .skizze { filter: url(#skizze); }
+.schau figcaption { display: block; font-family: var(--sans); font-style: italic; font-size: 10px; color: #6a6254; padding-top: 4px; margin: 0; }
+.aufgaben { margin-top: 16px; display: flex; flex-direction: column; gap: 18px; }
+.aufgabe { display: grid; grid-template-columns: 30px 1fr; gap: 8px; line-height: 1.45; font-size: 12.5px; align-items: start; }
+.aufgabe b { display: grid; place-items: center; width: 24px; height: 24px; font-weight: 400; font-size: 15px; line-height: 1; border: 1.5px solid var(--accent); border-radius: 52% 46% 55% 45% / 47% 55% 45% 53%; color: var(--accent); }
+.aufgabe .zeilen { margin-top: 6px; display: grid; gap: 18px; }
+.aufgabe .zeilen i { display: block; height: 3px; border-bottom: 1.4px solid #b7ac95; filter: url(#wackel); }
+.merk { margin: 20px 0 14px; padding: 4px 0 4px 18px; position: relative; font-size: 12.5px; line-height: 1.5; font-style: italic; color: #3a342b; }
+.merk::before { content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 4px; background: var(--accent); opacity: .75; border-radius: 3px; filter: url(#wackel); }
+.blatt-fuss { margin-top: auto; display: flex; justify-content: space-between; align-items: center; padding-top: 8px; font-family: var(--sans); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #6a6254; position: relative; }
+.blatt-fuss::before { content: ""; position: absolute; top: 0; left: 0; right: 0; border-top: 1.4px solid #b7ac95; filter: url(#wackel); }
+.blatt-fuss img { height: 13px; display: block; }
+</style>
+</head>
+<body>
+
+<!-- Filter für unregelmäßige Linien: verschiebt Pixel leicht, wie Tusche auf Papier -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="wackel" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4"/></filter>
+  <filter id="skizze" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/></filter>
+</svg>
+
+<header class="intro">
+  <div class="lab rost">Stilprobe 3 von 5</div>
+  <h1>Wabi-Sabi</h1>
+  <p>Ruhig, warm, nicht perfekt. Linien sind leicht schief, Formen nie ganz rund, das Papier hat eine feine Körnung und es bleibt viel leerer Platz. Rostrot erscheint als Tuschepunkt, Pinselstrich und Siegel. Dazu ein gedämpftes Moosgrün für "fertig". Schriften und Markenfarben sind die der App. Alle Namen und Inhalte sind erfunden.</p>
+</header>
+
+<!-- ============ Tafel 1 ============ -->
+<div class="tafel-label"><b>1</b>Arbeitsplatz: Seitenleiste, Gespräch, Vorschau</div>
+<div class="fit"><div class="tafel">
+  <div class="app">
+    <aside class="side">
+      <img class="logo" src="../logo/pult-logo.svg" alt="Pult" style="width:auto">
+      <button class="neu"><span aria-hidden="true">+</span><span>Neues Gespräch</span></button>
+      <nav aria-label="Klassen">
+        <h3 class="lab">Klassen</h3>
+        <ul class="klassen">
+          <li><span>7b</span><span>2</span></li>
+          <li class="sub on"><span>Englisch</span><span>3</span></li>
+          <li class="sub"><span>Politik</span><span>1</span></li>
+          <li><span>9a</span><span>1</span></li>
+          <li class="sub"><span>Mathematik</span><span>4</span></li>
+          <li><span>10c</span><span>1</span></li>
+          <li class="sub"><span>Erdkunde</span><span>2</span></li>
+        </ul>
+      </nav>
+      <div>
+        <h3 class="lab">Zuletzt</h3>
+        <ul class="verlauf">
+          <li class="on">Arbeitsblatt Simple Past</li>
+          <li>Klausur Bruchrechnung</li>
+          <li>Stundenplanung Wasserkreislauf</li>
+        </ul>
+      </div>
+      <div class="foot">Einstellungen</div>
+    </aside>
+
+    <section class="main">
+      <div class="head"><span class="lab">7b · Englisch</span><span class="lab">Donnerstag, 8. Oktober</span></div>
+      <div class="chat">
+        <p class="notiz">Mach mir ein Arbeitsblatt zum Simple Past, 20 Minuten, zwei Niveaus.</p>
+        <article class="antwort">
+          <h2>Simple Past, auf <span class="pinsel"><i>zwei</i><svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M2 6 C30 2, 62 9, 98 4"/></svg></span> Wegen geübt.</h2>
+          <div class="text">
+            <p>Ein Blatt, zwei Niveaus: Wer sicher ist, schreibt eigene Sätze, wer Hilfe braucht, ergänzt Lücken. Es besteht aus drei Teilen: ein Einstieg mit Beispielen, eine Übung zu den regelmäßigen Verben und eine Schreibaufgabe zum letzten Wochenende.</p>
+            <p>Die Lösungen stehen auf einer eigenen Seite. In Graustufen bleibt alles gut lesbar.</p>
+          </div>
+          <ol class="schritte" aria-label="Schritte">
+            <li><span class="stein"></span>Thema geklärt</li>
+            <li><span class="stein"></span>Aufgaben geschrieben</li>
+            <li><span class="stein"></span>Schaubild gezeichnet</li>
+            <li><span class="stein"></span>PDF erstellt</li>
+          </ol>
+          <div class="beilage unrund">
+            <div><strong>Arbeitsblatt Simple Past</strong><small>PDF · 2 Seiten</small></div>
+            <a class="oeffnen"><span class="pinsel">Öffnen<svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M2 5 C30 8, 70 2, 98 6"/></svg></span></a>
+            <svg class="kintsugi" style="left:57%;top:-1px;width:30px;height:82px" viewBox="0 0 30 82"><path d="M12 0 L20 14 L9 28 L21 44 L10 60 L18 82"/></svg>
+            <div class="siegel"><span>fertig</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="composer">
+        <div class="feld"><p>Was soll angepasst werden?</p><button class="senden">Senden</button>
+          <svg viewBox="0 0 400 8" preserveAspectRatio="none"><path d="M0 4 C60 1, 120 7, 200 4 S340 2, 400 5"/></svg></div>
+      </div>
+    </section>
+
+    <aside class="vorschau">
+      <div class="vk"><strong>Arbeitsblatt Simple Past</strong><span class="lab">Seite 1 / 2</span></div>
+      <div class="mini blatt">
+        <div class="washi"></div>
+        <div class="kopf"><span>Englisch · Klasse 7b</span><span>Name: ___________</span></div>
+        <h2>Yesterday I <span class="pinsel">walked<svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M2 6 C30 2, 62 9, 98 4"/></svg></span>, you talked.</h2>
+        <p class="lead">Regelmäßige Verben bekommen im Simple Past ein <b style="white-space:nowrap">&#8209;ed</b>. Das merkst du dir am besten mit Beispielen.</p>
+        <div style="height:6px"></div>
+        <div class="bal"></div><div class="bal s"></div><div class="bal k"></div>
+        <div style="height:8px"></div>
+        <div class="bal"></div><div class="bal s"></div><div class="bal"></div><div class="bal k"></div>
+      </div>
+    </aside>
+  </div>
+</div></div>
+
+<!-- ============ Tafel 2 ============ -->
+<div class="tafel-label"><b>2</b>Übersicht: Stundenplan und Stand</div>
+<div class="fit"><div class="tafel">
+  <div class="tag">
+    <div class="links">
+      <span class="wtag">Donnerstag</span>
+      <div class="zahl">8<svg class="enso" viewBox="0 0 250 250"><path d="M150 18 C70 -4 12 52 18 130 C24 206 96 244 164 226 C224 208 246 142 226 88 C214 56 188 36 162 30"/></svg></div>
+      <span class="lab monat" style="margin-top:10px">Oktober 2026 · Woche 41</span>
+      <div class="heute-liste">
+        <h3 class="lab rost">Heute</h3>
+        <ul>
+          <li data-n="1"><span>7b Englisch<small>Stunde 3 von 6</small></span></li>
+          <li data-n="2"><span>9a Mathematik<small>Bruchrechnung</small></span></li>
+          <li data-n="4"><span>10c Erdkunde<small>Auswertung</small></span></li>
+          <li data-n="5"><span>7b Politik<small>noch kein Material</small></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="rechts">
+      <h2>Heute vier Stunden, <span class="pinsel">morgen<svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M2 6 C30 2, 62 9, 98 4"/></svg></span> fünf.</h2>
+      <section class="plan" aria-label="Stundenplan">
+        <span></span><span class="d">Mo</span><span class="d">Di</span><span class="d">Mi</span><span class="d heute">Do</span><span class="d">Fr</span>
+        <span class="n">1</span><div class="k"><b>7b</b><small>Englisch</small></div><span class="e"></span><div class="k"><b>9a</b><small>Mathe</small></div><div class="k heute"><b>7b</b><small>Englisch</small></div><div class="k"><b>10c</b><small>Erdkunde</small></div>
+        <span class="n">2</span><div class="k"><b>7b</b><small>Englisch</small></div><div class="k"><b>9a</b><small>Mathe</small></div><span class="e"></span><div class="k heute"><b>9a</b><small>Mathe</small></div><div class="k"><b>10c</b><small>Erdkunde</small></div>
+        <span class="n">3</span><span class="e"></span><div class="k"><b>10c</b><small>Erdkunde</small></div><div class="k"><b>7b</b><small>Politik</small></div><div class="k pause">Pause</div><div class="k"><b>9a</b><small>Mathe</small></div>
+        <span class="n">4</span><div class="k"><b>9a</b><small>Mathe</small></div><div class="k"><b>7b</b><small>Politik</small></div><span class="e"></span><div class="k heute"><b>10c</b><small>Erdkunde</small></div><div class="k"><b>7b</b><small>Englisch</small></div>
+        <span class="n">5</span><span class="e"></span><span class="e"></span><div class="k"><b>10c</b><small>Erdkunde</small></div><div class="k heute"><b>7b</b><small>Politik</small></div><span class="e"></span>
+        <span class="n">6</span><div class="k"><b>9a</b><small>Mathe</small></div><span class="e"></span><span class="e"></span><span class="e"></span><span class="e"></span>
+      </section>
+      <section>
+        <h3 class="lab" style="margin-bottom:12px">Stand der Reihen</h3>
+        <ul class="stand">
+          <li><strong>7b Englisch</strong><span class="st fertig">Material fertig</span><p>Simple Past, Stunde 3 von 6.</p></li>
+          <li><strong>9a Mathematik</strong><span class="st offen">geplant</span><p>Klausur am 22. Oktober.</p></li>
+          <li><strong>10c Erdkunde</strong><span class="st">gehalten</span><p>Auswertung offen.</p></li>
+          <li><strong>7b Politik</strong><span class="st offen">geplant</span><p>Noch kein Material.</p></li>
+        </ul>
+      </section>
+      <div class="zettel-reihe">
+        <span class="lab">Termine</span>
+        <div class="zettel unrund3"><span class="washi"></span><b>9. Okt.</b>Elternabend 7b, 18 Uhr</div>
+        <div class="zettel unrund2"><span class="washi"></span><b>22. Okt.</b>Klausur Bruchrechnung, 9a</div>
+        <div class="zettel unrund"><span class="washi"></span><b>29. Okt.</b>Notenschluss Halbjahr</div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ============ Tafel 3 ============ -->
+<div class="tafel-label"><b>3</b>Material: dasselbe Arbeitsblatt in Farbe und in Graustufen</div>
+<div class="fit"><div class="tafel" style="height:960px">
+  <div class="zwei">
+    <figure>
+      <figcaption><span class="lab">In Farbe</span><span class="lab">A4</span></figcaption>
+      <div class="a4 blatt" id="blatt-farbe"></div>
+    </figure>
+    <figure>
+      <figcaption><span class="lab">Im Schwarz-Weiß-Druck</span><span class="lab">gleiche Datei, Graustufen</span></figcaption>
+      <div class="a4 blatt grau" id="blatt-grau"></div>
+    </figure>
+  </div>
+</div></div>
+
+<template id="blatt">
+  <div class="blatt-inner">
+    <div class="kopf"><span><span class="zeichen"></span>Erdkunde · Klasse 10c</span><span>Name: ______________</span></div>
+    <h2>Wie das Wasser <span class="pinsel">wieder nach oben<svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M2 6 C30 2, 62 9, 98 4"/></svg></span> kommt.</h2>
+    <p class="lead">Wasser verschwindet nicht, es wandert. Sonne, Wind und Wolken halten es in Bewegung, immer im Kreis.</p>
+    <figure class="schau">
+      <svg viewBox="0 0 440 170" role="img" aria-label="Wasserkreislauf: Verdunstung, Wolke, Regen, Fluss">
+        <defs><marker id="pf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#24201a"/></marker></defs>
+        <g class="skizze">
+          <circle cx="46" cy="36" r="16" fill="#e3b04b" stroke="#24201a" stroke-width="1.4"/>
+          <path d="M0 146 Q55 136 110 146 T220 146 T330 146 T440 146 V170 H0 Z" fill="#8fb0c9" stroke="#24201a" stroke-width="1.4"/>
+          <path d="M250 146 L320 112 L440 112 V146 Z" fill="#a3ad91" stroke="#24201a" stroke-width="1.4"/>
+          <g fill="#f0f1ef" stroke="#24201a" stroke-width="1.4"><ellipse cx="250" cy="52" rx="46" ry="16"/><ellipse cx="226" cy="58" rx="26" ry="12"/><ellipse cx="278" cy="58" rx="26" ry="12"/></g>
+          <g stroke="#24201a" stroke-width="1.5" fill="none" marker-end="url(#pf)"><path d="M92 136 C92 108 100 90 150 76 L202 66"/><path d="M270 76 L296 106"/><path d="M350 124 C330 132 300 138 268 142"/></g>
+          <g stroke="#3f6591" stroke-width="2" stroke-linecap="round"><path d="M232 80 l-3 9 M246 82 l-3 9"/></g>
+        </g>
+        <g font-family="Fraunces, serif" font-size="12" font-style="italic" fill="#24201a">
+          <text x="106" y="112">1 Verdunstung</text><text x="304" y="92">2 Regen</text><text x="366" y="130">3 Fluss</text><text x="218" y="22">Wolke</text>
+        </g>
+      </svg>
+      <figcaption>Abb. 1 · Der Kreislauf des Wassers in drei Schritten</figcaption>
+    </figure>
+    <div class="aufgaben">
+      <div class="aufgabe"><b>1</b><div>Beschreibe in zwei Sätzen, was zwischen Schritt 1 und Schritt 2 passiert.<div class="zeilen"><i></i><i></i></div></div></div>
+      <div class="aufgabe"><b>2</b><div>Erkläre, warum an einem heißen Tag mehr Wasser verdunstet als an einem kühlen.<div class="zeilen"><i></i><i></i></div></div></div>
+      <div class="aufgabe"><b>3</b><div>Nenne einen Ort in deiner Umgebung, an dem du den Kreislauf beobachten kannst.<div class="zeilen"><i></i></div></div></div>
+      <div class="aufgabe"><b>4</b><div>Schreibe auf, wie sich der Kreislauf schließt. Beginne mit „Das Wasser im Meer …“.<div class="zeilen"><i></i><i></i></div></div></div>
+    </div>
+    <p class="merk">Merke: Das Wasser auf der Erde ist immer dasselbe. Es ändert nur seinen Zustand und seinen Ort.</p>
+    <div class="blatt-fuss"><span>Arbeitsblatt · Wasserkreislauf</span><img src="../logo/pult-zeichen-klein.svg" alt="Pult"><span>Seite 1 / 1</span></div>
+  </div>
+</template>
+
+<script>
+// Fill both sheets from one template and scale the fixed-size boards to the window.
+const t = document.getElementById("blatt");
+for (const id of ["blatt-farbe", "blatt-grau"]) document.getElementById(id).append(t.content.cloneNode(true));
+// The marker id must be unique per copy, otherwise the second sheet points at the first.
+document.querySelectorAll("#blatt-grau marker").forEach((m) => { m.id = "pf2"; });
+document.querySelectorAll("#blatt-grau [marker-end]").forEach((p) => p.setAttribute("marker-end", "url(#pf2)"));
+function fit() {
+  document.querySelectorAll(".fit").forEach((f) => {
+    const tafel = f.firstElementChild;
+    const s = Math.min(1, (window.innerWidth - 48) / 1280);
+    tafel.style.transform = `scale(${s})`;
+    f.style.width = 1280 * s + "px";
+    f.style.height = tafel.offsetHeight * s + "px";
+  });
+}
+addEventListener("resize", fit);
+document.fonts.ready.then(fit);
+fit();
+</script>
+</body>
+</html>
