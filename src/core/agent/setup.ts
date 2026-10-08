@@ -4,7 +4,7 @@ import { Type, type Context } from "@earendil-works/pi-ai";
 import { CUSTOM_ID, CustomProviderError, keyFor } from "./custom.ts";
 import { classifyFailure } from "./errors.ts";
 import { diagnoseNetwork, type NetDiagnosis } from "./netcheck.ts";
-import { modelProblem, PROVIDERS, resolveModel } from "./models.ts";
+import { modelProblem, PROVIDERS, resolveModel, visionProblem } from "./models.ts";
 import { dateTool } from "./tools.ts";
 import type { AgentSettings, ConnectionResult, ProviderOption } from "./types.ts";
 
@@ -117,7 +117,7 @@ export async function testConnection(
     set("tools", "failed");
   }
 
-  if (modelProblem(model)) {
+  if (visionProblem(model)) {
     set("vision", "failed");
   } else {
     try {
