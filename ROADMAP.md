@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -38,6 +38,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Verbrauch (Tokens, geschätzte Kosten, Monatssumme), Kontext-Füllstand und Guthaben (nur wo der Anbieter es hergibt: DeepSeek, OpenRouter) versteckt hinter einem kleinen Ring am Eingabefeld
 - [x] Bilder anhängen (Büroklammer, Ziehen, Einfügen) mit Datenschutz-Hinweis. PDF und Word folgen in Phase 3
 - [x] Gesprächsverlauf: frühere Gespräche in der Seitenleiste, wieder öffnen (mit Schritten, Dateien und Verbrauch) und löschen. Gespeichert unter `Gespräche/` im Datenordner, nur auf diesem Computer
+- [x] Ablaufprotokoll pro Gespräch: Dauer, Zeit bis zur ersten Ausgabe, Mengen und Ende jeder Modellanfrage, Dauer und Fehlerfelder jedes Werkzeugs, Warten auf die Lehrkraft, Wiederholungen. Nur Zeiten und Mengen, keine Inhalte. Steht im Gesprächsexport unter "Ablauf"
 - [x] Lange Gespräche: Ab etwa 80 Prozent Kontext-Füllstand den älteren Teil automatisch zusammenfassen, die letzten Beiträge bleiben wörtlich. Hinweis in einfacher Sprache, keine Rückfrage. Bei "Eingabe zu lang" vom Anbieter einmal erneut versuchen (Ideen aus `docs/recherche-harnesse.md`). Der Hinweis erscheint als Schritt in der Schrittliste; scheitert die Zusammenfassung, läuft das Gespräch unverändert weiter
 - [x] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent`: Claude, OpenAI, OpenRouter, DeepSeek und jeder OpenAI-kompatible Server (Schulserver, LM Studio, Ollama), geprüft gegen einen echten HTTP-Mock mit Streaming und Werkzeugaufruf. http:// nur für den eigenen Computer und private Adressen Mit einem echten Modell (OpenRouter, Claude Haiku 4.5) geprüft: Verbindungstest, Reihe planen, Arbeitsblatt erstellen und in die Stundentabelle eintragen, Lehrplan umwandeln.
 - [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
