@@ -4,14 +4,17 @@ import { Type, type Context } from "@earendil-works/pi-ai";
 import { CUSTOM_ID, CustomProviderError, keyFor } from "./custom.ts";
 import { classifyFailure } from "./errors.ts";
 import { diagnoseNetwork, type NetDiagnosis } from "./netcheck.ts";
-import { PROVIDERS, resolveModel } from "./models.ts";
+import { modelProblem, PROVIDERS, resolveModel } from "./models.ts";
 import { dateTool } from "./tools.ts";
 import type { AgentSettings, ConnectionResult, ProviderOption } from "./types.ts";
 
-/** Providers with their models. Recommended ones come first, the rest is for "Erweitert". */
+/**
+ * Providers with their models. Recommended ones come first, the rest is for "Erweitert".
+ * Models that cannot do what Pult needs are not listed at all.
+ */
 export function listProviders(): ProviderOption[] {
   const catalog = Object.entries(PROVIDERS).map(([id, p]) => {
-    const models = p.make().getModels().map((m) => ({
+    const models = p.make().getModels().filter((m) => !modelProblem(m)).map((m) => ({
       id: m.id,
       name: m.name,
       vision: m.input.includes("image"),
@@ -114,7 +117,7 @@ export async function testConnection(
     set("tools", "failed");
   }
 
-  if (!model.input.includes("image")) {
+  if (modelProblem(model)) {
     set("vision", "failed");
   } else {
     try {

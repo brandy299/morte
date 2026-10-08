@@ -93,7 +93,7 @@ export interface ConnectionResult {
   hint?: string;
   detail?: string;
 }
-export interface SetupStatus { configured: boolean; provider?: string; model?: string; baseUrl?: string; contextWindow?: number; storage?: "keychain" | "file" }
+export interface SetupStatus { configured: boolean; provider?: string; model?: string; baseUrl?: string; contextWindow?: number; storage?: "keychain" | "file"; notice?: string }
 
 const post = async <T,>(url: string, body?: unknown): Promise<T> => {
   const res = await fetch(url, {

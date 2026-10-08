@@ -1,11 +1,12 @@
 import { changeDataDir, openDataDir, ordnerInfo, OrdnerError, pickFolder, resetDataDir } from "../core/ordner/index.ts";
 import { AnhangError, extractFile, MAX_FILES, MAX_TOTAL_CHARS, withFiles, type SentFile } from "../core/anhang/extract.ts";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono, type Context, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
-import { checkBaseUrl, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
+import { checkBaseUrl, checkChoice, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, ModelNotAllowed, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { zipFiles, zipName, ZIP_MAX_FILES } from "../core/workspace/zip.ts";
 import { createClass, initWorkspace, listAllMaterial, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
@@ -35,8 +36,12 @@ interface SetupBody {
 const MAX_IMAGE_BASE64 = 7_000_000; // about 5 MB of image
 
 
-async function buildSession(state: AppState, choice: NonNullable<AppState["choice"]>) {
-  const apiKey = choice.provider === "demo" ? undefined : await state.secrets.get(keyName(choice.provider));
+/** Identifies a tested choice without keeping the key itself. */
+const fingerprint = (c: { provider: string; model: string; baseUrl?: string; contextWindow?: number }, key?: string) =>
+  createHash("sha256").update([c.provider, c.model, c.baseUrl ?? "", c.contextWindow ?? "", key ?? ""].join("\0")).digest("hex");
+
+async function buildSession(state: AppState, choice: NonNullable<AppState["choice"]>, key?: string) {
+  const apiKey = choice.provider === "demo" ? undefined : (key ?? (await state.secrets.get(keyName(choice.provider))));
   state.choice = choice;
   state.conversation = undefined; // a new session starts a new conversation
   state.session?.abort();
@@ -51,9 +56,12 @@ export async function loadState(secrets: SecretStore): Promise<AppState> {
     try {
       await buildSession(state, saved);
       state.configured = saved;
-    } catch {
-      // The saved model is gone (for example removed from the catalog after an update). Start with the setup screen.
+    } catch (err) {
+      // A saved model that is not allowed, or gone (for example removed from the catalog after an update), is never used.
+      // Start with the setup screen and say why.
       state.session = undefined;
+      state.notice =
+        err instanceof ModelNotAllowed ? err.message : "Das bisher gewählte Modell lässt sich nicht mehr verwenden. Bitte wähle ein neues.";
     }
   }
   return state;
@@ -97,28 +105,40 @@ export function createApp(state: AppState) {
   let busy = false;
 
   app.get("/api/setup/status", (c) =>
-    c.json({ configured: Boolean(state.session), ...state.configured, storage: state.secrets.kind }),
+    c.json({ configured: Boolean(state.session), ...state.configured, storage: state.secrets.kind, notice: state.notice }),
   );
   app.get("/api/setup/options", (c) => c.json({ providers: listProviders() }));
 
   app.post("/api/setup/test", async (c) => {
     const { provider, model, apiKey, baseUrl, contextWindow } = await c.req.json<SetupBody>();
     const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
-    return c.json(await testConnection({ provider, model, apiKey: key, baseUrl, contextWindow }));
+    const result = await (state.runTest ?? testConnection)({ provider, model, apiKey: key, baseUrl, contextWindow });
+    state.passed = result.passed ? fingerprint({ provider, model, baseUrl: baseUrl?.trim(), contextWindow }, key) : undefined;
+    return c.json(result);
   });
 
   app.post("/api/setup/save", async (c) => {
     const { provider, model, apiKey, baseUrl, contextWindow } = await c.req.json<SetupBody>();
     const choice = { provider, model, ...(provider === CUSTOM_ID ? { baseUrl: baseUrl?.trim(), contextWindow } : {}) };
+    const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
     try {
       if (provider === CUSTOM_ID) choice.baseUrl = checkBaseUrl(baseUrl);
+      // Unknown or unsuitable models are refused at once, without a network call.
+      checkChoice({ provider, model, baseUrl: choice.baseUrl, contextWindow });
+      // Only a model that passed the test can be saved, whatever the page did before. A direct call gets the test too.
+      if (state.passed !== fingerprint(choice, key)) {
+        const result = await (state.runTest ?? testConnection)({ provider, model, apiKey: key, baseUrl: choice.baseUrl, contextWindow });
+        if (!result.passed) return c.json({ error: result.hint ?? "Das Modell passt noch nicht.", result }, 422);
+      }
+      await buildSession(state, choice, key);
       if (apiKey?.trim()) await state.secrets.set(keyName(provider), apiKey.trim());
-      await buildSession(state, choice);
     } catch (err) {
+      if (err instanceof ModelNotAllowed) return c.json({ error: err.message }, 422);
       return c.json({ error: err instanceof CustomProviderError ? err.message : "Dieses Modell kenne ich nicht. Bitte wähle ein anderes." }, 400);
     }
     await saveProviderSettings(choice);
     state.configured = choice;
+    state.notice = undefined;
     return c.json({ ok: true });
   });
 

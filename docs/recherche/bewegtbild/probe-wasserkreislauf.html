@@ -1,0 +1,79 @@
+<!doctype html><meta charset="utf-8">
+<style>
+@font-face{font-family:"Fraunces";src:url("Fraunces_600SemiBold.ttf");font-weight:600}
+html,body{margin:0;background:#f4efe6}
+svg{display:block}
+.g{transform-box:fill-box;transform-origin:center}
+text{font-family:"Fraunces",serif;font-weight:600}
+</style>
+<svg id="stage" viewBox="0 0 1280 720" width="1280" height="720">
+<defs>
+  <!-- Wasserfarbe: wackelige Kante, Pigment-Flecken, dunklerer Rand -->
+  <filter id="wc" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="4" result="warp"/>
+    <feDisplacementMap in="SourceGraphic" in2="warp" scale="26" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur in="d" stdDeviation="1.1" result="soft"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="11" result="mott"/>
+    <feColorMatrix in="mott" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.5 -0.18" result="mottA"/>
+    <feComposite in="soft" in2="mottA" operator="in" result="body"/>
+    <feMorphology in="soft" operator="erode" radius="4" result="core"/>
+    <feGaussianBlur in="core" stdDeviation="7" result="coreB"/>
+    <feComposite in="soft" in2="coreB" operator="out" result="rim"/>
+    <feMerge><feMergeNode in="body"/><feMergeNode in="rim"/></feMerge>
+  </filter>
+  <filter id="line" x="-10%" y="-10%" width="120%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="2" result="w"/>
+    <feDisplacementMap in="SourceGraphic" in2="w" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0 0.22  0 0 0 0.55 -0.12"/>
+  </filter>
+</defs>
+<rect width="1280" height="720" fill="#f4efe6"/>
+<g id="sky" class="g" filter="url(#wc)" opacity="0"><rect x="-60" y="-60" width="1400" height="470" fill="#bcd5de"/></g>
+<g id="sun" class="g" opacity="0"><g filter="url(#wc)"><circle cx="190" cy="150" r="78" fill="#efb04a"/></g></g>
+<g id="hillsFar" class="g" opacity="0"><g filter="url(#wc)"><path d="M-60 470 C 120 380 300 400 470 450 C 640 500 800 360 1000 400 C 1130 425 1230 410 1340 380 L1340 740 L-60 740Z" fill="#a8bf9f"/></g></g>
+<g id="hillsNear" class="g" opacity="0"><g filter="url(#wc)"><path d="M-60 560 C 150 470 330 480 520 540 C 700 600 900 500 1100 520 C 1200 530 1280 555 1340 540 L1340 740 L-60 740Z" fill="#6f9a73"/></g></g>
+<g id="lake" class="g" opacity="0"><g filter="url(#wc)"><ellipse cx="560" cy="615" rx="250" ry="52" fill="#5f97b4"/></g></g>
+<g id="cloud" class="g" opacity="0"><g filter="url(#wc)"><ellipse cx="985" cy="150" rx="120" ry="52" fill="#cfd8e3"/><ellipse cx="925" cy="170" rx="85" ry="44" fill="#c3cedc"/><ellipse cx="1060" cy="172" rx="90" ry="42" fill="#c8d2df"/><ellipse cx="990" cy="118" rx="80" ry="46" fill="#d8e0ea"/></g></g>
+<g id="rain" filter="url(#line)"></g>
+<!-- Pfeile (Pult-Rostrot), Linie wird gezeichnet -->
+<g id="arrows" filter="url(#line)" fill="none" stroke="#b4532a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+  <path class="ar" id="a1" pathLength="1" d="M660 575 C 760 470 860 340 925 232"/>
+  <path class="ah" id="h1" d="M900 236 L928 224 L934 254" opacity="0"/>
+  <path class="ar" id="a2" pathLength="1" d="M1040 235 C 1090 330 1070 420 1010 495"/>
+  <path class="ah" id="h2" d="M990 478 L1008 504 L1034 486" opacity="0"/>
+  <path class="ar" id="a3" pathLength="1" d="M860 560 C 790 590 720 600 690 598"/>
+  <path class="ah" id="h3" d="M712 580 L688 598 L710 616" opacity="0"/>
+</g>
+<g id="labels" fill="#23201b" font-size="30">
+  <g id="l1" opacity="0"><circle cx="820" cy="470" r="19" fill="#b4532a"/><text x="820" y="481" font-size="25" fill="#fbf8f2" text-anchor="middle">1</text><text x="848" y="480" >Verdunstung</text></g>
+  <g id="l2" opacity="0"><circle cx="1116" cy="360" r="19" fill="#b4532a"/><text x="1116" y="371" font-size="25" fill="#fbf8f2" text-anchor="middle">2</text><text x="1144" y="370" font-size="28">Regen</text></g>
+  <g id="l3" opacity="0"><circle cx="775" cy="632" r="19" fill="#b4532a"/><text x="775" y="643" font-size="25" fill="#fbf8f2" text-anchor="middle">3</text><text x="803" y="642" font-size="28">Abfluss</text></g>
+</g>
+<g id="title" opacity="0"><text x="64" y="330" font-size="86" fill="#23201b">Der</text><text x="64" y="420" font-size="86" fill="#23201b">Wasserkreislauf</text><rect x="68" y="440" width="150" height="8" rx="4" fill="#b4532a"/></g>
+<rect width="1280" height="720" filter="url(#grain)" style="mix-blend-mode:multiply" opacity=".55"/>
+</svg>
+<script src="anime.umd.min.js"></script>
+<script>
+const {createTimeline,utils}=anime;
+const NS="http://www.w3.org/2000/svg", rain=document.getElementById("rain");
+const drops=[]; for(let i=0;i<14;i++){const x=950+(i%7)*24+(i>6?12:0), y=215+(i%3)*12; const l=document.createElementNS(NS,"line"); l.setAttribute("x1",x);l.setAttribute("y1",y);l.setAttribute("x2",x-6);l.setAttribute("y2",y+34);l.setAttribute("stroke","#4a7da3");l.setAttribute("stroke-width","6");l.setAttribute("stroke-linecap","round");l.setAttribute("opacity","0");l.classList.add("drop");rain.appendChild(l);drops.push(l);}
+document.querySelectorAll(".ar").forEach(p=>{p.style.strokeDasharray="1";p.style.strokeDashoffset="1";});
+const tl=createTimeline({autoplay:false,defaults:{ease:"outQuad"}});
+tl.add("#sky",{opacity:[0,1],duration:1200},0)
+  .add("#hillsFar",{opacity:[0,1],translateY:[70,0],duration:1500},500)
+  .add("#hillsNear",{opacity:[0,1],translateY:[90,0],duration:1500},900)
+  .add("#lake",{opacity:[0,1],scaleX:[.4,1],duration:1300},1700)
+  .add("#sun",{opacity:[0,1],translateY:[60,0],scale:[.8,1],duration:1400},2000)
+  .add("#title",{opacity:[0,1],translateY:[24,0],duration:1100},800)
+  .add("#a1",{strokeDashoffset:[1,0],duration:1300,ease:"inOutSine"},3200).add("#h1",{opacity:[0,1],duration:300},4400).add("#l1",{opacity:[0,1],translateY:[10,0],duration:500},3700)
+  .add("#cloud",{opacity:[0,1],scale:[.5,1],translateX:[-30,0],duration:1500},4300)
+  .add("#a2",{strokeDashoffset:[1,0],duration:1200,ease:"inOutSine"},5600).add("#h2",{opacity:[0,1],duration:300},6700).add("#l2",{opacity:[0,1],translateY:[10,0],duration:500},6000)
+  .add("#a3",{strokeDashoffset:[1,0],duration:900,ease:"inOutSine"},7000).add("#h3",{opacity:[0,1],duration:300},7800).add("#l3",{opacity:[0,1],translateY:[10,0],duration:500},7300)
+  .add("#title",{translateY:[0,-6],duration:800},8000);
+drops.forEach((d,i)=>{ [5600,6350].forEach((t0,k)=>tl.add(d,{opacity:[0,.9,0],translateY:[0,90],duration:900,ease:"inQuad"},t0+i*55+k*0)); });
+window.seek=ms=>{tl.seek(ms);};
+window.ready=document.fonts.ready.then(()=>true);
+</script>

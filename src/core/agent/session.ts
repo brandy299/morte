@@ -3,7 +3,7 @@ import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
 import { COMPACT_AT, estimateTokens, isTooLong, keepTokensFor, renderTranscript, splitForCompaction, SUMMARY_SYSTEM, withSummary } from "./compaction.ts";
 import { AUTO_RETRY, classifyFailure, MAX_AUTO_RETRIES, retryDelay, type Failure } from "./errors.ts";
 import { keyFor } from "./custom.ts";
-import { resolveModel } from "./models.ts";
+import { ModelNotAllowed, modelProblem, resolveModel } from "./models.ts";
 import { fragenTool, matchGegeben, type Frage, type Gegeben } from "./fragen.ts";
 import { tools as baseTools } from "./tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
@@ -60,6 +60,8 @@ const wait = (ms: number, signal?: AbortSignal) =>
 export function createChatSession(settings: AgentSettings, deps: SessionDeps = {}): ChatSession {
   const { models, model, onTurnEnd } = (deps.resolve ?? resolveModel)(settings);
   const vision = model.input.includes("image");
+  const problem = settings.provider === "demo" ? undefined : modelProblem(model);
+  if (problem) throw new ModelNotAllowed(problem);
   const totals = { input: 0, output: 0, cost: 0, context: 0 };
   const snapshot = (): UsageSnapshot => ({
     inputTokens: totals.input,

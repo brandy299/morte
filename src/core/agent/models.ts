@@ -28,6 +28,30 @@ export const PROVIDERS: Record<string, { name: string; make: () => Provider; rec
   deepseek: { name: "DeepSeek", make: deepseekProvider, recommended: ["deepseek-flash"] },
 };
 
+/** Thrown when a model cannot do what Pult needs from a main model. The message is for teachers. */
+export class ModelNotAllowed extends Error {}
+
+/**
+ * A main model must understand images (Vision) and call tools. The catalog only knows images;
+ * tool calling is proven by the connection test (see setup.ts), and saving needs that test.
+ * Returns a plain-language reason, or undefined when the catalog gives no objection.
+ */
+export function modelProblem(model: Pick<Model<Api>, "input">): string | undefined {
+  return model.input.includes("image")
+    ? undefined
+    : "Dieses Modell kann keine Bilder lesen. Pult braucht ein Modell, das Bilder versteht und Dateiaufgaben übernimmt. Bitte wähle ein anderes.";
+}
+
+/**
+ * Checks a choice without any network call: the model must exist and the catalog must not rule it out.
+ * Throws ModelNotAllowed (plain-language reason) or a plain Error for an unknown model.
+ */
+export function checkChoice(settings: AgentSettings): void {
+  if (settings.provider === "demo") return;
+  const problem = modelProblem(resolveModel(settings).model);
+  if (problem) throw new ModelNotAllowed(problem);
+}
+
 type ResolvedModel = {
   models: ReturnType<typeof createModels>;
   model: Model<Api>;

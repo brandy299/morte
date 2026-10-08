@@ -28,7 +28,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Tech-Stack bestätigt: TypeScript, lokale Web-App mit Node-Server und React-Oberfläche, Start im Browser auf localhost; Electron-Verpackung in Phase 6. Kein Rust: pi und die Video-Pipeline sind Node, eine Sprache für alles hält das Projekt für eine Person pflegbar
 - [x] Lizenzfrage geklärt: Repo bleibt Apache-2.0. pi ist MIT und passt. Kein Code aus AGPL- oder LGPL-Projekten (Odysseus, pi-desktop), nur Ideen.
 - [ ] Plattform: Mac zuerst, Windows von Anfang an mitdenken (viele Schulen nutzen Windows)
-- [x] Projektname und Logo: **Pult**, Logo nach `docs/marke.md` (das p als Pult von der Seite, Rostrot auf Papier), eingebaut in App, Favicon, App-Icon und PDF-Fuß. Früher "morte", siehe Entscheidung 004
+- [x] Projektname und Logo: **Pult**, Logo nach `docs/marke.md` (das p als Pult von der Seite, Rostrot auf Papier), eingebaut in App, Favicon, App-Icon und PDF-Fuß. Früher "morte", siehe Entscheidung 010
 - [ ] `CLAUDE.md` und `docs/ordnerstruktur.md` im Repo (angelegt)
 
 ## Phase 1: Chat-Kern
@@ -42,7 +42,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Provider-Schicht über `pi-ai`, gekapselt in `src/core/agent`: Claude, OpenAI, OpenRouter, DeepSeek und jeder OpenAI-kompatible Server (Schulserver, LM Studio, Ollama), geprüft gegen einen echten HTTP-Mock mit Streaming und Werkzeugaufruf. http:// nur für den eigenen Computer und private Adressen Mit einem echten Modell (OpenRouter, Claude Haiku 4.5) geprüft: Verbindungstest, Reihe planen, Arbeitsblatt erstellen und in die Stundentabelle eintragen, Lehrplan umwandeln.
 - [x] API-Keys im Schlüsselbund, nie im Code oder im Repo
 - [x] Einrichtung mit "Verbindung testen": prüft Bilder (Vision) und Dateiaufgabe (Tool-Calling), Ergebnis "Passt" oder verständlicher Hinweis
-- [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert"
+- [x] Kurze Liste empfohlener Modelle, Rest unter "Erweitert". Modelle ohne Bilder erscheinen nicht, Speichern verlangt den bestandenen Test (auch bei direktem Aufruf), ein früher gespeichertes unzulässiges Modell wird beim Start nicht benutzt und der Grund steht auf der Einrichtungsseite
 
 ## Phase 2: Ordnerstruktur und Klassen
 

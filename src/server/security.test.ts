@@ -82,7 +82,8 @@ describe("own OpenAI-compatible server in the setup", () => {
   it("saves address and memory size next to the model, never the key, and starts with them again", async () => {
     const keys = new Map<string, string>();
     const store = { kind: "file" as const, get: async (n: string) => keys.get(n), set: async (n: string, v: string) => void keys.set(n, v), delete: async () => {} };
-    const mine = createApp({ secrets: store, session: undefined, configured: undefined });
+    // A model of an own server is only assumed to read images, so saving needs a passed test. Here it is replaced.
+    const mine = createApp({ secrets: store, session: undefined, configured: undefined, runTest: async () => ({ passed: true, checks: [] }) });
     const res = await mine.request("/api/setup/save", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ provider: "custom", model: "llama", apiKey: "geheim", baseUrl: "http://localhost:11434/v1/", contextWindow: 16000 }) });
     expect(res.status).toBe(200);
     const { readFile } = await import("node:fs/promises");

@@ -82,6 +82,11 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
   const inner = (
     <>
         {embedded ? <h2>Welche KI soll dir helfen?</h2> : <h1>Welche KI soll dir helfen?</h1>}
+        {status.notice && (
+          <p className="error" role="alert">
+            {status.notice}
+          </p>
+        )}
         <p className="lead">
           Dafür brauche ich einen Zugangsschlüssel von deinem KI-Anbieter. Er bleibt auf diesem Computer
           {status.storage === "file" ? " (in einer Datei nur für dich)" : " (im Schlüsselbund)"} und kommt nie in
@@ -180,7 +185,6 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
               <option key={m.id} value={m.id}>
                 {m.name}
                 {m.recommended ? " (empfohlen)" : ""}
-                {advanced && !m.vision ? " – ohne Bilder" : ""}
               </option>
             ))}
           </select>
