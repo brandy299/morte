@@ -237,7 +237,7 @@ export function createApp(state: AppState) {
     }
     if (busy) return c.json({ error: "Ich arbeite noch an der letzten Frage." }, 409);
     busy = true;
-    const conversation = (state.conversation ??= { id: newConversationId(), titel: titleFrom(text), anzeige: [] });
+    const conversation = (state.conversation ??= { id: newConversationId(), titel: titleFrom(text), erstellt: new Date().toISOString(), anzeige: [] });
     let answer: StoredMessage = { role: "assistant", text: "", steps: [] };
     conversation.anzeige.push({ role: "user", text, bilder: images.length || undefined, dateien: dateien.length ? dateien.map((f) => f.name) : undefined, steps: [] });
     return streamSSE(c, async (stream) => {
@@ -253,8 +253,8 @@ export function createApp(state: AppState) {
         );
       } finally {
         conversation.anzeige.push(settle(answer));
-        const { messages, usage } = session.history();
-        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
+        const { messages, usage, log } = session.history();
+        await saveConversation({ ...conversation, modell: messages, verbrauch: usage, ablauf: log }).catch(() => {});
         busy = false;
       }
     });
@@ -289,8 +289,8 @@ export function createApp(state: AppState) {
         });
       } finally {
         conversation.anzeige.push(settle(answer));
-        const { messages, usage } = session.history();
-        await saveConversation({ id: conversation.id, titel: conversation.titel, anzeige: conversation.anzeige, modell: messages, verbrauch: usage }).catch(() => {});
+        const { messages, usage, log } = session.history();
+        await saveConversation({ ...conversation, modell: messages, verbrauch: usage, ablauf: log }).catch(() => {});
         busy = false;
       }
     });
@@ -358,8 +358,8 @@ export function createApp(state: AppState) {
     const saved = await loadConversation(id).catch(() => undefined);
     if (!saved || !state.choice) return c.json({ error: "Dieses Gespräch gibt es nicht mehr." }, 404);
     await buildSession(state, state.choice);
-    state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never });
-    state.conversation = { id: saved.id, titel: saved.titel, anzeige: saved.anzeige };
+    state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never, log: saved.ablauf });
+    state.conversation = { id: saved.id, titel: saved.titel, erstellt: saved.erstellt, anzeige: saved.anzeige };
     return c.json({ anzeige: saved.anzeige, usage: state.session!.usage() });
   });
 

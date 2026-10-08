@@ -12,7 +12,7 @@ export interface AppState {
   /** The conversation on screen. Saved after every answer, so it can be reopened later. */
   /** For tests: builds the one-off model access used outside the chat. */
   makeCompleter?: typeof createCompleter;
-  conversation?: { id: string; titel: string; anzeige: StoredMessage[] };
+  conversation?: { id: string; titel: string; erstellt: string; anzeige: StoredMessage[] };
   /** For tests: replaces the connection test, so they need no network. */
   runTest?: typeof testConnection;
   /** Fingerprint of the last choice (provider, model, key, address) that passed the connection test. Saving needs a match. */
