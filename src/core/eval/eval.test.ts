@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { bildNamen, fixtureBild } from "./bilder.ts";
+import { BLOCKED } from "../agent/index.ts";
 import { PROGRAMM } from "./checks.ts";
 import { parseCsv } from "./csv.ts";
 import { judgeCase, judgePrompt, parseVerdicts } from "./judge.ts";
@@ -178,6 +179,23 @@ describe("saved rules and own templates", () => {
     expect(judgePrompt(kase(), t, [crit("P1")])).toContain("## GESPEICHERT");
     expect(judgePrompt(kase(), t, [crit("P1")])).toContain("Neue Regeln");
     expect(judgePrompt(kase(), transcript(), [crit("P1")])).toContain("(nichts)");
+  });
+});
+
+describe("measuring a blocked model", () => {
+  it("is allowed in the quality checks, so a model can be measured before it is blocked or after", async () => {
+    const faux = fauxProvider();
+    faux.setResponses([fauxAssistantMessage([fauxText("Hallo.")])]);
+    const models = createModels();
+    models.setProvider(faux.provider);
+    const model = faux.getModel();
+    BLOCKED[`${model.provider}/${model.id}`] = "Test";
+    try {
+      const t = await runCase({ ...kase(), nachrichten: ["Hallo"] }, { provider: "x" }, { resolve: () => ({ models, model }) });
+      expect(t.turns[0]!.assistant).toContain("Hallo.");
+    } finally {
+      delete BLOCKED[`${model.provider}/${model.id}`];
+    }
   });
 });
 

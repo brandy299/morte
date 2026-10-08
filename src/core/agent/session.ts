@@ -44,6 +44,8 @@ export interface SessionDeps {
   /** Name and description of every available skill. Only these short texts go into the prompt. */
   skills?: { name: string; description: string }[];
   onUsage?: (delta: { input: number; output: number; cost: number }) => void;
+  /** Only for the quality checks (npm run eval): a model on the block list may be used, to measure it. */
+  measuring?: boolean;
   /** Writes the summary of an older conversation part. Default: one short request to the chosen model. */
   summarize?: (transcript: string) => Promise<string>;
   /** Seconds without any sign of life from the model before the answer counts as stuck. Default 120. */
@@ -61,7 +63,8 @@ const wait = (ms: number, signal?: AbortSignal) =>
 export function createChatSession(settings: AgentSettings, deps: SessionDeps = {}): ChatSession {
   const { models, model, onTurnEnd } = (deps.resolve ?? resolveModel)(settings);
   const vision = model.input.includes("image");
-  const problem = settings.provider === "demo" ? undefined : modelProblem(model);
+  // The quality checks may use a blocked model, to measure it.
+  const problem = settings.provider === "demo" ? undefined : modelProblem(model, deps.measuring ? {} : undefined);
   if (problem) throw new ModelNotAllowed(problem);
   const totals = { input: 0, output: 0, cost: 0, context: 0 };
   const snapshot = (): UsageSnapshot => ({
