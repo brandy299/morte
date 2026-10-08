@@ -350,7 +350,7 @@ export interface SavedMaterial {
  */
 export async function saveMaterial(
   pdf: Buffer,
-  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string; ext?: "pdf" | "docx" },
+  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string; ext?: "pdf" | "docx" | "pptx" },
 ): Promise<SavedMaterial> {
   let dir = join(root(), "Exporte");
   let rel = "Exporte";

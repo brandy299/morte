@@ -4,6 +4,7 @@ import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material
 import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
 import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWord, verlaufWord } from "../material/word-render.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
+import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
@@ -285,6 +286,26 @@ const skillDateiLesen = defineTool({
   },
 });
 
+/** A diagram the program draws. Shared by worksheets and slides. */
+const schaubildParam = Type.Object({
+  art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen"], { description: "ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers" }),
+  titel: Type.Optional(Type.String({ description: "Caption below the diagram" })),
+  knoten: Type.Optional(Type.Array(Type.Object({
+    id: Type.String({ description: "Short unique name, used in verbindungen" }),
+    text: Type.String({ description: "Text in the box, short (a few words)" }),
+    datum: Type.Optional(Type.String({ description: "zeitstrahl: the date or year" })),
+    leer: Type.Optional(Type.Boolean({ description: "Leave the box empty for the students to fill in. Still give its text: it is the solution. The program numbers these boxes and writes the key for the teacher" })),
+    betont: Type.Optional(Type.Boolean({ description: "Heavy edge and gray fill, for the most important box" })),
+  }), { description: "ablauf, hierarchie, kreislauf: 2 to 12 boxes (kreislauf 3 to 8, zeitstrahl 2 to 8, in order)" })),
+  verbindungen: Type.Optional(Type.Array(Type.Object({ von: Type.String(), nach: Type.String(), text: Type.Optional(Type.String({ description: "Label on the arrow, a few words" })), leer: Type.Optional(Type.Boolean({ description: "Leave the label empty for the students to fill in (text is then the solution)" })) }), { description: "Arrows between boxes by id. ablauf: leave out for a simple chain in the order of the boxes. hierarchie: required (from the upper to the lower box). kreislauf: leave out for a ring in the order of the boxes, or give your own arrows, also in both directions between two boxes (2 boxes are enough then), for example the flows of goods and money between households and companies. No arrows back in ablauf and hierarchie: use kreislauf for cycles" })),
+  richtung: Type.Optional(StringEnum(["waagerecht", "senkrecht"], { description: "ablauf, hierarchie: left to right or top to bottom. Leave out and the program chooses" })),
+  mitte: Type.Optional(Type.String({ description: "kreislauf: text in the middle" })),
+  saeulen: Type.Optional(Type.Array(Type.Object({ name: Type.String(), wert: Type.Number() }), { description: "saeulen: 2 to 8 bars" })),
+  einheit: Type.Optional(Type.String({ description: "saeulen: unit shown at the axis, e.g. Prozent" })),
+  leer: Type.Optional(Type.Boolean({ description: "saeulen: the students draw the bars themselves; the teacher's copy shows them" })),
+  wortliste: Type.Optional(Type.Boolean({ description: "Print the texts of the empty boxes, shuffled, as a word bank" })),
+}, { description: "schaubild: a diagram the program draws. Use it for processes, structures, cycles, time lines and numbers instead of describing them in words. Gray and print-ready. It cannot draw pictures, maps or photos" });
+
 const arbeitsblattErstellen = defineTool({
   name: "arbeitsblatt_erstellen",
   producesMaterial: true,
@@ -316,24 +337,7 @@ const arbeitsblattErstellen = defineTool({
           zeilen: Type.Array(Type.Array(Type.String()), { description: "Rows, each with one entry per column. An empty string is a blank for the students to fill in" }),
           loesung: Type.Optional(Type.Array(Type.Array(Type.String()), { description: "The same rows with every field filled in" })),
         }, { description: "tabelle: a table to complete" })),
-        schaubild: Type.Optional(Type.Object({
-          art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen"], { description: "ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers" }),
-          titel: Type.Optional(Type.String({ description: "Caption below the diagram" })),
-          knoten: Type.Optional(Type.Array(Type.Object({
-            id: Type.String({ description: "Short unique name, used in verbindungen" }),
-            text: Type.String({ description: "Text in the box, short (a few words)" }),
-            datum: Type.Optional(Type.String({ description: "zeitstrahl: the date or year" })),
-            leer: Type.Optional(Type.Boolean({ description: "Leave the box empty for the students to fill in. Still give its text: it is the solution. The program numbers these boxes and writes the key for the teacher" })),
-            betont: Type.Optional(Type.Boolean({ description: "Heavy edge and gray fill, for the most important box" })),
-          }), { description: "ablauf, hierarchie, kreislauf: 2 to 12 boxes (kreislauf 3 to 8, zeitstrahl 2 to 8, in order)" })),
-          verbindungen: Type.Optional(Type.Array(Type.Object({ von: Type.String(), nach: Type.String(), text: Type.Optional(Type.String({ description: "Label on the arrow, a few words" })), leer: Type.Optional(Type.Boolean({ description: "Leave the label empty for the students to fill in (text is then the solution)" })) }), { description: "Arrows between boxes by id. ablauf: leave out for a simple chain in the order of the boxes. hierarchie: required (from the upper to the lower box). kreislauf: leave out for a ring in the order of the boxes, or give your own arrows, also in both directions between two boxes (2 boxes are enough then), for example the flows of goods and money between households and companies. No arrows back in ablauf and hierarchie: use kreislauf for cycles" })),
-          richtung: Type.Optional(StringEnum(["waagerecht", "senkrecht"], { description: "ablauf, hierarchie: left to right or top to bottom. Leave out and the program chooses" })),
-          mitte: Type.Optional(Type.String({ description: "kreislauf: text in the middle" })),
-          saeulen: Type.Optional(Type.Array(Type.Object({ name: Type.String(), wert: Type.Number() }), { description: "saeulen: 2 to 8 bars" })),
-          einheit: Type.Optional(Type.String({ description: "saeulen: unit shown at the axis, e.g. Prozent" })),
-          leer: Type.Optional(Type.Boolean({ description: "saeulen: the students draw the bars themselves; the teacher's copy shows them" })),
-          wortliste: Type.Optional(Type.Boolean({ description: "Print the texts of the empty boxes, shuffled, as a word bank" })),
-        }, { description: "schaubild: a diagram the program draws. Use it for processes, structures, cycles, time lines and numbers instead of describing them in words. Gray and print-ready. It cannot draw pictures, maps or photos" })),
+        schaubild: Type.Optional(schaubildParam),
       }),
       { description: "1 to 20 tasks. Give the parts of matching, gap and table tasks in the fields, never inside the task text: the sheet shows only what is in the fields" },
     ),
@@ -370,6 +374,55 @@ const arbeitsblattErstellen = defineTool({
           ...(savedKey ? [{ title: `${shown} (Lösung)`, name: savedKey.name, path: savedKey.path }] : []),
           ...(wordSheet ? [wordSheet.card] : []),
           ...(wordKey ? [wordKey.card] : []),
+        ],
+      },
+    };
+  },
+});
+
+const praesentationErstellen = defineTool({
+  name: "praesentation_erstellen",
+  producesMaterial: true,
+  label: "Präsentation erstellen",
+  description:
+    "Builds slides as a PowerPoint file (.pptx, 16:9, editable in PowerPoint) plus a PDF of the same slides for the preview. A title slide is made from titel and untertitel, then one slide per entry. You write only the content; the program does the layout and refuses a slide with too much text. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+  parameters: Type.Object({
+    titel: Type.String({ description: "Title of the talk, for the title slide" }),
+    untertitel: Type.Optional(Type.String()),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    folien: Type.Array(
+      Type.Object({
+        art: Type.Optional(StringEnum(["inhalt", "abschnitt"], { description: "inhalt (default): title with points, text and/or a diagram. abschnitt: a divider between parts, only a title and an optional short line" })),
+        titel: Type.String({ description: "One short line" }),
+        text: Type.Optional(Type.String({ description: "One or two sentences above the points, e.g. the key message" })),
+        punkte: Type.Optional(Type.Array(Type.String(), { description: "Up to 7 short points (keywords, not full sentences)" })),
+        schaubild: Type.Optional(schaubildParam),
+        notizen: Type.Optional(Type.String({ description: "Speaker notes for the teacher or the students who present: what to say on this slide" })),
+      }),
+      { description: "1 to 40 slides after the title slide" },
+    ),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+  }),
+  async execute(_id, args) {
+    const { reihe, datum, stunde, ...content } = args;
+    const deck = parsePraesentation(content);
+    planen(deck); // refuses an overfull slide before anything is saved
+    const where = { klasse: content.klasse, fach: content.fach, reihe, datum, stunde };
+    const pptx = await saveMaterial(await renderPptx(deck), { art: "Praesentation", titel: deck.titel, ...where, ext: "pptx" });
+    const { pdf, seiten } = await renderVorschau(deck);
+    const preview = await saveMaterial(pdf, { art: "Praesentation", titel: deck.titel, ...where });
+    const entered = content.klasse && content.fach && reihe && datum
+      ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: deck.titel }, pptx.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum";
+    return {
+      content: [{ type: "text" as const, text: `Die Präsentation ist fertig (${seiten} Folien mit Titelfolie) und in der Vorschau zu sehen. Die PowerPoint-Datei liegt zum Herunterladen bereit. ${entered === true ? `Sie ist in der Stundentabelle am ${datum} eingetragen.` : `Sie ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      details: {
+        materials: [
+          { title: deck.titel, name: preview.name, path: preview.path },
+          { title: `${deck.titel} (PowerPoint)`, name: pptx.name, path: pptx.path, preview: false },
         ],
       },
     };
@@ -639,7 +692,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  arbeitsblattErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  arbeitsblattErstellen, praesentationErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

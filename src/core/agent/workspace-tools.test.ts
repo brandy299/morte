@@ -92,6 +92,50 @@ describe("skills in the chat", () => {
   });
 });
 
+describe("presentation tool", () => {
+  it("builds the PowerPoint file and a preview, files both in the Reihe and enters the file in the table, without asking", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung" });
+    const s = session([
+      fauxAssistantMessage(
+        [
+          fauxToolCall("praesentation_erstellen", {
+            titel: "The Job Interview", fach: "Business English", klasse: "11a", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3",
+            folien: [{ titel: "Before the interview", punkte: ["Research the company", "Prepare questions"], notizen: "Ask the class first." }],
+          }),
+        ],
+        { stopReason: "toolUse" },
+      ),
+      fauxAssistantMessage([fauxText("Fertig, zwei Folien.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Folien zum Interview", (e) => events.push(e));
+    expect(events.some((e) => e.type === "confirm")).toBe(false);
+    expect(events).toContainEqual(expect.objectContaining({ type: "step_start", label: "Präsentation erstellen", material: true }));
+    const materials = events.filter((e) => e.type === "material") as { title: string; path: string; preview?: boolean }[];
+    expect(materials.map((m) => [m.title, m.path.split(".").pop(), m.preview])).toEqual([
+      ["The Job Interview", "pdf", undefined],
+      ["The Job Interview (PowerPoint)", "pptx", false],
+    ]);
+    for (const m of materials) expect((await readFile(join(home, m.path))).length).toBeGreaterThan(1000);
+    expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/\| 14\.10\. \| Mi 3 \| The Job Interview \| .*Praesentation-The-Job-Interview\.pptx \| Material fertig \|/);
+    const result = (s.history().messages as { role: string; content: { text: string }[] }[]).find((m) => m.role === "toolResult")!;
+    expect(result.content[0]!.text).toContain("2 Folien mit Titelfolie");
+  });
+
+  it("sends an overfull slide back to the model and saves nothing", async () => {
+    const long = "A point that is much too long for a slide and goes on and on with many words in it. ".repeat(2).slice(0, 199);
+    const s = session([
+      fauxAssistantMessage([fauxToolCall("praesentation_erstellen", { titel: "Too much", folien: [{ titel: "Full", punkte: Array.from({ length: 7 }, () => long), schaubild: { art: "ablauf", knoten: [{ id: "a", text: "One" }, { id: "b", text: "Two" }] } }] })], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Ich teile das auf.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Folien", (e) => events.push(e));
+    expect(events.some((e) => e.type === "material")).toBe(false);
+    const result = (s.history().messages as { role: string; content: { text: string }[] }[]).find((m) => m.role === "toolResult")!;
+    expect(result.content[0]!.text).toContain("Folie 2 hat zu viel Text");
+  });
+});
+
 describe("worksheet tool", () => {
   it("asks, builds the PDF, files it in the Reihe, enters it in the table and sends it to the preview", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
