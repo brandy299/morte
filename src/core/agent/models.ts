@@ -36,10 +36,28 @@ export class ModelNotAllowed extends Error {}
  * tool calling is proven by the connection test (see setup.ts), and saving needs that test.
  * Returns a plain-language reason, or undefined when the catalog gives no objection.
  */
-export function modelProblem(model: Pick<Model<Api>, "input">): string | undefined {
+export function modelProblem(model: Pick<Model<Api>, "input"> & Partial<Pick<Model<Api>, "provider" | "id">>, blocked: Record<string, string> = BLOCKED): string | undefined {
+  return visionProblem(model) ?? blockedProblem(model, blocked);
+}
+
+/** The catalog says the model cannot read pictures. */
+export function visionProblem(model: Pick<Model<Api>, "input">): string | undefined {
   return model.input.includes("image")
     ? undefined
     : "Dieses Modell kann keine Bilder lesen. Pult braucht ein Modell, das Bilder versteht und Dateiaufgaben übernimmt. Bitte wähle ein anderes.";
+}
+
+/**
+ * Models that Pult does not allow because they did not work reliably enough in the quality checks (evals/BASELINE.md).
+ * Key: `provider/model` as in the catalog, value: the reason in plain words, without a full stop at the end.
+ * A model goes on this list only after all skills are measured and the limit is set (docs/entscheidungen/014-sperrliste.md).
+ * Blocked models are not listed, cannot be saved and are not used. Only the quality checks (npm run eval) may use them, to measure them.
+ */
+export const BLOCKED: Record<string, string> = {};
+
+function blockedProblem(model: Partial<Pick<Model<Api>, "provider" | "id">>, blocked: Record<string, string>): string | undefined {
+  const reason = model.provider && model.id ? blocked[`${model.provider}/${model.id}`] : undefined;
+  return reason ? `Dieses Modell ist für Pult gesperrt: ${reason}. Bitte wähle ein anderes.` : undefined;
 }
 
 /**

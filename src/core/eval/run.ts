@@ -95,7 +95,7 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
   try {
     await seedWorkspace();
     const { skills } = await listSkills();
-    const session = createChatSession(settings, { skills, resolve: deps.resolve });
+    const session = createChatSession(settings, { skills, resolve: deps.resolve, measuring: true });
     const turns: Turn[] = [];
     const bilder = await Promise.all((c.bilder ?? []).map(fixtureBild));
     for (const [n, user] of c.nachrichten.entries()) {

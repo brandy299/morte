@@ -111,6 +111,12 @@ export function createApp(state: AppState) {
 
   app.post("/api/setup/test", async (c) => {
     const { provider, model, apiKey, baseUrl, contextWindow } = await c.req.json<SetupBody>();
+    // A model that is not allowed is turned down before anything is sent to it.
+    try {
+      checkChoice({ provider, model, baseUrl, contextWindow });
+    } catch (err) {
+      if (err instanceof ModelNotAllowed) return c.json({ error: err.message }, 422);
+    }
     const key = apiKey?.trim() || (await state.secrets.get(keyName(provider)));
     const result = await (state.runTest ?? testConnection)({ provider, model, apiKey: key, baseUrl, contextWindow });
     state.passed = result.passed ? fingerprint({ provider, model, baseUrl: baseUrl?.trim(), contextWindow }, key) : undefined;
