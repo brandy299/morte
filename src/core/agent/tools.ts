@@ -363,7 +363,7 @@ const arbeitsblattErstellen = defineTool({
       : "fehlt klasse, fach, reihe oder datum";
     if (entered === true && wordSheet) await tryAttach(content.klasse!, content.fach!, reihe!, { datum: datum!, stunde: stunde ?? "", thema: sheet.titel }, wordSheet.saved.name, { append: true });
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""}} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: {
         materials: [
           { title: shown, name: saved.name, path: saved.path },
