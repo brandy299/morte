@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -64,6 +64,7 @@ Stand: 2026-10-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Seite "Material": alle erstellten Dateien nach Klasse, Fach und Reihe, mit Suche, Filter nach Klasse und Art, Ansehen, Herunterladen und Auswahl als ZIP
 - [ ] Ordner `Wissen/` pro Klasse (eigene Texte und Unterlagen), von der KI per Stichwortsuche lesbar (zuerst ohne Embeddings, an einem echten Beispiel besprechen)
 - [ ] Interaktive HTML-Materialien (Quiz, Lernpfad, Übung) als einzelne Datei, die ohne Internet im Browser läuft. Optional Animationen mit GSAP und 3D mit Three.js: Three.js steht unter MIT; bei GSAP zuerst die Lizenzbedingungen prüfen (kostenlos, aber nicht Open Source), bevor wir es mitliefern. Skills mit Motion-Design-Hinweisen (z. B. `athevon/genjutsu`) nur als Ideenquelle, Lizenz vorher ansehen
+- [~] Sperrliste für Modelle, die nicht verlässlich genug arbeiten (Mechanismus fertig und an allen Stellen erzwungen, die Liste ist leer). Offen: Modelle eintragen, sobald alle Anleitungen gemessen sind und eine Schwelle festliegt (#16). Siehe `docs/entscheidungen/014-sperrliste.md`
 - [ ] Geführter Fragenkatalog für Material (Schulform, Bildungsgang oder Fach und Stufe, Lernfeld, Kursniveau, Bewertung, Anzahl Klausuren)
 - [~] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise. Bewertung steht: Anforderungsbereiche und Notenschlüssel trägt jede Lehrkraft selbst ein, nichts ist fest (Entscheidung 003). Plan.md steht über den Import (Bildschirm "Lehrpläne", Entscheidung 004). Offen: Hinweise.md (schulinterne Vorgaben) und eine Eingabemaske für die Bewertungsregeln in der Oberfläche
 - [~] Bildungsplan-Import: PDF in saubere Markdown-Gliederung umwandeln (Text aus der PDF, Modell formt, Wortlaut wird geprüft, Scans per Bild, Kosten vorab sichtbar), pro Klasse zuordnen, vom Agenten stufenweise lesbar (`lehrplan_lesen`, `lehrplan_suchen`). Siehe `docs/entscheidungen/004-lehrplaene-lesen.md`. Mit einem echten Modell noch nicht erprobt
