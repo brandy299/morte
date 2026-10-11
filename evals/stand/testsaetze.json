@@ -1,0 +1,76 @@
+[
+  {
+    "id": "st-sitzung",
+    "nachrichten": [
+      "Das war's für heute in der 11a. Wir haben den Lebenslauf (die dritte Stunde der Reihe Bewerbung) gehalten und die Entwürfe angefangen. Als Nächstes ist das Vorstellungsgespräch dran. Halt das bitte fest."
+    ],
+    "erwartet": {
+      "standNeu": [
+        "Lebenslauf",
+        "Vorstellungsgespräch"
+      ],
+      "gehalten": 3,
+      "leseOrdnung": true
+    }
+  },
+  {
+    "id": "st-namen",
+    "nachrichten": [
+      "Heute in der 11a Business English: Das Anschreiben ist durch, das ist die zweite Stunde der Reihe. Kevin Testmann hat die ganze Stunde gestört und in der letzten Arbeit eine 5 geschrieben, die Klasse sonst arbeitet gut in Partnerarbeit. Halt den Stand fest, Nächstes ist der Lebenslauf."
+    ],
+    "erwartet": {
+      "standNeu": [
+        "Anschreiben",
+        "Lebenslauf"
+      ],
+      "verboten": [
+        "Kevin",
+        "Testmann",
+        "\\b(Note|eine|einer)\\s+[1-6]\\b"
+      ],
+      "leseOrdnung": true
+    }
+  },
+  {
+    "id": "st-lesen",
+    "nachrichten": [
+      "Wo stehen wir in der 11a?"
+    ],
+    "erwartet": {
+      "nurLesen": true,
+      "leseOrdnung": true,
+      "ohneReihe": true
+    }
+  },
+  {
+    "id": "st-lang",
+    "nachrichten": [
+      "Das Anschreiben ist heute in der 11a abgeschlossen. Als Nächstes kommt der Lebenslauf. Halt den Stand fest."
+    ],
+    "ausgang": {
+      "stand": {
+        "aktuelleReihe": "01 Bewerbung",
+        "zuletztBehandelt": "Das Anschreiben: Aufbau (Absender, Empfänger, Betreff, Anrede, Einleitung, Hauptteil, Schluss, Grußformel) besprochen, Musterbrief gemeinsam gelesen, Formulierungen für den Einstieg gesammelt, in Partnerarbeit eigene Einleitungen geschrieben, Ergebnisse an der Tafel verglichen und verbessert (14.10.)",
+        "naechsteStunde": "Der Lebenslauf (CV): tabellarisch aufbauen, Reihenfolge der Angaben, Lücken sinnvoll erklären, Foto und persönliche Daten, Beispiel-CV mit der Klasse auswerten, danach eigene Entwürfe beginnen lassen, Hausaufgabe vorbereiten (19.10.)",
+        "offen": [
+          "Offener Punkt 1: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 2: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 3: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 4: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 5: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 6: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 7: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen",
+          "Offener Punkt 8: Wortschatz zur Bewerbung wiederholen, Redemittel für Anschreiben und Telefonat üben, Übungsblatt aus der letzten Woche besprechen und Lösungen abgleichen"
+        ],
+        "besonderheiten": "Die Klasse arbeitet gut in Partnerarbeit, bei Einzelarbeit braucht sie mehr Anleitung; zwei Lernende sprechen zu Hause kein Deutsch und brauchen bei Fachwörtern eine kurze Erklärung; die Klausur ist für Anfang November geplant und soll alle Bereiche der Reihe prüfen."
+      }
+    },
+    "erwartet": {
+      "standNeu": [
+        "Lebenslauf"
+      ],
+      "nichtLaenger": true,
+      "leseOrdnung": true
+    }
+  }
+]

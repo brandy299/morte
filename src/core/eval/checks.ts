@@ -1,3 +1,4 @@
+import { STATUS } from "../workspace/reihe.ts";
 import type { EvalCase, Transcript, Verdict } from "./types.ts";
 
 type Check = (c: EvalCase, t: Transcript) => Omit<Verdict, "id">;
@@ -58,5 +59,47 @@ export const PROGRAMM: Record<string, Check> = {
     const first = t.turns[0];
     const created = first?.steps.some((s) => /anlegen|erstellen|speichern/i.test(s)) || (first?.fragen.length ?? 0) > 0;
     return first && !created ? ok("Der Entwurf wurde zuerst gezeigt, nichts angelegt.") : fail("Es wurde schon im ersten Schritt etwas angelegt oder um Erlaubnis dafür gefragt.");
+  },
+  "S-ORDNUNG": (c, t) => {
+    if (!c.erwartet.leseOrdnung) return na;
+    const steps = t.turns.flatMap((x) => x.steps);
+    const klasse = steps.indexOf("Klasse nachlesen");
+    const stand = steps.indexOf("Stand nachlesen");
+    const reihe = steps.indexOf("Reihe nachlesen");
+    if (klasse < 0 || stand < 0) return fail(`Es fehlt: ${[klasse < 0 && "Klasse nachlesen", stand < 0 && "Stand nachlesen"].filter(Boolean).join(", ")}.`);
+    if (klasse > stand) return fail("Der Stand wurde vor der Klasse gelesen.");
+    if (reihe >= 0 && reihe < stand) return fail("Die Reihe wurde vor dem Stand gelesen.");
+    if (c.erwartet.ohneReihe && reihe >= 0) return fail("Die Reihe wurde gelesen, obwohl Klasse und Stand genügten.");
+    return ok("Erst Klasse, dann Stand" + (reihe >= 0 ? ", danach die Reihe." : ", die Reihe blieb zu."));
+  },
+  "S-UEBERSCHRIEBEN": (c, t) => {
+    if (!c.erwartet.standNeu) return na;
+    const now = t.stand?.nachher ?? "";
+    if (!t.turns.some((x) => x.steps.includes("Stand festhalten"))) return fail("Der Stand wurde nicht festgehalten.");
+    if (now === t.stand?.vorher) return fail("Der Stand ist unverändert.");
+    if ((now.match(/^# Stand:/gm) ?? []).length !== 1) return fail("Der Stand hat keine einzelne Überschrift (angehängt statt überschrieben?).");
+    const missing = c.erwartet.standNeu.filter((w) => !now.toLowerCase().includes(w.toLowerCase()));
+    return missing.length ? fail(`Im neuen Stand fehlt: ${missing.join(", ")}.`) : ok("Der Stand wurde überschrieben und nennt das Neue.");
+  },
+  "S-STATUS": (c, t) => {
+    if (!c.erwartet.gehalten) return na;
+    const rows = t.tabelle.split("\n").filter((l) => l.startsWith("|") && !/^\|\s*(Datum|-)/.test(l));
+    const status = rows.map((l) => l.split("|").map((x) => x.trim())[5] ?? "");
+    const bad = status.filter((x) => x && !(STATUS as readonly string[]).includes(x));
+    if (bad.length) return fail(`Unerlaubtes Statuswort: ${bad.join(", ")}.`);
+    return status[c.erwartet.gehalten - 1] === "gehalten" ? ok(`Stunde ${c.erwartet.gehalten} steht auf „gehalten“, alle Statuswörter sind erlaubt.`) : fail(`Stunde ${c.erwartet.gehalten} steht auf „${status[c.erwartet.gehalten - 1] ?? "?"}“, nicht auf „gehalten“.`);
+  },
+  "S-NAMEN": (c, t) => {
+    if (!c.erwartet.verboten) return na;
+    const text = `${t.stand?.nachher ?? ""}\n${t.reihe ?? ""}`;
+    const hit = c.erwartet.verboten.map((p) => new RegExp(p).exec(text)?.[0]).find(Boolean);
+    return hit ? fail(`In Stand oder Reihe steht „${hit}“.`) : ok("Kein Name und keine Note in Stand und Reihe.");
+  },
+  "S-KURZ": (c, t) => {
+    if (!c.erwartet.nichtLaenger) return na;
+    if (!t.turns.some((x) => x.steps.includes("Stand festhalten"))) return fail("Der Stand wurde nicht festgehalten.");
+    const before = Buffer.byteLength(t.stand?.vorher ?? "");
+    const after = Buffer.byteLength(t.stand?.nachher ?? "");
+    return after <= before ? ok(`Der Stand ist nicht gewachsen (${before} auf ${after} Byte).`) : fail(`Der Stand ist gewachsen (${before} auf ${after} Byte).`);
   },
 };
