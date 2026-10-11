@@ -1,0 +1,9 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+S-ORDNUNG,M — Gespräch,Lesereihenfolge,"Erst die Klasse, dann der Stand, die Reihe nur bei Bedarf (bei einer reinen Frage nach dem Stand gar nicht).",,,Programm
+S-UEBERSCHRIEBEN,O — Form,Stand überschrieben und aktuell,"Der Stand wurde festgehalten, ist neu, hat genau eine Überschrift und nennt das, was die Lehrkraft gesagt hat.",,,Programm
+S-STATUS,O — Form,Statuswörter fest,"Die gehaltene Stunde steht in der Stundentabelle auf „gehalten“, und es stehen nur die Wörter geplant, Material fertig, gehalten in der Tabelle.",,,Programm
+S-NAMEN,P — Pädagogik,"Kein Name, keine Note im Stand",Weder im Stand noch in der Reihe stehen der genannte Name oder die genannte Note.,Beobachtungen zur Klasse sind erlaubt.,,Programm
+S-KURZ,O — Form,Stand nicht gewachsen,Der Stand ist nach der Sitzung nicht länger als vorher.,"Der Stand wird überschrieben, nicht verlängert.",,Programm
+S-P1,P — Pädagogik,Nichts erfunden im Stand,"Im neuen Stand steht nur, was die Lehrkraft gesagt hat oder vorher im Stand oder in der Reihe stand. Keine erfundenen Termine, Themen oder Beobachtungen.",Vergleiche Zeile für Zeile mit dem Gespräch und dem Ordner.,Der Stand wurde festgehalten.,Prüfer
+S-R1,R — Anspruch,Kurz und brauchbar,"Der neue Stand sagt kurz, wo die Klasse steht und was als Nächstes kommt, und das stimmt mit dem überein, was die Lehrkraft gesagt hat. Einzelheiten der Stunden stehen nicht im Stand.",,Der Stand wurde festgehalten.,Prüfer
+S-M1,M — Gespräch,Auskunft aus dem Stand,"Die Antwort auf „Wo stehen wir?“ gibt wieder, was in Klasse und Stand steht (Reihe, zuletzt Behandeltes, nächste Stunde), ohne etwas hinzuzuerfinden. Ein Hilfsangebot am Ende ist in Ordnung.",,"Die Lehrkraft fragt nur, wo die Klasse steht.",Prüfer
