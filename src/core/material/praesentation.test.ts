@@ -88,6 +88,31 @@ describe("footer note (fuss)", () => {
   });
 });
 
+describe("labelling exercise on a window sketch", () => {
+  const bereiche = [{ id: "m", text: "Menüband", lage: "menue", leer: true }, { id: "a", text: "Arbeitsfläche", lage: "mitte", leer: true }, { id: "s", text: "Statusleiste", lage: "status" }];
+  const folie = (extra: object = {}, notizen?: string) => ({ titel: "Beschrifte das Fenster", notizen, schaubild: { art: "oberflaeche", knoten: bereiche, ...extra } });
+
+  it("puts the key into the speaker notes: number = area, in the order of the empty boxes", () => {
+    const p = parsePraesentation({ titel: "x", folien: [folie()] });
+    expect(p.folien[0]!.notizen).toBe("Lösung zum Beschriften: 1 = Menüband; 2 = Arbeitsfläche.");
+    expect(planen(p)[1]!.notizen).toContain("1 = Menüband");
+  });
+
+  it("keeps the notes the model wrote and adds the key after them", () => {
+    const p = parsePraesentation({ titel: "x", folien: [folie({}, "Erst raten lassen.")] });
+    expect(p.folien[0]!.notizen).toBe("Erst raten lassen.\nLösung zum Beschriften: 1 = Menüband; 2 = Arbeitsfläche.");
+  });
+
+  it("adds nothing when no box is empty", () => {
+    const p = parsePraesentation({ titel: "x", folien: [folie({ knoten: bereiche.map((b) => ({ ...b, leer: false })) })] });
+    expect(p.folien[0]!.notizen).toBeUndefined();
+  });
+
+  it("refuses a word list, which presentations do not have", () => {
+    expect(() => parsePraesentation({ titel: "x", folien: [folie({ wortliste: true })] })).toThrow("Folie 2: Eine Wortliste gibt es in einer Präsentation nicht.");
+  });
+});
+
 describe("renderPptx", () => {
   it("makes a 16:9 PowerPoint file with a title slide, one slide per entry, notes and the diagram as a picture", async () => {
     const files = unzipSync(await renderPptx(parsePraesentation(sample)));

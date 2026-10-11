@@ -33,6 +33,15 @@ export interface Praesentation {
 export const MAX_FOLIEN = 40;
 const MAX_PUNKTE = 7;
 
+/** A diagram the class fills in: the key (number = text) goes into the speaker notes, since a slide has no teacher's copy. */
+function mitLoesung(notizen: string | undefined, schaubild: Schaubild | undefined): string | undefined {
+  const leer = schaubild?.knoten.filter((k) => k.leer) ?? [];
+  if (leer.length === 0) return notizen;
+  const loesung = `Lösung zum Beschriften: ${leer.map((k, i) => `${i + 1} = ${k.text}`).join("; ")}.`;
+  return notizen ? `${notizen}
+${loesung}` : loesung;
+}
+
 export function parsePraesentation(raw: unknown): Praesentation {
   const o = (raw ?? {}) as Record<string, unknown>;
   const list = Array.isArray(o.folien) ? o.folien : [];
@@ -46,9 +55,10 @@ export function parsePraesentation(raw: unknown): Praesentation {
     const punkte = (Array.isArray(e.punkte) ? e.punkte : []).map((p, j) => str(p, `Punkt ${j + 1} auf Folie ${nr}`, 200, true)!);
     if (punkte.length > MAX_PUNKTE) throw new MaterialError(`Folie ${nr} hat ${punkte.length} Punkte. Höchstens ${MAX_PUNKTE}, verteile den Rest auf eine weitere Folie.`);
     const text = str(e.text, `der Text auf Folie ${nr}`, 600);
+    if (e.schaubild && (e.schaubild as Record<string, unknown>).wortliste === true) throw new MaterialError(`Folie ${nr}: Eine Wortliste gibt es in einer Präsentation nicht. Schreib die Wörter als Stichpunkte auf eine eigene Folie.`);
     const schaubild = e.schaubild ? parseSchaubild(e.schaubild, nr, `Folie ${nr}`) : undefined;
     if (art === "abschnitt" && (punkte.length || schaubild)) throw new MaterialError(`Folie ${nr} ist ein Abschnitt. Sie hat nur einen Titel und höchstens einen kurzen Text.`);
-    return { art, titel: str(e.titel, `der Titel von Folie ${nr}`, 100, true)!, text, punkte, schaubild, notizen: str(e.notizen, `die Notizen zu Folie ${nr}`, 3000) };
+    return { art, titel: str(e.titel, `der Titel von Folie ${nr}`, 100, true)!, text, punkte, schaubild, notizen: mitLoesung(str(e.notizen, `die Notizen zu Folie ${nr}`, 3000), schaubild) };
   });
   return {
     titel: str(o.titel, "der Titel", 120, true)!,
