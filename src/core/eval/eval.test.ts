@@ -44,7 +44,7 @@ describe("the criteria and test sets in evals/", () => {
     const suites = (await loadSuites(evalsDir)).map((s) => s.skill);
     const bundled = (await readdir(join(process.cwd(), "skills"))).filter((n) => !n.startsWith("."));
     for (const name of suites) expect(bundled, `Zu evals/${name} fehlt die Anleitung`).toContain(name);
-    for (const name of ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"]) expect(suites).toContain(name);
+    for (const name of ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "praesentation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"]) expect(suites).toContain(name);
   });
 });
 

@@ -6,7 +6,10 @@ const ok = (grund: string) => ({ bestanden: true, grund });
 const fail = (grund: string) => ({ bestanden: false, grund });
 
 /** Words a teacher must never read in an answer: tool names, file names, technical terms. */
-const TECHNIK = /\b[a-z]+_[a-z_]+\b|\.(pdf|docx|json|md)\b|\b(JSON|Markdown|Skill|Tool|API|Rendering|PDF-Erzeugung|Parameter)\b/;
+const TECHNIK = /\b[a-z]+_[a-z_]+\b|\.(pdf|docx|pptx|json|md)\b|\b(JSON|Markdown|Skill|Tool|API|Rendering|PDF-Erzeugung|Parameter)\b/;
+
+/** The structure of every PowerPoint file the run made. */
+const decks = (t: Transcript) => t.files.flatMap((f) => (f.pptx ? [f.pptx] : []));
 
 /** Checks that code can decide. Each returns `bestanden: null` when it does not apply to the case. */
 export const PROGRAMM: Record<string, Check> = {
@@ -52,6 +55,61 @@ export const PROGRAMM: Record<string, Check> = {
   "G-GESPEICHERT": (c, t) => {
     if (!c.erwartet.gespeichert) return na;
     return t.gespeichert?.includes(c.erwartet.gespeichert) ? ok("Das Erwartete steht gespeichert im Arbeitsordner.") : fail("Es wurde nicht gespeichert, was die Lehrkraft verlangt hat, auch wenn der Assistent es vielleicht behauptet.");
+  },
+  "PR-DATEI": (c, t) => {
+    if (!c.erwartet.praesentation) return na;
+    return decks(t).length ? ok("Es wurde eine PowerPoint-Datei erstellt.") : fail("Es wurde keine PowerPoint-Datei erstellt.");
+  },
+  "PR-FORMAT": (c, t) => {
+    if (!c.erwartet.praesentation || !decks(t).length) return na;
+    return decks(t).every((d) => d.breit) ? ok("Die Folien sind im Format 16:9.") : fail("Die Folien sind nicht im Format 16:9.");
+  },
+  "PR-UMFANG": (c, t) => {
+    const range = c.erwartet.folien;
+    const deck = decks(t)[0];
+    if (!range || !deck) return na;
+    const n = deck.folien.length - 1; // without the title slide
+    return n >= range[0] && n <= range[1] ? ok(`${n} Folien nach der Titelfolie (erwartet ${range[0]} bis ${range[1]}).`) : fail(`${n} Folien nach der Titelfolie, erwartet waren ${range[0]} bis ${range[1]}.`);
+  },
+  "PR-TITELFOLIE": (c, t) => {
+    const deck = decks(t)[0];
+    if (!c.erwartet.praesentation || !deck) return na;
+    const first = deck.folien[0];
+    return first && first.punkte === 0 && first.bilder === 0 && first.absaetze.length >= 1 ? ok("Die erste Folie ist eine Titelfolie ohne Stichpunkte.") : fail("Die erste Folie ist keine Titelfolie.");
+  },
+  "PR-NOTIZEN": (c, t) => {
+    const deck = decks(t)[0];
+    if (!c.erwartet.praesentation || !deck) return na;
+    const missing = deck.folien.flatMap((f, i) => (i > 0 && !f.abschnitt && f.notizen.length < 20 ? [i + 1] : []));
+    return missing.length ? fail(`Keine oder zu kurze Notizen auf Folie ${missing.join(", ")}.`) : ok("Jede Inhaltsfolie hat Sprechernotizen.");
+  },
+  "PR-PUNKTE": (c, t) => {
+    const deck = decks(t)[0];
+    if (!c.erwartet.praesentation || !deck) return na;
+    const MAX = 6;
+    const crowded = deck.folien.flatMap((f, i) => (f.punkte > (f.bilder ? 3 : MAX) ? [`Folie ${i + 1} (${f.punkte})`] : []));
+    return crowded.length ? fail(`Zu viele Stichpunkte: ${crowded.join(", ")}. Erlaubt sind sechs, neben einem Schaubild drei.`) : ok("Keine Folie hat zu viele Stichpunkte.");
+  },
+  "PR-LEER": (c, t) => {
+    const deck = decks(t)[0];
+    if (!c.erwartet.praesentation || !deck) return na;
+    // Title, school line and number do not count as content: a content slide needs points, a picture or text beyond its title.
+    const empty = deck.folien.flatMap((f, i) => (i > 0 && !f.abschnitt && f.punkte === 0 && f.bilder === 0 && f.absaetze.length <= 3 ? [i + 1] : []));
+    return empty.length ? fail(`Folie ${empty.join(", ")} hat keinen Inhalt außer dem Titel.`) : ok("Keine Folie ist leer.");
+  },
+  "PR-FRAGEN": (c, t) => {
+    const max = c.erwartet.maxFragen;
+    const first = t.turns[0];
+    if (max === undefined || !first) return na;
+    return first.fragen.length <= max ? ok(`${first.fragen.length} Rückfragen in der ersten Runde (erlaubt: ${max}).`) : fail(`${first.fragen.length} Rückfragen in der ersten Runde, erlaubt sind ${max}: ${first.fragen.join(" / ")}`);
+  },
+  "PR-OBERFLAECHE": (c, t) => {
+    if (!c.erwartet.oberflaeche) return na;
+    const deck = decks(t)[0];
+    if (!deck) return fail("Es gibt keine PowerPoint-Datei.");
+    // The sketch is a picture in the .pptx. Its blank areas are numbered, and the numbers stand as lines of their own in the preview PDF.
+    const numbered = t.files.filter((f) => f.art === "pdf").some((f) => /^1$/m.test(f.text) && /^2$/m.test(f.text));
+    return deck.folien.some((f) => f.bilder > 0) && numbered ? ok("Eine Folie hat ein Schaubild mit nummerierten, leeren Bereichen.") : fail("Es gibt kein Schaubild mit nummerierten, leeren Bereichen auf einer Folie.");
   },
   "G-VORSCHLAG": (c, t) => {
     if (!c.erwartet.erstVorschlag) return na;

@@ -10,6 +10,7 @@ import { listSkills } from "../skills/index.ts";
 import { createClass, createReihe, initWorkspace, readKlasse, readStand, writeStand } from "../workspace/index.ts";
 import { writeBewertung } from "../workspace/bewertung.ts";
 import { dataDir } from "../paths.ts";
+import { lesePptx, pptxText, type PptxInfo } from "./pptx.ts";
 import type { EvalCase, FileInfo, Transcript, Turn } from "./types.ts";
 
 export const KLASSE = "11a";
@@ -55,11 +56,16 @@ async function collectFiles(): Promise<FileInfo[]> {
   for (const name of await readdir(join(dataDir(), "Exporte")).catch(() => [] as string[])) found.push({ name, path: join(dataDir(), "Exporte", name) });
   const files: FileInfo[] = [];
   for (const f of found) {
-    const art = f.name.endsWith(".pdf") ? "pdf" : f.name.endsWith(".docx") ? "docx" : "andere";
+    const art = f.name.endsWith(".pdf") ? "pdf" : f.name.endsWith(".docx") ? "docx" : f.name.endsWith(".pptx") ? "pptx" : "andere";
     let text = "";
     let seiten: number | undefined;
+    let pptx: PptxInfo | undefined;
     try {
-      text = await readMaterialText(f.path);
+      if (art === "pptx") {
+        // The plain text of a .pptx leaves out notes and pictures, so the judge gets the structured text.
+        pptx = lesePptx(await readFile(f.path));
+        text = pptxText(pptx);
+      } else text = await readMaterialText(f.path);
       if (art === "pdf") {
         const pdf = await readPdf(await readFile(f.path));
         seiten = pdf.pages.length;
@@ -69,7 +75,7 @@ async function collectFiles(): Promise<FileInfo[]> {
       text = `(nicht lesbar: ${(err as Error).message})`;
     }
     // Teacher's copies are named so the judge does not take them for the student sheet.
-    files.push({ name: /Loesung-/.test(f.name) ? `${f.name} [Lösungsblatt für die Lehrkraft]` : f.name, art, text, seiten });
+    files.push({ name: /Loesung-/.test(f.name) ? `${f.name} [Lösungsblatt für die Lehrkraft]` : f.name, art, text, seiten, pptx });
   }
   return files;
 }
@@ -111,6 +117,7 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     const { skills } = await listSkills();
     const session = createChatSession(settings, { skills, resolve: deps.resolve, measuring: true });
     const turns: Turn[] = [];
+    const labels = new Map<string, string>();
     const bilder = await Promise.all((c.bilder ?? []).map(fixtureBild));
     for (const [n, user] of c.nachrichten.entries()) {
       const turn: Turn = { user, assistant: "", steps: [], fragen: [] };
@@ -118,7 +125,10 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
       const timer = setTimeout(() => session.abort(), deps.timeoutMs ?? 240_000);
       await session.send(user, (e) => {
         if (e.type === "text") turn.assistant += e.delta;
-        else if (e.type === "step_start") turn.steps.push(e.label);
+        else if (e.type === "step_start") {
+          turn.steps.push(e.label);
+          labels.set(e.id, e.label);
+        } else if (e.type === "step_end" && !e.ok) (turn.fehlgeschlagen ??= []).push(labels.get(e.id) ?? e.id);
         else if (e.type === "confirm") {
           turn.fragen.push(e.question);
           session.answer(e.id, true);

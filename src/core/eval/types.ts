@@ -1,3 +1,5 @@
+import type { PptxInfo } from "./pptx.ts";
+
 export interface Criterion {
   id: string;
   /** P Pädagogik, R Anspruch, O Form, M Gesprächsführung. */
@@ -34,6 +36,14 @@ export interface EvalCase {
     erstVorschlag?: boolean;
     /** Text that must stand in the saved assessment rules or templates at the end (see Transcript.gespeichert). */
     gespeichert?: string;
+    /** A PowerPoint file must be created. */
+    praesentation?: boolean;
+    /** Allowed number of slides after the title slide: [least, most]. */
+    folien?: [number, number];
+    /** The first answer asks at most this many questions. */
+    maxFragen?: number;
+    /** The slides must hold a sketch of a program window with numbered blank areas. */
+    oberflaeche?: boolean;
   };
 }
 
@@ -42,11 +52,15 @@ export interface Turn {
   assistant: string;
   steps: string[];
   fragen: string[];
+  /** Labels of steps the program refused or that failed (for example a slide with too much text), kept to understand a run. */
+  fehlgeschlagen?: string[];
 }
 
 export interface FileInfo {
   name: string;
-  art: "pdf" | "docx" | "andere";
+  art: "pdf" | "docx" | "pptx" | "andere";
+  /** Structure of a PowerPoint file, for checks the plain text cannot answer. */
+  pptx?: PptxInfo;
   text: string;
   seiten?: number;
 }
