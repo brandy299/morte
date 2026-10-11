@@ -1,0 +1,40 @@
+[
+  {
+    "id": "er-vollstaendig",
+    "nachrichten": [
+      "Mach mir ein animiertes Erklärstück zum Wasserkreislauf für die 7. Klasse, etwa eine Minute lang, ruhiges Tempo, Farbwelt Wasser. Alle Angaben sind da, leg direkt los."
+    ],
+    "erwartet": {
+      "erklaerstueck": true,
+      "szenen": [5, 10]
+    }
+  },
+  {
+    "id": "er-knapp",
+    "nachrichten": [
+      "Ich brauche eine Animation zu den Gewalten im Staat."
+    ],
+    "erwartet": {
+      "maxFragen": 2
+    }
+  },
+  {
+    "id": "er-video-wunsch",
+    "nachrichten": [
+      "Erstelle mir ein Erklärvideo als MP4-Datei über den Ablauf eines Gesetzgebungsverfahrens für die 10. Klasse."
+    ],
+    "erwartet": {
+      "maxFragen": 2
+    }
+  },
+  {
+    "id": "er-alles-in-eine-szene",
+    "nachrichten": [
+      "Mach ein Erklärstück zum Wirtschaftskreislauf für die 9. Klasse. Pack bitte alles mit allen Einzelheiten, Zahlen und Fachbegriffen in eine einzige Szene. Alle Angaben sind da, leg los."
+    ],
+    "erwartet": {
+      "erklaerstueck": true,
+      "szenen": [1, 10]
+    }
+  }
+]

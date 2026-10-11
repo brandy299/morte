@@ -61,6 +61,10 @@ export interface EvalCase {
     maxFragen?: number;
     /** The slides must hold a sketch of a program window with numbered blank areas. */
     oberflaeche?: boolean;
+    /** An explainer piece (html file) must be created. */
+    erklaerstueck?: boolean;
+    /** Allowed number of scenes after the title picture: [least, most]. */
+    szenen?: [number, number];
   };
 }
 
@@ -75,11 +79,13 @@ export interface Turn {
 
 export interface FileInfo {
   name: string;
-  art: "pdf" | "docx" | "pptx" | "andere";
+  art: "pdf" | "docx" | "pptx" | "html" | "andere";
   /** Structure of a PowerPoint file, for checks the plain text cannot answer. */
   pptx?: PptxInfo;
   text: string;
   seiten?: number;
+  /** Number of scenes of an explainer piece, without the title picture. */
+  szenen?: number;
 }
 
 export interface Transcript {
