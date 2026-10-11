@@ -73,7 +73,7 @@ describe("workspace", () => {
   });
 
   it("rejects tool-call garbage in every Stand field and accepts normal text", async () => {
-    const bad = ["<parameter>x", "a > b", 'foo parameter name="x"'];
+    const bad = ["<parameter>x", "</invoke>", 'foo parameter name="x"'];
     for (const b of bad) {
       for (const key of ["aktuelleReihe", "zuletztBehandelt", "naechsteStunde", "besonderheiten"] as const) {
         await expect(writeStand("11a", "Business English", { [key]: b })).rejects.toBeInstanceOf(UserError);
@@ -82,7 +82,7 @@ describe("workspace", () => {
     }
     await writeStand("11a", "Business English", {
       aktuelleReihe: "02 „Meetings“ - 'Small Talk'",
-      offen: ["Klausur: 12.10.", "Übung zu Höflichkeit (ä/ö/ü), E-Mail & Co."],
+      offen: ["Gruppen <5 Personen, Wert > 3 üben", "Klausur: 12.10.", "Übung zu Höflichkeit (ä/ö/ü), E-Mail & Co."],
     });
     expect(await readStand("11a", "Business English")).toContain("Klausur: 12.10.");
   });
