@@ -100,14 +100,33 @@ export const PROGRAMM: Record<string, Check> = {
   },
   "ER-DATEI": (c, t) => {
     if (!c.erwartet.erklaerstueck) return na;
-    return t.files.some((f) => f.art === "html") ? ok("Es wurde ein Erklärstück erstellt.") : fail("Es wurde kein Erklärstück erstellt.");
+    return t.files.some((f) => f.szenen !== undefined) ? ok("Es wurde ein Erklärstück erstellt.") : fail("Es wurde kein Erklärstück erstellt.");
   },
   "ER-UMFANG": (c, t) => {
     const range = c.erwartet.szenen;
-    const piece = t.files.find((f) => f.art === "html");
+    const piece = t.files.find((f) => f.szenen !== undefined);
     if (!range || !piece) return na;
     const n = piece.szenen ?? 0;
     return n >= range[0] && n <= range[1] ? ok(`${n} Szenen (erlaubt: ${range[0]} bis ${range[1]}).`) : fail(`${n} Szenen, erlaubt sind ${range[0]} bis ${range[1]}.`);
+  },
+  "UE-DATEI": (c, t) => {
+    if (!c.erwartet.uebung) return na;
+    return t.files.some((f) => f.schritte !== undefined) ? ok("Es wurde eine interaktive Übung erstellt.") : fail("Es wurde keine interaktive Übung erstellt.");
+  },
+  "UE-UMFANG": (c, t) => {
+    const range = c.erwartet.schritte;
+    const piece = t.files.find((f) => f.schritte !== undefined);
+    if (!range || !piece) return na;
+    const n = piece.schritte!;
+    return n >= range[0] && n <= range[1] ? ok(`${n} Schritte (erlaubt: ${range[0]} bis ${range[1]}).`) : fail(`${n} Schritte, erlaubt sind ${range[0]} bis ${range[1]}.`);
+  },
+  "UE-AUFBAU": (c, t) => {
+    if (!c.erwartet.uebung) return na;
+    const piece = t.files.find((f) => f.schritte !== undefined);
+    if (!piece) return fail("Es gibt keine Übung.");
+    const arts = new Set([...piece.text.matchAll(/^Schritt \d+ \((\w+)\)/gm)].map((m) => m[1]));
+    const missing = ["info", "offen"].filter((a) => !arts.has(a)).concat(["auswahl", "lueckentext", "zuordnung"].some((a) => arts.has(a)) ? [] : ["Prüfschritt"]);
+    return missing.length ? fail(`Es fehlt: ${missing.join(", ")}. Eine Übung hat Einstieg, Prüfschritte und eine offene Aufgabe.`) : ok("Einstieg, Prüfschritte und offene Aufgabe sind da.");
   },
   "PR-FRAGEN": (c, t) => {
     const max = c.erwartet.maxFragen;
@@ -176,3 +195,4 @@ export const PROGRAMM: Record<string, Check> = {
   },
 };
 PROGRAMM["ER-FRAGEN"] = PROGRAMM["PR-FRAGEN"]!;
+PROGRAMM["UE-FRAGEN"] = PROGRAMM["PR-FRAGEN"]!;

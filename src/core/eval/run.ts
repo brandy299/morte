@@ -48,6 +48,17 @@ const fachDir = () => join(dataDir(), "Klassen", KLASSE, FACH);
 /** Every series folder of the subject, so a new series made during the run is found too. */
 const reihenOrdner = async () => (await readdir(fachDir(), { withFileTypes: true })).filter((e) => e.isDirectory()).map((e) => e.name).sort();
 
+/** One step of an interactive exercise as plain text for the judge. */
+function uebungText(st: Record<string, unknown>): string {
+  const g = (k: string) => (typeof st[k] === "string" ? (st[k] as string) : "");
+  if (st.art === "auswahl") return `${g("frage")} | ${(st.optionen as { text: string; richtig: boolean; erklaerung?: string }[]).map((o) => `${o.richtig ? "[richtig] " : ""}${o.text}${o.erklaerung ? ` (${o.erklaerung})` : ""}`).join(" / ")}`;
+  if (st.art === "zuordnung") return `${g("aufgabe")} | ${(st.paare as { links: string; rechts: string }[]).map((p) => `${p.links} = ${p.rechts}`).join("; ")}`;
+  if (st.art === "lueckentext") return (st.teile as ({ text: string } | { luecke: string[] })[]).map((t) => ("text" in t ? t.text : `[${t.luecke.join("|")}]`)).join("");
+  if (st.art === "offen") return `${g("aufgabe")}${g("musterloesung") ? ` | Musterlösung: ${g("musterloesung")}` : ""}`;
+  if (st.art === "checkliste") return `${g("titel")}: ${((st.punkte as string[]) ?? []).join("; ")}`;
+  return `${g("titel")}: ${g("text")} ${((st.punkte as string[]) ?? []).join("; ")}`.trim();
+}
+
 async function collectFiles(): Promise<FileInfo[]> {
   const found: { name: string; path: string }[] = [];
   for (const reihe of await reihenOrdner()) {
@@ -61,6 +72,7 @@ async function collectFiles(): Promise<FileInfo[]> {
     let seiten: number | undefined;
     let pptx: PptxInfo | undefined;
     let szenen: number | undefined;
+    let schritte: number | undefined;
     try {
       if (art === "pptx") {
         // The plain text of a .pptx leaves out notes and pictures, so the judge gets the structured text.
@@ -69,8 +81,14 @@ async function collectFiles(): Promise<FileInfo[]> {
       } else if (art === "html") {
         // An explainer piece: the judge reads the texts in the order they appear.
         const html = await readFile(f.path, "utf8");
-        text = [...html.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]!.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")).join("\n");
-        szenen = [...html.matchAll(/<g id="s([1-9]\d*)" class="sc"/g)].length;
+        const daten = /<script type="application\/json" id="daten">([\s\S]*?)<\/script>/.exec(html)?.[1];
+        if (daten) {
+          // An interactive exercise: the judge reads every step with its answers and which ones are right.
+          const steps = (JSON.parse(daten) as { schritte: Record<string, unknown>[] }).schritte;
+          schritte = steps.length;
+          text = steps.map((st, i) => `Schritt ${i + 1} (${st.art}): ${uebungText(st)}`).join("\n");
+        } else text = [...html.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]!.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")).join("\n");
+        if (!daten) szenen = [...html.matchAll(/<g id="s([1-9]\d*)" class="sc"/g)].length;
       } else text = await readMaterialText(f.path);
       if (art === "pdf") {
         const pdf = await readPdf(await readFile(f.path));
@@ -81,7 +99,7 @@ async function collectFiles(): Promise<FileInfo[]> {
       text = `(nicht lesbar: ${(err as Error).message})`;
     }
     // Teacher's copies are named so the judge does not take them for the student sheet.
-    files.push({ name: /Loesung-/.test(f.name) ? `${f.name} [Lösungsblatt für die Lehrkraft]` : f.name, art, text, seiten, pptx, szenen });
+    files.push({ name: /Loesung-/.test(f.name) ? `${f.name} [Lösungsblatt für die Lehrkraft]` : f.name, art, text, seiten, pptx, szenen, schritte });
   }
   return files;
 }

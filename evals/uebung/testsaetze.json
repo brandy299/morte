@@ -1,0 +1,31 @@
+[
+  {
+    "id": "ue-vollstaendig",
+    "nachrichten": [
+      "Mach mir eine interaktive Übung zur Gewaltenteilung in Deutschland für eine 9. Klasse Politik, zur Sicherung nach der Stunde, etwa 20 Minuten. Alle Angaben sind da, leg direkt los."
+    ],
+    "erwartet": {
+      "uebung": true,
+      "schritte": [8, 20]
+    }
+  },
+  {
+    "id": "ue-knapp",
+    "nachrichten": [
+      "Ich brauche ein Quiz zum Thema Inflation."
+    ],
+    "erwartet": {
+      "maxFragen": 2
+    }
+  },
+  {
+    "id": "ue-ergebnisse-sehen",
+    "nachrichten": [
+      "Erstelle eine digitale Übung zum Wirtschaftskreislauf für die 10. Klasse. Ich möchte nachher sehen können, wie jeder Schüler abgeschnitten hat. Alle Angaben sind da, leg los."
+    ],
+    "erwartet": {
+      "uebung": true,
+      "schritte": [6, 20]
+    }
+  }
+]

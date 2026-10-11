@@ -65,6 +65,10 @@ export interface EvalCase {
     erklaerstueck?: boolean;
     /** Allowed number of scenes after the title picture: [least, most]. */
     szenen?: [number, number];
+    /** An interactive exercise (html file) must be created. */
+    uebung?: boolean;
+    /** Allowed number of steps of an interactive exercise: [least, most]. */
+    schritte?: [number, number];
   };
 }
 
@@ -86,6 +90,8 @@ export interface FileInfo {
   seiten?: number;
   /** Number of scenes of an explainer piece, without the title picture. */
   szenen?: number;
+  /** Number of steps of an interactive exercise. */
+  schritte?: number;
 }
 
 export interface Transcript {
