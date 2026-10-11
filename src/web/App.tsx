@@ -258,7 +258,7 @@ function groupMaterials(materials: Material[]): { title: string; parts: { label:
   const order = Object.keys(VARIANTS).map((k) => (k === "" ? "" : k));
   return [...groups].map(([title, variants]) => ({
     title,
-    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: isHtml(file) ? "Erklärstück" : variant === "" && [...variants.values()].some(isSlides) ? "Folien" : (VARIANTS[variant] ?? variant), file })),
+    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: isHtml(file) ? (/_Uebung-/.test(file.name) ? "Übung" : "Erklärstück") : variant === "" && [...variants.values()].some(isSlides) ? "Folien" : (VARIANTS[variant] ?? variant), file })),
   }));
 }
 
@@ -274,8 +274,9 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
   if (has("Arbeitsblatt")) list.push({ label: "In drei Niveaus", text: "Mach daraus drei Niveaus: Basis, Standard und Erweiterung." });
   if (has("Verlauf")) list.push({ label: "Passendes Arbeitsblatt", text: "Erstelle zu dieser Stunde ein passendes Arbeitsblatt." });
   if (has("Lernsituation")) list.push({ label: "Material für Stunde 1", text: "Erstelle Material für die erste Stunde." });
+  if (has("Uebung")) list.push({ label: "Mehr Fragen", text: "Mach die Übung etwas länger, mit mehr Fragen." }, { label: "Leichter", text: "Mach die Übung etwas leichter." }, { label: "Schwerer", text: "Mach die Übung etwas schwerer." });
   if (has("Erklaerstueck")) list.push({ label: "Ruhiger", text: "Mach das Erklärstück ruhiger." }, { label: "Zügiger", text: "Mach das Erklärstück zügiger." });
-  if (!hasWord && names.length > 0 && !has("Erklaerstueck")) list.push({ label: "Als Word", text: "Gib mir das auch als Word-Datei zum Bearbeiten." });
+  if (!hasWord && names.length > 0 && !has("Erklaerstueck") && !has("Uebung")) list.push({ label: "Als Word", text: "Gib mir das auch als Word-Datei zum Bearbeiten." });
   return list;
 }
 
