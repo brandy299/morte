@@ -235,7 +235,10 @@ describe("checks for Stand.md", () => {
     expect(run(["Klasse nachlesen", "Stand nachlesen"])).toBe(true);
     expect(run(["Stand nachlesen", "Klasse nachlesen"])).toBe(false);
     expect(run(["Klasse nachlesen"])).toBe(false);
+    expect(run(["Stand nachlesen"])).toBe(true); // stand_lesen includes Klasse.md
+    expect(run(["Reihe nachlesen"])).toBe(false);
     expect(run(["Klasse nachlesen", "Reihe nachlesen", "Stand nachlesen"])).toBe(false);
+    expect(run(["Reihe nachlesen", "Stand nachlesen"])).toBe(false);
     expect(run(["Klasse nachlesen", "Stand nachlesen", "Reihe nachlesen"])).toBe(true);
     expect(run(["Klasse nachlesen", "Stand nachlesen", "Reihe nachlesen"], { leseOrdnung: true, ohneReihe: true })).toBe(false);
     expect(run([], {})).toBeNull();
