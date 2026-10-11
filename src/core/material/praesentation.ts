@@ -25,6 +25,8 @@ export interface Praesentation {
   untertitel?: string;
   fach?: string;
   klasse?: string;
+  /** Small print in the footer, e.g. "Ohne hinterlegten Lehrplan erstellt". */
+  fuss?: string;
   folien: Folie[];
 }
 
@@ -53,6 +55,7 @@ export function parsePraesentation(raw: unknown): Praesentation {
     untertitel: str(o.untertitel, "der Untertitel", 160),
     fach: str(o.fach, "das Fach", 60),
     klasse: str(o.klasse, "die Klasse", 60),
+    fuss: str(o.fuss, "der Fußtext", 200),
     folien,
   };
 }
@@ -124,13 +127,14 @@ function titelFolie(p: Praesentation): FolienPlan {
     const s = passend([p.untertitel], w, 80, [24, 22, 20, 18], "sans") ?? 18;
     teile.push({ k: "text", x: MX + 8, y, w, h: hoehe([p.untertitel], w, s, "sans", false), absaetze: [p.untertitel], font: "sans", size: s, color: SOFT });
   }
+  if (p.fuss) teile.push({ k: "text", x: MX + 8, y: H - 34, w: W - 2 * MX - 80, h: 16, absaetze: [p.fuss], font: "sans", size: 10, color: SOFT });
   return { teile };
 }
 
 function fuss(p: Praesentation, nr: number): Teil[] {
-  const links = [p.fach, p.klasse].filter(Boolean).join(" · ") || p.titel;
+  const links = [[p.fach, p.klasse].filter(Boolean).join(" · ") || p.titel, p.fuss].filter(Boolean).join(" · ");
   return [
-    { k: "text", x: MX, y: H - 34, w: W / 2, h: 16, absaetze: [links], font: "sans", size: 10, color: SOFT },
+    { k: "text", x: MX, y: H - 34, w: W - 2 * MX - 80, h: 16, absaetze: [links], font: "sans", size: 10, color: SOFT },
     { k: "text", x: W - MX - 60, y: H - 34, w: 60, h: 16, absaetze: [String(nr)], font: "sans", size: 10, color: SOFT, align: "right" },
   ];
 }

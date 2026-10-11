@@ -409,7 +409,10 @@ const praesentationErstellen = defineTool({
   }),
   async execute(_id, args) {
     const { reihe, datum, stunde, ...content } = args;
-    const deck = parsePraesentation(content);
+    const deck = parsePraesentation({
+      ...content,
+      fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
+    });
     planen(deck); // refuses an overfull slide before anything is saved
     const where = { klasse: content.klasse, fach: content.fach, reihe, datum, stunde };
     const pptx = await saveMaterial(await renderPptx(deck), { art: "Praesentation", titel: deck.titel, ...where, ext: "pptx" });

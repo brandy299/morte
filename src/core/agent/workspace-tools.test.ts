@@ -1,3 +1,4 @@
+import { strFromU8, unzipSync } from "fflate";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -117,6 +118,9 @@ describe("presentation tool", () => {
       ["The Job Interview (PowerPoint)", "pptx", false],
     ]);
     for (const m of materials) expect((await readFile(join(home, m.path))).length).toBeGreaterThan(1000);
+    // The class has no curriculum on file: the slides say so, like the other materials.
+    const pptx = materials.find((m) => m.path.endsWith(".pptx"))!;
+    expect(strFromU8(unzipSync(await readFile(join(home, pptx.path)))["ppt/slides/slide2.xml"]!)).toContain("Ohne hinterlegten Lehrplan erstellt");
     expect(await readReihe("11a", "Business English", "Bewerbung")).toMatch(/\| 14\.10\. \| Mi 3 \| The Job Interview \| .*Praesentation-The-Job-Interview\.pptx \| Material fertig \|/);
     const result = (s.history().messages as { role: string; content: { text: string }[] }[]).find((m) => m.role === "toolResult")!;
     expect(result.content[0]!.text).toContain("2 Folien mit Titelfolie");

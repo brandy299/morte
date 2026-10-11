@@ -66,6 +66,28 @@ describe("parsePraesentation", () => {
   });
 });
 
+describe("footer note (fuss)", () => {
+  const texts = (p: unknown) => planen(parsePraesentation(p)).map((pl) => pl.teile.filter((t) => t.k === "text").flatMap((t) => (t.k === "text" ? t.absaetze : [])).join("|"));
+
+  it("shows the note on the title slide and in the footer of every other slide", () => {
+    const all = texts({ ...sample, fuss: "Ohne hinterlegten Lehrplan erstellt" });
+    expect(all).toHaveLength(4);
+    for (const t of all) expect(t).toContain("Ohne hinterlegten Lehrplan erstellt");
+    expect(all[1]).toContain("INWI · HHS1 · Ohne hinterlegten Lehrplan erstellt");
+  });
+
+  it("shows nothing extra without the note, and keeps the note inside the slide", () => {
+    expect(texts(sample).join("")).not.toContain("Lehrplan");
+    for (const plan of planen(parsePraesentation({ ...sample, fuss: "x".repeat(200) })))
+      for (const t of plan.teile) if (t.k === "text") expect(t.x + t.w).toBeLessThanOrEqual(960);
+  });
+
+  it("is in the PowerPoint file", async () => {
+    const files = unzipSync(await renderPptx(parsePraesentation({ ...sample, fuss: "Ohne hinterlegten Lehrplan erstellt" })));
+    expect(strFromU8(files["ppt/slides/slide3.xml"]!)).toContain("Ohne hinterlegten Lehrplan erstellt");
+  });
+});
+
 describe("renderPptx", () => {
   it("makes a 16:9 PowerPoint file with a title slide, one slide per entry, notes and the diagram as a picture", async () => {
     const files = unzipSync(await renderPptx(parsePraesentation(sample)));
