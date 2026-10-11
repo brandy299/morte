@@ -240,8 +240,8 @@ function standMarkdown(klasse: string, fach: string, f: StandFields): string {
   const line = (s?: string) => {
     const value = (s ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_LINE);
     // Tool-call markup leaking from the model must never end up in Stand.md.
-    if (/[<>]|parameter name=/.test(value)) {
-      throw new UserError("Der Stand enthält Zeichen, die nicht gehen. Bitte kürzer und ohne Sonderzeichen neu versuchen.");
+    if (/<\/?[a-z]|parameter name=/i.test(value)) {
+      throw new UserError("Im Stand steckt etwas, das wie Programmcode aussieht. Bitte noch einmal in normalen Worten versuchen.");
     }
     return value;
   };
