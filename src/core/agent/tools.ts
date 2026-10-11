@@ -12,7 +12,7 @@ import { readMaterialText } from "../material/read.ts";
 import { loadSkill, readSkillFile } from "../skills/index.ts";
 import { deleteVorlage, readVorlage, saveVorlage } from "../skills/personal.ts";
 import {
-  attachMaterial, notePlannedLesson, UserError, createReihe, hasLehrplan, listMaterial, listTree, materialDatei, saveMaterial, materialLuecken, readKlasse, readReihe, readStand, setStunde, STATUS, writeStand,
+  attachMaterial, notePlannedLesson, UserError, createReihe, hasLehrplan, listMaterial, listTree, materialDatei, saveMaterial, materialLuecken, readKlasse, readReihe, readStandMitKlasse, setStunde, STATUS, writeStand,
 } from "../workspace/index.ts";
 
 /**
@@ -69,7 +69,7 @@ const klassenUebersicht = defineTool({
 const klasseLesen = defineTool({
   name: "klasse_lesen",
   label: "Klasse nachlesen",
-  description: "Reads Klasse.md (school type, level, subjects, notes). Read this first for a class, then stand_lesen.",
+  description: "Reads Klasse.md (school type, level, subjects, notes). Read this first for a class. stand_lesen already includes it.",
   parameters: Type.Object({ klasse: Type.String({ description: "Class name, e.g. 11a" }) }),
   async execute(_id, { klasse }) {
     return text(await readKlasse(klasse));
@@ -79,10 +79,10 @@ const klasseLesen = defineTool({
 const standLesen = defineTool({
   name: "stand_lesen",
   label: "Stand nachlesen",
-  description: "Reads Stand.md of a class and subject: where we are and what comes next. Read it after klasse_lesen.",
+  description: "Reads Klasse.md and Stand.md of a class and subject in the right order: the class, then where we are and what comes next. One call is enough, no need to call klasse_lesen first.",
   parameters: Type.Object({ klasse: Type.String(), fach: Type.String() }),
   async execute(_id, { klasse, fach }) {
-    return text(await readStand(klasse, fach));
+    return text(await readStandMitKlasse(klasse, fach));
   },
 });
 

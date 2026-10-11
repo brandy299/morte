@@ -126,11 +126,12 @@ export const PROGRAMM: Record<string, Check> = {
     const klasse = steps.indexOf("Klasse nachlesen");
     const stand = steps.indexOf("Stand nachlesen");
     const reihe = steps.indexOf("Reihe nachlesen");
-    if (klasse < 0 || stand < 0) return fail(`Es fehlt: ${[klasse < 0 && "Klasse nachlesen", stand < 0 && "Stand nachlesen"].filter(Boolean).join(", ")}.`);
+    // "Stand nachlesen" (stand_lesen) hands over Klasse.md first, so the class is read before the Stand even without its own step.
+    if (stand < 0) return fail("Es fehlt: Stand nachlesen.");
     if (klasse > stand) return fail("Der Stand wurde vor der Klasse gelesen.");
     if (reihe >= 0 && reihe < stand) return fail("Die Reihe wurde vor dem Stand gelesen.");
     if (c.erwartet.ohneReihe && reihe >= 0) return fail("Die Reihe wurde gelesen, obwohl Klasse und Stand genügten.");
-    return ok("Erst Klasse, dann Stand" + (reihe >= 0 ? ", danach die Reihe." : ", die Reihe blieb zu."));
+    return ok("Klasse und Stand in der richtigen Reihenfolge" + (reihe >= 0 ? ", danach die Reihe." : ", die Reihe blieb zu."));
   },
   "S-UEBERSCHRIEBEN": (c, t) => {
     if (!c.erwartet.standNeu) return na;

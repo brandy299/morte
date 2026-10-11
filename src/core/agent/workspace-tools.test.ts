@@ -1,10 +1,11 @@
 import { strFromU8, unzipSync } from "fflate";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createChatSession, type ChatEvent } from "./index.ts";
+import { tools } from "./tools.ts";
 import { createClass, createReihe, initWorkspace, readReihe } from "../workspace/index.ts";
 
 let home: string;
@@ -67,6 +68,26 @@ describe("workspace tools in the chat", () => {
       if (e.type === "confirm") s.answer(e.id, false);
     });
     expect(await readFile(standFile(), "utf8")).not.toContain("01 Bewerbung");
+  });
+});
+
+describe("reading order Klasse before Stand", () => {
+  const standLesen = (fach = "Business English") => tools.find((t) => t.name === "stand_lesen")!.execute("1", { klasse: "11a", fach }, undefined as never).then((r) => (r.content[0] as { text: string }).text);
+
+  it("hands over Klasse.md together with Stand.md in one call, the class first", async () => {
+    await writeFile(standFile(), "# Stand: 11a\nNächste Stunde: Lebenslauf\n");
+    const out = await standLesen();
+    expect(out).toContain("Klasse.md:");
+    expect(out).toContain("Berufskolleg");
+    expect(out.indexOf("Klasse.md:")).toBeLessThan(out.indexOf("Stand.md:"));
+    expect(out).toContain("Nächste Stunde: Lebenslauf");
+  });
+
+  it("gives the Stand alone when Klasse.md is missing, and still says when the class does not exist", async () => {
+    await writeFile(standFile(), "# Stand: 11a\nOffen\n");
+    await rm(join(home, "Klassen", "11a", "Klasse.md"));
+    expect(await standLesen()).toBe("# Stand: 11a\nOffen\n");
+    await expect(standLesen("Mathe")).rejects.toThrow("gibt es nicht");
   });
 });
 

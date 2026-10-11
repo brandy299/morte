@@ -148,6 +148,21 @@ export async function readStand(klasse: string, fach: string): Promise<string> {
   return readText(join(dir, "Stand.md"));
 }
 
+/**
+ * Stand.md together with the Klasse.md above it, so the reading order (class first, then Stand) holds
+ * for every model without relying on it calling two tools in the right order.
+ * A class without Klasse.md (or an empty one) gives the Stand alone.
+ */
+export async function readStandMitKlasse(klasse: string, fach: string): Promise<string> {
+  const r = await resolveFach(klasse, fach);
+  const [klasseText, standText] = await Promise.all([readText(join(klassenDir(), r.klasse, "Klasse.md")), readText(join(r.dir, "Stand.md"))]);
+  return klasseText.trim() ? `Klasse.md:
+${klasseText.trim()}
+
+Stand.md:
+${standText.trim()}` : standText;
+}
+
 export async function readReihe(klasse: string, fach: string, reihe: string): Promise<string> {
   const { dir } = await resolveFach(klasse, fach);
   const r = await resolveDir(dir, reihe, "Die Reihe", stripNumber);
