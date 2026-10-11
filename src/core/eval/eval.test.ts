@@ -43,7 +43,8 @@ describe("the criteria and test sets in evals/", () => {
   it("cover the bundled skills that make material or answer teachers, and name only skills that exist", async () => {
     const suites = (await loadSuites(evalsDir)).map((s) => s.skill);
     const bundled = (await readdir(join(process.cwd(), "skills"))).filter((n) => !n.startsWith("."));
-    for (const name of suites) expect(bundled, `Zu evals/${name} fehlt die Anleitung`).toContain(name);
+    // "stand" tests the working folder (Stand.md), not a bundled skill.
+    for (const name of suites.filter((n) => n !== "stand")) expect(bundled, `Zu evals/${name} fehlt die Anleitung`).toContain(name);
     for (const name of ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "praesentation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"]) expect(suites).toContain(name);
   });
 });
@@ -220,5 +221,59 @@ describe("running a case", () => {
     expect(t.tabelle).toMatch(/\| 14\.10\. \|.*Arbeitsblatt-Das-Anschreiben\.pdf/);
     for (const id of ["G-TECHNIK", "G-SEITEN", "G-MATERIAL", "G-HINWEIS", "G-TABELLE"]) expect(PROGRAMM[id]!(kase({ material: true, eintrag: "14.10." }), t).bestanden, id).toBe(true);
     expect(process.env.PULT_HOME ?? "").not.toContain("pult-eval-"); // the folder of the run is gone and the setting restored
+  });
+});
+
+describe("checks for Stand.md", () => {
+  const stand = (nachher: string, vorher = "# Stand: 11a\nAlt\n") => ({ vorher, nachher });
+  const neu = "# Stand: 11a · Business English\n\nZuletzt behandelt: Lebenslauf\nNächste Stunde: Vorstellungsgespräch\n";
+  const festgehalten = [turn("Fertig.", { steps: ["Klasse nachlesen", "Stand nachlesen", "Stand festhalten"] })];
+  const tabelle = (...s: string[]) => ["| Datum | Stunde | Thema | Material | Status |", "|---|---|---|---|---|", ...s.map((x, i) => `| 1${i}.10. | Mi 3 | Thema | | ${x} |`)].join("\n");
+
+  it("S-ORDNUNG wants Klasse, then Stand, then Reihe only when needed", () => {
+    const run = (steps: string[], erwartet: EvalCase["erwartet"] = { leseOrdnung: true }) => PROGRAMM["S-ORDNUNG"]!(kase(erwartet), transcript({ turns: [turn("x", { steps })] })).bestanden;
+    expect(run(["Klasse nachlesen", "Stand nachlesen"])).toBe(true);
+    expect(run(["Stand nachlesen", "Klasse nachlesen"])).toBe(false);
+    expect(run(["Klasse nachlesen"])).toBe(false);
+    expect(run(["Klasse nachlesen", "Reihe nachlesen", "Stand nachlesen"])).toBe(false);
+    expect(run(["Klasse nachlesen", "Stand nachlesen", "Reihe nachlesen"])).toBe(true);
+    expect(run(["Klasse nachlesen", "Stand nachlesen", "Reihe nachlesen"], { leseOrdnung: true, ohneReihe: true })).toBe(false);
+    expect(run([], {})).toBeNull();
+  });
+
+  it("S-UEBERSCHRIEBEN needs a changed Stand with one heading that names the new things", () => {
+    const e = { standNeu: ["Lebenslauf", "vorstellungsgespräch"] };
+    const check = (t: Partial<Transcript>) => PROGRAMM["S-UEBERSCHRIEBEN"]!(kase(e), transcript(t)).bestanden;
+    expect(check({ turns: festgehalten, stand: stand(neu) })).toBe(true);
+    expect(check({ turns: [turn("x")], stand: stand(neu) })).toBe(false);
+    expect(check({ turns: festgehalten, stand: stand(neu, neu) })).toBe(false);
+    expect(check({ turns: festgehalten, stand: stand(`${neu}\n${neu}`) })).toBe(false);
+    expect(check({ turns: festgehalten, stand: stand("# Stand: 11a\nLebenslauf\n") })).toBe(false);
+    expect(PROGRAMM["S-UEBERSCHRIEBEN"]!(kase(), transcript()).bestanden).toBeNull();
+  });
+
+  it("S-STATUS wants the held lesson on gehalten and only the fixed words", () => {
+    const check = (t: string) => PROGRAMM["S-STATUS"]!(kase({ gehalten: 2 }), transcript({ tabelle: t })).bestanden;
+    expect(check(tabelle("geplant", "gehalten", "Material fertig"))).toBe(true);
+    expect(check(tabelle("geplant", "geplant"))).toBe(false);
+    expect(check(tabelle("geplant", "gehalten", "erledigt"))).toBe(false);
+    expect(PROGRAMM["S-STATUS"]!(kase(), transcript()).bestanden).toBeNull();
+  });
+
+  it("S-NAMEN finds names and grades in Stand and Reihe", () => {
+    const e = { verboten: ["Kevin", "\\b(Note|eine|einer)\\s+[1-6]\\b"] };
+    const check = (nachher: string, reihe: string) => PROGRAMM["S-NAMEN"]!(kase(e), transcript({ stand: stand(nachher), reihe })).bestanden;
+    expect(check(neu, "# Reihe")).toBe(true);
+    expect(check(`${neu}Besonderheiten: Kevin stört`, "")).toBe(false);
+    expect(check(neu, "Notizen: hatte eine 5")).toBe(false);
+    expect(PROGRAMM["S-NAMEN"]!(kase(), transcript()).bestanden).toBeNull();
+  });
+
+  it("S-KURZ fails when Stand grew or was not written", () => {
+    const check = (t: Partial<Transcript>) => PROGRAMM["S-KURZ"]!(kase({ nichtLaenger: true }), transcript(t)).bestanden;
+    expect(check({ turns: festgehalten, stand: stand("kurz", "etwas länger") })).toBe(true);
+    expect(check({ turns: festgehalten, stand: stand("viel länger als vorher", "kurz") })).toBe(false);
+    expect(check({ stand: stand("kurz", "etwas länger") })).toBe(false);
+    expect(PROGRAMM["S-KURZ"]!(kase(), transcript()).bestanden).toBeNull();
   });
 });

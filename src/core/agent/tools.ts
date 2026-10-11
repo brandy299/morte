@@ -132,7 +132,7 @@ const standSchreiben = defineTool({
   name: "stand_schreiben",
   label: "Stand festhalten",
   description:
-    "Overwrites Stand.md of a class and subject. Call it at the end of a work session. Read the old Stand first and pass every field that is still true. Keep entries short. Leave a field empty if unknown, never invent.",
+    "Overwrites Stand.md of a class and subject. Call it at the end of a work session. Read the old Stand first and pass every field that is still true. Keep entries short. Never put student names, grades or anything about individual students in it, only observations about the whole class. Leave a field empty if unknown, never invent.",
   parameters: Type.Object({
     klasse: Type.String(),
     fach: Type.String(),
@@ -140,7 +140,7 @@ const standSchreiben = defineTool({
     zuletztBehandelt: Type.Optional(Type.String()),
     naechsteStunde: Type.Optional(Type.String()),
     offen: Type.Optional(Type.Array(Type.String(), { description: "Open points, short" })),
-    besonderheiten: Type.Optional(Type.String({ description: "Class-level observations only, no student names" })),
+    besonderheiten: Type.Optional(Type.String({ description: "Observations about the whole class only: no student names, no grades, nothing about individuals" })),
   }),
   ask: (a) => `Darf ich den Stand für ${a.klasse}, ${a.fach} neu festhalten? Der alte Stand wird dabei ersetzt.`,
   async execute(_id, { klasse, fach, ...fields }) {

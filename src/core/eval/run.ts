@@ -18,7 +18,7 @@ export const FACH = "Business English";
 export const REIHE = "Bewerbung";
 
 /** An invented class with a series, a state and the school's own assessment rules. No real people, no real school. */
-export async function seedWorkspace(): Promise<void> {
+export async function seedWorkspace(ausgang: EvalCase["ausgang"] = {}): Promise<void> {
   await initWorkspace();
   await createClass({ name: KLASSE, schulform: "Berufskolleg", stufe: "11", kursniveau: "Höhere Handelsschule", faecher: [FACH], besonderheiten: "Zwei Lernende sprechen zu Hause kein Deutsch." });
   await createReihe(KLASSE, FACH, {
@@ -31,7 +31,7 @@ export async function seedWorkspace(): Promise<void> {
       { thema: "Das Vorstellungsgespräch", datum: "21.10." },
     ],
   });
-  await writeStand(KLASSE, FACH, {
+  await writeStand(KLASSE, FACH, ausgang.stand ?? {
     aktuelleReihe: `01 ${REIHE}`,
     zuletztBehandelt: "Stellenanzeigen auswerten (12.10.)",
     naechsteStunde: "Das Anschreiben (14.10.)",
@@ -113,7 +113,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
   const home = await mkdtemp(join(tmpdir(), "pult-eval-"));
   process.env.PULT_HOME = home;
   try {
-    await seedWorkspace();
+    await seedWorkspace(c.ausgang);
+    const standVorher = await readStand(KLASSE, FACH);
     const { skills } = await listSkills();
     const session = createChatSession(settings, { skills, resolve: deps.resolve, measuring: true });
     const turns: Turn[] = [];
@@ -142,7 +143,8 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run
     const ordner = `Klasse.md:\n${(await readKlasse(KLASSE)).trim()}\n\nStand.md:\n${(await readStand(KLASSE, FACH)).trim()}`;
-    return { turns, files: await collectFiles(), tabelle: await tables(), ordner, gespeichert: await collectSaved(), vorlage: bilder.length ? bilder.map((b) => b.text).join("\n\n") : undefined, kosten: session.usage().cost };
+    const reihe = (await Promise.all((await reihenOrdner()).map((r) => readFile(join(fachDir(), r, "Reihe.md"), "utf8").catch(() => "")))).join("\n");
+    return { turns, stand: { vorher: standVorher, nachher: await readStand(KLASSE, FACH) }, reihe, files: await collectFiles(), tabelle: await tables(), ordner, gespeichert: await collectSaved(), vorlage: bilder.length ? bilder.map((b) => b.text).join("\n\n") : undefined, kosten: session.usage().cost };
   } finally {
     if (before === undefined) delete process.env.PULT_HOME;
     else process.env.PULT_HOME = before;
