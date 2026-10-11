@@ -124,7 +124,7 @@ Handlungsprodukt: (was am Ende vorliegt)
 
 ## Regeln für den Agenten
 
-- **Lesereihenfolge:** `Klasse.md`, dann `Stand.md`, dann nur bei Bedarf die passende `Reihe.md`.
+- **Lesereihenfolge:** `Klasse.md`, dann `Stand.md`, dann nur bei Bedarf die passende `Reihe.md`. Das Werkzeug zum Stand liefert `Klasse.md` immer mit, so gilt die Reihenfolge für jedes Modell.
 - **Aktualisieren:** Nach jeder Arbeitssitzung `Stand.md` kurz und überschreibend neu schreiben, Details in `Reihe.md`.
 - **Status-Wörter fest:** `geplant`, `Material fertig`, `gehalten`. So lassen sich Abfragen zuverlässig beantworten.
 - **Geplante Stunden ohne Termin** haben leere Felder für Datum und Stunde. Der Termin wird später über die Nummer der Zeile eingetragen.
