@@ -66,6 +66,53 @@ describe("parsePraesentation", () => {
   });
 });
 
+describe("footer note (fuss)", () => {
+  const texts = (p: unknown) => planen(parsePraesentation(p)).map((pl) => pl.teile.filter((t) => t.k === "text").flatMap((t) => (t.k === "text" ? t.absaetze : [])).join("|"));
+
+  it("shows the note on the title slide and in the footer of every other slide", () => {
+    const all = texts({ ...sample, fuss: "Ohne hinterlegten Lehrplan erstellt" });
+    expect(all).toHaveLength(4);
+    for (const t of all) expect(t).toContain("Ohne hinterlegten Lehrplan erstellt");
+    expect(all[1]).toContain("INWI · HHS1 · Ohne hinterlegten Lehrplan erstellt");
+  });
+
+  it("shows nothing extra without the note, and keeps the note inside the slide", () => {
+    expect(texts(sample).join("")).not.toContain("Lehrplan");
+    for (const plan of planen(parsePraesentation({ ...sample, fuss: "x".repeat(200) })))
+      for (const t of plan.teile) if (t.k === "text") expect(t.x + t.w).toBeLessThanOrEqual(960);
+  });
+
+  it("is in the PowerPoint file", async () => {
+    const files = unzipSync(await renderPptx(parsePraesentation({ ...sample, fuss: "Ohne hinterlegten Lehrplan erstellt" })));
+    expect(strFromU8(files["ppt/slides/slide3.xml"]!)).toContain("Ohne hinterlegten Lehrplan erstellt");
+  });
+});
+
+describe("labelling exercise on a window sketch", () => {
+  const bereiche = [{ id: "m", text: "Menüband", lage: "menue", leer: true }, { id: "a", text: "Arbeitsfläche", lage: "mitte", leer: true }, { id: "s", text: "Statusleiste", lage: "status" }];
+  const folie = (extra: object = {}, notizen?: string) => ({ titel: "Beschrifte das Fenster", notizen, schaubild: { art: "oberflaeche", knoten: bereiche, ...extra } });
+
+  it("puts the key into the speaker notes: number = area, in the order of the empty boxes", () => {
+    const p = parsePraesentation({ titel: "x", folien: [folie()] });
+    expect(p.folien[0]!.notizen).toBe("Lösung zum Beschriften: 1 = Menüband; 2 = Arbeitsfläche.");
+    expect(planen(p)[1]!.notizen).toContain("1 = Menüband");
+  });
+
+  it("keeps the notes the model wrote and adds the key after them", () => {
+    const p = parsePraesentation({ titel: "x", folien: [folie({}, "Erst raten lassen.")] });
+    expect(p.folien[0]!.notizen).toBe("Erst raten lassen.\nLösung zum Beschriften: 1 = Menüband; 2 = Arbeitsfläche.");
+  });
+
+  it("adds nothing when no box is empty", () => {
+    const p = parsePraesentation({ titel: "x", folien: [folie({ knoten: bereiche.map((b) => ({ ...b, leer: false })) })] });
+    expect(p.folien[0]!.notizen).toBeUndefined();
+  });
+
+  it("refuses a word list, which presentations do not have", () => {
+    expect(() => parsePraesentation({ titel: "x", folien: [folie({ wortliste: true })] })).toThrow("Folie 2: Eine Wortliste gibt es in einer Präsentation nicht.");
+  });
+});
+
 describe("renderPptx", () => {
   it("makes a 16:9 PowerPoint file with a title slide, one slide per entry, notes and the diagram as a picture", async () => {
     const files = unzipSync(await renderPptx(parsePraesentation(sample)));

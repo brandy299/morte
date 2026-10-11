@@ -304,7 +304,7 @@ const schaubildParam = Type.Object({
   saeulen: Type.Optional(Type.Array(Type.Object({ name: Type.String(), wert: Type.Number() }), { description: "saeulen: 2 to 8 bars" })),
   einheit: Type.Optional(Type.String({ description: "saeulen: unit shown at the axis, e.g. Prozent" })),
   leer: Type.Optional(Type.Boolean({ description: "saeulen: the students draw the bars themselves; the teacher's copy shows them" })),
-  wortliste: Type.Optional(Type.Boolean({ description: "Print the texts of the empty boxes, shuffled, as a word bank" })),
+  wortliste: Type.Optional(Type.Boolean({ description: "Print the texts of the empty boxes, shuffled, as a word bank (worksheets and exams only: a presentation refuses it)" })),
 }, { description: "schaubild: a diagram the program draws. Use it for processes, structures, cycles, time lines and numbers instead of describing them in words. Gray and print-ready. It cannot draw pictures, maps or photos" });
 
 const arbeitsblattErstellen = defineTool({
@@ -386,7 +386,7 @@ const praesentationErstellen = defineTool({
   producesMaterial: true,
   label: "Präsentation erstellen",
   description:
-    "Builds slides as a PowerPoint file (.pptx, 16:9, editable in PowerPoint) plus a PDF of the same slides for the preview. A title slide is made from titel and untertitel, then one slide per entry. You write only the content; the program does the layout and refuses a slide with too much text. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+    "Builds slides as a PowerPoint file (.pptx, 16:9, editable in PowerPoint) plus a PDF of the same slides for the preview. A title slide is made from titel and untertitel, then one slide per entry. You write only the content; the program does the layout and refuses a slide with too much text. A diagram with empty boxes (leer) shows only the empty boxes; its solution (number = text) is put into the speaker notes automatically. A word bank (wortliste) does not exist in presentations. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
   parameters: Type.Object({
     titel: Type.String({ description: "Title of the talk, for the title slide" }),
     untertitel: Type.Optional(Type.String()),
@@ -409,7 +409,10 @@ const praesentationErstellen = defineTool({
   }),
   async execute(_id, args) {
     const { reihe, datum, stunde, ...content } = args;
-    const deck = parsePraesentation(content);
+    const deck = parsePraesentation({
+      ...content,
+      fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
+    });
     planen(deck); // refuses an overfull slide before anything is saved
     const where = { klasse: content.klasse, fach: content.fach, reihe, datum, stunde };
     const pptx = await saveMaterial(await renderPptx(deck), { art: "Praesentation", titel: deck.titel, ...where, ext: "pptx" });
