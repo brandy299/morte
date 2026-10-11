@@ -4,6 +4,8 @@ import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material
 import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
 import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWord, verlaufWord } from "../material/word-render.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
+import { renderHtml } from "../animation/html.ts";
+import { ARTEN, FORMEN, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -433,6 +435,58 @@ const praesentationErstellen = defineTool({
   },
 });
 
+const erklaerstueckErstellen = defineTool({
+  name: "erklaerstueck_erstellen",
+  producesMaterial: true,
+  label: "Erklärstück erstellen",
+  description:
+    "Builds a short animated explainer as ONE html file that runs offline in any browser (beamer, school PC), shown in the preview. You write only the content as scenes; the program does look, timing and layout, and refuses what does not fit. Each scene has an optional title and 1 to 8 elements, which appear one after the other. Every element sits in one of 9 places (lage). Several elements in one place are stacked. An arrow (art pfeil) connects two elements by their id (von, nach) and may carry a short label; it needs a free path between the two. It cannot draw pictures, photos or maps and has no sound. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+  parameters: Type.Object({
+    titel: Type.String({ description: "Title, shown first" }),
+    untertitel: Type.Optional(Type.String()),
+    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser" })),
+    tempo: Type.Optional(StringEnum([...TEMPI], { description: "ruhig, mittel (default) or zuegig" })),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    szenen: Type.Array(
+      Type.Object({
+        titel: Type.Optional(Type.String({ description: "Short title of the scene, up to two lines" })),
+        elemente: Type.Array(
+          Type.Object({
+            art: StringEnum([...ARTEN], { description: "text: a line of text. kasten: text in a colored box. zahl: a big number with a short text. form: a drawn shape. pfeil: an arrow between two elements" }),
+            id: Type.Optional(Type.String({ description: "Lower case letters and digits, needed for elements that an arrow points to or starts from" })),
+            text: Type.Optional(Type.String({ description: "text up to 140 characters, kasten up to 80, zahl: text under the number up to 60, pfeil: label up to 30" })),
+            zahl: Type.Optional(Type.String({ description: "zahl: the number, e.g. 71 % (up to 12 characters)" })),
+            form: Type.Optional(StringEnum([...FORMEN], { description: "form: sonne, wolke, huegel or wasser" })),
+            lage: Type.Optional(StringEnum([...LAGEN], { description: "Place on the 3x3 grid. Not for arrows" })),
+            von: Type.Optional(Type.String({ description: "pfeil: id of the element where it starts" })),
+            nach: Type.Optional(Type.String({ description: "pfeil: id of the element where it ends" })),
+          }),
+          { description: "1 to 8 elements, they appear in this order" },
+        ),
+      }),
+      { description: "1 to 10 scenes after the title picture" },
+    ),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+  }),
+  async execute(_id, args) {
+    const { reihe, datum, stunde, klasse, fach, ...content } = args;
+    const stueck = parseErklaerstueck(content);
+    stueckSetzen(stueck); // refuses what does not fit before anything is saved
+    const where = { klasse, fach, reihe, datum, stunde };
+    const file = await saveMaterial(Buffer.from(renderHtml(stueck), "utf8"), { art: "Erklaerstueck", titel: stueck.titel, ...where, ext: "html" });
+    const entered = klasse && fach && reihe && datum
+      ? await tryAttach(klasse, fach, reihe, { datum, stunde: stunde ?? "", thema: stueck.titel }, file.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum";
+    return {
+      content: [{ type: "text" as const, text: `Das Erklärstück ist fertig (${stueck.szenen.length} Szenen) und in der Vorschau zu sehen. Es lässt sich als Datei herunterladen und läuft in jedem Browser ohne Internet. ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      details: { materials: [{ title: stueck.titel, name: file.name, path: file.path }] },
+    };
+  },
+});
+
 const stundenverlaufErstellen = defineTool({
   name: "stundenverlauf_erstellen",
   producesMaterial: true,
@@ -696,7 +750,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  arbeitsblattErstellen, praesentationErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

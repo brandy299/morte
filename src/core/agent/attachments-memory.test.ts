@@ -72,7 +72,7 @@ describe("old attachments leave the model's memory", () => {
   });
 
   it("goes on after reopening: the notes are saved with the conversation", async () => {
-    const first = make(20_000);
+    const first = make(24_000);
     await first.session.send(withFiles("Mach daraus ein Blatt.", [file("arbeitsblatt.docx", 30_000)]), () => {});
     await first.session.send("Danke, noch eine Frage dazu.", () => {});
     await first.session.send("Und noch eine.", () => {});
@@ -80,7 +80,7 @@ describe("old attachments leave the model's memory", () => {
     expect(JSON.stringify(saved.messages)).toContain(FILE_NOTE("arbeitsblatt.docx"));
     expect(JSON.stringify(saved.messages)).not.toContain("Inhalt von arbeitsblatt");
 
-    const second = make(20_000);
+    const second = make(24_000);
     second.session.restore(saved);
     await second.session.send("Und weiter.", () => {});
     const again = text(firstUser(second.seen[0]!));

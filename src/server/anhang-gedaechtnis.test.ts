@@ -16,7 +16,7 @@ beforeEach(async () => {
   state = { secrets: { kind: "file", get: async () => undefined, set: async () => {}, delete: async () => {} }, session: undefined, configured: undefined };
   app = createApp(state);
   // A model with a memory of 20,000 tokens, so that a file of 30,000 characters fills more than half.
-  const faux = fauxProvider({ models: [{ id: "m", input: ["text", "image"], contextWindow: 20_000 }], tokensPerSecond: 0 });
+  const faux = fauxProvider({ models: [{ id: "m", input: ["text", "image"], contextWindow: 24_000 }], tokensPerSecond: 0 });
   faux.setResponses(Array.from({ length: 6 }, () => fauxAssistantMessage([fauxText("Antwort.")])));
   const models = createModels();
   models.setProvider(faux.provider);

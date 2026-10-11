@@ -323,7 +323,7 @@ export function createApp(state: AppState) {
     // PDFs, pictures and explainer pieces open in the preview. Everything else is a download, so nothing runs in the browser.
     const inline = materialInline(file) && !c.req.query("download");
     // An explainer piece runs its own script. The sandbox gives it no access to Pult, no network and no storage.
-    const sandbox = /\.html$/i.test(file) ? { "content-security-policy": "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:" } : {};
+    const sandbox: Record<string, string> = /\.html$/i.test(file) ? { "content-security-policy": "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:" } : {};
     return c.body(await readFile(file), 200, {
       "content-type": materialType(file) ?? "application/octet-stream",
       "content-disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${name}`,
