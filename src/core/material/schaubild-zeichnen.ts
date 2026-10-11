@@ -1,5 +1,5 @@
 /** Draws a diagram scene (see schaubild.ts) into a PDF, or into a picture for Word files. Both draw the same shapes. */
-import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
+import { createCanvas, GlobalFonts, Image } from "@napi-rs/canvas";
 import { BOX, fontFile, FONT_NAMES, INK, LINE, SANS, SANS_BOLD, printable } from "./layout.ts";
 import type { Form, Szene } from "./schaubild.ts";
 
@@ -32,6 +32,16 @@ export function zeichnePdf(doc: PDFKit.PDFDocument, szene: Szene, x0: number, y0
         doc.circle(x + 1, y + 1, 7.5).fill(INK);
         doc.font(SANS_BOLD).fontSize(8.5).fillColor("#ffffff").text(String(f.nr), x - 6.5, y - 3.5, { width: 15, align: "center", lineBreak: false });
       }
+    } else if (f.k === "bild") {
+      doc.image(f.png, x0 + f.x, y0 + f.y, { width: f.w, height: f.h });
+    } else if (f.k === "rahmen") {
+      const x = x0 + f.x;
+      const y = y0 + f.y;
+      // A white line under the black one, so the outline shows on dark and on light parts of the picture.
+      doc.lineWidth(3.4).strokeColor("#ffffff").rect(x, y, f.w, f.h).stroke();
+      doc.lineWidth(1.4).strokeColor(INK).rect(x, y, f.w, f.h).stroke();
+      doc.circle(x + 1, y + 1, 7.5).fill(INK);
+      doc.font(SANS_BOLD).fontSize(8.5).fillColor("#ffffff").text(String(f.nr), x - 6.5, y - 3.5, { width: 15, align: "center", lineBreak: false });
     } else if (f.k === "etikett") {
       const x = x0 + f.x;
       const y = y0 + f.y;
@@ -118,6 +128,25 @@ export function szeneAlsPng(szene: Szene, scale = 3): Buffer {
         ctx.font = font({ fett: true, groesse: 8.5 });
         ctx.fillText(String(f.nr), f.x + 1, f.y - 3);
       }
+    } else if (f.k === "bild") {
+      const img = new Image();
+      img.src = f.png;
+      ctx.drawImage(img, f.x, f.y, f.w, f.h);
+    } else if (f.k === "rahmen") {
+      ctx.lineWidth = 3.4;
+      ctx.strokeStyle = "#ffffff";
+      ctx.strokeRect(f.x, f.y, f.w, f.h);
+      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = INK;
+      ctx.strokeRect(f.x, f.y, f.w, f.h);
+      ctx.beginPath();
+      ctx.arc(f.x + 1, f.y + 1, 7.5, 0, Math.PI * 2);
+      ctx.fillStyle = INK;
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.font = font({ fett: true, groesse: 8.5 });
+      ctx.fillText(String(f.nr), f.x + 1, f.y - 3);
     } else if (f.k === "etikett") {
       ctx.beginPath();
       ctx.roundRect(f.x, f.y, f.w, f.h, 3);

@@ -64,6 +64,13 @@ export function zeichnePptx(pres: PptxGenJS, slide: Slide, szene: Szene, x0: num
         align: "center", valign: "middle", margin: 0, wrap: false, lineSpacingMultiple: 0.95,
       });
       if (f.nr !== undefined) badge(f.x + 1, f.y + 1, kasten ? 7.5 : 7, f.nr);
+    } else if (f.k === "bild") {
+      slide.addImage({ ...common, data: `image/png;base64,${f.png.toString("base64")}`, x: px(f.x), y: py(f.y), w: pl(f.w), h: pl(f.h), altText: "Bildschirmfoto" });
+    } else if (f.k === "rahmen") {
+      // A white outline under the black one, so it shows on dark and on light parts of the picture.
+      slide.addShape(pres.ShapeType.rect, { ...common, x: px(f.x), y: py(f.y), w: pl(f.w), h: pl(f.h), fill: { type: "none" }, line: { color: "FFFFFF", width: 3.4 * scale } });
+      slide.addShape(pres.ShapeType.rect, { ...common, x: px(f.x), y: py(f.y), w: pl(f.w), h: pl(f.h), fill: { type: "none" }, line: { color: hex(INK), width: 1.4 * scale } });
+      badge(f.x + 1, f.y + 1, 7.5, f.nr);
     } else if (f.k === "pfeil") {
       const pts = f.punkte;
       for (let i = 1; i < pts.length; i++) line(pts[i - 1]!, pts[i]!, { color: INK, width: 1.1, dash: f.gestrichelt });
