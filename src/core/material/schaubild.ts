@@ -6,9 +6,10 @@
  * The PDF and the picture for Word draw the same scene, so both look alike.
  */
 import { MaterialError, SANS, SANS_BOLD, str, textWidth } from "./layout.ts";
+import type { Bild } from "../bilder/index.ts";
 import { mischen } from "./mischen.ts";
 
-export type SchaubildArt = "ablauf" | "hierarchie" | "kreislauf" | "zeitstrahl" | "saeulen" | "oberflaeche";
+export type SchaubildArt = "ablauf" | "hierarchie" | "kreislauf" | "zeitstrahl" | "saeulen" | "oberflaeche" | "bild";
 
 /** Where an area sits in the sketch of a program window. */
 export const LAGEN = ["titel", "menue", "links", "mitte", "rechts", "unten", "status"] as const;
@@ -45,9 +46,11 @@ export interface Schaubild {
   leerSaeulen?: boolean;
   /** Print the hidden texts of blank boxes, shuffled, as a word bank. */
   wortliste?: boolean;
+  /** Picture from the library (art bild). Loaded by the tool, never given by the model. */
+  bild?: Bild;
 }
 
-const ARTEN: SchaubildArt[] = ["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen", "oberflaeche"];
+const ARTEN: SchaubildArt[] = ["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen", "oberflaeche", "bild"];
 
 // ---------- checking what the model sent ----------
 
@@ -73,6 +76,8 @@ export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}
     if (saeulen.every((s) => s.wert === 0)) throw new MaterialError(`${where}: Alle Werte sind 0.`);
     return { ...base, saeulen, einheit: str(o.einheit, `die Einheit in ${stelle}`, 20), leerSaeulen: o.leer === true };
   }
+
+  if (art === "bild") return parseBild(o, base, where, stelle);
 
   const list = Array.isArray(o.knoten) ? o.knoten : [];
   const custom = Array.isArray(o.verbindungen) && o.verbindungen.length > 0;
@@ -129,6 +134,26 @@ export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}
   return { ...base, knoten, verbindungen, richtung: rich, wortliste: o.wortliste === true };
 }
 
+/** A screenshot from the library with marked elements. `bildDaten` is put in by the tool after it loaded the picture. */
+function parseBild(o: Record<string, unknown>, base: Pick<Schaubild, "art" | "titel" | "knoten" | "verbindungen" | "saeulen">, where: string, stelle: string): Schaubild {
+  const bild = o.bildDaten as Bild | undefined;
+  if (!bild || !Buffer.isBuffer(bild.png) || !Array.isArray(bild.elemente)) throw new MaterialError(`${where}: Das Bild fehlt. Gib bild an, die Kennung eines Bildes aus bilder_suchen.`);
+  const list = Array.isArray(o.knoten) ? o.knoten : [];
+  if (list.length < 1 || list.length > 12) throw new MaterialError(`${where}: Ein Bild braucht 1 bis 12 markierte Stellen (knoten), es sind ${list.length}.`);
+  const seen = new Set<string>();
+  const knoten = list.map((k, i): Knoten => {
+    const e = (k ?? {}) as Record<string, unknown>;
+    const id = String(e.id ?? "").trim();
+    const element = bild.elemente.find((x) => x.id === id);
+    if (!element) throw new MaterialError(`${where}: Stelle ${i + 1} („${id}“) gibt es im Bild „${bild.id}“ nicht. Vorhanden: ${bild.elemente.map((x) => x.id).join(", ")}.`);
+    if (seen.has(id)) throw new MaterialError(`${where}: Die Stelle „${id}“ kommt doppelt vor.`);
+    seen.add(id);
+    const text = str(e.text, `Text von Stelle ${i + 1} in ${stelle}`, 60) ?? element.name;
+    return { id, text, leer: e.leer === true, betont: false };
+  });
+  return { ...base, knoten, wortliste: o.wortliste === true, bild };
+}
+
 function hasCycle(knoten: Knoten[], v: Schaubild["verbindungen"]): boolean {
   const state = new Map<string, 0 | 1 | 2>();
   const next = (id: string) => v.filter((e) => e.von === id).map((e) => e.nach);
@@ -152,6 +177,10 @@ export type Form =
   | { k: "linie"; x1: number; y1: number; x2: number; y2: number; breite: number; farbe: "ink" | "line"; gestrichelt?: boolean }
   | { k: "balken"; x: number; y: number; w: number; h: number }
   | { k: "punkt"; x: number; y: number; r: number }
+  /** A picture from the library, drawn in the box. */
+  | { k: "bild"; x: number; y: number; w: number; h: number; png: Buffer }
+  /** An outline over a picture with a number at its corner (nr), so it stands out on every background. */
+  | { k: "rahmen"; x: number; y: number; w: number; h: number; nr: number }
   /** Label on an arrow. `leer`: an empty box for the students (shown filled in the teacher's copy). */
   | { k: "etikett"; x: number; y: number; w: number; h: number; zeilen: string[]; leer: boolean; nr?: number };
 
@@ -213,6 +242,7 @@ function leave(b: { x: number; y: number; w: number; h: number }, p: [number, nu
 /** Builds the scene for a diagram `w` points wide. `loesung`: blank boxes and bars show their content. */
 export function szeneVon(s: Schaubild, w: number, loesung: boolean): Szene {
   if (s.art === "oberflaeche") return oberflaeche(s, w, loesung);
+  if (s.art === "bild") return bildSzene(s, w, loesung);
   const scene = s.art === "saeulen" ? saeulen(s, w, loesung) : s.art === "zeitstrahl" ? zeitstrahl(s, w) : s.art === "kreislauf" ? kreislauf(s, w, loesung) : geschichtet(s, w, loesung);
   return scene;
 }
@@ -239,6 +269,35 @@ function kasten(k: Knoten, x: number, y: number, w: number, h: number, zeilen: s
   const nr = nummern.get(k.id);
   const hidden = k.leer && !loesung;
   return { k: "kasten", x, y, w, h, zeilen: hidden ? [] : zeilen, stil: hidden ? "leer" : k.betont ? "betont" : "normal", nr };
+}
+
+/**
+ * A screenshot with numbered outlines, and below it a list: "3 = Menüband", or an empty box where the students write.
+ * Every marked place is numbered in the order given (not only the blank ones), so the numbers in the picture and in the list agree.
+ */
+function bildSzene(s: Schaubild, W: number, loesung: boolean): Szene {
+  const bild = s.bild!;
+  const scale = Math.min(W / bild.breite, (W * 1.1) / bild.hoehe);
+  const bw = bild.breite * scale;
+  const bh = bild.hoehe * scale;
+  const x0 = (W - bw) / 2;
+  const formen: Form[] = [{ k: "bild", x: x0, y: 0, w: bw, h: bh, png: bild.png }];
+  s.knoten.forEach((k, i) => {
+    const [rx, ry, rw, rh] = bild.elemente.find((e) => e.id === k.id)!.rechteck;
+    formen.push({ k: "rahmen", x: x0 + rx * scale, y: ry * scale, w: rw * scale, h: rh * scale, nr: i + 1 });
+  });
+  const GAP = 6;
+  const cols = W >= 300 ? 2 : 1;
+  const cw = (W - GAP * (cols - 1)) / cols;
+  let y = bh + 10;
+  s.knoten.forEach((k, i) => {
+    const hidden = k.leer && !loesung;
+    const x = (i % cols) * (cw + GAP);
+    const row = Math.floor(i / cols);
+    formen.push({ k: "etikett", x, y: y + row * 28, w: cw, h: 22, zeilen: hidden ? [] : [k.text], leer: hidden === true, nr: i + 1 });
+  });
+  const rows = Math.ceil(s.knoten.length / cols);
+  return { w: W, h: y + rows * 28, formen };
 }
 
 /**
@@ -551,6 +610,14 @@ function saeulen(s: Schaubild, W: number, loesung: boolean): Szene {
 export function versteckt(s: Schaubild, seed: string): { wortliste?: string; loesung?: string } {
   if (s.art === "saeulen") {
     return s.leerSaeulen ? { loesung: s.saeulen.map((x) => `${x.name}: ${zahl(x.wert)}${s.einheit ? ` ${s.einheit}` : ""}`).join(",  ") } : {};
+  }
+  if (s.art === "bild") {
+    const leer = s.knoten.flatMap((k, i) => (k.leer ? [{ nr: i + 1, text: k.text }] : []));
+    if (leer.length === 0) return {};
+    return {
+      wortliste: s.wortliste ? mischen(leer.length, `${seed}|s`).map((i) => leer[i]!.text).join("   ·   ") : undefined,
+      loesung: leer.map((b) => `${b.nr} = ${b.text}`).join(",  "),
+    };
   }
   const blanks = [...s.knoten.filter((k) => k.leer).map((k) => k.text), ...s.verbindungen.filter((v) => v.leer).map((v) => v.text!)];
   if (blanks.length === 0) return {};

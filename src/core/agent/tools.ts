@@ -5,6 +5,7 @@ import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
 import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWord, verlaufWord } from "../material/word-render.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { renderHtml } from "../animation/html.ts";
+import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
 import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
 import { ARTEN, FORMEN, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
@@ -292,8 +293,9 @@ const skillDateiLesen = defineTool({
 
 /** A diagram the program draws. Shared by worksheets and slides. */
 const schaubildParam = Type.Object({
-  art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen", "oberflaeche"], { description: "ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers. oberflaeche: a sketch of a program window (title bar, menu band, side panels, work area, area below it, status bar) to explain where things are in a program; give every area a lage" }),
+  art: StringEnum(["ablauf", "hierarchie", "kreislauf", "zeitstrahl", "saeulen", "oberflaeche", "bild"], { description: "bild: a screenshot from the picture library (see bilder_suchen) with numbered outlines on the places you name; give bild and knoten (id = id of a place in that picture, text = its name; leer to leave the label blank for the students). ablauf: steps with arrows (process, procedure). hierarchie: structure from top to bottom (who stands above whom, separation of powers, organisation). kreislauf: boxes in a circle with arrows (economic cycle, water cycle). zeitstrahl: events on a time line. saeulen: bar chart from numbers. oberflaeche: a sketch of a program window (title bar, menu band, side panels, work area, area below it, status bar) to explain where things are in a program; give every area a lage" }),
   titel: Type.Optional(Type.String({ description: "Caption below the diagram" })),
+  bild: Type.Optional(Type.String({ description: "bild only: the id of a picture from bilder_suchen" })),
   knoten: Type.Optional(Type.Array(Type.Object({
     id: Type.String({ description: "Short unique name, used in verbindungen" }),
     text: Type.String({ description: "Text in the box, short (a few words)" }),
@@ -309,7 +311,42 @@ const schaubildParam = Type.Object({
   einheit: Type.Optional(Type.String({ description: "saeulen: unit shown at the axis, e.g. Prozent" })),
   leer: Type.Optional(Type.Boolean({ description: "saeulen: the students draw the bars themselves; the teacher's copy shows them" })),
   wortliste: Type.Optional(Type.Boolean({ description: "Print the texts of the empty boxes, shuffled, as a word bank (worksheets and exams only: a presentation refuses it)" })),
-}, { description: "schaubild: a diagram the program draws. Use it for processes, structures, cycles, time lines and numbers instead of describing them in words. Gray and print-ready. It cannot draw pictures, maps or photos" });
+}, { description: "schaubild: a diagram the program draws. Use it for processes, structures, cycles, time lines and numbers instead of describing them in words. Gray and print-ready. It cannot draw pictures, maps or photos, but it can show a picture from the library (art bild)" });
+
+/** Loads the pictures that diagrams of the art bild name, so the layout gets the file and the places in it. The model only gives the id. */
+async function mitBildern<T extends { aufgaben?: unknown; folien?: unknown }>(content: T): Promise<T> {
+  const resolve = async (items: unknown): Promise<unknown> => {
+    if (!Array.isArray(items)) return items;
+    return Promise.all(
+      items.map(async (item) => {
+        const sb = (item as { schaubild?: { art?: string; bild?: string } } | undefined)?.schaubild;
+        if (!sb || sb.art !== "bild") return item;
+        return { ...(item as object), schaubild: { ...sb, bildDaten: await ladeBild(sb.bild) } };
+      }),
+    );
+  };
+  return { ...content, aufgaben: await resolve(content.aufgaben), folien: await resolve(content.folien) };
+}
+
+const bilderSuchen = defineTool({
+  name: "bilder_suchen",
+  label: "Bilder suchen",
+  description:
+    "Lists the screenshots and pictures in the teacher's picture library (their own folder, nothing is searched on the internet). Each picture has an id, a title, the program, version and language, and the places in it (id, name, where it is). Use the ids in a schaubild of the art bild. If nothing fits, say so honestly and offer the sketch of the program window (oberflaeche) instead. Never invent a picture or an id.",
+  parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "Words to look for in title, program and place names. Leave out to list everything" })) }),
+  async execute(_id, { suche }) {
+    const { bilder, probleme } = await listBilder();
+    const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = bilder.filter((b) => {
+      const hay = [b.titel, b.programm, b.version, b.sprache, ...b.elemente.map((e) => `${e.name} ${e.ort ?? ""}`)].join(" ").toLowerCase();
+      return words.every((w) => hay.includes(w));
+    });
+    const lines = hit.map((b) => `${b.id}: ${b.titel} (${[b.programm, b.version, b.sprache, b.datum].filter(Boolean).join(", ")}). Stellen: ${b.elemente.map((e) => `${e.id} = ${e.name}${e.ort ? ` [${e.ort}]` : ""}`).join("; ")}`);
+    const note = probleme.length ? `\nDiese Dateien sind kaputt und werden nicht angeboten: ${probleme.join(" / ")}` : "";
+    const empty = bilder.length === 0 ? `Die Bibliothek ist leer. Bilder liegen im Ordner „Bilder“ im Arbeitsordner (${bilderDir()}).` : "Dazu gibt es kein Bild in der Bibliothek.";
+    return text(hit.length ? lines.join("\n") + note : empty + note);
+  },
+});
 
 const arbeitsblattErstellen = defineTool({
   name: "arbeitsblatt_erstellen",
@@ -352,7 +389,8 @@ const arbeitsblattErstellen = defineTool({
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
   }),
   async execute(_id, args) {
-    const { reihe, datum, stunde, word, ...content } = args;
+    const { reihe, datum, stunde, word, ...raw } = args;
+    const content = await mitBildern(raw);
     const sheet = parseArbeitsblatt({
       ...content,
       // Honest note instead of invented curriculum references (see docs/skills.md).
@@ -412,7 +450,8 @@ const praesentationErstellen = defineTool({
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
   }),
   async execute(_id, args) {
-    const { reihe, datum, stunde, ...content } = args;
+    const { reihe, datum, stunde, ...raw } = args;
+    const content = await mitBildern(raw);
     const deck = parsePraesentation({
       ...content,
       fuss: content.klasse && (await hasLehrplan(content.klasse)) ? undefined : "Ohne hinterlegten Lehrplan erstellt",
@@ -809,7 +848,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];
