@@ -50,7 +50,8 @@ export function lesePptx(buf: Buffer): PptxInfo {
     return {
       absaetze: ps.map((p) => p.text),
       punkte: ps.filter((p) => p.bullet).length,
-      bilder: (xml.match(/<p:pic>/g) ?? []).length,
+      // A diagram is made of many shapes that Pult names "Schaubild": together they count as one picture.
+      bilder: (xml.match(/<p:pic>/g) ?? []).length + (/<p:cNvPr id="\d+" name="Schaubild"/.test(xml) ? 1 : 0),
       notizen: noteFile ? notes(utf8(files[`ppt/notesSlides/${noteFile}`] ?? new Uint8Array())) : "",
       // Pult draws the accent bar of a divider slide at 200 pt (2540000 EMU) from the top, content slides at 40 pt.
       abschnitt: /<a:off x="\d+" y="2540000"\/>/.test(xml),

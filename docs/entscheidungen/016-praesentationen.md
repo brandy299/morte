@@ -9,7 +9,7 @@ Pult erstellt Folien als `.pptx` (16:9) mit der Bibliothek **pptxgenjs 4.0.1** (
 - Der Aufbau jeder Folie wird **einmal geplant** (`planen()` in `src/core/material/praesentation.ts`) und dann zweimal gezeichnet: als PowerPoint-Datei und als PDF für die Vorschau rechts. Die Vorschau im Browser kann keine `.pptx` anzeigen.
 - Folienarten: Titelfolie (automatisch, mit Schulkopf), Inhaltsfolie (Titel, kurzer Text, bis zu sieben Stichpunkte, Schaubild), Abschnittsfolie. Sprechernotizen landen im Notizfeld von PowerPoint.
 - Das Programm wählt die Schriftgröße selbst (Stichpunkte 26 bis 18 Punkt). Passt der Inhalt auch bei 18 Punkt nicht, lehnt das Werkzeug die Folie mit einer klaren Meldung ab, statt Text über den Rand laufen zu lassen.
-- Schaubilder kommen als scharfes Bild (PNG, vierfache Auflösung) auf eine weiße Karte, groß genug für den Beamer. PowerPoint kann unsere Kästen und Pfeile nicht aus Daten zeichnen.
+- Schaubilder kommen als echte PowerPoint-Objekte (Kästen mit Text, Linien, Pfeilspitzen als Dreiecke, Textfelder, Balken) auf eine weiße Karte, groß genug für den Beamer. Die Lehrkraft kann sie anklicken, verschieben und beschriften (geändert in #47, vorher ein Bild). Die Objekte heißen „Schaubild“, daran erkennt die Prüfung ein Schaubild. Sie sind nicht gruppiert (pptxgenjs kann keine Gruppen). Schaubilder im Arbeitsblatt und in Word-Dateien bleiben Bilder.
 - Schriften in der `.pptx`: Georgia (Titel) und Calibri (Text), weil beide auf Windows und Mac mit Office vorhanden sind. Die Vorschau nutzt Pults eigene Schriften. Zeilenumbrüche können deshalb in PowerPoint leicht anders fallen. Gemessen wird mit der breiteren Pult-Schrift, so passt der Text in PowerPoint eher besser.
 
 ## Warum
