@@ -60,6 +60,11 @@ describe("checks for presentations", () => {
     expect(run("PR-NOTIZEN", c, files).bestanden).toBe(true); // the divider needs none
   });
 
+  it("G-SEITEN does not count the pages of a presentation preview", async () => {
+    const files = (await file()).map((f) => (f.art === "pdf" ? { ...f, name: "2026-10-11_Praesentation-X.pdf", seiten: 13 } : f));
+    expect(run("G-SEITEN", kase(), files).bestanden).toBeNull();
+  });
+
   it("do not apply when the case does not expect a deck", async () => {
     for (const id of ["PR-DATEI", "PR-FORMAT", "PR-NOTIZEN", "PR-PUNKTE", "PR-LEER", "PR-OBERFLAECHE", "PR-UMFANG", "PR-FRAGEN"]) expect(run(id, kase(), []).bestanden, id).toBeNull();
   });
@@ -81,5 +86,7 @@ describe("checks for presentations", () => {
     const files = await file();
     expect(run("PR-OBERFLAECHE", kase({ oberflaeche: true }), files.map((f) => (f.art === "pdf" ? { ...f, text: "Titelleiste" } : f))).bestanden).toBe(false);
     expect(run("PR-OBERFLAECHE", kase({ oberflaeche: true }), []).bestanden).toBe(false);
+    // Page numbers in the footer are no blank areas.
+    expect(run("PR-OBERFLAECHE", kase({ oberflaeche: true }), files.map((f) => (f.art === "pdf" ? { ...f, text: "Titelleiste\nA | 2\nB | 3" } : f))).bestanden).toBe(false);
   });
 });

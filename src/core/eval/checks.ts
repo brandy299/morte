@@ -18,8 +18,8 @@ export const PROGRAMM: Record<string, Check> = {
     return hit ? fail(`In einer Antwort steht „${hit}“.`) : ok("Keine Werkzeug- oder Dateinamen in den Antworten.");
   },
   "G-SEITEN": (c, t) => {
-    // The limit is for what students get. A teacher's copy with explanations may be longer.
-    const pdfs = t.files.filter((f) => f.art === "pdf" && f.seiten !== undefined && !/Lösungsblatt|Erwartungshorizont/.test(f.name));
+    // The limit is for what students get. A teacher's copy with explanations may be longer, and the preview of a presentation has one page per slide.
+    const pdfs = t.files.filter((f) => f.art === "pdf" && f.seiten !== undefined && !/Lösungsblatt|Erwartungshorizont|Praesentation/.test(f.name));
     if (pdfs.length === 0) return na;
     const max = c.erwartet.maxSeiten ?? 3;
     const long = pdfs.filter((f) => (f.seiten ?? 0) > max);
@@ -107,8 +107,10 @@ export const PROGRAMM: Record<string, Check> = {
     if (!c.erwartet.oberflaeche) return na;
     const deck = decks(t)[0];
     if (!deck) return fail("Es gibt keine PowerPoint-Datei.");
-    // The sketch is a picture in the .pptx. Its blank areas are numbered, and the numbers stand as lines of their own in the preview PDF.
-    const numbered = t.files.filter((f) => f.art === "pdf").some((f) => /^1$/m.test(f.text) && /^2$/m.test(f.text));
+    // The sketch is a picture in the .pptx. Its blank areas are numbered, and the numbers stand in lines of their own in the preview PDF ("2 | 3" when two areas share a line).
+    const onlyNumbers = /^\d+( \| \d+)*$/;
+    const numbers = new Set(t.files.filter((f) => f.art === "pdf").flatMap((f) => f.text.split("\n").map((l) => l.trim()).filter((l) => onlyNumbers.test(l)).flatMap((l) => l.split(" | "))));
+    const numbered = numbers.size >= 2;
     return deck.folien.some((f) => f.bilder > 0) && numbered ? ok("Eine Folie hat ein Schaubild mit nummerierten, leeren Bereichen.") : fail("Es gibt kein Schaubild mit nummerierten, leeren Bereichen auf einer Folie.");
   },
   "G-VORSCHLAG": (c, t) => {
