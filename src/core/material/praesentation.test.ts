@@ -114,14 +114,20 @@ describe("labelling exercise on a window sketch", () => {
 });
 
 describe("renderPptx", () => {
-  it("makes a 16:9 PowerPoint file with a title slide, one slide per entry, notes and the diagram as a picture", async () => {
+  it("makes a 16:9 PowerPoint file with a title slide, one slide per entry, notes and the diagram as editable objects", async () => {
     const files = unzipSync(await renderPptx(parsePraesentation(sample)));
     const slides = Object.keys(files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n));
     expect(slides).toHaveLength(4);
     expect(strFromU8(files["ppt/presentation.xml"]!)).toContain('cx="12192000" cy="6858000"');
     expect(strFromU8(files["ppt/slides/slide1.xml"]!)).toContain("Das Fenster von PowerPoint");
     expect(strFromU8(files["ppt/slides/slide3.xml"]!)).toContain("Folienbereich");
-    expect(Object.keys(files).some((n) => n.startsWith("ppt/media/") && n.endsWith(".png"))).toBe(true);
+    // The diagram is real objects, not a picture: boxes with the text in them, and arrows with a head.
+    const ablauf = strFromU8(files["ppt/slides/slide4.xml"]!);
+    expect(ablauf).toContain("Gestalten");
+    expect((ablauf.match(/name="Schaubild"/g) ?? []).length).toBeGreaterThanOrEqual(5);
+    expect(ablauf).toContain('prst="roundRect"');
+    expect(ablauf).toContain('prst="triangle"'); // the arrow heads
+    expect(ablauf).not.toContain("<p:pic>");
     const notes = Object.keys(files).filter((n) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(n)).map((n) => strFromU8(files[n]!));
     expect(notes.some((n) => n.includes("Am Beamer zeigen."))).toBe(true);
   });

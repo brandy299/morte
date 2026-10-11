@@ -8,7 +8,8 @@ import PptxGenJS from "pptxgenjs";
 import { schulkopf } from "../schule/index.ts";
 import { MaterialError, printable, registerFonts, SANS, SANS_BOLD, SANS_ITALIC, SERIF, str } from "./layout.ts";
 import { parseSchaubild, szeneVon, umbrechen, type Schaubild, type Szene } from "./schaubild.ts";
-import { szeneAlsPng, zeichnePdf } from "./schaubild-zeichnen.ts";
+import { zeichnePdf } from "./schaubild-zeichnen.ts";
+import { zeichnePptx } from "./schaubild-pptx.ts";
 
 export interface Folie {
   /** `abschnitt`: a divider between parts of the talk. */
@@ -250,11 +251,8 @@ export async function renderPptx(p: Praesentation): Promise<Buffer> {
       } else if (t.k === "bild") {
         slide.addImage({ data: `image/png;base64,${t.png.toString("base64")}`, x: inch(t.x), y: inch(t.y), w: inch(t.w), h: inch(t.h) });
       } else {
-        // A diagram goes in as a sharp picture: PowerPoint cannot draw our arrows and boxes from data.
-        const png = szeneAlsPng(t.szene, 4);
-        const pxW = Math.ceil(t.szene.w * 4) + 4;
-        const pxH = Math.ceil(t.szene.h * 4) + 14;
-        slide.addImage({ data: `image/png;base64,${png.toString("base64")}`, x: inch(t.x), y: inch(t.y), w: inch((pxW / 4) * t.scale), h: inch((pxH / 4) * t.scale) });
+        // A diagram goes in as real objects (boxes, lines, text), so it can be edited in PowerPoint.
+        zeichnePptx(pres, slide, t.szene, t.x, t.y, t.scale);
       }
     }
     if (plan.notizen) slide.addNotes(plan.notizen);
