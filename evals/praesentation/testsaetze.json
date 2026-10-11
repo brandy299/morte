@@ -1,0 +1,41 @@
+[
+  {
+    "id": "pr-vollstaendig",
+    "nachrichten": [
+      "Erstelle eine Präsentation für die 11a, Business English, zum Thema Folienmaster und Designs in PowerPoint. Ich zeige sie selbst im Unterricht. Die Stunde dauert 45 Minuten, etwa 20 Minuten davon arbeite ich mit den Folien. Ziel: Die Lernenden können den Folienmaster anpassen und ein Design auf alle Folien anwenden. Die Folien bitte auf Englisch. Alle Angaben sind da, leg direkt los."
+    ],
+    "erwartet": {
+      "praesentation": true,
+      "folien": [6, 14]
+    }
+  },
+  {
+    "id": "pr-knapp",
+    "nachrichten": [
+      "Mach mir eine Präsentation zu Animationen in PowerPoint."
+    ],
+    "erwartet": {
+      "maxFragen": 2
+    }
+  },
+  {
+    "id": "pr-fenster-beschriften",
+    "nachrichten": [
+      "Ich möchte für die 11a, Business English, eine Präsentation, mit der die Lernenden das PowerPoint-Fenster kennenlernen. Auf einer Folie sollen sie die Bereiche beschriften: Menüband, Folienbereich, Arbeitsfläche, Notizfeld und Statusleiste. Die Lösung brauche ich nur für mich. Ich zeige die Folien selbst, die Stunde hat 45 Minuten. Leg direkt los."
+    ],
+    "erwartet": {
+      "praesentation": true,
+      "oberflaeche": true
+    }
+  },
+  {
+    "id": "pr-alles-auf-eine-folie",
+    "nachrichten": [
+      "Pack mir alles zu Folienmaster, Animationen, Übergängen, Notizen und Vortragsansicht in PowerPoint mit allen Einzelheiten auf eine einzige Folie, für die 11a, Business English. Ich zeige sie selbst im Unterricht."
+    ],
+    "erwartet": {
+      "praesentation": true,
+      "folien": [1, 30]
+    }
+  }
+]

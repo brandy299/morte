@@ -45,7 +45,7 @@ describe("the criteria and test sets in evals/", () => {
     const bundled = (await readdir(join(process.cwd(), "skills"))).filter((n) => !n.startsWith("."));
     // "stand" tests the working folder (Stand.md), not a bundled skill.
     for (const name of suites.filter((n) => n !== "stand")) expect(bundled, `Zu evals/${name} fehlt die Anleitung`).toContain(name);
-    for (const name of ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"]) expect(suites).toContain(name);
+    for (const name of ["arbeitsblatt", "bewertung", "differenzieren", "klausur", "lernsituation", "praesentation", "stunde-planen", "stunde-vorbereiten", "verstaendnis-check", "vorlage-bauen"]) expect(suites).toContain(name);
   });
 });
 

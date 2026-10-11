@@ -17,7 +17,7 @@ Regeln:
 
 /** The text the judge reads for one case. */
 export function judgePrompt(c: EvalCase, t: Transcript, kriterien: Criterion[]): string {
-  const talk = t.turns.map((x, i) => `--- Runde ${i + 1} ---\nLehrkraft: ${x.user}\nAssistent: ${x.assistant.trim() || "(keine Antwort)"}\n(Schritte des Assistenten: ${x.steps.join(", ") || "keine"})`).join("\n\n");
+  const talk = t.turns.map((x, i) => `--- Runde ${i + 1} ---\nLehrkraft: ${x.user}\nAssistent: ${x.assistant.trim() || "(keine Antwort)"}\n(Schritte des Assistenten: ${x.steps.join(", ") || "keine"}${x.fehlgeschlagen?.length ? `; vom Programm abgelehnt: ${x.fehlgeschlagen.join(", ")}` : ""})`).join("\n\n");
   const material = t.files.length
     ? t.files.map((f) => `=== ${f.name}${f.seiten ? ` (${f.seiten} Seiten)` : ""} ===\n${f.text.trim() || "(kein lesbarer Text)"}`).join("\n\n")
     : "(Es wurde kein Material erstellt.)";
