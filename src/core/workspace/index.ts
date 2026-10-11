@@ -372,7 +372,7 @@ export interface SavedMaterial {
  */
 export async function saveMaterial(
   pdf: Buffer,
-  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string; ext?: "pdf" | "docx" | "pptx" },
+  where: { art: string; titel: string; klasse?: string; fach?: string; reihe?: string; datum?: string; stunde?: string; ext?: "pdf" | "docx" | "pptx" | "html" },
 ): Promise<SavedMaterial> {
   let dir = join(root(), "Exporte");
   let rel = "Exporte";
@@ -401,7 +401,7 @@ export async function saveMaterialFile(
   file: { name: string; data: Buffer }, prefix: { datum: string; stunde?: string },
 ): Promise<SavedMaterial> {
   const ext = extensionOf(file.name);
-  if (!ext || !MATERIAL_TYPES[ext]) throw new UserError(`Diesen Dateityp nehme ich nicht an. Erlaubt sind: ${MATERIAL_ENDUNGEN.join(", ")}.`);
+  if (!ext || !MATERIAL_ENDUNGEN.includes(ext)) throw new UserError(`Diesen Dateityp nehme ich nicht an. Erlaubt sind: ${MATERIAL_ENDUNGEN.join(", ")}.`);
   if (file.data.length > 25 * 1024 * 1024) throw new UserError("Die Datei ist größer als 25 MB.");
   if (file.data.length === 0) throw new UserError("Die Datei ist leer.");
   const f = await resolveFach(klasse, fach);
@@ -489,18 +489,20 @@ const MATERIAL_TYPES: Record<string, string> = {
   xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   ods: "application/vnd.oasis.opendocument.spreadsheet",
   txt: "text/plain; charset=utf-8",
+  html: "text/html; charset=utf-8",
   png: "image/png",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
   gif: "image/gif",
   webp: "image/webp",
 };
-export const MATERIAL_ENDUNGEN = Object.keys(MATERIAL_TYPES);
+/** What a teacher may put on a lesson. html is only made by Pult itself (explainer pieces), never taken from outside. */
+export const MATERIAL_ENDUNGEN = Object.keys(MATERIAL_TYPES).filter((e) => e !== "html");
 const extensionOf = (file: string) => /\.([A-Za-z0-9]+)$/.exec(file)?.[1]?.toLowerCase();
 /** Content type of a material file by its ending, or undefined when the type is not allowed. */
 export const materialType = (file: string): string | undefined => MATERIAL_TYPES[extensionOf(file) ?? ""];
-/** Only PDFs and pictures are shown inline in the preview, everything else is a download. */
-export const materialInline = (file: string) => /^(application\/pdf|image\/)/.test(materialType(file) ?? "");
+/** Only PDFs, pictures and explainer pieces (html, served in a sandbox) are shown inline in the preview, everything else is a download. */
+export const materialInline = (file: string) => /^(application\/pdf|image\/|text\/html)/.test(materialType(file) ?? "");
 
 /** Resolves a download path from the browser to a real file inside Klassen/ or Exporte/. */
 export async function materialFile(relative: string): Promise<string | undefined> {
