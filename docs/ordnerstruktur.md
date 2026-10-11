@@ -129,4 +129,4 @@ Handlungsprodukt: (was am Ende vorliegt)
 - **Status-Wörter fest:** `geplant`, `Material fertig`, `gehalten`. So lassen sich Abfragen zuverlässig beantworten.
 - **Geplante Stunden ohne Termin** haben leere Felder für Datum und Stunde. Der Termin wird später über die Nummer der Zeile eingetragen.
 - **Nichts erfinden:** Fehlt eine Angabe, bleibt das Feld leer, und der Agent fragt nach.
-- **Datenschutz:** In `Stand.md` und `Reihe.md` stehen keine Schülernamen, nur Klassen- und Gruppenbeobachtungen.
+- **Datenschutz:** In `Stand.md` und `Reihe.md` stehen keine Schülernamen, keine Noten und nichts über einzelne Lernende, nur Beobachtungen zur ganzen Klasse oder Gruppe.
