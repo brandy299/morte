@@ -220,6 +220,8 @@ interface ChatProps {
 /** Word and PowerPoint files are downloaded; the preview shows PDFs only. */
 const isDownload = (m: Material) => /\.(docx?|pptx)$/i.test(m.path);
 const isSlides = (m: Material) => /\.pptx$/i.test(m.path);
+/** An explainer piece: runs in the preview, inside a sandbox. */
+const isHtml = (m: Material) => /\.html$/i.test(m.path);
 const VARIANTS: Record<string, string> = { "": "Blatt", "Lösung": "Lösung", "Word": "Word", "Lösung, Word": "Lösung als Word", "PowerPoint": "PowerPoint" };
 
 /**
@@ -256,7 +258,7 @@ function groupMaterials(materials: Material[]): { title: string; parts: { label:
   const order = Object.keys(VARIANTS).map((k) => (k === "" ? "" : k));
   return [...groups].map(([title, variants]) => ({
     title,
-    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: variant === "" && [...variants.values()].some(isSlides) ? "Folien" : (VARIANTS[variant] ?? variant), file })),
+    parts: [...variants].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([variant, file]) => ({ label: isHtml(file) ? "Erklärstück" : variant === "" && [...variants.values()].some(isSlides) ? "Folien" : (VARIANTS[variant] ?? variant), file })),
   }));
 }
 
@@ -272,7 +274,8 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
   if (has("Arbeitsblatt")) list.push({ label: "In drei Niveaus", text: "Mach daraus drei Niveaus: Basis, Standard und Erweiterung." });
   if (has("Verlauf")) list.push({ label: "Passendes Arbeitsblatt", text: "Erstelle zu dieser Stunde ein passendes Arbeitsblatt." });
   if (has("Lernsituation")) list.push({ label: "Material für Stunde 1", text: "Erstelle Material für die erste Stunde." });
-  if (!hasWord && names.length > 0) list.push({ label: "Als Word", text: "Gib mir das auch als Word-Datei zum Bearbeiten." });
+  if (has("Erklaerstueck")) list.push({ label: "Ruhiger", text: "Mach das Erklärstück ruhiger." }, { label: "Zügiger", text: "Mach das Erklärstück zügiger." });
+  if (!hasWord && names.length > 0 && !has("Erklaerstueck")) list.push({ label: "Als Word", text: "Gib mir das auch als Word-Datei zum Bearbeiten." });
   return list;
 }
 
@@ -749,7 +752,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 {groupMaterials(m.materials ?? []).map((g) => (
                   <div key={g.title} className="file-group">
                     <div className="file-group-head">
-                      <span className="file-icon" aria-hidden>{g.parts.some((p) => isSlides(p.file)) ? "PPT" : g.parts.some((p) => !isDownload(p.file)) ? "PDF" : "DOC"}</span>
+                      <span className="file-icon" aria-hidden>{g.parts.some((p) => isSlides(p.file)) ? "PPT" : g.parts.some((p) => isHtml(p.file)) ? "ANI" : g.parts.some((p) => !isDownload(p.file)) ? "PDF" : "DOC"}</span>
                       <strong>{g.title}</strong>
                     </div>
                     <div className="file-actions">
@@ -947,7 +950,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               Schließen
             </button>
           </div>
-          <iframe title={preview.title} src={`${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} />
+          <iframe title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
         </aside>
       )}
     </div>

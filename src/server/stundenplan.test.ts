@@ -139,6 +139,9 @@ describe("week and drop", () => {
     expect(img.headers.get("content-type")).toBe("image/png");
     expect(img.headers.get("content-disposition")).toMatch(/^inline/);
     expect((await app.request("/api/material?path=" + encodeURIComponent(`${base}x.html`))).status).toBe(404);
+    // A teacher cannot put an html file on a lesson, only Pult makes those.
+    const html = await app.request("/api/woche/ablegen", { method: "POST", body: form({ file: new File(["<script>1</script>"], "x.html"), klasse: "11a", fach: "Business English", datum: "2026-10-14", von: "09:45" }) });
+    expect(html.status).toBe(400);
     expect((await app.request("/api/material?path=" + encodeURIComponent("Stundenplan/untis.ics"))).status).toBe(404);
     void readFile;
   });

@@ -1,0 +1,10 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+ER-DATEI,O — Form,Erklärstück wurde erstellt,"Wenn der Fall ein Erklärstück erwartet, liegt eine HTML-Datei vor.",,,Programm
+ER-UMFANG,O — Form,Zahl der Szenen passt,"Die Zahl der Szenen nach dem Titelbild liegt in dem Bereich, den der Fall erlaubt.","Etwa sechs bis acht Szenen für eine Minute.",,Programm
+ER-FRAGEN,M — Gespräch,Höchstens zwei Rückfragen,"In der ersten Runde stellt der Assistent höchstens zwei Fragen, auch wenn die Anfrage knapp ist.","Zählt Fragen aus dem Fragenfenster und Fragen im Text mit Erlaubnis-Rückfragen.",,Programm
+ER-P1,P — Pädagogik,Eine Idee pro Szene,"In keiner Szene stehen zwei verschiedene Gedanken, und die Szenen bauen aufeinander auf: Einstieg, Schritte, Zusammenfassung.",,Es gibt ein Erklärstück.,Prüfer
+ER-P2,P — Pädagogik,Kurze Texte,"Die Texte sind kurze Aussagen in einfacher Sprache, kein Textblock, und passen zur genannten Klasse.",,Es gibt ein Erklärstück.,Prüfer
+ER-R1,R — Anspruch,Fachlich richtig,"Alle Aussagen und Zahlen im Erklärstück stimmen. Nichts wird beschrieben, was es so nicht gibt.","Im Zweifel nicht bestanden. Nenne die Fundstelle.",Es gibt ein Erklärstück.,Prüfer
+ER-N1,P — Pädagogik,Nichts erfunden,"Es stehen keine erfundenen Quellen, Zitate, Studien oder Statistiken im Erklärstück. Beispielzahlen sind als Beispiel gekennzeichnet.","Nenne die Fundstelle.",Es gibt ein Erklärstück.,Prüfer
+ER-E1,M — Gespräch,Ehrlich bei Videowunsch,"Verlangt die Lehrkraft eine Videodatei (MP4), sagt der Assistent ehrlich, dass es sie noch nicht gibt, und bietet das Erklärstück für den Browser an, statt so zu tun, als wäre es ein Video.",,Die Lehrkraft verlangt eine Videodatei.,Prüfer
+ER-E2,M — Gespräch,Antwort ist kurz und ohne Technik,"Die Schlussantwort nennt in höchstens drei kurzen Sätzen, was entstanden ist. Keine Dateinamen, keine Werkzeugnamen, keine Erwähnung von Ton oder Video, wenn niemand danach gefragt hat.",,Es gibt ein Erklärstück.,Prüfer

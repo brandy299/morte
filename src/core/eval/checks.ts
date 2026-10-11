@@ -98,6 +98,17 @@ export const PROGRAMM: Record<string, Check> = {
     const empty = deck.folien.flatMap((f, i) => (i > 0 && !f.abschnitt && f.punkte === 0 && f.bilder === 0 && f.absaetze.length <= 3 ? [i + 1] : []));
     return empty.length ? fail(`Folie ${empty.join(", ")} hat keinen Inhalt außer dem Titel.`) : ok("Keine Folie ist leer.");
   },
+  "ER-DATEI": (c, t) => {
+    if (!c.erwartet.erklaerstueck) return na;
+    return t.files.some((f) => f.art === "html") ? ok("Es wurde ein Erklärstück erstellt.") : fail("Es wurde kein Erklärstück erstellt.");
+  },
+  "ER-UMFANG": (c, t) => {
+    const range = c.erwartet.szenen;
+    const piece = t.files.find((f) => f.art === "html");
+    if (!range || !piece) return na;
+    const n = piece.szenen ?? 0;
+    return n >= range[0] && n <= range[1] ? ok(`${n} Szenen (erlaubt: ${range[0]} bis ${range[1]}).`) : fail(`${n} Szenen, erlaubt sind ${range[0]} bis ${range[1]}.`);
+  },
   "PR-FRAGEN": (c, t) => {
     const max = c.erwartet.maxFragen;
     const first = t.turns[0];
@@ -164,3 +175,4 @@ export const PROGRAMM: Record<string, Check> = {
     return after <= before ? ok(`Der Stand ist nicht gewachsen (${before} auf ${after} Byte).`) : fail(`Der Stand ist gewachsen (${before} auf ${after} Byte).`);
   },
 };
+PROGRAMM["ER-FRAGEN"] = PROGRAMM["PR-FRAGEN"]!;

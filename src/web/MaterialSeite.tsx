@@ -6,7 +6,7 @@ import { ARTEN, artLabel, filterFiles, formatSize, groupFiles, showName, showRei
 /** Same limit as the server: more files cannot go into one zip. */
 const ZIP_MAX = 60;
 const date = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", year: "numeric" });
-const PREVIEW = /\.(pdf|png|jpe?g|gif|webp)$/i;
+const PREVIEW = /\.(pdf|html|png|jpe?g|gif|webp)$/i;
 
 const asMaterial = (f: MaterialDatei): Material => ({ title: showName(f.name), name: f.name, path: f.path });
 

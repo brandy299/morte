@@ -26,3 +26,10 @@ Stand: 2026-10-08 · beantwortet #15 · Grundlage: `docs/recherche/bewegtbild.md
 - ROADMAP, Phase 5: Die Zeile „Erklärvideos über die bestehende Render-Pipeline“ ist umformuliert. Eine bestehende Pipeline gibt es in Pult nicht.
 - #14 bleibt auf HTML begrenzt und blockiert nicht auf MP4. MP4 bekommt ein eigenes Issue, sobald das Erklärstück steht und H.264 in Electron geprüft ist.
 - Eine Stimme gibt es nur auf ausdrücklichen Wunsch (CLAUDE.md).
+
+## Umsetzung (2026-10-11, #14)
+
+- `src/core/animation/szene.ts` prüft die Szenenbeschreibung und setzt alles in ein Raster aus neun Plätzen. Das Modell gibt keine Pixel an. Was nicht passt (zu viel an einem Platz, ein Pfeil quer über ein anderes Element, keine Stelle für die Pfeilbeschriftung), wird mit einem Satz abgelehnt, der sagt, was zu ändern ist.
+- `src/core/animation/html.ts` zeichnet daraus eine einzige HTML-Datei. Der Ablauf wird einmal berechnet und steckt als Zahlenliste in der Datei. `window.seek(ms)` zeigt jeden Zeitpunkt. Keine Zufallswerte, keine Uhr im Bild. Schrift (Fraunces, OFL) und anime.js 4.5.0 (MIT, gepinnt) stecken in der Datei.
+- Die Vorschau zeigt die Datei in einem Rahmen mit `sandbox="allow-scripts"`, und der Server schickt für HTML eine Schutzregel mit (`sandbox allow-scripts; default-src 'none'`). Die Seite kann nichts aus Pult lesen und nichts aus dem Netz laden. HTML kann nur Pult selbst ablegen, eine Lehrkraft kann keine HTML-Datei an eine Stunde hängen.
+- Browser-Tests (ohne Fehler, nichts aus dem Netz, gleiches Bild zum gleichen Zeitpunkt) laufen nur, wo Playwright und Chromium vorhanden sind. Pult bringt beides nicht mit.

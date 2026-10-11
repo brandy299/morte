@@ -56,15 +56,21 @@ async function collectFiles(): Promise<FileInfo[]> {
   for (const name of await readdir(join(dataDir(), "Exporte")).catch(() => [] as string[])) found.push({ name, path: join(dataDir(), "Exporte", name) });
   const files: FileInfo[] = [];
   for (const f of found) {
-    const art = f.name.endsWith(".pdf") ? "pdf" : f.name.endsWith(".docx") ? "docx" : f.name.endsWith(".pptx") ? "pptx" : "andere";
+    const art = f.name.endsWith(".pdf") ? "pdf" : f.name.endsWith(".docx") ? "docx" : f.name.endsWith(".pptx") ? "pptx" : f.name.endsWith(".html") ? "html" : "andere";
     let text = "";
     let seiten: number | undefined;
     let pptx: PptxInfo | undefined;
+    let szenen: number | undefined;
     try {
       if (art === "pptx") {
         // The plain text of a .pptx leaves out notes and pictures, so the judge gets the structured text.
         pptx = lesePptx(await readFile(f.path));
         text = pptxText(pptx);
+      } else if (art === "html") {
+        // An explainer piece: the judge reads the texts in the order they appear.
+        const html = await readFile(f.path, "utf8");
+        text = [...html.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]!.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")).join("\n");
+        szenen = [...html.matchAll(/<g id="s([1-9]\d*)" class="sc"/g)].length;
       } else text = await readMaterialText(f.path);
       if (art === "pdf") {
         const pdf = await readPdf(await readFile(f.path));
@@ -75,7 +81,7 @@ async function collectFiles(): Promise<FileInfo[]> {
       text = `(nicht lesbar: ${(err as Error).message})`;
     }
     // Teacher's copies are named so the judge does not take them for the student sheet.
-    files.push({ name: /Loesung-/.test(f.name) ? `${f.name} [Lösungsblatt für die Lehrkraft]` : f.name, art, text, seiten, pptx });
+    files.push({ name: /Loesung-/.test(f.name) ? `${f.name} [Lösungsblatt für die Lehrkraft]` : f.name, art, text, seiten, pptx, szenen });
   }
   return files;
 }
