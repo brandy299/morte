@@ -15,7 +15,7 @@ Du lieferst die Inhalte der Fassungen. Das Layout ist fest. Alle Fassungen verfo
 3. **Klasse kennen.** `klasse_lesen` und `stand_lesen`, damit der Anspruch zur Klasse passt. Steht in der Klasse ein Kursniveau, lass die mittlere Fassung dazu passen.
 4. **Fassungen bauen.**
    - **Gleicher Kern:** Jede Fassung prüft dieselbe Kompetenz, damit die Klasse danach gemeinsam weiterarbeiten kann.
-   - **Basis:** mehr Gerüst, nicht weniger Inhalt. Kleinere Schritte, ein Beispiel vorab, Satzanfänge oder Wortlisten im Merkkasten, ausgefüllte Teilschritte, Hilfen (`hilfe`) bei jeder Aufgabe, die Schwierigkeiten macht. Weniger Text pro Aufgabe, einfache Sprache.
+   - **Basis:** mehr Gerüst, nicht weniger Inhalt. Kleinere Schritte, ein Beispiel vorab, Satzanfänge oder Wortlisten im Merkkasten, ausgefüllte Teilschritte, Hilfen (`hilfe`) bei jeder Aufgabe, die Schwierigkeiten macht. Weniger Text pro Aufgabe, einfache Sprache. Das Beispiel vorab und die Satzbausteine zeigen einen anderen Fall als die Aufgabe, nie den Satz, den die Lernenden selbst ergänzen oder zuordnen. Wortlisten enthalten mehr Wörter als Lücken, und ein Tipp nennt den Weg, nicht das Ergebnis.
    - **Standard:** die Fassung, die du ohne Differenzierung geschrieben hättest.
    - **Erweiterung:** gleiche Aufgaben mit mehr Eigenständigkeit und Tiefe. Weniger Hilfe, offenere Fragen, Begründen, Bewerten, Übertragen auf eine neue Situation. Keine bloße Mehrarbeit.
    - **Sprachförderung:** kurze Sätze, bekannte Wörter, Wortschatzhilfe, Bilder nur wenn sie in Schwarz-Weiß tragen. Der fachliche Anspruch bleibt.
