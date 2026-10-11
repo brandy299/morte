@@ -1,0 +1,13 @@
+ID,Gruppe,Kriterium,Bestanden wenn,Hinweis,Bedingung,Prüfart
+UE-DATEI,O — Form,Übung wurde erstellt,"Wenn der Fall eine interaktive Übung erwartet, liegt eine HTML-Datei mit Übungsschritten vor.",,,Programm
+UE-UMFANG,O — Form,Zahl der Schritte passt,"Die Zahl der Schritte liegt in dem Bereich, den der Fall erlaubt.","Etwa zehn bis fünfzehn Schritte für 15 bis 25 Minuten.",,Programm
+UE-AUFBAU,O — Form,"Aufbau mit Einstieg, Prüfen und Anwenden","Die Übung hat einen Info-Schritt zum Einstieg, mindestens einen Prüfschritt (Auswahl, Lückentext oder Zuordnen) und eine offene Aufgabe.",,,Programm
+UE-FRAGEN,M — Gespräch,Höchstens zwei Rückfragen,"In der ersten Runde stellt der Assistent höchstens zwei Fragen, auch wenn die Anfrage knapp ist.","Zählt Fragen aus dem Fragenfenster und Fragen im Text mit Erlaubnis-Rückfragen.",,Programm
+UE-P1,P — Pädagogik,Fragen prüfen Verstehen,"Mindestens die Hälfte der Prüfschritte verlangt mehr als Wiedergeben (Anwenden auf einen Fall, Unterscheiden, Begründen), nicht nur Begriffe abzufragen.",,Es gibt eine Übung.,Prüfer
+UE-P2,P — Pädagogik,Falsche Antworten sind plausibel,"Bei den Auswahlfragen sind die falschen Antworten nachvollziehbare Irrtümer, keine Scherze und nicht offensichtlich falsch. Die richtige Antwort steht nicht immer an derselben Stelle.",,Es gibt eine Übung.,Prüfer
+UE-P3,P — Pädagogik,Erklärungen helfen,"Bei wichtigen Antworten steht eine kurze Erklärung, warum sie stimmt oder nicht, und sie wiederholt nicht nur die Antwort.",,Es gibt eine Übung.,Prüfer
+UE-P4,P — Pädagogik,Passt zur Klasse,"Sprache und Schwierigkeit passen zur genannten Klasse oder zum Kurs. Die Texte sind kurz.",,Es gibt eine Übung.,Prüfer
+UE-R1,R — Anspruch,Fachlich richtig,"Alle Aussagen, richtigen Antworten und Musterlösungen stimmen. Es gibt keine Frage mit zwei vertretbaren Antworten, von denen nur eine als richtig gilt.","Im Zweifel nicht bestanden. Nenne die Fundstelle.",Es gibt eine Übung.,Prüfer
+UE-N1,P — Pädagogik,Nichts erfunden,"Es stehen keine erfundenen Quellen, Zitate, Studien oder Statistiken in der Übung. Beispielzahlen sind als Beispiel gekennzeichnet.","Nenne die Fundstelle.",Es gibt eine Übung.,Prüfer
+UE-E1,M — Gespräch,Ehrlich bei Ergebnissen,"Wünscht die Lehrkraft, die Ergebnisse der Klasse zu sehen oder zu speichern, sagt der Assistent ehrlich, dass die Ergebnisse nur im Browser der Lernenden bleiben und nicht gespeichert werden. Sonst nennt die Schlussantwort das einmal kurz.",,Es gibt eine Übung.,Prüfer
+UE-E2,M — Gespräch,Antwort ist kurz und ohne Technik,"Die Schlussantwort nennt in höchstens drei kurzen Sätzen, was entstanden ist. Keine Dateinamen, keine Werkzeugnamen.",,Es gibt eine Übung.,Prüfer

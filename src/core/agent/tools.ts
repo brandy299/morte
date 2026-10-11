@@ -5,6 +5,8 @@ import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
 import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWord, verlaufWord } from "../material/word-render.ts";
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { renderHtml } from "../animation/html.ts";
+import { renderUebung } from "../uebung/html.ts";
+import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
 import { ARTEN, FORMEN, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
@@ -435,6 +437,63 @@ const praesentationErstellen = defineTool({
   },
 });
 
+const uebungErstellen = defineTool({
+  name: "uebung_erstellen",
+  producesMaterial: true,
+  label: "Interaktive Übung erstellen",
+  description:
+    "Builds an interactive exercise as ONE html file that runs offline in any browser, on a phone too, shown in the preview. The students click through the steps one by one, get feedback at once (right or wrong, with a short explanation) and a score at the end. Nothing is stored or sent, no name is asked. You write only the content as steps; the program does the page. Step types: info (a short text and/or points to read), auswahl (multiple choice, one or several right answers), lueckentext (gaps written as {answer} or {answer|other accepted answer} in the text), zuordnung (pairs), offen (a free answer with a word counter, optional sample answer), checkliste (self-check). A good order: a short info as the start, input, then questions, then one open task and a checklist. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+  parameters: Type.Object({
+    titel: Type.String({ description: "Title of the exercise" }),
+    untertitel: Type.Optional(Type.String()),
+    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors: wasser, wiese or abend. Default wasser" })),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    schritte: Type.Array(
+      Type.Object({
+        art: StringEnum([...UEBUNG_ARTEN]),
+        titel: Type.Optional(Type.String({ description: "info and checkliste: short title" })),
+        text: Type.Optional(Type.String({ description: "info: the text to read (up to 700 characters). lueckentext: the sentence with gaps in curly braces, e.g. Die {Sonne} scheint (up to 500, 1 to 6 gaps)" })),
+        punkte: Type.Optional(Type.Array(Type.String(), { description: "info: up to 6 short points. checkliste: 2 to 8 things the student checks off" })),
+        frage: Type.Optional(Type.String({ description: "auswahl: the question" })),
+        optionen: Type.Optional(
+          Type.Array(
+            Type.Object({
+              text: Type.String(),
+              richtig: Type.Boolean({ description: "true for a right answer. At least one right and one wrong. Do not always put the right one first" }),
+              erklaerung: Type.Optional(Type.String({ description: "One short sentence why it is right or wrong" })),
+            }),
+            { description: "auswahl: 2 to 5 answers" },
+          ),
+        ),
+        aufgabe: Type.Optional(Type.String({ description: "zuordnung, offen, lueckentext: what to do, one line" })),
+        hilfe: Type.Optional(Type.Boolean({ description: "lueckentext: show the missing words in a list" })),
+        erklaerung: Type.Optional(Type.String({ description: "lueckentext: a short explanation shown after checking" })),
+        paare: Type.Optional(Type.Array(Type.Object({ links: Type.String(), rechts: Type.String() }), { description: "zuordnung: 2 to 6 pairs. All left sides different, all right sides different" })),
+        hinweis: Type.Optional(Type.String({ description: "offen: a hint" })),
+        musterloesung: Type.Optional(Type.String({ description: "offen: a sample answer the student can open" })),
+        woerter: Type.Optional(Type.Number({ description: "offen: goal for the number of words" })),
+      }),
+      { description: "1 to 20 steps" },
+    ),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
+    stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+  }),
+  async execute(_id, args) {
+    const { reihe, datum, stunde, klasse, fach, ...content } = args;
+    const uebung = parseUebung(content);
+    const file = await saveMaterial(Buffer.from(renderUebung(uebung), "utf8"), { art: "Uebung", titel: uebung.titel, klasse, fach, reihe, datum, stunde, ext: "html" });
+    const entered = klasse && fach && reihe && datum
+      ? await tryAttach(klasse, fach, reihe, { datum, stunde: stunde ?? "", thema: uebung.titel }, file.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum";
+    return {
+      content: [{ type: "text" as const, text: `Die Übung ist fertig (${uebung.schritte.length} Schritte) und in der Vorschau zu sehen. Sie lässt sich als Datei herunterladen und läuft in jedem Browser ohne Internet, auch am Handy. Die Ergebnisse bleiben im Browser und werden nicht gespeichert. ${entered === true ? `Sie ist in der Stundentabelle am ${datum} eingetragen.` : `Sie ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      details: { materials: [{ title: uebung.titel, name: file.name, path: file.path }] },
+    };
+  },
+});
+
 const erklaerstueckErstellen = defineTool({
   name: "erklaerstueck_erstellen",
   producesMaterial: true,
@@ -750,7 +809,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];
