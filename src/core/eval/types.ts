@@ -20,8 +20,25 @@ export interface EvalCase {
   nachrichten: string[];
   /** Pictures attached to the first message, by name (see bilder.ts). */
   bilder?: string[];
+  /** Changes to the invented starting folder (default: see seedWorkspace). */
+  ausgang?: {
+    /** Stand.md of 11a at the start, instead of the usual short one. */
+    stand?: { aktuelleReihe?: string; zuletztBehandelt?: string; naechsteStunde?: string; offen?: string[]; besonderheiten?: string };
+  };
   /** What the program can expect, so checks know what applies. */
   erwartet: {
+    /** Stand.md must be rewritten and every one of these words must stand in it afterwards (any case). */
+    standNeu?: string[];
+    /** Number (1-based) of the lesson row that must have the status "gehalten" afterwards. */
+    gehalten?: number;
+    /** Regular expressions that must match nothing in Stand.md and Reihe.md afterwards (names, grades). */
+    verboten?: string[];
+    /** Stand.md must not be longer after the session than before. */
+    nichtLaenger?: boolean;
+    /** Klasse.md must be read before Stand.md, and Reihe.md only after both. */
+    leseOrdnung?: boolean;
+    /** Reihe.md must not be read at all. */
+    ohneReihe?: boolean;
     /** A file must be created. */
     material?: boolean;
     /** Largest accepted page count per PDF. Default 2. */
@@ -76,7 +93,10 @@ export interface Transcript {
   vorlage?: string;
   /** What stands in the saved assessment rules and in the teacher's own templates at the end, so the judge can see what was written there. */
   gespeichert?: string;
-  /** Text of Reihe.md before the run, to see what changed. */
+  /** Stand.md of 11a as raw text before and after the run. */
+  stand?: { vorher: string; nachher: string };
+  /** All Reihe.md files of 11a as raw text after the run. */
+  reihe?: string;
   kosten: number;
 }
 
