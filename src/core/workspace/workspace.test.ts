@@ -72,6 +72,21 @@ describe("workspace", () => {
     expect(stand.match(/^- /gm)).toHaveLength(1);
   });
 
+  it("rejects tool-call garbage in every Stand field and accepts normal text", async () => {
+    const bad = ["<parameter>x", "a > b", 'foo parameter name="x"'];
+    for (const b of bad) {
+      for (const key of ["aktuelleReihe", "zuletztBehandelt", "naechsteStunde", "besonderheiten"] as const) {
+        await expect(writeStand("11a", "Business English", { [key]: b })).rejects.toBeInstanceOf(UserError);
+      }
+      await expect(writeStand("11a", "Business English", { offen: ["ok", b] })).rejects.toBeInstanceOf(UserError);
+    }
+    await writeStand("11a", "Business English", {
+      aktuelleReihe: "02 „Meetings“ - 'Small Talk'",
+      offen: ["Klausur: 12.10.", "Übung zu Höflichkeit (ä/ö/ü), E-Mail & Co."],
+    });
+    expect(await readStand("11a", "Business English")).toContain("Klausur: 12.10.");
+  });
+
   it("saves material into the Reihe folder with a sorted name and never overwrites", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     const where = { art: "Arbeitsblatt", titel: "Interview Basics!", klasse: "11a", fach: "Business English", reihe: "Bewerbung", datum: "14.10.", stunde: "Mi 3" };
