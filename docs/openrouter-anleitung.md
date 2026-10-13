@@ -49,7 +49,9 @@ Der Schlüssel ist eine lange Zeichenfolge, mit der sich Pult bei OpenRouter aus
 
 ![Fenster „New Key“ mit Name, Expiration und Credit limit](bilder/openrouter/04-key-erstellen.png)
 
-5. Der Schlüssel erscheint **nur jetzt, ein einziges Mal**. Er beginnt mit `sk-or-`. Kopiere ihn gleich über das Kopier-Symbol.
+5. Es erscheint ein Fenster **„Your new key“**. Der Schlüssel erscheint **nur jetzt, ein einziges Mal** („You will not be able to see it again“). Er beginnt mit `sk-or-` und ist in der Mitte mit Punkten verdeckt. Das ist normal. **Klicke auf das Kopier-Symbol** rechts daneben, dann ist er ganz kopiert.
+
+![Fenster „Your new key“ mit dem Kopier-Symbol](bilder/openrouter/05-key-angezeigt.png)
 6. Öffne Pult, füge ihn bei der Einrichtung ein (Strg + V, Mac: Cmd + V).
 
 **Verloren gegangen?** Dann erstellst du einfach einen neuen Schlüssel und löschst den alten (Drei-Punkte-Menü am Ende der Zeile). Das kostet nichts.
