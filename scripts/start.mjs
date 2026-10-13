@@ -4,10 +4,12 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 
+// `npm start -- --stift` switches the dev pencil on (same on Windows and Mac, no environment variable to set).
+const stift = process.argv.includes("--stift");
 const tsx = createRequire(import.meta.url).resolve("tsx/cli");
 const child = spawn(process.execPath, [tsx, "src/server/index.ts"], {
   stdio: "inherit",
-  env: { NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1", ...process.env, NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --disable-warning=UNDICI-EHPA`.trim() },
+  env: { NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1", ...process.env, ...(stift ? { PULT_STIFT: "1" } : {}), NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ""} --disable-warning=UNDICI-EHPA`.trim() },
 });
 const stop = () => child.kill();
 process.on("SIGINT", stop);
