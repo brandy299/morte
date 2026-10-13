@@ -8,20 +8,21 @@ import {
   type ProviderOption,
   type SetupStatus,
 } from "./api.ts";
+import { keyHint } from "./keyHint.ts";
 import { Logo } from "./Logo.tsx";
 
 /** Where to get a key, in plain words, per provider. */
 const KEY_HELP: Record<string, { text: string; url?: string }> = {
   anthropic: { text: "Melde dich bei Anthropic an, lege ein Guthaben an (ein paar Euro reichen zum Start) und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://console.anthropic.com/settings/keys" },
   openai: { text: "Melde dich bei OpenAI an, lege ein Guthaben an und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://platform.openai.com/api-keys" },
-  openrouter: { text: "OpenRouter ist ein Zugang zu vielen Modellen mit nur einem Schlüssel und einem Guthaben. Anmelden, Guthaben aufladen, Schlüssel erstellen. Du kannst dort eine Ausgabengrenze für den Schlüssel setzen.", url: "https://openrouter.ai/keys" },
+  openrouter: { text: "OpenRouter ist wie eine Prepaid-Karte für KI: Du lädst einmal etwa 10 Dollar auf, und Pult verbraucht davon nur so viel, wie es braucht. Es gibt kein Abo. So geht es: Anmelden, Guthaben aufladen, unter „API Keys“ mit „New Key“ einen Schlüssel erstellen. Wähle dabei eine Ausgabengrenze (zum Beispiel 10 Dollar) und einen Ablauf von mehr als 30 Tagen. Kopiere den Schlüssel sofort, er wird nur einmal gezeigt. Eine Anleitung mit Bildern liegt im Pult-Ordner unter docs/openrouter-anleitung.md.", url: "https://openrouter.ai/keys" },
   deepseek: { text: "Melde dich bei DeepSeek an, lade etwas Guthaben auf und erstelle einen Schlüssel. In manchen Schulnetzen ist DeepSeek gesperrt. Dann geht es über OpenRouter.", url: "https://platform.deepseek.com/api_keys" },
   "opencode-go": { text: "Den Schlüssel findest du in deinem Konto bei OpenCode, wenn du das Go-Abo hast." },
 };
 
 export function Setup({ status, onDone, onCancel, embedded }: { status: SetupStatus; onDone: () => void; onCancel?: () => void; embedded?: boolean }) {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
-  const [providerId, setProviderId] = useState(status.provider ?? "anthropic");
+  const [providerId, setProviderId] = useState(status.provider ?? "openrouter");
   const [modelId, setModelId] = useState(status.model ?? "");
   const [apiKey, setApiKey] = useState("");
   const [advanced, setAdvanced] = useState(false);
@@ -106,6 +107,7 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
+                {p.id === "openrouter" ? " – für den Start empfohlen" : ""}
               </option>
             ))}
           </select>
@@ -134,8 +136,13 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
             }}
           />
         </label>
+        {keyHint(providerId, apiKey) && (
+          <p className="error" role="status">
+            {keyHint(providerId, apiKey)}
+          </p>
+        )}
         {KEY_HELP[providerId] && (
-          <details className="key-help">
+          <details className="key-help" open={providerId === "openrouter" && !alreadyStored ? true : undefined}>
             <summary>Wo bekomme ich einen Schlüssel?</summary>
             <p>{KEY_HELP[providerId]!.text}</p>
             {KEY_HELP[providerId]!.url && (
