@@ -11,6 +11,10 @@ Stand: 2026-10-14 · Idee aus dem Harness-Vortrag (eigene Rückmeldung am Bildsc
 5. **Weitergeben:** „Alle als ZIP“ (Text plus Bilder) oder „Alle als Text“ aus dem Stift-Fenster. Die Datei kommt in den Chat. Hinweise lassen sich löschen.
 6. **Grenzen:** Notiz höchstens 1500 Zeichen, Bild höchstens 3 MB (PNG), höchstens 300 Hinweise. Der Server prüft alles und lehnt Kaputtes mit einer Meldung ab. Die Wege (`/api/stift`) antworten nur, wenn der Stift eingeschaltet ist.
 
+## Der Kreislauf zum Iterieren
+
+Yannik markiert in der laufenden App, und in einer **lokalen Claude-Code-Sitzung** (mit seinem Abo, siehe 023) liest der Agent die Hinweise direkt von der Platte: `/hinweise` (Skill unter `.claude/skills/hinweise`). Er findet die Stelle über den Pfad im Code, setzt um, sieht es sich an und löscht die Hinweise erst nach Yanniks Ja. So ist das Iterieren schnell, ohne dass etwas hochgeladen wird und ohne dass Pult selbst ein Abo anzapft.
+
 ## Nicht gebaut
 
 - Zeichnen mit der Maus im Bild (Pfeile, Kringel), Hinweise an Antworten des Assistenten, Schicken über das Netz.
