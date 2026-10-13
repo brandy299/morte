@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
@@ -9,6 +9,7 @@ import { Start } from "./Start.tsx";
 import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Onboarding } from "./Onboarding.tsx";
+import { filterVorlagen, kurz, slashQuery, startText as slashStart } from "./slashMenu.ts";
 import { classColors, classVar } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Logo } from "./Logo.tsx";
@@ -391,6 +392,21 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   }, [navOpen]);
   const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // The "/" menu: all templates with one line each, to pick from the keyboard or the mouse.
+  const [vorlagen, setVorlagen] = useState<VorlageInfo[]>([]);
+  const [slashAktiv, setSlashAktiv] = useState(0);
+  const [slashZu, setSlashZu] = useState(false);
+  const slash = slashQuery(input);
+  const treffer = slash === undefined ? [] : filterVorlagen(vorlagen, slash);
+  const slashOffen = slash !== undefined && !slashZu;
+  useEffect(() => {
+    if (slash === "") void getVorlagen().then(setVorlagen).catch(() => {});
+  }, [slash === ""]);
+  const waehle = (v: VorlageInfo) => {
+    setInput(slashStart(v));
+    setSlashZu(true);
+    inputRef.current?.focus();
+  };
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -945,13 +961,38 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               </div>
             )}
             {attachProblem && <p className="error">{attachProblem}</p>}
+            {slashOffen && (
+              <div className="slash">
+                <ul id="slash-liste" role="listbox" aria-label="Anleitungen">
+                  {treffer.map((v, i) => (
+                    <li key={v.name} id={`slash-${v.name}`} role="option" aria-selected={i === slashAktiv} className={i === slashAktiv ? "on" : ""} onMouseEnter={() => setSlashAktiv(i)} onMouseDown={(e) => { e.preventDefault(); waehle(v); }}>
+                      <strong>{v.titel}</strong>
+                      {v.eigene && <em>eigene</em>}
+                      <small>{kurz(v.beschreibung)}</small>
+                    </li>
+                  ))}
+                </ul>
+                <p className="slash-hinweis" role="status">
+                  {treffer.length ? `${treffer.length} ${treffer.length === 1 ? "Anleitung" : "Anleitungen"}. Mit den Pfeiltasten wählen, mit Enter einsetzen, mit Esc schließen.` : "Dazu gibt es keine Anleitung. Schreib einfach, was du brauchst."}
+                </p>
+              </div>
+            )}
             <textarea
               ref={inputRef}
               value={input}
               rows={1}
-              placeholder="Schreib hier, was du brauchst …"
+              placeholder="Schreib hier, was du brauchst. Mit / siehst du, was ich kann."
               aria-label="Deine Nachricht"
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setSlashZu(false);
+                setSlashAktiv(0);
+              }}
+              role="combobox"
+              aria-expanded={slashOffen}
+              aria-controls="slash-liste"
+              aria-autocomplete="list"
+              aria-activedescendant={slashOffen && treffer[slashAktiv] ? `slash-${treffer[slashAktiv]!.name}` : undefined}
               onPaste={(e) => {
                 const files = [...e.clipboardData.files];
                 if (files.length) {
@@ -960,6 +1001,23 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 }
               }}
               onKeyDown={(e) => {
+                if (slashOffen && !e.nativeEvent.isComposing) {
+                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                    e.preventDefault();
+                    if (treffer.length) setSlashAktiv((i) => (i + (e.key === "ArrowDown" ? 1 : treffer.length - 1)) % treffer.length);
+                    return;
+                  }
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    setSlashZu(true);
+                    return;
+                  }
+                  if (e.key === "Enter" || e.key === "Tab") {
+                    e.preventDefault();
+                    if (treffer[slashAktiv]) waehle(treffer[slashAktiv]!);
+                    return;
+                  }
+                }
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   void submit();
