@@ -109,6 +109,9 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
           <button type="button" className="primary" onClick={onSetup}>
             Stundenplan hinzufügen
           </button>
+          <p className="start-empty-alt">
+            Keinen Kalender zur Hand? Das geht auch ohne: <button type="button" className="link" onClick={onNewClass}>Lege eine Klasse an</button> oder schreib im Gespräch, was du brauchst.
+          </p>
         </section>
       )}
 

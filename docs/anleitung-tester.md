@@ -74,7 +74,9 @@ Schreib in das Eingabefeld, wie du es einer Kollegin sagen würdest. Zum Beispie
 
 > Mach mir ein Arbeitsblatt zu Geschäftsbriefen für eine Handelsschule, 45 Minuten.
 
-Pult fragt nach, wenn etwas fehlt. Du siehst, was gerade passiert. Das fertige PDF erscheint rechts in der Vorschau.
+Pult stellt dir zuerst **ein paar Rückfragen** (meist drei), zum Beispiel zur Klasse oder zum Schwerpunkt. Zu jeder Frage gibt es eine **Empfehlung mit Begründung**. Passt sie, klicke auf **„Weiter“**. Hast du keine Lust, jede Frage zu beantworten, klicke auf **„Alle Empfehlungen übernehmen“**. Danach arbeitet Pult, und du siehst, was gerade passiert. Das dauert etwa ein bis zwei Minuten. Das fertige Blatt erscheint rechts in der Vorschau, das **Lösungsblatt für dich** daneben unter „Lösung“. Darunter stehen Knöpfe wie „Kürzer“, „Leichter“ oder „Als Word“.
+
+**Tipp:** Wechsle ruhig in ein anderes Fenster, während Pult arbeitet. Wenn du in den **Einstellungen** unter „Aussehen“ **„Mitteilung, wenn ich fertig bin“** einschaltest, meldet sich Pult, sobald das Material fertig ist oder es eine Rückfrage hat. Unten am Eingabefeld siehst du, **welche KI** gerade arbeitet (Klick für Preis und Gedächtnis). Gespräche kannst du über das **Ordner-Symbol** in der Seitenleiste in **Projekte** sortieren.
 
 Tippst du im Eingabefeld einen **Schrägstrich `/`**, siehst du alle Anleitungen: Arbeitsblatt, Klausur, Reihe planen, Übung und weitere.
 

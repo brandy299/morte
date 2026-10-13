@@ -22,12 +22,25 @@ export interface Conversation {
   ablauf?: unknown[];
   /** "Passt" / "Passt nicht" of the teacher on the material of this conversation. */
   rueckmeldungen?: Rueckmeldung[];
+  /** Name of the project folder the teacher put this conversation in. */
+  projekt?: string;
 }
 
 export interface ConversationInfo {
   id: string;
   titel: string;
   aktualisiert: string;
+  projekt?: string;
+}
+
+export const PROJEKT_MAX = 40;
+
+/** Clean name of a project folder. Throws a message for the teacher when it is empty or too long. */
+export function projektName(raw: unknown): string {
+  const name = typeof raw === "string" ? raw.replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, " ").replace(/\s+/g, " ").trim() : "";
+  if (!name) throw new Error("Der Name des Projekts fehlt.");
+  if ([...name].length > PROJEKT_MAX) throw new Error(`Der Name ist zu lang (höchstens ${PROJEKT_MAX} Zeichen).`);
+  return name;
 }
 
 const dir = () => join(dataDir(), "Gespräche");
@@ -52,9 +65,21 @@ export async function saveConversation(c: Omit<Conversation, "aktualisiert" | "e
   const now = new Date().toISOString();
   const old = await loadConversation(c.id);
   // Feedback is written on its own, so a save of the running conversation must not lose it.
-  const full: Conversation = { ...c, rueckmeldungen: c.rueckmeldungen ?? old?.rueckmeldungen, erstellt: old?.erstellt ?? c.erstellt ?? now, aktualisiert: now };
+  // The same for the project folder, which is set from the sidebar.
+  const full: Conversation = { ...c, rueckmeldungen: c.rueckmeldungen ?? old?.rueckmeldungen, projekt: c.projekt ?? old?.projekt, erstellt: old?.erstellt ?? c.erstellt ?? now, aktualisiert: now };
   await writeFile(file(c.id), JSON.stringify(full));
-  await writeFile(metaFile(c.id), JSON.stringify({ id: c.id, titel: c.titel, aktualisiert: now } satisfies ConversationInfo));
+  await writeFile(metaFile(c.id), JSON.stringify({ id: c.id, titel: c.titel, aktualisiert: now, ...(full.projekt ? { projekt: full.projekt } : {}) } satisfies ConversationInfo));
+}
+
+/** Puts a conversation into a project folder, or takes it out when `projekt` is undefined. Keeps the time of the last change. Returns false when there is no such conversation. */
+export async function setzeProjekt(id: string, projekt: string | undefined): Promise<boolean> {
+  const c = await loadConversation(id);
+  if (!c) return false;
+  const next = { ...c, projekt };
+  if (!projekt) delete next.projekt;
+  await writeFile(file(id), JSON.stringify(next));
+  await writeFile(metaFile(id), JSON.stringify({ id, titel: c.titel, aktualisiert: c.aktualisiert, ...(projekt ? { projekt } : {}) } satisfies ConversationInfo));
+  return true;
 }
 
 /** Replaces the feedback of a saved conversation, leaving everything else (and the time of the last change) as it is. */
@@ -90,7 +115,7 @@ export async function listConversations(limit = 50): Promise<ConversationInfo[]>
       // A conversation saved before the list files existed: read it once and write its list file.
       const c = await loadConversation(id).catch(() => undefined);
       if (c) {
-        info = { id: c.id, titel: c.titel, aktualisiert: c.aktualisiert };
+        info = { id: c.id, titel: c.titel, aktualisiert: c.aktualisiert, ...(c.projekt ? { projekt: c.projekt } : {}) };
         await writeFile(metaFile(id), JSON.stringify(info)).catch(() => {});
       }
     }

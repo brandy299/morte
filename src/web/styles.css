@@ -138,6 +138,21 @@ button:disabled { cursor: default; }
 .hist-del { border: 0; background: none; color: var(--ink-soft); font-size: 18px; line-height: 1; padding: 2px 9px; border-radius: 6px; opacity: 0; transition: opacity 0.12s; }
 .hist:hover .hist-del, .hist-del:focus-visible { opacity: 1; }
 .hist-del:hover { color: var(--accent-deep); }
+.hist-actions { position: relative; display: flex; align-items: center; }
+.hist-actions .hist-del svg { display: block; }
+.projekt-menu { position: absolute; right: 0; top: 100%; z-index: 6; width: 220px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: var(--shadow); display: grid; gap: 2px; }
+.projekt-menu button { text-align: left; border: 0; background: none; font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projekt-menu button:hover { background: var(--paper-deep); }
+.projekt-menu input { width: 100%; box-sizing: border-box; font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); }
+.projekt-menu .error { font-size: 13px; margin: 4px 4px 2px; }
+.projekt { margin-bottom: 6px; }
+.start-empty-alt { margin: 16px 0 0; font-size: 14.5px; color: var(--ink-soft); }
+.projekt > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; padding: 6px 10px; font-size: 14px; font-weight: 600; color: var(--ink-soft); border-radius: 8px; }
+.projekt > summary::-webkit-details-marker { display: none; }
+.projekt > summary::before { content: ""; width: 6px; height: 6px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(-45deg); margin: 0 4px 0 2px; transition: transform 0.12s; }
+.projekt[open] > summary::before { transform: rotate(45deg); margin-bottom: 3px; }
+.projekt > summary:hover { background: var(--paper-deep); }
+.projekt-n { font-weight: 400; margin-left: auto; }
 .tree.history .side-note { font-size: 12.5px; padding-top: 6px; }
 
 .scrim, .topbar { display: none; }
@@ -232,6 +247,8 @@ a.file-card { text-decoration: none; color: inherit; }
 
 /* Usage ring */
 .meter { position: relative; }
+.model-pill { border: 0; background: transparent; color: var(--ink-soft); font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 8px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.model-pill:hover { background: var(--paper-deep); color: var(--ink); }
 .ring { padding: 6px; border: 0; background: transparent; border-radius: 50%; display: grid; place-items: center; }
 .ring:hover { background: var(--paper-deep); }
 .ring-bg { fill: none; stroke: var(--ring); stroke-width: 2.5; }

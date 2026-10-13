@@ -3,6 +3,7 @@ import { chooseOrdner, getOrdner, moveOrdner, openOrdner, resetOrdner, type Ordn
 import { Schule } from "./Schule.tsx";
 import { Setup } from "./Setup.tsx";
 import { LookPicker } from "./LookPicker.tsx";
+import { MitteilungenSchalter } from "./MitteilungenSchalter.tsx";
 
 type Tab = "aussehen" | "ordner" | "schule" | "ki" | "datenschutz";
 const TABS: { id: Tab; label: string }[] = [
@@ -138,6 +139,7 @@ export function Einstellungen({ status, onClose, onDone }: { status: SetupStatus
           {tab === "aussehen" && (
             <div className="settings-panel">
               <LookPicker />
+              <MitteilungenSchalter />
             </div>
           )}
           {tab === "ordner" && <Ordner />}

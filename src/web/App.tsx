@@ -2,6 +2,10 @@ import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
+import { Gespraechsliste } from "./Gespraechsliste.tsx";
+import { nurFuerLehrkraft } from "./vorschau.ts";
+import { melde } from "./mitteilung.ts";
+import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
 import { Vorlagen } from "./Vorlagen.tsx";
@@ -140,6 +144,7 @@ export function App() {
           onVorlagen={() => setVorlagenOpen(true)}
           onLehrplan={() => setLehrplanOpen(true)}
           onSettings={() => setSetupOpen(true)}
+          status={status}
         />
       </div>
       {setupOpen && (
@@ -216,6 +221,7 @@ interface ChatProps {
   /** Sent as the first message when the conversation opens, e.g. to start the template builder. */
   startText?: string;
   onSettings: () => void;
+  status: SetupStatus;
 }
 
 /** Word and PowerPoint files are downloaded; the preview shows PDFs only. */
@@ -346,7 +352,7 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
-function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings }: ChatProps) {
+function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   // "Passt" / "Passt nicht" of the conversation that is open, by material path.
   const [rueck, setRueck] = useState<Record<string, Rueckmeldung>>({});
@@ -381,6 +387,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   // A material step is running: the preview opens at once with a placeholder and is replaced by the file.
   const [building, setBuilding] = useState<{ id: string; label: string } | null>(null);
   const held = useRef<{ id: string; label: string } | null>(null);
+  // Titles of the material made in the current request, and whether it went wrong, for the message when she is away.
+  const madeTitles = useRef<string[]>([]);
+  const sawError = useRef(false);
+  // The preview shows the first piece of a request; a solution sheet that follows does not replace it.
+  const previewSet = useRef(false);
   const [navOpen, setNavOpen] = useState(false);
   useEffect(() => {
     // Narrow windows: the menu slides in. Escape closes it, and focus goes to its close button.
@@ -492,6 +503,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, text: m.text + e.delta, retryNote: undefined }));
         break;
       case "fragen":
+        melde("frage");
         setBuilding(null);
         patchLast((m) => ({ ...m, offeneFragen: { id: e.id, fragen: e.fragen } }));
         break;
@@ -514,9 +526,13 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         setUsage(e.usage);
         break;
       case "material": {
+        madeTitles.current.push(e.title);
         const m = { title: e.title, name: e.name, path: e.path };
         patchLast((x) => ({ ...x, materials: [...(x.materials ?? []), m] }));
-        if (e.preview !== false) setPreview(m);
+        if (e.preview !== false && !(previewSet.current && nurFuerLehrkraft(e.title))) {
+          setPreview(m);
+          previewSet.current = true;
+        }
         setBuilding(null);
         break;
       }
@@ -532,6 +548,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         }));
         break;
       case "confirm":
+        melde("frage");
         // While the question is open the placeholder waits: nothing is being built yet.
         setBuilding((b) => {
           held.current = b;
@@ -540,6 +557,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, confirm: { id: e.id, question: e.question } }));
         break;
       case "error":
+        sawError.current = true;
         patchLast((m) => ({ ...m, text: m.text.slice(0, Math.max(0, m.text.length - (e.dropText ?? 0))), error: e.message, retryable: e.retryable, retryNote: undefined }));
         break;
     }
@@ -573,6 +591,9 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     let finished = false;
+    madeTitles.current = [];
+    sawError.current = false;
+    previewSet.current = false;
     try {
       await run(ctrl.signal, (e) => {
         if (e.type === "done") finished = true;
@@ -586,6 +607,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, error: broken ? "Ich erreiche Pult gerade nicht. Läuft das Programm noch?" : err instanceof Error ? err.message : "Das hat nicht geklappt.", retryable: broken || undefined, retryNote: undefined }));
       }
     } finally {
+      if (!ctrl.signal.aborted) melde(finished && !sawError.current ? "fertig" : "fehler", madeTitles.current);
       setWorking(false);
       setThinking(false);
       setBuilding(null);
@@ -677,24 +699,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           Neues Gespräch
         </button>
         <div className="side-scroll">
-        {history.length > 0 && (
-          <nav className="tree history" aria-label="Frühere Gespräche">
-            <div className="tree-head">
-              <span>Gespräche</span>
-            </div>
-            {history.slice(0, 12).map((c) => (
-              <div key={c.id} className={c.id === currentId ? "hist on" : "hist"}>
-                <button type="button" className="tree-node" title={c.titel} onClick={() => onOpen(c.id)}>
-                  {c.titel}
-                </button>
-                <button type="button" className="hist-del" aria-label={`Gespräch „${c.titel}“ löschen`} onClick={() => onDelete(c)}>
-                  ×
-                </button>
-              </div>
-            ))}
-            <p className="side-note">Gespräche bleiben auf diesem Computer.</p>
-          </nav>
-        )}
+        {history.length > 0 && <Gespraechsliste history={history} currentId={currentId} onOpen={onOpen} onDelete={onDelete} onChanged={refreshHistory} />}
         <nav className="tree" aria-label="Deine Klassen">
           <div className="tree-head">
             <span>Klassen</span>
@@ -1032,6 +1037,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 </svg>
               </button>
               <span className="grow" />
+              <ModelInfo status={status} onSettings={onSettings} />
               <UsageMeter usage={usage} />
               {working ? (
                 <button type="button" className="stop" onClick={() => abortRef.current?.abort()}>

@@ -85,7 +85,7 @@ export async function resetChat() {
   await fetch("/api/chat/reset", { method: "POST" });
 }
 
-export interface ModelOption { id: string; name: string; vision: boolean; recommended: boolean }
+export interface ModelOption { id: string; name: string; vision: boolean; recommended: boolean; cost?: { input: number; output: number }; contextWindow?: number }
 export interface ProviderOption { id: string; name: string; custom?: boolean; models: ModelOption[] }
 export interface ConnectionResult {
   passed: boolean;
@@ -136,7 +136,7 @@ export interface Material { title: string; name: string; path: string }
 export const zipUrl = (paths: string[], name?: string) => `/api/material/zip?${[...paths.map((p) => `path=${encodeURIComponent(p)}`), ...(name ? [`name=${encodeURIComponent(name)}`] : [])].join("&")}`;
 export const materialUrl = (m: Material, download = false) => `/api/material?path=${encodeURIComponent(m.path)}${download ? "&download=1" : ""}`;
 
-export interface ConversationInfo { id: string; titel: string; aktualisiert: string }
+export interface ConversationInfo { id: string; titel: string; aktualisiert: string; projekt?: string }
 export interface StoredMessage {
   role: "user" | "assistant";
   text: string;
@@ -170,6 +170,8 @@ export async function sendeRueckmeldung(id: string, eingabe: { pfad: string; wer
   }
 }
 export const deleteHistory = (id: string) => fetch(`/api/history/${id}`, { method: "DELETE" });
+/** Puts a conversation into a project folder, or takes it out with `null`. */
+export const setProjekt = (id: string, projekt: string | null) => post<{ ok: true }>(`/api/history/${id}/projekt`, { projekt });
 
 // ---------- Lehrpläne ----------
 
