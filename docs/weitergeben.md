@@ -2,13 +2,31 @@
 
 ## Die ZIP-Datei bauen
 
-Im Pult-Ordner, mit einem Terminal:
+Voraussetzung auf deinem Rechner: **Node.js** (nodejs.org, „LTS“) und **Git** (git-scm.com). Beides einmal installieren.
 
-```
-npm run zip
-```
+**Einmalig, alles in einer Zeile.** Terminal öffnen (Windows: „PowerShell“, Mac: „Terminal“), diese Zeile einfügen, Enter:
 
-Das baut die Oberfläche neu und packt alles in eine Datei `pult-<Version>-<Datum>-<Commit>.zip` im Projektordner (rund 3 MB). Darin liegt:
+- Windows (PowerShell):
+  ```
+  git clone https://github.com/brandy299/morte.git; cd morte; npm install; npm run zip
+  ```
+- Mac:
+  ```
+  git clone https://github.com/brandy299/morte.git && cd morte && npm install && npm run zip
+  ```
+
+Ist das Repo privat, fragt Git beim ersten Mal nach deinem GitHub-Login. Die ZIP-Datei liegt danach im Ordner „morte“.
+
+**Danach per Doppelklick.** Im Ordner „morte“ liegt **„Paket bauen“** (Windows: `.bat`, Mac: `.command`, beim ersten Mal Rechtsklick, „Öffnen“). Ein Doppelklick richtet sich bei Bedarf selbst ein, baut die ZIP-Datei und öffnet den Ordner, in dem sie liegt.
+
+**Neue Fassung holen und neu bauen** (eine Zeile, im Ordner „morte“):
+
+- Windows: `git pull; npm install; npm run zip`
+- Mac: `git pull && npm install && npm run zip`
+
+Oder: `git pull` im Terminal, dann Doppelklick auf „Paket bauen“.
+
+Der Befehl `npm run zip` selbst baut die Oberfläche neu und packt alles in eine Datei `pult-<Version>-<Datum>-<Commit>.zip` im Projektordner (rund 3 MB). Darin liegt:
 
 - der fertig gebaute Pult-Ordner mit **„Pult starten.bat“** (Windows) und **„Pult starten.command“** (Mac),
 - die Anleitungen als **„Anleitung.html“** und **„OpenRouter einrichten.html“**. Das sind einzelne Dateien, die sich per Doppelklick im Browser öffnen, mit den Bildern darin. Sie entstehen aus `docs/anleitung-tester.md` und `docs/openrouter-anleitung.md`. Ändere den Text dort, nicht in der HTML-Datei.
