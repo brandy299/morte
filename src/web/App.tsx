@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
+import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
 import { Vorlagen } from "./Vorlagen.tsx";
@@ -140,6 +141,7 @@ export function App() {
           onVorlagen={() => setVorlagenOpen(true)}
           onLehrplan={() => setLehrplanOpen(true)}
           onSettings={() => setSetupOpen(true)}
+          status={status}
         />
       </div>
       {setupOpen && (
@@ -216,6 +218,7 @@ interface ChatProps {
   /** Sent as the first message when the conversation opens, e.g. to start the template builder. */
   startText?: string;
   onSettings: () => void;
+  status: SetupStatus;
 }
 
 /** Word and PowerPoint files are downloaded; the preview shows PDFs only. */
@@ -346,7 +349,7 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
-function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings }: ChatProps) {
+function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   // "Passt" / "Passt nicht" of the conversation that is open, by material path.
   const [rueck, setRueck] = useState<Record<string, Rueckmeldung>>({});
@@ -1032,6 +1035,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 </svg>
               </button>
               <span className="grow" />
+              <ModelInfo status={status} onSettings={onSettings} />
               <UsageMeter usage={usage} />
               {working ? (
                 <button type="button" className="stop" onClick={() => abortRef.current?.abort()}>

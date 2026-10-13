@@ -19,6 +19,8 @@ export function listProviders(): ProviderOption[] {
       name: m.name,
       vision: m.input.includes("image"),
       recommended: p.recommended.includes(m.id),
+      cost: m.cost ? { input: m.cost.input, output: m.cost.output } : undefined,
+      contextWindow: m.contextWindow || undefined,
     }));
     const rank = (id: string) => (p.recommended.includes(id) ? p.recommended.indexOf(id) : p.recommended.length);
     models.sort((a, b) => rank(a.id) - rank(b.id));

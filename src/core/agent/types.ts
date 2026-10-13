@@ -81,6 +81,10 @@ export interface ModelOption {
   /** Model understands images (from the pi model catalog). */
   vision: boolean;
   recommended: boolean;
+  /** Price in US dollars per million tokens, from the model catalog. Absent when the catalog has none. */
+  cost?: { input: number; output: number };
+  /** Size of the model's memory in tokens, from the catalog. */
+  contextWindow?: number;
 }
 
 export interface ProviderOption {

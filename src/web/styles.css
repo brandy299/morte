@@ -232,6 +232,8 @@ a.file-card { text-decoration: none; color: inherit; }
 
 /* Usage ring */
 .meter { position: relative; }
+.model-pill { border: 0; background: transparent; color: var(--ink-soft); font: inherit; font-size: 13px; padding: 6px 8px; border-radius: 8px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.model-pill:hover { background: var(--paper-deep); color: var(--ink); }
 .ring { padding: 6px; border: 0; background: transparent; border-radius: 50%; display: grid; place-items: center; }
 .ring:hover { background: var(--paper-deep); }
 .ring-bg { fill: none; stroke: var(--ring); stroke-width: 2.5; }

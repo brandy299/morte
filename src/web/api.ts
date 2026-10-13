@@ -85,7 +85,7 @@ export async function resetChat() {
   await fetch("/api/chat/reset", { method: "POST" });
 }
 
-export interface ModelOption { id: string; name: string; vision: boolean; recommended: boolean }
+export interface ModelOption { id: string; name: string; vision: boolean; recommended: boolean; cost?: { input: number; output: number }; contextWindow?: number }
 export interface ProviderOption { id: string; name: string; custom?: boolean; models: ModelOption[] }
 export interface ConnectionResult {
   passed: boolean;
