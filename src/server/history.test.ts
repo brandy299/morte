@@ -94,3 +94,25 @@ describe("conversation history", () => {
     expect((await (await app.request("/api/history")).json()).gespraeche).toHaveLength(0);
   });
 });
+
+describe("feedback on material (server)", () => {
+  it("saves it, returns it when the conversation is opened again, and exports without the sentence unless asked", async () => {
+    await ask("Hallo");
+    const id = (await (await app.request("/api/history")).json()).aktuell;
+    const { saveConversation, loadConversation } = await import("../core/history/index.ts");
+    const saved = (await loadConversation(id))!;
+    const pfad = "Exporte/2026-10-14_Arbeitsblatt-X.pdf";
+    await saveConversation({ ...saved, anzeige: [...saved.anzeige, { role: "assistant", text: "Fertig", steps: [], materials: [{ title: "X", name: "x.pdf", path: pfad }] }] });
+    const res = await app.request(`/api/history/${id}/rueckmeldung`, json({ pfad, wertung: "passt-nicht", satz: "Zu lang." }));
+    expect(res.status).toBe(200);
+    expect((await app.request(`/api/history/${id}/rueckmeldung`, json({ pfad: "nein.pdf", wertung: "passt" }))).status).toBe(400);
+    expect((await app.request(`/api/history/${id}/rueckmeldung`, { method: "POST", body: "kein json" })).status).toBe(400);
+    const opened = await (await app.request("/api/history/open", json({ id }))).json();
+    expect(opened.rueckmeldungen).toMatchObject([{ pfad, wertung: "passt-nicht", satz: "Zu lang." }]);
+    const plain = await (await app.request("/api/rueckmeldungen/export")).text();
+    expect(plain).not.toContain("Zu lang");
+    expect(plain).toContain('"material": "Arbeitsblatt"');
+    expect(await (await app.request("/api/rueckmeldungen/export?mitSatz=1")).text()).toContain("Zu lang");
+    expect((await app.request("/api/rueckmeldungen/export")).headers.get("content-disposition")).toMatch(/^attachment; filename="pult-rueckmeldungen-\d{4}-\d\d-\d\d\.json"$/);
+  });
+});

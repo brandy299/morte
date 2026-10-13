@@ -12,6 +12,7 @@ import { zipFiles, zipName, ZIP_MAX_FILES } from "../core/workspace/zip.ts";
 import { createClass, initWorkspace, listAllMaterial, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
 import pkg from "../../package.json" with { type: "json" };
 import { exportMarkdown } from "../core/history/export.ts";
+import { exportRueckmeldungen, RueckmeldungFehler, setzeRueckmeldung } from "../core/history/rueckmeldung.ts";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
@@ -363,7 +364,27 @@ export function createApp(state: AppState) {
     await buildSession(state, state.choice);
     state.session!.restore({ messages: saved.modell, usage: saved.verbrauch as never, log: saved.ablauf });
     state.conversation = { id: saved.id, titel: saved.titel, erstellt: saved.erstellt, anzeige: saved.anzeige };
-    return c.json({ anzeige: saved.anzeige, usage: state.session!.usage() });
+    return c.json({ anzeige: saved.anzeige, usage: state.session!.usage(), rueckmeldungen: saved.rueckmeldungen ?? [] });
+  });
+
+  // "Passt" / "Passt nicht" on one finished material, saved with the conversation.
+  app.post("/api/history/:id/rueckmeldung", async (c) => {
+    try {
+      return c.json({ rueckmeldungen: await setzeRueckmeldung(c.req.param("id"), await c.req.json()) });
+    } catch (e) {
+      if (e instanceof RueckmeldungFehler) return c.json({ error: e.message }, 400);
+      return c.json({ error: "Die Rückmeldung konnte nicht gespeichert werden." }, 400);
+    }
+  });
+
+  app.get("/api/history/:id/rueckmeldungen", async (c) => c.json({ rueckmeldungen: (await loadConversation(c.req.param("id")).catch(() => undefined))?.rueckmeldungen ?? [] }));
+
+  // All feedback as a file for the developers. The sentences are in it only when asked for (?mitSatz=1).
+  app.get("/api/rueckmeldungen/export", async (c) => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    c.header("content-type", "application/json; charset=utf-8");
+    c.header("content-disposition", `attachment; filename="pult-rueckmeldungen-${stamp}.json"`);
+    return c.body(JSON.stringify(await exportRueckmeldungen({ mitSatz: c.req.query("mitSatz") === "1" }), null, 2));
   });
 
   // The whole conversation as a readable text file, to look at what went wrong or well.

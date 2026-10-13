@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { answerConfirm, deleteHistory, getHistory, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
@@ -228,6 +228,69 @@ const VARIANTS: Record<string, string> = { "": "Blatt", "Lösung": "Lösung", "W
  * One card per finished piece of material: the sheet, its solution and the Word versions as buttons on one card.
  * If the same piece was made again (a change was asked for), only the newest files show.
  */
+/**
+ * "Passt" / "Passt nicht" under a finished piece of material. "Passt nicht" asks for one sentence. Saved with the conversation, on this computer.
+ * No names of pupils: the hint says so.
+ */
+function RueckmeldungKnoepfe({ gespraech, pfad, bisher, onSaved }: { gespraech: string; pfad: string; bisher?: Rueckmeldung; onSaved: (all: Rueckmeldung[]) => void }) {
+  const [wertung, setWertung] = useState<Rueckmeldung["wertung"] | undefined>(bisher?.wertung);
+  const [satz, setSatz] = useState(bisher?.satz ?? "");
+  const [meldung, setMeldung] = useState<{ text: string; fehler?: boolean } | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    setWertung(bisher?.wertung);
+    setSatz(bisher?.satz ?? "");
+  }, [bisher?.wertung, bisher?.satz]);
+
+  const speichern = async (w: Rueckmeldung["wertung"], text?: string) => {
+    setBusy(true);
+    const res = await sendeRueckmeldung(gespraech, { pfad, wertung: w, satz: text?.trim() || undefined });
+    setBusy(false);
+    if (res.ok) {
+      onSaved(res.rueckmeldungen);
+      setMeldung({ text: w === "passt" ? "Danke, gespeichert." : text?.trim() ? "Danke, ich habe es mir gemerkt." : "Gespeichert. Ein Satz dazu hilft mir." });
+    } else setMeldung({ text: res.error, fehler: true });
+  };
+  const wahl = (w: Rueckmeldung["wertung"]) => {
+    setWertung(w);
+    setMeldung(null);
+    if (w === "passt") void speichern(w);
+    else void speichern(w, satz);
+  };
+  return (
+    <div className="rueckmeldung" role="group" aria-label="Hat das Material gepasst?">
+      <span className="rueck-frage">Hat es gepasst?</span>
+      <button type="button" className="rueck-knopf" aria-pressed={wertung === "passt"} disabled={busy} onClick={() => wahl("passt")}>
+        Passt
+      </button>
+      <button type="button" className="rueck-knopf" aria-pressed={wertung === "passt-nicht"} disabled={busy} onClick={() => wahl("passt-nicht")}>
+        Passt nicht
+      </button>
+      {wertung === "passt-nicht" && (
+        <form
+          className="rueck-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void speichern("passt-nicht", satz);
+          }}
+        >
+          <label htmlFor={`rueck-${pfad}`}>Was hat nicht gepasst? Ein Satz reicht. Bitte keine Namen von Lernenden.</label>
+          <textarea id={`rueck-${pfad}`} value={satz} maxLength={300} rows={2} onChange={(e) => setSatz(e.target.value)} />
+          <div className="rueck-zeile">
+            <small>{satz.length} von 300 Zeichen</small>
+            <button type="submit" className="file-action" disabled={busy}>
+              Speichern
+            </button>
+          </div>
+        </form>
+      )}
+      <p className={meldung?.fehler ? "rueck-meldung fehler" : "rueck-meldung"} role="status">
+        {meldung?.text ?? ""}
+      </p>
+    </div>
+  );
+}
+
 /** Copies the text of one message, e.g. to paste it into an e-mail. */
 function CopyButton({ text }: { text: string }) {
   const [done, setDone] = useState(false);
@@ -284,6 +347,16 @@ const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  // "Passt" / "Passt nicht" of the conversation that is open, by material path.
+  const [rueck, setRueck] = useState<Record<string, Rueckmeldung>>({});
+  useEffect(() => {
+    if (!currentId) return setRueck({});
+    let alive = true;
+    void getRueckmeldungen(currentId).then((list) => alive && setRueck(Object.fromEntries(list.map((r) => [r.pfad, r]))));
+    return () => {
+      alive = false;
+    };
+  }, [currentId]);
   const [view, setView] = useState<"chat" | "start" | "material">(initialView);
   const [input, setInput] = useState("");
   const [working, setWorking] = useState(false);
@@ -769,6 +842,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                         ),
                       )}
                     </div>
+                    {currentId && !working && <RueckmeldungKnoepfe gespraech={currentId} pfad={g.parts[0]!.file.path} bisher={g.parts.map((p) => rueck[p.file.path]).find(Boolean)} onSaved={(list) => setRueck(Object.fromEntries(list.map((r) => [r.pfad, r])))} />}
                   </div>
                 ))}
                 {(m.materials?.length ?? 0) > 1 && (

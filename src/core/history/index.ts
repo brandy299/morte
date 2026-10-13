@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { dataDir } from "../paths.ts";
+import type { Rueckmeldung } from "./rueckmeldung.ts";
 import type { StoredMessage } from "./transcript.ts";
 
 export { applyEvent, settle, type StoredMessage } from "./transcript.ts";
@@ -19,6 +20,8 @@ export interface Conversation {
   verbrauch?: unknown;
   /** Times and counts of every model request and tool (no content). Opaque to everything but the agent layer and the export. */
   ablauf?: unknown[];
+  /** "Passt" / "Passt nicht" of the teacher on the material of this conversation. */
+  rueckmeldungen?: Rueckmeldung[];
 }
 
 export interface ConversationInfo {
@@ -48,9 +51,17 @@ export async function saveConversation(c: Omit<Conversation, "aktualisiert" | "e
   await mkdir(dir(), { recursive: true });
   const now = new Date().toISOString();
   const old = await loadConversation(c.id);
-  const full: Conversation = { ...c, erstellt: old?.erstellt ?? c.erstellt ?? now, aktualisiert: now };
+  // Feedback is written on its own, so a save of the running conversation must not lose it.
+  const full: Conversation = { ...c, rueckmeldungen: c.rueckmeldungen ?? old?.rueckmeldungen, erstellt: old?.erstellt ?? c.erstellt ?? now, aktualisiert: now };
   await writeFile(file(c.id), JSON.stringify(full));
   await writeFile(metaFile(c.id), JSON.stringify({ id: c.id, titel: c.titel, aktualisiert: now } satisfies ConversationInfo));
+}
+
+/** Replaces the feedback of a saved conversation, leaving everything else (and the time of the last change) as it is. */
+export async function saveRueckmeldungen(id: string, rueckmeldungen: Rueckmeldung[]): Promise<void> {
+  const c = await loadConversation(id);
+  if (!c) return;
+  await writeFile(file(id), JSON.stringify({ ...c, rueckmeldungen }));
 }
 
 export async function loadConversation(id: string): Promise<Conversation | undefined> {

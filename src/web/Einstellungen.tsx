@@ -102,6 +102,16 @@ function Datenschutz() {
       <p className="lead">Klassen, Material, Lehrpläne, Stundenplan, Vorlagen und alle Gespräche. Der Zugangsschlüssel liegt im Schlüsselbund deines Computers oder in einer Datei nur für dich.</p>
       <h2>Was zu deinem KI-Anbieter geht</h2>
       <p className="lead">Deine Fragen, der Text aus angehängten Dateien und Bildern und die Teile deines Arbeitsordners, die ich für eine Aufgabe lese.</p>
+      <h2>Rückmeldungen zum Material</h2>
+      <p className="lead">Unter jedem fertigen Material kannst du „Passt“ oder „Passt nicht“ wählen. Das bleibt auf diesem Computer. Du kannst alle Rückmeldungen als Datei speichern und weitergeben, damit Pult besser wird. Ohne deine Sätze sind darin nur Art des Materials, Anleitung, Modell und Zahlen. Gespräche und Inhalte sind nie dabei.</p>
+      <p>
+        <a className="ghost" href="/api/rueckmeldungen/export" download>
+          Rückmeldungen speichern (ohne meine Sätze)
+        </a>{" "}
+        <a className="ghost" href="/api/rueckmeldungen/export?mitSatz=1" download>
+          Mit meinen Sätzen speichern
+        </a>
+      </p>
       <h2>Was nie dabei sein soll</h2>
       <p className="lead">Namen von Schülerinnen und Schülern, Noten und Klassenarbeiten mit Namen. Pult fragt nicht danach. Bitte hänge auch nichts dergleichen an.</p>
     </div>

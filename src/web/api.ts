@@ -154,6 +154,21 @@ export const openHistory = async (id: string): Promise<{ anzeige: StoredMessage[
   const res = await fetch("/api/history/open", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
   return res.ok ? res.json() : null;
 };
+export interface Rueckmeldung { pfad: string; wertung: "passt" | "passt-nicht"; satz?: string; zeit: string }
+export const getRueckmeldungen = async (id: string): Promise<Rueckmeldung[]> => {
+  const res = await fetch(`/api/history/${id}/rueckmeldungen`);
+  return res.ok ? ((await res.json()) as { rueckmeldungen: Rueckmeldung[] }).rueckmeldungen : [];
+};
+/** Saves "passt" / "passt nicht" (with a sentence) for one material. Gives the new list, or the message to show. */
+export async function sendeRueckmeldung(id: string, eingabe: { pfad: string; wertung: "passt" | "passt-nicht"; satz?: string }): Promise<{ ok: true; rueckmeldungen: Rueckmeldung[] } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`/api/history/${id}/rueckmeldung`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(eingabe) });
+    const body = (await res.json()) as { rueckmeldungen?: Rueckmeldung[]; error?: string };
+    return res.ok && body.rueckmeldungen ? { ok: true, rueckmeldungen: body.rueckmeldungen } : { ok: false, error: body.error ?? "Das Speichern hat nicht geklappt." };
+  } catch {
+    return { ok: false, error: "Das Speichern hat nicht geklappt." };
+  }
+}
 export const deleteHistory = (id: string) => fetch(`/api/history/${id}`, { method: "DELETE" });
 
 // ---------- Lehrpläne ----------
