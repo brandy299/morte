@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-13 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-14 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -66,6 +66,7 @@ Stand: 2026-10-13 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Seite "Material": alle erstellten Dateien nach Klasse, Fach und Reihe, mit Suche, Filter nach Klasse und Art, Ansehen, Herunterladen und Auswahl als ZIP
 - [ ] Ordner `Wissen/` pro Klasse (eigene Texte und Unterlagen), von der KI per Stichwortsuche lesbar (zuerst ohne Embeddings, an einem echten Beispiel besprechen), siehe #56
 - [~] Interaktive Übung (Quiz, Lernpfad) als einzelne Datei, die ohne Internet im Browser läuft, auch am Handy: Werkzeug `uebung_erstellen` und Anleitung `uebung`, Schritte Info, Auswahl, Lückentext, Zuordnen, freie Antwort, Checkliste, Sofort-Rückmeldung mit Erklärung, Punktestand am Ende, nichts wird gespeichert oder gesendet, Vorschau im Schutzraum. Siehe `docs/entscheidungen/018-interaktive-uebung.md`. Mit DeepSeek v4.1 flash durchgespielt. Offen: Ergebnisse an einer Stelle sammeln und Moodle (später, Schule testet noch), Safari, Firefox, Edge, mit echten Lernenden am Handy, Messung mit mehreren Modellen. GSAP und Three.js sind nicht vorgesehen
+- [x] Dev-Stift für die Testphase: Stelle auf der Oberfläche markieren, Hinweis schreiben, mit Ort im Code und optional Bildschirmfoto in `Dev-Hinweise/` speichern, als ZIP oder Text exportieren. Nur mit `npm start -- --stift`. Siehe `docs/entscheidungen/022-dev-stift.md`. Bildschirmfoto im echten Browser noch nicht getestet. Die Fassung für Lehrkräfte ist #60
 - [x] `/`-Menü im Eingabefeld: Tippt die Lehrkraft `/`, erscheinen alle Anleitungen (mitgelieferte und eigene) mit je einer Zeile, filterbar, mit Pfeiltasten, Enter, Esc und Maus bedienbar, vorgelesen. Auswahl setzt „Nutze die Anleitung „…“: “ ein. Nicht mit einer Lehrkraft erprobt
 - [x] Rückkanal: „Passt“ und „Passt nicht“ unter jedem Material, mit einem Satz bei „Passt nicht“, gespeichert beim Gespräch und nur auf diesem Computer, Export als Datei ohne Gesprächstext (Einstellungen, Datenschutz). Siehe `docs/entscheidungen/020-rueckkanal.md`. Nicht von einer Lehrkraft in der Praxis erprobt
 - [ ] Wissensordner pro Klasse mit Knopf „Wissen auffrischen“ (#56)
