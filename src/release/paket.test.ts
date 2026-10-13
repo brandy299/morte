@@ -17,8 +17,8 @@ function modes(zip: Uint8Array): Record<string, number> {
 
 describe("paketDateien", () => {
   it("keeps what the app needs and drops tests, quality checks and research", () => {
-    const kept = paketDateien(["src/server/index.ts", "src/core/a.test.ts", "evals/BASELINE.md", "docs/recherche/x.md", "docs/recherche-harnesse.md", "design/logo/a.svg", "CLAUDE.md", "ROADMAP.md", ".claude/skills/x.md", "skills/a/SKILL.md", "package.json", "docs/anleitung-tester.md", "assets/a.png"]);
-    expect(kept).toEqual(["src/server/index.ts", "skills/a/SKILL.md", "package.json", "docs/anleitung-tester.md", "assets/a.png"]);
+    const kept = paketDateien(["src/server/index.ts", "src/core/a.test.ts", "evals/BASELINE.md", "docs/recherche/x.md", "docs/recherche-harnesse.md", "README.md", "design/logo/a.svg", "CLAUDE.md", "ROADMAP.md", ".claude/skills/x.md", "skills/a/SKILL.md", "package.json", "docs/anleitung-tester.md", "assets/a.png"]);
+    expect(kept).toEqual(["src/server/index.ts", "skills/a/SKILL.md", "package.json", "assets/a.png"]);
   });
 });
 
