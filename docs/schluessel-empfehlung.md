@@ -16,7 +16,7 @@ Warum:
 
 1. Auf openrouter.ai ein Konto anlegen.
 2. Unter „Credits“ zehn Euro aufladen.
-3. Unter „Keys“ einen Schlüssel erstellen und eine **Ausgabengrenze** von zum Beispiel 10 Dollar setzen. Schlüssel gleich kopieren.
+3. Unter „API Keys“ mit „New Key“ einen Schlüssel erstellen, eine **Ausgabengrenze** („Credit limit“) von zum Beispiel 10 Dollar wählen und beim Ablauf („Expiration“) mehr als die voreingestellten 30 Tage. Schlüssel gleich kopieren.
 4. In Pult bei der Einrichtung „OpenRouter“ wählen, Schlüssel einfügen, „Verbindung testen“.
 
 ## Andere Wege

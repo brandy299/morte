@@ -2,29 +2,28 @@
 
 Stand: 2026-10-14. OpenRouter ist ein Zugang zu vielen KI-Modellen mit **einem** Konto, **einem** Guthaben und **einem** Schlüssel. Pult nutzt es, um Material zu erstellen. Du brauchst etwa 10 Minuten und eine Zahlungsart (Karte, PayPal oder was OpenRouter gerade anbietet).
 
-**Zu den Bildern:** Die Seiten von OpenRouter sind erst nach der Anmeldung sichtbar. Ich konnte sie nicht selbst aufnehmen. Bei jedem Schritt steht deshalb, **was du siehst und worauf du klickst**. Wenn du Bilder ergänzen willst, lege sie in `docs/bilder/openrouter/` ab (Namen stehen bei den Schritten) und verweise hier darauf. **Achtung:** Auf Bildern darf nie ein echter Schlüssel zu sehen sein.
-
-Die Bezeichnungen können sich ändern. Die Schritte beruhen auf der Dokumentation von OpenRouter (openrouter.ai/docs, am 2026-10-14 gelesen), die Oberfläche selbst habe ich nicht gesehen. Weicht etwas ab, such das Wort in der Seitenleiste.
+**Zu den Bildern:** Sie zeigen die echte Oberfläche von OpenRouter (Stand 2026-10-14, englisch). Rote Rahmen zeigen, worauf du klickst. Persönliche Angaben sind abgedeckt. Die Bezeichnungen können sich ändern. Weicht etwas ab, such das Wort in der Seitenleiste.
 
 ---
 
 ## Schritt 1: Konto anlegen
 
 1. Öffne **openrouter.ai** im Browser.
-2. Klicke oben rechts auf **„Sign in“** (Anmelden).
-3. Melde dich mit Google, GitHub oder deiner E-Mail-Adresse an.
-4. Bestätige gegebenenfalls deine E-Mail-Adresse über den Link in der Mail.
+2. Klicke auf den lila Knopf **„Get API Key“** in der Mitte der Seite und lege ein Konto an (Google, GitHub oder E-Mail). Bist du schon angemeldet, steht oben rechts stattdessen **„Dashboard“**.
+3. Bestätige gegebenenfalls deine E-Mail-Adresse über den Link in der Mail.
 
-*Bild: `01-anmelden.png` (Startseite mit „Sign in“ oben rechts)*
+![Startseite von OpenRouter mit „Get API Key“ und „Dashboard“](bilder/openrouter/01-startseite.png)
 
 ## Schritt 2: Guthaben aufladen
 
-OpenRouter arbeitet mit Guthaben („Credits“). Das Guthaben wird beim Benutzen verbraucht. Es gibt kein Abo.
+OpenRouter arbeitet mit Guthaben („Credits“). Das Guthaben wird beim Benutzen verbraucht. Es gibt kein Abo („pay-as-you-go“).
 
-1. Klicke oben rechts auf dein **Profilbild** und dann auf **„Credits“**.
-2. Klicke auf **„Add Credits“** (Guthaben hinzufügen).
+1. Öffne die Seite **„Credits“**: Oben rechts **„Dashboard“**, dann in der linken Seitenleiste unter **„ACCOUNT“** auf **„Credits“**. Dort steht dein Guthaben unter **„Total available“**.
+2. Klicke auf den lila Knopf **„Add Credits“**.
 3. Gib einen Betrag ein. **Für den Anfang reichen 10 Dollar.** Zahle mit deiner Zahlungsart.
-4. **Automatisches Aufladen (Auto Top-up) lässt du ausgeschaltet.** Sonst wird nachgeladen, ohne dass du es merkst.
+4. **„Auto Top-Up“ lässt du ausgeschaltet.** Rechts steht dort „Enable“, solange es aus ist. Lass es so, sonst wird ohne dein Zutun nachgeladen.
+
+![Seite „Credits“ mit „Add Credits“ und „Auto Top-Up“](bilder/openrouter/02-credits.png)
 
 Gut zu wissen:
 - Beim Aufladen berechnet OpenRouter eine **Gebühr**. Die Höhe siehst du vor der Zahlung.
@@ -32,23 +31,30 @@ Gut zu wissen:
 - Unbenutztes Guthaben **kann nach einem Jahr verfallen** (Bedingungen von OpenRouter). Lade also nicht zu viel auf einmal auf.
 - Die Rechnung kommt in **US-Dollar**.
 
-*Bild: `02-credits.png` (Seite „Credits“ mit „Add Credits“)*
-
 ## Schritt 3: Schlüssel erstellen, mit Ausgabengrenze
 
 Der Schlüssel ist eine lange Zeichenfolge, mit der sich Pult bei OpenRouter ausweist. Behandle ihn wie ein Passwort.
 
-1. Öffne **openrouter.ai/keys** (oder Profilbild, dann **„Keys“**).
-2. Klicke auf **„Create Key“** (Schlüssel erstellen).
-3. **Name:** zum Beispiel „Pult“.
-4. **Credit limit (Ausgabengrenze):** Trage zum Beispiel **10** ein. Das ist die wichtigste Einstellung. Ist die Grenze erreicht, lehnt OpenRouter weitere Anfragen ab, und es wird nichts mehr abgebucht. OpenRouter empfiehlt selbst, bei jedem Schlüssel eine Grenze zu setzen.
-5. Klicke auf **„Create“**.
-6. Der Schlüssel erscheint **nur jetzt, ein einziges Mal**. Er beginnt mit `sk-or-`. Klicke auf das Kopier-Symbol.
-7. Öffne Pult, füge ihn bei der Einrichtung ein (Strg + V, Mac: Cmd + V).
+1. Öffne **openrouter.ai/keys**. Oder: **„Dashboard“**, dann links unter **„WORKSPACE“** auf **„API Keys“**.
+2. Klicke oben rechts auf **„New Key“**.
 
-**Verloren gegangen?** Dann erstellst du einfach einen neuen Schlüssel und löschst den alten. Das kostet nichts.
+![Seite „API Keys“ mit „New Key“](bilder/openrouter/03-keys.png)
 
-*Bilder: `03-keys.png` (Seite „Keys“ mit „Create Key“), `04-key-erstellen.png` (Formular mit Name und Credit limit)*
+3. Es öffnet sich ein Fenster. Fülle es aus:
+   - **Name:** zum Beispiel „pult“.
+   - **Expiration (Ablauf):** Hier steht **„30 days“** voreingestellt. Nach 30 Tagen funktioniert der Schlüssel dann nicht mehr, und Pult meldet einen Fehler. Wähle eine **längere Dauer** oder, wenn angeboten, keinen Ablauf. Wenn du die 30 Tage lässt, merk dir das Datum, das darunter steht („Key will expire on …“).
+   - **Credit limit (Ausgabengrenze):** Das ist ein Pflichtfeld. Öffne die Auswahl **„Choose a credit limit“** und wähle einen Betrag, zum Beispiel **10 Dollar**. Das ist die wichtigste Einstellung. Ist die Grenze erreicht, lehnt OpenRouter weitere Anfragen ab, und es wird nichts mehr abgebucht.
+   - **Reset limit every …** (Grenze zurücksetzen): Lass es auf **„N/A“**.
+4. Klicke auf **„Create“**.
+
+![Fenster „New Key“ mit Name, Expiration und Credit limit](bilder/openrouter/04-key-erstellen.png)
+
+5. Es erscheint ein Fenster **„Your new key“**. Der Schlüssel erscheint **nur jetzt, ein einziges Mal** („You will not be able to see it again“). Er beginnt mit `sk-or-` und ist in der Mitte mit Punkten verdeckt. Das ist normal. **Klicke auf das Kopier-Symbol** rechts daneben, dann ist er ganz kopiert.
+
+![Fenster „Your new key“ mit dem Kopier-Symbol](bilder/openrouter/05-key-angezeigt.png)
+6. Öffne Pult, füge ihn bei der Einrichtung ein (Strg + V, Mac: Cmd + V).
+
+**Verloren gegangen?** Dann erstellst du einfach einen neuen Schlüssel und löschst den alten (Drei-Punkte-Menü am Ende der Zeile). Das kostet nichts.
 
 ## Schritt 4: In Pult eintragen
 
@@ -64,9 +70,9 @@ Wie es weitergeht, steht in `docs/anleitung-tester.md`.
 ## Wie viel habe ich verbraucht?
 
 - **In Pult:** Oben im Gespräch zeigt der Ring Verbrauch, geschätzte Kosten und, wenn der Anbieter es liefert, das Guthaben.
-- **Bei OpenRouter:** Unter **„Activity“** (Aktivität) siehst du jede Anfrage mit Kosten, unter **„Credits“** dein Restguthaben, unter **„Keys“** den Verbrauch je Schlüssel.
+- **Bei OpenRouter:** Unter **„Activity“** (links in der Seitenleiste, unter „WORKSPACE“) siehst du oben bei **„Total spend“** (Gesamtausgaben) deinen Verbrauch im gewählten Zeitraum (voreingestellt: der letzte Monat). Darunter stehen Anfragen, Tokens und die Aufteilung nach Modell. Außerdem: unter **„Credits“** dein Restguthaben („Total available“), unter **„API Keys“** den Verbrauch je Schlüssel („Key usage“).
 
-*Bild: `05-activity.png`*
+![Seite „Activity“ mit „Total spend“](bilder/openrouter/06-activity.png)
 
 ## FAQ
 
@@ -74,10 +80,10 @@ Wie es weitergeht, steht in `docs/anleitung-tester.md`.
 Nein. Du lädst Guthaben auf und verbrauchst es.
 
 **Was passiert, wenn das Guthaben oder die Grenze erreicht ist?**
-Pult meldet einen Fehler, zum Beispiel „Insufficient credits“. Lade Guthaben nach oder erhöhe die Grenze auf der Seite „Keys“. Es geht nichts kaputt.
+Pult meldet einen Fehler, zum Beispiel „Insufficient credits“. Lade Guthaben nach oder erhöhe die Grenze auf der Seite „API Keys“. Es geht nichts kaputt.
 
 **Mein Schlüssel ist aus Versehen irgendwo gelandet (E-Mail, Foto, Chat).**
-Gehe auf **„Keys“**, lösche ihn und erstelle einen neuen. Der alte funktioniert dann nicht mehr.
+Gehe auf **„API Keys“**, lösche ihn und erstelle einen neuen. Der alte funktioniert dann nicht mehr.
 
 **Kann ich mehrere Personen mit einem Schlüssel arbeiten lassen?**
 Nein, lieber nicht. Jede Lehrkraft nimmt ihren eigenen Schlüssel mit eigener Grenze. Dann siehst du den Verbrauch getrennt und kannst einen Schlüssel einzeln sperren.
