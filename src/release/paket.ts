@@ -6,7 +6,7 @@
 import { zipSync, type Zippable } from "fflate";
 
 /** Files from `git ls-files` that a tester does not need. */
-const SKIP = [/^evals\//, /^\.claude\//, /^\.github\//, /^design\//, /^docs\/recherche/, /\.test\.ts$/, /^vitest\.config\.ts$/, /^\.gitignore$/, /^\.gitattributes$/, /^CLAUDE\.md$/, /^ROADMAP\.md$/];
+const SKIP = [/^evals\//, /^\.claude\//, /^\.github\//, /^design\//, /^docs\//, /^README\.md$/, /\.test\.ts$/, /^vitest\.config\.ts$/, /^\.gitignore$/, /^\.gitattributes$/, /^CLAUDE\.md$/, /^ROADMAP\.md$/];
 
 export const paketDateien = (tracked: string[]): string[] => tracked.filter((f) => !SKIP.some((re) => re.test(f)));
 

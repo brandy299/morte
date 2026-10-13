@@ -11,16 +11,16 @@ npm run zip
 Das baut die Oberfläche neu und packt alles in eine Datei `pult-<Version>-<Datum>-<Commit>.zip` im Projektordner (rund 3 MB). Darin liegt:
 
 - der fertig gebaute Pult-Ordner mit **„Pult starten.bat“** (Windows) und **„Pult starten.command“** (Mac),
-- die Anleitungen unter `docs/` (`anleitung-tester.md`, `openrouter-anleitung.md` mit Bildern, `schluessel-empfehlung.md`).
+- die Anleitungen als **„Anleitung.html“** und **„OpenRouter einrichten.html“**. Das sind einzelne Dateien, die sich per Doppelklick im Browser öffnen, mit den Bildern darin. Sie entstehen aus `docs/anleitung-tester.md` und `docs/openrouter-anleitung.md`. Ändere den Text dort, nicht in der HTML-Datei.
 
-Nicht dabei: Tests, Prüfläufe (`evals`), Recherche, deine Hinweise vom Stift und dein Datenordner. **Prüfe vor dem Verschicken**, dass die Datei keine Schlüssel enthält: Schlüssel liegen nie im Projekt (Schlüsselbund oder `~/pult-daten`), die ZIP packt nur die Dateien, die in Git stehen, plus die gebaute Oberfläche.
+Nicht dabei: der Ordner `docs/`, Tests, Prüfläufe (`evals`), deine Hinweise vom Stift und dein Datenordner. **Prüfe vor dem Verschicken**, dass die Datei keine Schlüssel enthält: Schlüssel liegen nie im Projekt (Schlüsselbund oder `~/pult-daten`), die ZIP packt nur die Dateien, die in Git stehen, plus die gebaute Oberfläche.
 
 Wichtig: Der Befehl nimmt den **Stand deines Ordners**. Hast du etwas noch nicht gespeichert (committet), warnt er und packt es trotzdem ein.
 
 ## Verschicken
 
 - **Am besten als Link** (OneDrive, Google Drive, Dropbox), nicht als Mailanhang. Manche Mailprogramme blockieren ZIP-Dateien mit Startdateien (`.bat`).
-- Schick dazu den Hinweis: „Entpacke die Datei und lies `docs/anleitung-tester.md`.“ Am besten als eigene Datei, falls sie die ZIP noch nicht öffnen können.
+- Schick dazu den Hinweis: „Entpacke die Datei und öffne **Anleitung.html**.“ Am besten legst du die Anleitung zusätzlich als eigene Datei neben den Link, falls jemand die ZIP nicht entpacken kann.
 
 ## Was die Tester brauchen
 

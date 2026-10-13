@@ -85,7 +85,7 @@ Der Schlüssel ist eine lange Zeichenfolge, mit der sich Pult bei OpenRouter aus
 3. Das vorausgewählte Modell (`deepseek/deepseek-v4.1-flash`) so lassen.
 4. **„Verbindung testen“** klicken. Es muss grün werden. Dann speichern.
 
-Wie es weitergeht, steht in `docs/anleitung-tester.md`.
+Wie es weitergeht, steht in der [Anleitung](anleitung-tester.md) (Datei „Anleitung“ im Ordner „pult“).
 
 ---
 
@@ -114,7 +114,7 @@ Nein, lieber nicht. Jede Lehrkraft nimmt ihren eigenen Schlüssel mit eigener Gr
 Probiere eine andere Zahlungsart. Manche Karten sind für Zahlungen ins Ausland gesperrt. Bei Fragen hilft der Support von OpenRouter (Link im Seitenfuß).
 
 **Darf ich das mit Schülerdaten benutzen?**
-Nein. Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten. Deine Eingaben gehen an OpenRouter und das gewählte Modell. Siehe Datenschutz in `docs/anleitung-tester.md`.
+Nein. Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten. Deine Eingaben gehen an OpenRouter und das gewählte Modell. Mehr dazu in der [Anleitung](anleitung-tester.md).
 
 **Kann ich später ein anderes Modell nehmen?**
-Ja, mit demselben Schlüssel. Wähle in den Einstellungen von Pult ein anderes Modell aus der empfohlenen Liste. Gemessen ist bisher vor allem DeepSeek V4.1 flash (`docs/schluessel-empfehlung.md`).
+Ja, mit demselben Schlüssel. Wähle in den Einstellungen von Pult ein anderes Modell aus der empfohlenen Liste. Gemessen ist bisher vor allem DeepSeek V4.1 flash.

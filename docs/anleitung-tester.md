@@ -26,7 +26,7 @@ Node.js ist ein kleines Hilfsprogramm, ohne das Pult nicht läuft. Du merkst sp�
 
 ### Schritt 3: Einen Schlüssel besorgen
 
-Pult braucht einen Zugang zu einer KI. Den bekommst du bei einem Anbieter. Wir empfehlen **OpenRouter**. Das ist wie eine **Prepaid-Karte für KI**: Du lädst einmal etwa **10 Dollar** auf (rund 9 bis 10 Euro), Pult verbraucht davon nur so viel, wie es braucht, und es gibt kein Abo. **Die ausführliche Anleitung mit Bildern steht in `docs/openrouter-anleitung.md`** (im Ordner „pult“, Unterordner „docs“). Die Gründe für die Empfehlung stehen in `docs/schluessel-empfehlung.md`. Wie viel du im Alltag verbrauchst, wissen wir noch nicht genau. Beobachte es in den ersten Wochen.
+Pult braucht einen Zugang zu einer KI. Den bekommst du bei einem Anbieter. Wir empfehlen **OpenRouter**. Das ist wie eine **Prepaid-Karte für KI**: Du lädst einmal etwa **10 Dollar** auf (rund 9 bis 10 Euro), Pult verbraucht davon nur so viel, wie es braucht, und es gibt kein Abo. **Die ausführliche Anleitung mit Bildern: [OpenRouter einrichten](openrouter-anleitung.md)** (Datei „OpenRouter einrichten“ im Ordner „pult“). Wie viel du im Alltag verbrauchst, wissen wir noch nicht genau. Beobachte es in den ersten Wochen.
 
 Kurz:
 1. Gehe auf **openrouter.ai** und lege ein Konto an.
@@ -94,7 +94,7 @@ Schreib uns auf, was gut und was schlecht war. Das hilft mehr als alles andere.
 - Unter **jedem Material** gibt es **„Passt“** und **„Passt nicht“**. Bei „Passt nicht“ kannst du kurz sagen, warum.
 - Oben im Gespräch: **„Gespräch exportieren“** speichert alles als Textdatei. **Lies sie vorher durch**: Es darf kein Schülername und keine Note drin stehen.
 - In den **Einstellungen** kannst du deine Rückmeldungen exportieren, ohne den Gesprächstext.
-- Schick die Dateien an Yannik. Der Rückmeldebogen `probelauf-rueckmeldebogen.docx` ist optional.
+- Schick die Dateien an Yannik.
 
 **Datenschutz:** Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten, weder im Gespräch noch in Anhängen. Deine Eingaben und angehängten Dateien gehen an den KI-Anbieter (hier OpenRouter und das gewählte Modell). Klassen, Material und Gespräche bleiben auf deinem Computer in einem Ordner namens `pult-daten` in deinem Benutzerordner.
 

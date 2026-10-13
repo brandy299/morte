@@ -1,7 +1,8 @@
 // Builds the package for testers: `npm run zip`. Result: pult-<version>-<date>-<commit>.zip in the project folder.
 import { execFileSync, spawnSync } from "node:child_process";
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { markdownZuHtml } from "../src/release/anleitung.tsx";
 import { paketDateien, zipPaket } from "../src/release/paket.ts";
 import pkg from "../package.json" with { type: "json" };
 
@@ -21,7 +22,25 @@ const tracked = git("ls-files", "-z").split("\0").filter(Boolean);
 const paths = [...paketDateien(tracked), ...walk("dist").map((p) => p.split("\\").join("/"))];
 const files = paths.map((path) => ({ path, data: readFileSync(path) }));
 
+// The guides as single HTML files in the main folder: they open by double click, with the pictures inside.
+const ANLEITUNGEN = [
+  { quelle: "docs/anleitung-tester.md", ziel: "Anleitung.html", titel: "Pult: Anleitung" },
+  { quelle: "docs/openrouter-anleitung.md", ziel: "OpenRouter einrichten.html", titel: "Pult: OpenRouter einrichten" },
+];
+const zielVon = (href: string) => ANLEITUNGEN.find((a) => a.quelle.endsWith(`/${href}`))?.ziel;
+for (const a of ANLEITUNGEN) {
+  const html = markdownZuHtml(readFileSync(a.quelle, "utf8"), {
+    titel: a.titel,
+    bild: (src) => {
+      const file = `docs/${src}`;
+      return existsSync(file) ? `data:image/png;base64,${readFileSync(file).toString("base64")}` : undefined;
+    },
+    link: zielVon,
+  });
+  files.push({ path: a.ziel, data: Buffer.from(html, "utf8") });
+}
+
 const name = `pult-${pkg.version}-${new Date().toISOString().slice(0, 10)}-${git("rev-parse", "--short", "HEAD").trim()}.zip`;
 writeFileSync(name, zipPaket("pult", files));
 console.log(`\nFertig: ${name} (${(statSync(name).size / 1024 / 1024).toFixed(1)} MB, ${files.length} Dateien)`);
-console.log("Schick diese Datei an deine Tester, am besten als Link (Cloud-Ordner). Die Anleitung steht in der ZIP unter docs/anleitung-tester.md.");
+console.log("Schick diese Datei an deine Tester, am besten als Link (Cloud-Ordner). Die Anleitungen liegen darin als „Anleitung.html“ und „OpenRouter einrichten.html“.");
