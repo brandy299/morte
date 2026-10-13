@@ -116,3 +116,34 @@ describe("feedback on material (server)", () => {
     expect((await app.request("/api/rueckmeldungen/export")).headers.get("content-disposition")).toMatch(/^attachment; filename="pult-rueckmeldungen-\d{4}-\d\d-\d\d\.json"$/);
   });
 });
+
+describe("dev pencil (server)", () => {
+  const hinweis = { notiz: "Zu klein", ansicht: { url: "http://localhost:3001/", titel: "Pult", ueberschriften: [], fenster: { w: 1000, h: 700 } }, ziel: { art: "bereich", rechteck: { x: 1, y: 2, w: 30, h: 40 } } };
+
+  it("does nothing unless it is switched on, and says so on the status route", async () => {
+    delete process.env.PULT_STIFT;
+    expect(await (await app.request("/api/stift/status")).json()).toEqual({ aktiv: false });
+    expect((await app.request("/api/stift", json(hinweis))).status).toBe(404);
+    expect((await app.request("/api/stift")).status).toBe(404);
+    expect((await app.request("/api/stift/export")).status).toBe(404);
+  });
+
+  it("saves, lists, exports and deletes when it is on", async () => {
+    process.env.PULT_STIFT = "1";
+    try {
+      expect(await (await app.request("/api/stift/status")).json()).toEqual({ aktiv: true });
+      const saved = await (await app.request("/api/stift", json(hinweis))).json();
+      expect(saved.hinweis.notiz).toBe("Zu klein");
+      expect((await app.request("/api/stift", json({ ...hinweis, notiz: "" }))).status).toBe(400);
+      expect((await (await app.request("/api/stift")).json()).hinweise).toHaveLength(1);
+      const md = await app.request("/api/stift/export?format=md");
+      expect(md.headers.get("content-disposition")).toMatch(/^attachment; filename="pult-hinweise-.*\.md"$/);
+      expect(await md.text()).toContain("Zu klein");
+      expect((await app.request("/api/stift/export")).headers.get("content-type")).toBe("application/zip");
+      expect((await app.request(`/api/stift/${saved.hinweis.id}`, { method: "DELETE" })).status).toBe(200);
+      expect((await (await app.request("/api/stift")).json()).hinweise).toEqual([]);
+    } finally {
+      delete process.env.PULT_STIFT;
+    }
+  });
+});
