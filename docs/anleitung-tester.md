@@ -69,6 +69,8 @@ Pult braucht einen Zugang zu einer KI. Den bekommst du bei einem Anbieter. Wir e
 3. Gehe zu **„Keys“** und erstelle einen neuen Schlüssel. **Setze beim Erstellen eine Ausgabengrenze** (zum Beispiel 10 Dollar). Dann kann nie mehr abgebucht werden.
 4. **Kopiere den Schlüssel sofort.** Er wird nur einmal angezeigt.
 
+**Mit Bildschirmhinweisen und Fragen:** `docs/openrouter-anleitung.md`.
+
 Ein Claude- oder ChatGPT-Abo funktioniert hier **nicht**. Es muss ein Schlüssel sein (siehe FAQ 8).
 
 ---
