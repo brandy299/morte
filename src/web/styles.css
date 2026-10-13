@@ -146,6 +146,7 @@ button:disabled { cursor: default; }
 .projekt-menu input { width: 100%; box-sizing: border-box; font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); }
 .projekt-menu .error { font-size: 13px; margin: 4px 4px 2px; }
 .projekt { margin-bottom: 6px; }
+.start-empty-alt { margin: 16px 0 0; font-size: 14.5px; color: var(--ink-soft); }
 .projekt > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; padding: 6px 10px; font-size: 14px; font-weight: 600; color: var(--ink-soft); border-radius: 8px; }
 .projekt > summary::-webkit-details-marker { display: none; }
 .projekt > summary::before { content: ""; width: 6px; height: 6px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(-45deg); margin: 0 4px 0 2px; transition: transform 0.12s; }
