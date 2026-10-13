@@ -61,8 +61,8 @@ Es öffnet sich ein **schwarzes Fenster** mit Text. Das ist normal und gehört d
 
 Pult führt dich durch.
 
-1. Wähle **OpenRouter**.
-2. Füge deinen **Schlüssel** ein (Strg + V, Mac: Cmd + V).
+1. **OpenRouter** ist schon ausgewählt. Lass es so.
+2. Füge deinen **Schlüssel** ein (Strg + V, Mac: Cmd + V). Meldet Pult, dein Schlüssel gehöre zu einem anderen Anbieter, wähle oben den genannten Anbieter.
 3. Das Modell ist schon ausgewählt. Lass es so.
 4. Klicke auf **„Verbindung testen“**. Wenn es grün wird, speichere.
 
@@ -122,7 +122,7 @@ Läuft das schwarze Fenster noch? Wenn nicht, starte Pult neu (Schritt 4). Prüf
 Pult läuft noch in einem anderen Fenster. Schließe es oder starte den Computer neu und versuche es noch einmal.
 
 **8. „Verbindung testen“ wird rot.**
-- Schlüssel noch einmal einfügen. Achte darauf, dass vorn und hinten kein Leerzeichen steht.
+- Schlüssel noch einmal einfügen. Er beginnt bei OpenRouter mit `sk-or-`.
 - Ist auf OpenRouter Guthaben da?
 - Steht dort eine Ausgabengrenze, die schon erreicht ist?
 - Im Schulnetz kann die Verbindung blockiert sein. Pult sagt dann meistens, woran es liegt. Probiere es zu Hause oder mit einem Handy-Hotspot.
@@ -148,5 +148,5 @@ Yannik schickt eine neue ZIP-Datei. Schließe Pult, entpacke die neue Fassung in
 **15. Ich möchte lieber das Terminal benutzen.**
 Öffne im Ordner „pult“ ein Terminal (Windows: in die Adressleiste des Explorers `powershell` tippen und Enter; Mac: Terminal öffnen, `cd ` tippen, den Ordner hineinziehen, Enter). Dann `npm install` (nur beim ersten Mal) und `npm start`, danach im Browser `http://localhost:3001`. Meldet Windows, die Ausführung von Skripts sei deaktiviert, tippe einmal `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, bestätige mit `J`, und versuche es noch einmal.
 
-**16. Ich komme nicht weiter.**
-Schreib Yannik. Beim ersten Mal sitzt er gern dabei.
+**16. Ich komme nicht weiter, oder ich will einen Fehler melden.**
+Schreib Yannik. Nenne dazu die **Version**: in Pult unten bei den Einstellungen steht „Pult 0.1.0 (Probelauf), Stand …“. Beim ersten Mal sitzt er gern dabei.
