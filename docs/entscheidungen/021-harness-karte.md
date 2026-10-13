@@ -14,7 +14,7 @@ Stand: 2026-10-13 · Grundlage: Vortrag „Harness Engineering“ (Austin Marche
 | Baustein | Bei Pult | Art | Stand |
 |---|---|---|---|
 | Regeln | Systemtext (`session.ts`), Datenschutz- und Materialregeln, Sperrliste | führt | da |
-| Skills | `skills/` (14 Anleitungen), eigene Vorlagen der Lehrkraft | führt | da |
+| Skills | `skills/` (13 Anleitungen), eigene Vorlagen der Lehrkraft | führt | da |
 | Kontext | `Klasse.md`, `Stand.md`, `Reihe.md`, Lehrplan, Bildbibliothek | führt | Wissensordner offen (#56) |
 | Verbindungen (MCP) | bewusst keine, nur feste Werkzeuge | | später geprüfte Anschlüsse (Moodle) |
 | Hooks | `beforeToolCall`: Rückfrage vor Ändern und Löschen | prüft | da |
