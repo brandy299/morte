@@ -70,7 +70,9 @@ Wie es weitergeht, steht in `docs/anleitung-tester.md`.
 ## Wie viel habe ich verbraucht?
 
 - **In Pult:** Oben im Gespräch zeigt der Ring Verbrauch, geschätzte Kosten und, wenn der Anbieter es liefert, das Guthaben.
-- **Bei OpenRouter:** Unter **„Activity“** (Aktivität) siehst du jede Anfrage mit Kosten, unter **„Credits“** dein Restguthaben („Total available“), unter **„API Keys“** den Verbrauch je Schlüssel („Key usage“).
+- **Bei OpenRouter:** Unter **„Activity“** (links in der Seitenleiste, unter „WORKSPACE“) siehst du oben bei **„Total spend“** (Gesamtausgaben) deinen Verbrauch im gewählten Zeitraum (voreingestellt: der letzte Monat). Darunter stehen Anfragen, Tokens und die Aufteilung nach Modell. Außerdem: unter **„Credits“** dein Restguthaben („Total available“), unter **„API Keys“** den Verbrauch je Schlüssel („Key usage“).
+
+![Seite „Activity“ mit „Total spend“](bilder/openrouter/06-activity.png)
 
 ## FAQ
 
