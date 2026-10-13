@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
+import { melde } from "./mitteilung.ts";
 import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
 import { Lehrplan } from "./Lehrplan.tsx";
@@ -384,6 +385,9 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   // A material step is running: the preview opens at once with a placeholder and is replaced by the file.
   const [building, setBuilding] = useState<{ id: string; label: string } | null>(null);
   const held = useRef<{ id: string; label: string } | null>(null);
+  // Titles of the material made in the current request, and whether it went wrong, for the message when she is away.
+  const madeTitles = useRef<string[]>([]);
+  const sawError = useRef(false);
   const [navOpen, setNavOpen] = useState(false);
   useEffect(() => {
     // Narrow windows: the menu slides in. Escape closes it, and focus goes to its close button.
@@ -495,6 +499,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, text: m.text + e.delta, retryNote: undefined }));
         break;
       case "fragen":
+        melde("frage");
         setBuilding(null);
         patchLast((m) => ({ ...m, offeneFragen: { id: e.id, fragen: e.fragen } }));
         break;
@@ -517,6 +522,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         setUsage(e.usage);
         break;
       case "material": {
+        madeTitles.current.push(e.title);
         const m = { title: e.title, name: e.name, path: e.path };
         patchLast((x) => ({ ...x, materials: [...(x.materials ?? []), m] }));
         if (e.preview !== false) setPreview(m);
@@ -535,6 +541,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         }));
         break;
       case "confirm":
+        melde("frage");
         // While the question is open the placeholder waits: nothing is being built yet.
         setBuilding((b) => {
           held.current = b;
@@ -543,6 +550,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, confirm: { id: e.id, question: e.question } }));
         break;
       case "error":
+        sawError.current = true;
         patchLast((m) => ({ ...m, text: m.text.slice(0, Math.max(0, m.text.length - (e.dropText ?? 0))), error: e.message, retryable: e.retryable, retryNote: undefined }));
         break;
     }
@@ -576,6 +584,8 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     let finished = false;
+    madeTitles.current = [];
+    sawError.current = false;
     try {
       await run(ctrl.signal, (e) => {
         if (e.type === "done") finished = true;
@@ -589,6 +599,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         patchLast((m) => ({ ...m, error: broken ? "Ich erreiche Pult gerade nicht. Läuft das Programm noch?" : err instanceof Error ? err.message : "Das hat nicht geklappt.", retryable: broken || undefined, retryNote: undefined }));
       }
     } finally {
+      if (!ctrl.signal.aborted) melde(finished && !sawError.current ? "fertig" : "fehler", madeTitles.current);
       setWorking(false);
       setThinking(false);
       setBuilding(null);
