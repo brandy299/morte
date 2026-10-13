@@ -95,6 +95,7 @@ button:disabled { cursor: default; }
 .link { align-self: flex-start; background: none; border: 0; padding: 0; font-size: 14px; color: var(--accent-deep); text-decoration: underline; text-underline-offset: 2px; }
 .error { font-size: 15px; color: var(--danger-ink); background: var(--danger-wash); border-radius: 10px; padding: 9px 13px; margin: 0; }
 .muted { color: var(--ink-soft); }
+.version { font-size: 13px; margin: 28px 0 0; }
 
 /* ---------- Page frame ---------- */
 .chat-layer { height: 100%; }

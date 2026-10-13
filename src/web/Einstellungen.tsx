@@ -145,6 +145,9 @@ export function Einstellungen({ status, onClose, onDone }: { status: SetupStatus
           {tab === "ki" && <Setup status={status} embedded onDone={onDone} />}
           {tab === "datenschutz" && <Datenschutz />}
         </div>
+        <p className="muted version">
+          Pult {__PULT_VERSION__} (Probelauf){__PULT_COMMIT__ ? `, Stand ${__PULT_COMMIT__}` : ""}. Nenne das bei einer Fehlermeldung.
+        </p>
       </div>
     </main>
   );
