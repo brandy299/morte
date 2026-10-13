@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { Gespraechsliste } from "./Gespraechsliste.tsx";
+import { nurFuerLehrkraft } from "./vorschau.ts";
 import { melde } from "./mitteilung.ts";
 import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
@@ -389,6 +390,8 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   // Titles of the material made in the current request, and whether it went wrong, for the message when she is away.
   const madeTitles = useRef<string[]>([]);
   const sawError = useRef(false);
+  // The preview shows the first piece of a request; a solution sheet that follows does not replace it.
+  const previewSet = useRef(false);
   const [navOpen, setNavOpen] = useState(false);
   useEffect(() => {
     // Narrow windows: the menu slides in. Escape closes it, and focus goes to its close button.
@@ -526,7 +529,10 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
         madeTitles.current.push(e.title);
         const m = { title: e.title, name: e.name, path: e.path };
         patchLast((x) => ({ ...x, materials: [...(x.materials ?? []), m] }));
-        if (e.preview !== false) setPreview(m);
+        if (e.preview !== false && !(previewSet.current && nurFuerLehrkraft(e.title))) {
+          setPreview(m);
+          previewSet.current = true;
+        }
         setBuilding(null);
         break;
       }
@@ -587,6 +593,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     let finished = false;
     madeTitles.current = [];
     sawError.current = false;
+    previewSet.current = false;
     try {
       await run(ctrl.signal, (e) => {
         if (e.type === "done") finished = true;
