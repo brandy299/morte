@@ -66,7 +66,7 @@ Pult braucht einen Zugang zu einer KI. Den bekommst du bei einem Anbieter. Wir e
 
 1. Gehe auf **openrouter.ai** und lege ein Konto an.
 2. Lade unter **„Credits“** etwa **10 Euro** auf.
-3. Gehe zu **„Keys“** und erstelle einen neuen Schlüssel. **Setze beim Erstellen eine Ausgabengrenze** (zum Beispiel 10 Dollar). Dann kann nie mehr abgebucht werden.
+3. Gehe zu **„API Keys“** und klicke auf **„New Key“**. **Wähle beim Erstellen eine Ausgabengrenze („Credit limit“, zum Beispiel 10 Dollar)** und bei „Expiration“ eine **längere Dauer als die voreingestellten 30 Tage**. Dann kann nie mehr abgebucht werden, und der Schlüssel läuft nicht nach einem Monat ab.
 4. **Kopiere den Schlüssel sofort.** Er wird nur einmal angezeigt.
 
 **Mit Bildschirmhinweisen und Fragen:** `docs/openrouter-anleitung.md`.
