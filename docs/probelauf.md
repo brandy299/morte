@@ -10,21 +10,13 @@ Arbeitsblätter, Klausuren mit Erwartungshorizont, Stunden und Reihen planen, Le
 
 ## Was du brauchst
 
-1. **Node.js** (ein kleines Hilfsprogramm, ohne das Pult nicht startet). Lade auf nodejs.org die Version „LTS“ herunter, mindestens Version 22, und installiere sie wie jedes Programm. Das ist nur für den Probelauf nötig.
-2. **Den Pult-Ordner** von Yannik (eine ZIP-Datei, entpacke sie irgendwo, zum Beispiel in „Dokumente“).
+1. **Node.js** (ein kleines Hilfsprogramm, ohne das Pult nicht läuft). Lade auf nodejs.org die Version „LTS“ herunter, mindestens Version 22, und installiere sie wie jedes Programm. Das ist nur für den Probelauf nötig.
+2. **Die ZIP-Datei** von Yannik. Entpacke sie, zum Beispiel in „Dokumente“.
 3. **Einen Zugangsschlüssel** (API-Schlüssel, kein Abo). Wir empfehlen **OpenRouter** mit dem vorausgewählten Modell. Warum und wie: `docs/schluessel-empfehlung.md`. Ein Claude- oder ChatGPT-Abo lässt sich nicht eintragen.
 
 ## Starten
 
-Öffne im Pult-Ordner ein Terminal (Mac: Programm „Terminal“, Windows: „PowerShell“) und tippe nacheinander:
-
-```
-npm install
-npm run build
-npm start
-```
-
-Das erste braucht etwa eine Minute. Danach öffnest du **http://localhost:3001** im Browser. Pult führt dich durch die Einrichtung. Beenden: im Terminal Strg + C. Beim nächsten Mal genügt `npm start`. Hakt etwas, schreib dir auf, was du getan hast und was angezeigt wurde. Das hilft mehr als jede Erklärung.
+Entpacke die ZIP-Datei und starte **„Pult starten“** mit einem Doppelklick (Mac: Rechtsklick, „Öffnen“). Beim ersten Mal richtet sich Pult selbst ein (zwei bis fünf Minuten), dann öffnet sich der Browser. Beenden: das schwarze Fenster schließen. Die ganze Anleitung mit Bildern der Warnungen von Windows und Mac steht in `docs/anleitung-tester.md`. Hakt etwas, schreib dir auf, was du getan hast und was angezeigt wurde. Das hilft mehr als jede Erklärung.
 
 ## Drei Aufgaben zum Ausprobieren
 
