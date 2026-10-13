@@ -2,7 +2,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
-import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "./index.ts";
+import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, projektName, saveConversation, setzeProjekt, settle, titleFrom, type StoredMessage } from "./index.ts";
 
 beforeEach(async () => {
   process.env.PULT_HOME = await mkdtemp(join(tmpdir(), "pult-history-"));
@@ -76,5 +76,51 @@ describe("store", () => {
   it("makes short one-line titles", () => {
     expect(titleFrom("  Wo stehen\nwir in 11a?  ")).toBe("Wo stehen wir in 11a?");
     expect(titleFrom("x".repeat(100))).toHaveLength(58);
+  });
+});
+
+describe("project folders", () => {
+  const base = (id: string, titel: string) => ({ id, titel, anzeige: [], modell: [] as unknown[] });
+
+  it("cleans the name and refuses an empty or too long one", () => {
+    expect(projektName("  Klasse   11a \n Mathe ")).toBe("Klasse 11a Mathe");
+    expect(() => projektName("   ")).toThrow(/fehlt/);
+    expect(() => projektName(null)).toThrow(/fehlt/);
+    expect(() => projektName("x".repeat(41))).toThrow(/zu lang/);
+    expect(projektName("x".repeat(40))).toHaveLength(40);
+  });
+
+  it("puts a conversation in a folder, lists it there and keeps the time of the last change", async () => {
+    const id = newConversationId();
+    await saveConversation(base(id, "Prozentrechnung"));
+    const before = (await listConversations())[0]!;
+    expect(before.projekt).toBeUndefined();
+    expect(await setzeProjekt(id, "Mathe 8b")).toBe(true);
+    const after = (await listConversations())[0]!;
+    expect(after.projekt).toBe("Mathe 8b");
+    expect(after.aktualisiert).toBe(before.aktualisiert);
+  });
+
+  it("keeps the folder when the running conversation is saved again", async () => {
+    const id = newConversationId();
+    await saveConversation(base(id, "Dreisatz"));
+    await setzeProjekt(id, "Mathe 8b");
+    await saveConversation(base(id, "Dreisatz"));
+    expect((await loadConversation(id))?.projekt).toBe("Mathe 8b");
+    expect((await listConversations())[0]!.projekt).toBe("Mathe 8b");
+  });
+
+  it("takes a conversation out of the folder again", async () => {
+    const id = newConversationId();
+    await saveConversation(base(id, "Dreisatz"));
+    await setzeProjekt(id, "Mathe 8b");
+    await setzeProjekt(id, undefined);
+    expect((await loadConversation(id))?.projekt).toBeUndefined();
+    expect((await listConversations())[0]!.projekt).toBeUndefined();
+  });
+
+  it("says no for a conversation that does not exist", async () => {
+    expect(await setzeProjekt(newConversationId(), "x")).toBe(false);
+    expect(await setzeProjekt("../etc/passwd", "x")).toBe(false);
   });
 });

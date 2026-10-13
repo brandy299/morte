@@ -14,7 +14,7 @@ import pkg from "../../package.json" with { type: "json" };
 import { exportMarkdown } from "../core/history/export.ts";
 import { exportiere as exportiereStift, liste as listeStift, loescheHinweis, speichereHinweis, StiftFehler } from "../core/stift/index.ts";
 import { exportRueckmeldungen, RueckmeldungFehler, setzeRueckmeldung } from "../core/history/rueckmeldung.ts";
-import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
+import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, projektName, saveConversation, setzeProjekt, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { vorlagenRoutes } from "./vorlagen.ts";
@@ -369,6 +369,19 @@ export function createApp(state: AppState) {
   });
 
   // "Passt" / "Passt nicht" on one finished material, saved with the conversation.
+  // Puts a conversation into a project folder (`projekt` is the name) or takes it out (`projekt` is null).
+  app.post("/api/history/:id/projekt", async (c) => {
+    const { projekt } = (await c.req.json().catch(() => ({}))) as { projekt?: unknown };
+    let name: string | undefined;
+    try {
+      name = projekt === null || projekt === undefined ? undefined : projektName(projekt);
+    } catch (err) {
+      return c.json({ error: err instanceof Error ? err.message : "Das Projekt konnte nicht gesetzt werden." }, 400);
+    }
+    const ok = await setzeProjekt(c.req.param("id"), name).catch(() => false);
+    return ok ? c.json({ ok: true }) : c.json({ error: "Dieses Gespräch gibt es nicht mehr." }, 404);
+  });
+
   app.post("/api/history/:id/rueckmeldung", async (c) => {
     try {
       return c.json({ rueckmeldungen: await setzeRueckmeldung(c.req.param("id"), await c.req.json()) });

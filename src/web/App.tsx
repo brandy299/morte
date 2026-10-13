@@ -2,6 +2,7 @@ import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from
 import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
+import { Gespraechsliste } from "./Gespraechsliste.tsx";
 import { melde } from "./mitteilung.ts";
 import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
@@ -691,24 +692,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           Neues Gespräch
         </button>
         <div className="side-scroll">
-        {history.length > 0 && (
-          <nav className="tree history" aria-label="Frühere Gespräche">
-            <div className="tree-head">
-              <span>Gespräche</span>
-            </div>
-            {history.slice(0, 12).map((c) => (
-              <div key={c.id} className={c.id === currentId ? "hist on" : "hist"}>
-                <button type="button" className="tree-node" title={c.titel} onClick={() => onOpen(c.id)}>
-                  {c.titel}
-                </button>
-                <button type="button" className="hist-del" aria-label={`Gespräch „${c.titel}“ löschen`} onClick={() => onDelete(c)}>
-                  ×
-                </button>
-              </div>
-            ))}
-            <p className="side-note">Gespräche bleiben auf diesem Computer.</p>
-          </nav>
-        )}
+        {history.length > 0 && <Gespraechsliste history={history} currentId={currentId} onOpen={onOpen} onDelete={onDelete} onChanged={refreshHistory} />}
         <nav className="tree" aria-label="Deine Klassen">
           <div className="tree-head">
             <span>Klassen</span>
