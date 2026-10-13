@@ -118,7 +118,7 @@ Stand: 2026-10-14 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 ## Phase 6: Ausrollen für Kollegen
 
 - [~] Probelauf mit zwei bis drei Kolleginnen und Kollegen: Anleitung `docs/probelauf.md` und Rückmeldebogen `docs/probelauf-rueckmeldebogen.docx` (`npm run bogen`) stehen. Offen: Test mit einer Person, die Pult nicht kennt (beobachtet, nicht erklärt), `npm start` auf Windows, Test des Bogens in Word
-- [~] Schlüssel-Empfehlung für Tester: `docs/schluessel-empfehlung.md` (OpenRouter + DeepSeek V4.1 flash, gemessen). Arbeitsweise für Yannik mit Stift und Claude Code: `docs/entwicklung-lokal.md`
+- [~] Schritt-für-Schritt-Anleitung mit FAQ für Tester: `docs/anleitung-tester.md` (nie auf echtem Windows/Mac von einer fremden Person durchgespielt). Schlüssel-Empfehlung für Tester: `docs/schluessel-empfehlung.md` (OpenRouter + DeepSeek V4.1 flash, gemessen). Arbeitsweise für Yannik mit Stift und Claude Code: `docs/entwicklung-lokal.md`
 - [ ] Installer als normales Programm, Mac und Windows
 - [ ] Login und DSGVO-konformes Backend (EU-Hosting, Auftragsverarbeitung, Auswahl nach Datenschutz kennzeichnen)
 - [ ] Abstimmung mit Schulleitung und Datenschutzbeauftragten

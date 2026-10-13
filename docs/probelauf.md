@@ -1,5 +1,7 @@
 # Pult ausprobieren
 
+**Die ausführliche Anleitung mit Fragen und Antworten steht in `docs/anleitung-tester.md`.** Diese Seite ist die Kurzfassung.
+
 **Das ist ein Probelauf. Pult ist noch kein fertiges Programm.** Es kann Fehler machen und etwas nicht können. Genau dafür brauchen wir dich. Yannik sitzt bei den ersten Malen dabei.
 
 ## Was Pult kann
