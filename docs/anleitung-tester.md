@@ -2,7 +2,7 @@
 
 **Pult ist noch im Probelauf.** Es kann Fehler machen. Genau dafür brauchen wir dich. Rechne beim ersten Mal mit etwa 30 Minuten. Wenn etwas hakt: Unten steht die FAQ. Wenn die auch nicht hilft, mach ein Foto vom Bildschirm und schick es Yannik.
 
-Alles, was du eintippst, steht in grauen Kästen. **Du tippst es genau so ein und drückst danach die Enter-Taste.** Du musst nichts verstehen, nur abtippen oder kopieren.
+**Du brauchst kein Terminal.** Pult startest du mit einem Doppelklick.
 
 ---
 
@@ -10,90 +10,54 @@ Alles, was du eintippst, steht in grauen Kästen. **Du tippst es genau so ein un
 
 ### Schritt 1: Node.js installieren
 
-Node.js ist ein kleines Hilfsprogramm, ohne das Pult nicht startet. Du merkst später nichts davon.
+Node.js ist ein kleines Hilfsprogramm, ohne das Pult nicht läuft. Du merkst später nichts davon.
 
 1. Öffne **nodejs.org** im Browser.
 2. Klicke auf den grünen Knopf mit **„LTS“** (nicht „Current“). Die Datei wird heruntergeladen.
 3. Öffne die heruntergeladene Datei und klicke dich durch die Installation. Überall „Weiter“ oder „Continue“, alle Voreinstellungen lassen. Ein Passwort deines Computers wird eventuell abgefragt.
-4. **Starte den Computer nicht neu, aber schließe alle offenen Terminal-Fenster.**
 
-Ob es geklappt hat, siehst du in Schritt 3.
+### Schritt 2: Pult entpacken
 
-### Schritt 2: Den Pult-Ordner holen
-
-1. Yannik schickt dir eine **ZIP-Datei** („pult.zip“ oder ähnlich). Speichere sie.
+1. Yannik schickt dir einen Link oder eine **ZIP-Datei** („pult-…zip“). Lade sie herunter.
 2. **Entpacken:**
-   - **Windows:** Rechtsklick auf die Datei, „Alle extrahieren“, „Extrahieren“.
+   - **Windows:** Rechtsklick auf die Datei, **„Alle extrahieren“**, „Extrahieren“. (Nicht einfach in der ZIP öffnen, sondern wirklich entpacken.)
    - **Mac:** Doppelklick auf die Datei.
-3. Verschiebe den entstandenen Ordner nach **Dokumente**. Der Ordner heißt zum Beispiel „pult“.
+3. Es entsteht ein Ordner **„pult“**. Schiebe ihn nach **Dokumente**.
 
-### Schritt 3: Das Terminal öffnen
+### Schritt 3: Einen Schlüssel besorgen
 
-Das Terminal ist ein Fenster, in das man Befehle tippt.
+Pult braucht einen Zugang zu einer KI. Den bekommst du bei einem Anbieter. Wir empfehlen **OpenRouter**. Das ist wie eine **Prepaid-Karte für KI**: Du lädst einmal etwa **10 Dollar** auf (rund 9 bis 10 Euro), Pult verbraucht davon nur so viel, wie es braucht, und es gibt kein Abo. **Die ausführliche Anleitung mit Bildern steht in `docs/openrouter-anleitung.md`** (im Ordner „pult“, Unterordner „docs“). Die Gründe für die Empfehlung stehen in `docs/schluessel-empfehlung.md`. Wie viel du im Alltag verbrauchst, wissen wir noch nicht genau. Beobachte es in den ersten Wochen.
 
-- **Windows:** Öffne den Ordner „pult“ im Explorer. Klicke oben in die Adressleiste (dort, wo der Pfad steht), tippe `powershell` und drücke Enter. Ein blaues Fenster geht auf. Das ist das Terminal, und es steht schon im richtigen Ordner.
-- **Mac:** Öffne das Programm **Terminal** (Spotlight mit Cmd + Leertaste, „Terminal“ tippen). Tippe `cd ` (mit Leerzeichen dahinter), **ziehe den Ordner „pult“ aus dem Finder in das Terminal-Fenster** und drücke Enter.
-
-**Prüfen, ob Node da ist.** Tippe:
-
-```
-node -v
-```
-
-Es muss eine Zahl mit **v22** oder höher erscheinen, zum Beispiel `v22.11.0`. Steht dort eine kleinere Zahl oder „nicht gefunden“, siehe FAQ 1 und 2.
-
-### Schritt 4: Pult aufbauen
-
-Tippe nacheinander, und warte jeweils, bis es fertig ist (du siehst wieder die Eingabezeile):
-
-```
-npm install
-```
-
-Das dauert **zwei bis fünf Minuten**. Es laufen viele Zeilen durch, auch gelbe Warnungen. Das ist normal. Rot und „ERR!“ ist nicht normal (siehe FAQ 3).
-
-```
-npm run build
-```
-
-Das dauert etwa eine Minute.
-
-Beide Befehle brauchst du **nur beim ersten Mal**.
-
-### Schritt 5: Einen Schlüssel besorgen
-
-Pult braucht einen Zugang zu einer KI. Den bekommst du bei einem Anbieter. Wir empfehlen **OpenRouter**. Die Gründe stehen in `docs/schluessel-empfehlung.md`. Die Kosten liegen im Cent-Bereich pro Material, der genaue Alltagsverbrauch ist noch nicht bekannt.
-
+Kurz:
 1. Gehe auf **openrouter.ai** und lege ein Konto an.
-2. Lade unter **„Credits“** etwa **10 Euro** auf.
+2. Lade unter **„Credits“** etwa **10 Dollar** auf.
 3. Gehe zu **„API Keys“** und klicke auf **„New Key“**. **Wähle beim Erstellen eine Ausgabengrenze („Credit limit“, zum Beispiel 10 Dollar)** und bei „Expiration“ eine **längere Dauer als die voreingestellten 30 Tage**. Dann kann nie mehr abgebucht werden, und der Schlüssel läuft nicht nach einem Monat ab.
 4. **Kopiere den Schlüssel sofort.** Er wird nur einmal angezeigt.
 
-**Mit Bildschirmhinweisen und Fragen:** `docs/openrouter-anleitung.md`.
-
-Ein Claude- oder ChatGPT-Abo funktioniert hier **nicht**. Es muss ein Schlüssel sein (siehe FAQ 8).
+Ein Claude- oder ChatGPT-Abo funktioniert hier **nicht**. Es muss ein Schlüssel sein (siehe FAQ 5).
 
 ---
 
 ## Teil 2: Pult starten
 
-### Schritt 6: Starten
+### Schritt 4: Doppelklick
 
-Im Terminal (im Pult-Ordner, siehe Schritt 3):
+Öffne den Ordner „pult“ und starte:
 
-```
-npm start
-```
+- **Windows:** Doppelklick auf **„Pult starten“** (das Symbol sieht aus wie ein kleines Zahnrad oder Fenster, die Endung ist `.bat`).
+  - Es kann ein blaues Fenster erscheinen: **„Der Computer wurde durch Windows geschützt“**. Klicke auf **„Weitere Informationen“** und dann auf **„Trotzdem ausführen“**. Das Programm ist von Yannik, es hat nur keine Firma dahinter.
+- **Mac:** **Rechtsklick** auf **„Pult starten“**, dann **„Öffnen“**, dann im Fenster noch einmal **„Öffnen“**. Ein normaler Doppelklick wird beim ersten Mal vom Mac abgelehnt.
+  - Klappt das nicht: **Systemeinstellungen**, **„Datenschutz & Sicherheit“**, ganz nach unten scrollen, bei „Pult starten“ auf **„Trotzdem öffnen“** klicken. Dann noch einmal versuchen.
 
-Es erscheint ein Text, der etwa sagt, dass Pult läuft. **Lass dieses Fenster offen.** Wenn du es schließt, ist Pult aus.
+Es öffnet sich ein **schwarzes Fenster** mit Text. Das ist normal und gehört dazu.
 
-Öffne jetzt im Browser (Chrome oder Edge am besten):
+**Beim ersten Start** richtet sich Pult selbst ein. Das dauert **zwei bis fünf Minuten**. Es laufen viele Zeilen durch, auch gelbe Warnungen. Das ist normal. Warte einfach, bis „Pult läuft“ steht. Dann öffnet sich der **Browser** von selbst mit Pult.
 
-```
-http://localhost:3001
-```
+**Lass das schwarze Fenster offen**, solange du mit Pult arbeitest. Wenn du es schließt, ist Pult aus.
 
-### Schritt 7: Die Einrichtung
+Öffnet sich der Browser nicht, gib selbst diese Adresse ein: `http://localhost:3001`
+
+### Schritt 5: Die Einrichtung in Pult
 
 Pult führt dich durch.
 
@@ -104,7 +68,7 @@ Pult führt dich durch.
 
 Dein Schlüssel wird im Schlüsselbund deines Computers abgelegt (oder in einer Datei nur für dich) und liegt nicht im Pult-Ordner.
 
-### Schritt 8: Dein erstes Material
+### Schritt 6: Dein erstes Material
 
 Schreib in das Eingabefeld, wie du es einer Kollegin sagen würdest. Zum Beispiel:
 
@@ -116,8 +80,8 @@ Tippst du im Eingabefeld einen **Schrägstrich `/`**, siehst du alle Anleitungen
 
 ### Beenden und nächstes Mal
 
-- **Beenden:** Im Terminal-Fenster **Strg + C** drücken (auch auf dem Mac Ctrl + C), dann das Fenster schließen.
-- **Nächstes Mal:** Terminal im Pult-Ordner öffnen (Schritt 3), `npm start` tippen, Browser auf `http://localhost:3001`. Mehr nicht.
+- **Beenden:** Schließe das schwarze Fenster.
+- **Nächstes Mal:** Wieder Doppelklick auf „Pult starten“. Jetzt geht es in wenigen Sekunden. Mehr nicht.
 
 ---
 
@@ -136,59 +100,53 @@ Schreib uns auf, was gut und was schlecht war. Das hilft mehr als alles andere.
 
 ## FAQ: Wenn etwas nicht klappt
 
-**1. `node -v` zeigt „nicht gefunden“ / „not recognized“.**
-Das Terminal kennt Node noch nicht. Schließe das Terminal ganz, öffne es neu (Schritt 3) und versuche es noch einmal. Hilft das nicht: Computer neu starten, dann noch einmal. Hilft das nicht: Node.js neu installieren (Schritt 1).
+**1. Es erscheint „Node.js ist noch nicht installiert“.**
+Dann fehlt Schritt 1. Installiere Node.js von nodejs.org (Version „LTS“) und starte Pult noch einmal. Hilft das nicht: Computer neu starten, dann noch einmal.
 
-**2. `node -v` zeigt eine Zahl unter v22 (zum Beispiel v18 oder v20).**
-Dein Node ist zu alt. Installiere die aktuelle LTS-Version von nodejs.org (Schritt 1), öffne ein neues Terminal und prüfe noch einmal.
+**2. Es erscheint „Dein Node.js ist zu alt“.**
+Installiere die aktuelle LTS-Version von nodejs.org (Schritt 1) und starte Pult noch einmal.
 
-**3. Bei `npm install` erscheint rot „ERR!“.**
-Starte `npm install` einmal neu. Bleibt es: Mach ein Foto der **ersten roten Zeilen** und schick es Yannik. Häufige Ursache ist eine unterbrochene Internetverbindung. Im Schulnetz kann ein Schutzprogramm das Herunterladen blockieren. Versuche es zu Hause.
+**3. Die Einrichtung beim ersten Start bricht ab, mit roten Zeilen.**
+Starte „Pult starten“ noch einmal. Bleibt es: Mach ein Foto der **ersten roten Zeilen** und schick es Yannik. Häufige Ursache ist eine unterbrochene Internetverbindung. Im Schulnetz kann ein Schutzprogramm das Herunterladen blockieren. Versuche es zu Hause.
 
-**4. Windows: „Die Ausführung von Skripts ist auf diesem System deaktiviert“ (rot, bei `npm`).**
-Windows verbietet PowerShell bestimmte Programme. Tippe einmalig:
-```
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-Bestätige mit `J` und Enter. Dann den Befehl noch einmal. Alternativ im Explorer statt `powershell` das Wort `cmd` in die Adressleiste tippen, dort tritt das Problem nicht auf.
+**4. Windows oder Mac lässt „Pult starten“ nicht zu.**
+Siehe Schritt 4: Windows „Weitere Informationen“, „Trotzdem ausführen“. Mac Rechtsklick, „Öffnen“, oder Systemeinstellungen, „Datenschutz & Sicherheit“, „Trotzdem öffnen“. Auf dem Windows-Rechner einer Schule kann es sein, dass die IT das Ausführen verbietet. Dann geht es zu Hause.
 
-**5. Mac: „Der Befehl npm wurde nicht gefunden“ oder eine Meldung zu Entwicklerwerkzeugen.**
-Terminal schließen und neu öffnen. Kommt die Meldung weiter, installiere Node.js noch einmal (Schritt 1). Fragt der Mac, ob er „Command Line Tools“ installieren soll, bestätige das und warte. Das kann ein paar Minuten dauern.
-
-**6. Im Browser steht „Seite nicht erreichbar“.**
-Läuft das Terminal-Fenster noch mit `npm start`? Wenn nicht, starte neu (Schritt 6). Prüfe, dass die Adresse genau `http://localhost:3001` lautet.
-
-**7. `npm start` meldet, der Anschluss (Port) 3001 sei schon belegt.**
-Pult läuft noch in einem anderen Fenster. Schließe die anderen Terminal-Fenster oder starte den Computer neu. Wenn du es anders brauchst:
-- Windows PowerShell: `$env:PORT=3002; npm start`, Adresse dann `http://localhost:3002`
-- Mac: `PORT=3002 npm start`
-
-**8. Kann ich mein Claude-Abo oder ChatGPT-Abo nehmen?**
+**5. Kann ich mein Claude-Abo oder ChatGPT-Abo nehmen?**
 Nein. Ein Abo ist kein Schlüssel. Du brauchst einen Schlüssel (API-Schlüssel), der getrennt abgerechnet wird. Anthropic erlaubt es Drittprogrammen nicht, Abo-Anmeldungen zu benutzen.
 
-**9. „Verbindung testen“ wird rot.**
+**6. Im Browser steht „Seite nicht erreichbar“.**
+Läuft das schwarze Fenster noch? Wenn nicht, starte Pult neu (Schritt 4). Prüfe, dass die Adresse genau `http://localhost:3001` lautet.
+
+**7. Das schwarze Fenster meldet, Pult laufe vielleicht schon.**
+Pult läuft noch in einem anderen Fenster. Schließe es oder starte den Computer neu und versuche es noch einmal.
+
+**8. „Verbindung testen“ wird rot.**
 - Schlüssel noch einmal einfügen. Achte darauf, dass vorn und hinten kein Leerzeichen steht.
 - Ist auf OpenRouter Guthaben da?
 - Steht dort eine Ausgabengrenze, die schon erreicht ist?
 - Im Schulnetz kann die Verbindung blockiert sein. Pult sagt dann meistens, woran es liegt. Probiere es zu Hause oder mit einem Handy-Hotspot.
 
-**10. Das Verbindungstest-Ergebnis sagt, das Modell kann keine Bilder lesen.**
+**9. Das Verbindungstest-Ergebnis sagt, das Modell kann keine Bilder lesen.**
 Pult braucht ein Modell, das Bilder versteht. Lass das vorausgewählte Modell stehen oder wähle ein anderes aus der empfohlenen Liste.
 
-**11. Pult antwortet nicht mehr, oder bricht ab.**
+**10. Pult antwortet nicht mehr, oder bricht ab.**
 Warte eine Minute, einige Anleitungen brauchen mehrere Minuten. Siehst du eine Fehlermeldung, klicke auf „Nochmal versuchen“ (falls vorhanden) oder schreibe „Bitte mach weiter“. Bei langen Gesprächen mit vielen Anhängen füllt sich das Gedächtnis (der Ring oben). Beginne dann ein neues Gespräch.
 
-**12. Das PDF sieht seltsam aus oder die Aufgaben sind falsch.**
+**11. Das PDF sieht seltsam aus oder die Aufgaben sind falsch.**
 Das kann vorkommen. Klicke auf **„Passt nicht“** und schreibe kurz, was falsch ist. Genau das brauchen wir.
 
-**13. Wie viel kostet das?**
+**12. Wie viel kostet das?**
 Das wissen wir noch nicht genau. Das KI-Modell im Vorschlag kostet laut Preisliste 0,30 und 1,20 US-Dollar je eine Million Textstücke (Tokens), also wenig. Oben im Ring siehst du den Verbrauch und die geschätzten Kosten des Gesprächs. Die echte Rechnung findest du bei OpenRouter.
 
-**14. Wo sind meine Dateien?**
-In deinem Benutzerordner im Ordner `pult-daten`. Dort liegen Klassen, Material und Gespräche. Der Pult-Programmordner enthält deine Daten nicht. Du kannst ihn bei einer neuen Fassung austauschen.
+**13. Wo sind meine Dateien?**
+In deinem Benutzerordner im Ordner `pult-daten`. Dort liegen Klassen, Material und Gespräche. Der Ordner „pult“ enthält deine Daten nicht. Du kannst ihn bei einer neuen Fassung austauschen.
 
-**15. Eine neue Fassung von Pult kommt.**
-Yannik schickt eine neue ZIP-Datei. Beende Pult, entpacke sie in einen neuen Ordner und führe dort `npm install` und `npm run build` aus. Deine Daten bleiben erhalten.
+**14. Eine neue Fassung von Pult kommt.**
+Yannik schickt eine neue ZIP-Datei. Schließe Pult, entpacke die neue Fassung in einen **neuen** Ordner und starte dort „Pult starten“ (beim ersten Mal wieder mit der kurzen Einrichtung). Deine Daten bleiben erhalten. Den alten Ordner kannst du danach löschen.
 
-**16. Ich kann das Terminal nicht öffnen / ich komme nicht weiter.**
+**15. Ich möchte lieber das Terminal benutzen.**
+Öffne im Ordner „pult“ ein Terminal (Windows: in die Adressleiste des Explorers `powershell` tippen und Enter; Mac: Terminal öffnen, `cd ` tippen, den Ordner hineinziehen, Enter). Dann `npm install` (nur beim ersten Mal) und `npm start`, danach im Browser `http://localhost:3001`. Meldet Windows, die Ausführung von Skripts sei deaktiviert, tippe einmal `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, bestätige mit `J`, und versuche es noch einmal.
+
+**16. Ich komme nicht weiter.**
 Schreib Yannik. Beim ersten Mal sitzt er gern dabei.

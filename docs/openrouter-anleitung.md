@@ -2,6 +2,28 @@
 
 Stand: 2026-10-14. OpenRouter ist ein Zugang zu vielen KI-Modellen mit **einem** Konto, **einem** Guthaben und **einem** Schlüssel. Pult nutzt es, um Material zu erstellen. Du brauchst etwa 10 Minuten und eine Zahlungsart (Karte, PayPal oder was OpenRouter gerade anbietet).
 
+## Was ist OpenRouter, und was zahle ich ein?
+
+**Kurz gesagt:** OpenRouter ist wie eine **Prepaid-Karte für KI**. Du lädst einmal ein kleines Guthaben auf, und Pult darf davon so viel verbrauchen, wie es für dein Material braucht. Mehr nicht.
+
+**Warum überhaupt?** Pult selbst ist nur die Werkstatt. Die „Denkarbeit“ macht eine KI (zum Beispiel von Anthropic, OpenAI oder DeepSeek), und die gehört Firmen, die dafür Geld nehmen, und zwar nach Verbrauch. Normalerweise bräuchtest du bei jeder Firma ein eigenes Konto. OpenRouter ist die **Sammelstelle**: ein Konto, ein Guthaben, ein Schlüssel, und dahinter viele KI-Modelle zur Auswahl. Pult schickt deine Anfrage an OpenRouter, und OpenRouter gibt sie an das Modell weiter.
+
+**Wie bei einem Prepaid-Handy:**
+- Du zahlst **vorher** ein kleines Guthaben ein. Es ist **kein Abo** und läuft nicht von allein weiter.
+- Es wird nur abgezogen, wenn Pult etwas erstellt. Eine Anfrage kostet wenige Cent oder weniger.
+- Ist das Guthaben leer, hört Pult einfach auf. Dann lädst du nach, wenn du magst.
+- Du kannst nie mehr verlieren, als du eingezahlt hast, und mit der **Ausgabengrenze** am Schlüssel (Schritt 3) setzt du dir sogar eine zweite Sicherung.
+
+**Wie viel einzahlen?** **10 Dollar** (ungefähr 9 bis 10 Euro, der Kurs schwankt). Das ist ein guter Start. Wie lange das reicht, wissen wir noch nicht genau: In unseren Tests kostete ein Prüflauf mit mehreren Gesprächen etwa 0,30 bis 0,60 Dollar. Du hast damit also eine Menge Spielraum. Lade nicht mehr auf, bis du gesehen hast, wie schnell das Guthaben sinkt. Das siehst du in Pult oben im Ring und bei OpenRouter unter „Activity“ (siehe unten).
+
+**Wichtig zu wissen**
+- **Ein ChatGPT- oder Claude-Abo, das du schon hast, zählt hier nicht.** Das sind getrennte Dinge. Für Pult brauchst du den Schlüssel von OpenRouter, und der wird getrennt abgerechnet.
+- OpenRouter berechnet beim Aufladen eine kleine **Gebühr**. Die siehst du vor der Zahlung.
+- Gezahlt wird in **US-Dollar**. Deine Karte rechnet um.
+- Deine Eingaben in Pult gehen über OpenRouter an die KI. Schülernamen, Noten und Fotos von Klassenarbeiten gehören deshalb **nie** hinein.
+
+---
+
 **Zu den Bildern:** Sie zeigen die echte Oberfläche von OpenRouter (Stand 2026-10-14, englisch). Rote Rahmen zeigen, worauf du klickst. Persönliche Angaben sind abgedeckt. Die Bezeichnungen können sich ändern. Weicht etwas ab, such das Wort in der Seitenleiste.
 
 ---

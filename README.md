@@ -16,6 +16,10 @@ Anbieter: Claude, OpenAI, OpenRouter, DeepSeek. "Erst einmal ohne KI ansehen" st
 Der Datenordner ist `~/pult-daten` (änderbar mit `PULT_HOME`). Ein alter Ordner `~/morte-daten` wird beim ersten Start einmal umbenannt.
 
 
+## Weitergeben
+
+`npm run zip` baut ein Paket für Tester (ZIP mit Doppelklick-Start für Windows und Mac). Siehe `docs/weitergeben.md`.
+
 ## Prüfen
 
 ```
