@@ -12,6 +12,7 @@ import { zipFiles, zipName, ZIP_MAX_FILES } from "../core/workspace/zip.ts";
 import { createClass, initWorkspace, listAllMaterial, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
 import pkg from "../../package.json" with { type: "json" };
 import { exportMarkdown } from "../core/history/export.ts";
+import { exportiere as exportiereStift, liste as listeStift, loescheHinweis, speichereHinweis, StiftFehler } from "../core/stift/index.ts";
 import { exportRueckmeldungen, RueckmeldungFehler, setzeRueckmeldung } from "../core/history/rueckmeldung.ts";
 import { applyEvent, deleteConversation, listConversations, loadConversation, newConversationId, saveConversation, settle, titleFrom, type StoredMessage } from "../core/history/index.ts";
 import { listSkills } from "../core/skills/index.ts";
@@ -380,6 +381,39 @@ export function createApp(state: AppState) {
   app.get("/api/history/:id/rueckmeldungen", async (c) => c.json({ rueckmeldungen: (await loadConversation(c.req.param("id")).catch(() => undefined))?.rueckmeldungen ?? [] }));
 
   // All feedback as a file for the developers. The sentences are in it only when asked for (?mitSatz=1).
+  // Dev pencil (only while testing, switched on with PULT_STIFT=1): notes with the place on the screen.
+  const stiftAn = () => process.env.PULT_STIFT === "1";
+  app.get("/api/stift/status", (c) => c.json({ aktiv: stiftAn() }));
+  app.get("/api/stift", async (c) => (stiftAn() ? c.json({ hinweise: await listeStift() }) : c.notFound()));
+  app.post("/api/stift", async (c) => {
+    if (!stiftAn()) return c.notFound();
+    try {
+      return c.json({ hinweis: await speichereHinweis(await c.req.json()) });
+    } catch (e) {
+      return c.json({ error: e instanceof StiftFehler ? e.message : "Der Hinweis konnte nicht gespeichert werden." }, 400);
+    }
+  });
+  app.delete("/api/stift/:id", async (c) => {
+    if (!stiftAn()) return c.notFound();
+    try {
+      await loescheHinweis(c.req.param("id"));
+      return c.json({ ok: true });
+    } catch (e) {
+      return c.json({ error: e instanceof StiftFehler ? e.message : "Das Löschen hat nicht geklappt." }, 400);
+    }
+  });
+  app.get("/api/stift/export", async (c) => {
+    if (!stiftAn()) return c.notFound();
+    const { markdown, zip } = await exportiereStift({ version: pkg.version });
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+    if (c.req.query("format") === "md") {
+      c.header("content-type", "text/markdown; charset=utf-8");
+      c.header("content-disposition", `attachment; filename="pult-hinweise-${stamp}.md"`);
+      return c.body(markdown);
+    }
+    return c.body(zip as unknown as ArrayBuffer, 200, { "content-type": "application/zip", "content-disposition": `attachment; filename="pult-hinweise-${stamp}.zip"`, "x-content-type-options": "nosniff" });
+  });
+
   app.get("/api/rueckmeldungen/export", async (c) => {
     const stamp = new Date().toISOString().slice(0, 10);
     c.header("content-type", "application/json; charset=utf-8");
