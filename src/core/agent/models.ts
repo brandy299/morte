@@ -8,8 +8,6 @@ import { CUSTOM_ID, customProvider } from "./custom.ts";
 import type { AgentSettings } from "./types.ts";
 
 export const PROVIDERS: Record<string, { name: string; make: () => Provider; recommended: string[] }> = {
-  anthropic: { name: "Claude (Anthropic)", make: anthropicProvider, recommended: ["claude-sonnet-5-5", "claude-haiku-4-5"] },
-  openai: { name: "OpenAI (ChatGPT)", make: openaiProvider, recommended: ["gpt-5.4", "gpt-5.4-mini"] },
   openrouter: { name: "OpenRouter (viele Modelle, ein Zugang)", make: openrouterProvider, recommended: [
       "deepseek/deepseek-v4.1-flash",
       "z-ai/glm-5.3-flash",
@@ -20,6 +18,8 @@ export const PROVIDERS: Record<string, { name: string; make: () => Provider; rec
       "google/gemini-2.5-flash",
     ],
   },
+  anthropic: { name: "Claude (Anthropic)", make: anthropicProvider, recommended: ["claude-sonnet-5-5", "claude-haiku-4-5"] },
+  openai: { name: "OpenAI (ChatGPT)", make: openaiProvider, recommended: ["gpt-5.4", "gpt-5.4-mini"] },
   "opencode-go": {
     name: "OpenCode Go (Abo für viele Modelle)",
     make: opencodeGoProvider,
