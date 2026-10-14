@@ -13,5 +13,5 @@ Stand: 2026-10-11 · Grundlage: Issue #52 (Material für INWI mit echten Bildsch
 ## Offen
 
 - **Woher die Bilder und die Stellen kommen:** zunächst von Hand oder mit einem Agenten auf einem Rechner mit Office. Ob sich die Stellen aus den Bedienungshilfen von Windows und Mac automatisch auslesen lassen, ist eine Vermutung und wird an PowerPoint ausprobiert (#52).
-- Übung „Wo klickst du?“ (die Stellen sind die Trefferflächen), Klickpfade im Text, Bild in Word-Handouts mit Zuschnitt.
+- ~~Übung „Wo klickst du?“~~ ist gebaut (Schritt `klick` in der interaktiven Übung): Die Stellen sind die Trefferflächen und zugleich echte Schaltflächen (Tastatur, Vorlesen), drei Versuche, danach zeigt die Übung die Stelle. Der Klickpfad kommt aus dem Feld `ort` der Beschreibung, nicht vom Modell. Ein Bild liegt höchstens einmal in der Datei, höchstens drei Bilder und 12 MB je Übung. Klickpfade in Arbeitsblatt-Text und Bild in Word-Handouts mit Zuschnitt fehlen noch.
 - Veraltete Bilder: Version und Datum stehen in der Beschreibung. Ein Hinweis bei nicht passender Version ist noch nicht gebaut.

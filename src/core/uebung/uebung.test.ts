@@ -1,5 +1,7 @@
 import { createRequire } from "node:module";
+import { createCanvas } from "@napi-rs/canvas";
 import { describe, expect, it } from "vitest";
+import type { Bild } from "../bilder/index.ts";
 import { PALETTE } from "../animation/html.ts";
 import { daten, FEEDBACK, renderUebung } from "./html.ts";
 import { lueckenTeile, MAX_SCHRITTE, parseUebung } from "./schema.ts";
@@ -196,3 +198,110 @@ describe.skipIf(!browser)("in a real browser", () => {
   }, 30000);
 });
 
+
+// ---- "Wo klickst du?" ----
+
+/** An invented window, drawn here: no real program, no real data. The ribbon is big, the button sits inside it. */
+const bildMit = (id: string, extra: Partial<Bild> = {}): Bild => {
+  const c = createCanvas(1200, 700);
+  const g = c.getContext("2d");
+  g.fillStyle = "#dddddd";
+  g.fillRect(0, 0, 1200, 700);
+  return {
+    id,
+    titel: "Fenster eines Beispielprogramms",
+    programm: "Beispiel",
+    breite: 1200,
+    hoehe: 700,
+    png: c.toBuffer("image/png"),
+    elemente: [
+      { id: "menueband", name: "Menüband", ort: "oben", rechteck: [0, 40, 1200, 110] },
+      { id: "fett", name: "Fett", ort: "Start › Schriftart › Fett", rechteck: [100, 60, 60, 40] },
+      { id: "status", name: "Statusleiste", rechteck: [0, 670, 1200, 30] },
+    ],
+    ...extra,
+  };
+};
+const klick = (bild: Bild | undefined, extra: object = {}) => ({ art: "klick", aufgabe: "Wo schaltest du den Text fett?", bildDaten: bild, ziel: "fett", ...extra });
+
+describe("klick step (Wo klickst du?)", () => {
+  it("accepts a place of the picture and carries the picture", () => {
+    const u = eins(klick(bildMit("fenster")));
+    expect(u.schritte[0]).toMatchObject({ art: "klick", ziel: "fett", aufgabe: "Wo schaltest du den Text fett?" });
+  });
+
+  it("explains in plain words: no picture, unknown place, a picture with a single place", () => {
+    expect(() => eins(klick(undefined))).toThrow("Schritt 1: Das Bild fehlt.");
+    expect(() => eins(klick(bildMit("fenster"), { ziel: "gibtsnicht" }))).toThrow(/Die Stelle „gibtsnicht“ gibt es im Bild „fenster“ nicht\. Vorhanden: menueband, fett, status\./);
+    expect(() => eins(klick(bildMit("fenster"), { ziel: undefined }))).toThrow("die gesuchte Stelle");
+    expect(() => eins(klick(bildMit("allein", { elemente: [{ id: "fett", name: "Fett", rechteck: [0, 0, 10, 10] }] })))).toThrow("nur eine Stelle");
+  });
+
+  it("limits the number and the total size of the pictures", () => {
+    const vier = ["a", "b", "c", "d"].map((id) => klick(bildMit(id)));
+    expect(() => parseUebung({ titel: "x", schritte: vier })).toThrow(/benutzt 4 verschiedene Bilder\. Höchstens 3/);
+    const gross = bildMit("gross", { png: Buffer.alloc(13 * 1024 * 1024) });
+    expect(() => eins(klick(gross))).toThrow("zusammen zu groß");
+    const dreiMal = ["a", "a", "a", "a"].map((id) => klick(bildMit(id)));
+    expect(parseUebung({ titel: "x", schritte: dreiMal }).schritte).toHaveLength(4); // the same picture is one picture
+  });
+
+  it("puts every picture into the page once and lists the places biggest first", () => {
+    const u = parseUebung({ titel: "x", schritte: [klick(bildMit("fenster")), klick(bildMit("fenster"), { ziel: "status", aufgabe: "Wo ist die Statusleiste?" })] });
+    const d = daten(u);
+    expect(Object.keys(d.bilder)).toEqual(["fenster"]);
+    expect(d.bilder.fenster!.src).toMatch(/^data:image\/png;base64,/);
+    expect(d.bilder.fenster!.elemente.map((e) => e.id)).toEqual(["menueband", "status", "fett"]); // by area, so the small button lies on top of the ribbon
+    expect(d.schritte[0]).toMatchObject({ art: "klick", bild: "fenster", ziel: "fett" });
+    expect(JSON.stringify(d.schritte)).not.toContain("data:image"); // the steps name the picture, they do not carry it
+    const html = renderUebung(u);
+    expect(html.match(/data:image\/png;base64,/g)).toHaveLength(1);
+  });
+});
+
+describe.skipIf(!browser)("klick step in a real browser", () => {
+  const open = async () => {
+    const page = await browser!.newPage({ viewport: { width: 420, height: 820 } });
+    const problems: string[] = [];
+    page.on("pageerror", (e: Error) => problems.push(String(e)));
+    await page.setContent(renderUebung(parseUebung({ titel: "Fenster", schritte: [klick(bildMit("fenster"))] })), { waitUntil: "load" });
+    return { page, problems };
+  };
+
+  it("takes a click on the small place inside the big one, not on the big one", async () => {
+    const { page, problems } = await open();
+    await page.click('button.stelle[aria-label="Fett"]');
+    expect(await page.textContent(".meldung")).toBe("Richtig: Fett.");
+    expect(await page.locator("button.stelle.ok").count()).toBe(1);
+    expect(await page.textContent(".erkl")).toContain("Start › Schriftart › Fett");
+    expect(problems).toEqual([]);
+    await page.close();
+  }, 30000);
+
+  it("counts a click beside every place as a miss, shows the wrong place, and gives three tries", async () => {
+    const { page } = await open();
+    await page.click('button.stelle[aria-label="Menüband"]', { position: { x: 200, y: 12 } });
+    expect(await page.textContent(".meldung")).toBe("Das war „Menüband“, nicht die gesuchte Stelle. Noch 2 Versuche.");
+    expect(await page.locator("button.stelle.bad").count()).toBe(1);
+    await page.click(".bildkarte img", { position: { x: 10, y: 100 } });
+    expect(await page.textContent(".meldung")).toBe("Dort ist nichts Gesuchtes. Noch 1 Versuch.");
+    await page.click('button.stelle[aria-label="Statusleiste"]');
+    expect(await page.textContent(".meldung")).toContain("Hier ist sie: Fett.");
+    expect(await page.locator("button.stelle.ok").count()).toBe(1);
+    expect(await page.locator("button.stelle:not(:disabled)").count()).toBe(0);
+    await page.close();
+  }, 30000);
+
+  it("works with the keyboard and keeps the result when going back", async () => {
+    const { page } = await open();
+    await page.focus('button.stelle[aria-label="Fett"]');
+    await page.keyboard.press("Enter");
+    expect(await page.textContent(".meldung")).toBe("Richtig: Fett.");
+    expect(await page.textContent(".ergebnis, .zahl")).toContain("Schritt 1 von 1");
+    await page.click('button:has-text("Fertig")');
+    expect(await page.textContent(".ergebnis")).toBe("Du hast 1 von 1 richtig.");
+    await page.click('button.link:has-text("Wo schaltest")');
+    expect(await page.locator("button.stelle.ok").count()).toBe(1);
+    await page.close();
+  }, 30000);
+});

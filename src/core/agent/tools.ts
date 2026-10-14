@@ -332,7 +332,7 @@ const bilderSuchen = defineTool({
   name: "bilder_suchen",
   label: "Bilder suchen",
   description:
-    "Lists the screenshots and pictures in the teacher's picture library (their own folder, nothing is searched on the internet). Each picture has an id, a title, the program, version and language, and the places in it (id, name, where it is). Use the ids in a schaubild of the art bild. If nothing fits, say so honestly and offer the sketch of the program window (oberflaeche) instead. Never invent a picture or an id.",
+    "Lists the screenshots and pictures in the teacher's picture library (their own folder, nothing is searched on the internet). Each picture has an id, a title, the program, version and language, and the places in it (id, name, where it is). Use the ids in a schaubild of the art bild, or in a klick step of an interactive exercise (uebung_erstellen). If nothing fits, say so honestly and offer the sketch of the program window (oberflaeche) instead. Never invent a picture or an id.",
   parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "Words to look for in title, program and place names. Leave out to list everything" })) }),
   async execute(_id, { suche }) {
     const { bilder, probleme } = await listBilder();
@@ -476,12 +476,28 @@ const praesentationErstellen = defineTool({
   },
 });
 
+/** Loads the pictures that steps of the art klick name. The model only gives the id; each picture is read once. */
+async function uebungMitBildern<T extends { schritte?: unknown }>(content: T): Promise<T> {
+  if (!Array.isArray(content.schritte)) return content;
+  const cache = new Map<string, Promise<Awaited<ReturnType<typeof ladeBild>>>>();
+  const schritte = await Promise.all(
+    content.schritte.map(async (s) => {
+      const st = s as { art?: string; bild?: string };
+      if (st?.art !== "klick") return s;
+      const key = String(st.bild);
+      if (!cache.has(key)) cache.set(key, ladeBild(st.bild));
+      return { ...(s as object), bildDaten: await cache.get(key) };
+    }),
+  );
+  return { ...content, schritte };
+}
+
 const uebungErstellen = defineTool({
   name: "uebung_erstellen",
   producesMaterial: true,
   label: "Interaktive Übung erstellen",
   description:
-    "Builds an interactive exercise as ONE html file that runs offline in any browser, on a phone too, shown in the preview. The students click through the steps one by one, get feedback at once (right or wrong, with a short explanation) and a score at the end. Nothing is stored or sent, no name is asked. You write only the content as steps; the program does the page. Step types: info (a short text and/or points to read), auswahl (multiple choice, one or several right answers), lueckentext (gaps written as {answer} or {answer|other accepted answer} in the text), zuordnung (pairs), offen (a free answer with a word counter, optional sample answer), checkliste (self-check). A good order: a short info as the start, input, then questions, then one open task and a checklist. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+    "Builds an interactive exercise as ONE html file that runs offline in any browser, on a phone too, shown in the preview. The students click through the steps one by one, get feedback at once (right or wrong, with a short explanation) and a score at the end. Nothing is stored or sent, no name is asked. You write only the content as steps; the program does the page. Step types: info (a short text and/or points to read), auswahl (multiple choice, one or several right answers), lueckentext (gaps written as {answer} or {answer|other accepted answer} in the text), zuordnung (pairs), offen (a free answer with a word counter, optional sample answer), checkliste (self-check), klick (\"Where do you click?\": the student clicks the right place in a screenshot from the picture library; give bild = id from bilder_suchen and ziel = id of the place to find; use it only when bilder_suchen found a fitting picture with at least two described places, never invent a picture). A good order: a short info as the start, input, then questions, then one open task and a checklist. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
   parameters: Type.Object({
     titel: Type.String({ description: "Title of the exercise" }),
     untertitel: Type.Optional(Type.String()),
@@ -512,6 +528,8 @@ const uebungErstellen = defineTool({
         hinweis: Type.Optional(Type.String({ description: "offen: a hint" })),
         musterloesung: Type.Optional(Type.String({ description: "offen: a sample answer the student can open" })),
         woerter: Type.Optional(Type.Number({ description: "offen: goal for the number of words" })),
+        bild: Type.Optional(Type.String({ description: "klick only: the id of a picture from bilder_suchen" })),
+        ziel: Type.Optional(Type.String({ description: "klick only: the id of the place in that picture the student has to find. aufgabe says what to find, e.g. Wo schaltest du den Text fett?" })),
       }),
       { description: "1 to 20 steps" },
     ),
@@ -521,7 +539,7 @@ const uebungErstellen = defineTool({
   }),
   async execute(_id, args) {
     const { reihe, datum, stunde, klasse, fach, ...content } = args;
-    const uebung = parseUebung(content);
+    const uebung = parseUebung(await uebungMitBildern(content));
     const file = await saveMaterial(Buffer.from(renderUebung(uebung), "utf8"), { art: "Uebung", titel: uebung.titel, klasse, fach, reihe, datum, stunde, ext: "html" });
     const entered = klasse && fach && reihe && datum
       ? await tryAttach(klasse, fach, reihe, { datum, stunde: stunde ?? "", thema: uebung.titel }, file.name, { append: true })
