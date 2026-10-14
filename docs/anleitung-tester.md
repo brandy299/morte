@@ -118,7 +118,8 @@ Installiere die aktuelle LTS-Version von nodejs.org (Schritt 1) und starte Pult 
 Starte „Pult starten“ noch einmal. Bleibt es: Mach ein Foto der **ersten roten Zeilen** und schick es Yannik. Häufige Ursache ist eine unterbrochene Internetverbindung. Im Schulnetz kann ein Schutzprogramm das Herunterladen blockieren. Versuche es zu Hause.
 
 **4. Windows oder Mac lässt „Pult starten“ nicht zu.**
-Siehe Schritt 4: Windows „Weitere Informationen“, „Trotzdem ausführen“. Mac: im Fenster auf „Fertig“ klicken, dann Systemeinstellungen, „Datenschutz & Sicherheit“, ganz nach unten, „Trotzdem öffnen“ (der Rechtsklick auf „Öffnen“ reicht bei neueren Macs nicht mehr). Auf dem Windows-Rechner einer Schule kann es sein, dass die IT das Ausführen verbietet. Dann geht es zu Hause.
+Siehe Schritt 4: Windows „Weitere Informationen“, „Trotzdem ausführen“. Mac: im Fenster auf „Fertig“ klicken, dann Systemeinstellungen, „Datenschutz & Sicherheit“, ganz nach unten, „Trotzdem öffnen“ (der Rechtsklick auf „Öffnen“ reicht bei neueren Macs nicht mehr).
+Findest du den Knopf nicht, geht es auf dem Mac auch so: Öffne das Programm **Terminal**, tippe `xattr -dr com.apple.quarantine ` (mit einem Leerzeichen am Ende), **ziehe den Ordner „pult“ aus dem Finder in das Terminal-Fenster** und drücke Enter. Danach „Pult starten“ doppelklicken. Auf dem Windows-Rechner einer Schule kann es sein, dass die IT das Ausführen verbietet. Dann geht es zu Hause.
 
 **5. Kann ich mein Claude-Abo oder ChatGPT-Abo nehmen?**
 Nein. Ein Abo ist kein Schlüssel. Du brauchst einen Schlüssel (API-Schlüssel), der getrennt abgerechnet wird. Anthropic erlaubt es Drittprogrammen nicht, Abo-Anmeldungen zu benutzen.
