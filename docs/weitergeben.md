@@ -24,7 +24,7 @@ Voraussetzung auf deinem Rechner: **Node.js** und **Git**. Einmalig, alles in ei
 - Windows (PowerShell): `git clone https://github.com/brandy299/morte.git; cd morte; npm install; npm run zip`
 - Mac: `git clone https://github.com/brandy299/morte.git && cd morte && npm install && npm run zip`
 
-Danach genügt ein Doppelklick auf **„Paket bauen“** im Ordner „morte“ (Windows `.bat`, Mac `.command`). Neue Fassung: `git pull` und wieder „Paket bauen“.
+Danach genügt ein Doppelklick auf **„Paket bauen“** im Ordner „scripts“ im Ordner „morte“ (Windows `.bat`, Mac `.command`). Neue Fassung: `git pull` und wieder „Paket bauen“.
 
 Die ZIP (`pult-<Version>-<Datum>-<Commit>.zip`, rund 3 MB) enthält die fertig gebaute Oberfläche, „Pult starten.bat“ und „Pult starten.command“ sowie die Anleitungen als einzelne HTML-Dateien („Anleitung.html“, „OpenRouter einrichten.html“, mit Bildern darin, entstanden aus `docs/anleitung-tester.md` und `docs/openrouter-anleitung.md`). Nicht dabei: `docs/`, Tests, Prüfläufe, deine Hinweise vom Stift, dein Datenordner. Schlüssel liegen nie im Projekt, die ZIP packt nur Dateien aus Git plus die gebaute Oberfläche.
 
