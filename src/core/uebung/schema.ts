@@ -2,12 +2,16 @@
  * Interactive exercise (Übung): the model writes the steps as data, this file checks them and explains every problem in plain words.
  * Pult draws the page (html.ts). The model never writes code, so this works with every model.
  */
+import type { Bild } from "../bilder/index.ts";
 import { MaterialError, str } from "../material/layout.ts";
 import { PALETTEN, type Palette } from "../animation/szene.ts";
 
-export const ARTEN = ["info", "auswahl", "lueckentext", "zuordnung", "offen", "checkliste"] as const;
+export const ARTEN = ["info", "auswahl", "lueckentext", "zuordnung", "offen", "checkliste", "klick"] as const;
 export type Art = (typeof ARTEN)[number];
 export const MAX_SCHRITTE = 20;
+/** Pictures in one exercise and their total size: the file carries them inside, so it must stay small enough to send. */
+export const MAX_BILDER = 3;
+export const MAX_BILD_BYTES = 12 * 1024 * 1024;
 
 export interface Info { art: "info"; titel: string; text: string; punkte: string[] }
 export interface Auswahl { art: "auswahl"; frage: string; optionen: { text: string; richtig: boolean; erklaerung?: string }[]; mehrere: boolean }
@@ -16,7 +20,9 @@ export interface Lueckentext { art: "lueckentext"; aufgabe?: string; teile: ({ t
 export interface Zuordnung { art: "zuordnung"; aufgabe: string; paare: { links: string; rechts: string }[] }
 export interface Offen { art: "offen"; aufgabe: string; hinweis?: string; musterloesung?: string; woerter?: number }
 export interface Checkliste { art: "checkliste"; titel: string; punkte: string[] }
-export type Schritt = Info | Auswahl | Lueckentext | Zuordnung | Offen | Checkliste;
+/** "Wo klickst du?": the pupil clicks the place `ziel` (the id of an element of the picture) in a screenshot from the library. */
+export interface Klick { art: "klick"; aufgabe: string; bild: Bild; ziel: string; hinweis?: string; erklaerung?: string }
+export type Schritt = Info | Auswahl | Lueckentext | Zuordnung | Offen | Checkliste | Klick;
 
 export interface Uebung {
   titel: string;
@@ -121,7 +127,20 @@ export function parseUebung(raw: unknown): Uebung {
       if (woerter !== undefined && (!Number.isInteger(woerter) || woerter < 1 || woerter > 300)) throw new MaterialError(`${stelle}: Die Wortzahl (woerter) muss eine ganze Zahl von 1 bis 300 sein.`);
       return { art, aufgabe: feld(stelle, s.aufgabe, "die Aufgabe", 300, true)!, hinweis: feld(stelle, s.hinweis, "der Hinweis", 200), musterloesung: feld(stelle, s.musterloesung, "die Musterlösung", 600), woerter };
     }
+    if (art === "klick") {
+      const bild = s.bildDaten as Bild | undefined;
+      if (!bild || !Buffer.isBuffer(bild.png) || !Array.isArray(bild.elemente)) throw new MaterialError(`${stelle}: Das Bild fehlt. Gib bild an, die Kennung eines Bildes aus bilder_suchen.`);
+      const aufgabe = feld(stelle, s.aufgabe, "die Aufgabe", 200, true)!;
+      const ziel = feld(stelle, s.ziel, "die gesuchte Stelle (ziel)", 40, true)!;
+      if (bild.elemente.length < 2) throw new MaterialError(`${stelle}: Im Bild „${bild.id}“ ist nur eine Stelle beschrieben. Zum Suchen braucht es mindestens zwei.`);
+      if (!bild.elemente.some((e) => e.id === ziel)) throw new MaterialError(`${stelle}: Die Stelle „${ziel}“ gibt es im Bild „${bild.id}“ nicht. Vorhanden: ${bild.elemente.map((e) => e.id).join(", ")}.`);
+      return { art, aufgabe, bild, ziel, hinweis: feld(stelle, s.hinweis, "der Hinweis", 200), erklaerung: feld(stelle, s.erklaerung, "die Erklärung", 300) };
+    }
     return { art: "checkliste", titel: feld(stelle, s.titel, "der Titel", 80, true)!, punkte: list(s.punkte, "Die Punkte", 2, 8, 120, stelle) };
   });
+  const bilder = new Map<string, Bild>();
+  for (const x of schritte) if (x.art === "klick") bilder.set(x.bild.id, x.bild);
+  if (bilder.size > MAX_BILDER) throw new MaterialError(`Die Übung benutzt ${bilder.size} verschiedene Bilder. Höchstens ${MAX_BILDER}, sonst wird die Datei zu groß. Teile das Thema in zwei Übungen.`);
+  if ([...bilder.values()].reduce((n, b) => n + b.png.length, 0) > MAX_BILD_BYTES) throw new MaterialError("Die Bilder sind zusammen zu groß für eine Datei (höchstens 12 MB). Nimm weniger oder kleinere Bilder.");
   return { titel: str(o.titel, "der Titel", 80, true)!, untertitel: str(o.untertitel, "der Untertitel", 120), palette: palette as Palette, schritte };
 }

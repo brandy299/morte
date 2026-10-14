@@ -171,8 +171,64 @@
     return null;
   }
 
-  var BUILD = { info: buildInfo, auswahl: buildAuswahl, lueckentext: buildLuecke, zuordnung: buildZuordnung, offen: buildOffen, checkliste: buildCheckliste };
-  var PHASE = { info: "Zum Lesen", auswahl: "Prüfe dich", lueckentext: "Prüfe dich", zuordnung: "Prüfe dich", offen: "Deine Aufgabe", checkliste: "Selbsteinschätzung" };
+  // "Wo klickst du?": the pupil clicks the place in a screenshot. Every place is also a real button (keyboard, screen reader);
+  // a click beside all places counts as a miss. Three tries, then the place is shown.
+  var VERSUCHE = 3;
+  function buildKlick(s, box, st) {
+    var B = D.bilder[s.bild];
+    if (s.hinweis) box.appendChild(el("p", "hinweis", s.hinweis));
+    var wrap = el("div", "bildkarte"); wrap.setAttribute("role", "group"); wrap.setAttribute("aria-label", "Bildschirmfoto: " + B.titel + ". Wähle die gesuchte Stelle.");
+    var img = el("img"); img.alt = ""; img.src = B.src; img.width = B.breite; img.height = B.hoehe; img.draggable = false;
+    wrap.appendChild(img);
+    var buttons = {};
+    B.elemente.forEach(function (e) {
+      var b = el("button", "stelle"); b.type = "button"; b.setAttribute("aria-label", e.name);
+      b.style.left = (e.rechteck[0] / B.breite * 100) + "%"; b.style.top = (e.rechteck[1] / B.hoehe * 100) + "%";
+      b.style.width = (e.rechteck[2] / B.breite * 100) + "%"; b.style.height = (e.rechteck[3] / B.hoehe * 100) + "%";
+      b.addEventListener("click", function (ev) { ev.stopPropagation(); treffer(e.id); });
+      wrap.appendChild(b); buttons[e.id] = { b: b, e: e };
+    });
+    wrap.addEventListener("click", function () { treffer(""); });
+    box.appendChild(wrap);
+    var msg = el("p", "meldung"); msg.setAttribute("role", "status"); box.appendChild(msg);
+    var info = el("div", "info-klick"); box.appendChild(info);
+    var zielE = buttons[s.ziel].e;
+    function name(id) { return id && buttons[id] ? buttons[id].e.name : ""; }
+    function zeige() {
+      var n = st.val.length, last = st.val[n - 1];
+      st.val.forEach(function (id) { if (id && id !== s.ziel) buttons[id].b.classList.add("bad"); });
+      if (st.done) {
+        Object.keys(buttons).forEach(function (k) { buttons[k].b.disabled = true; });
+        buttons[s.ziel].b.classList.remove("bad"); buttons[s.ziel].b.classList.add("ok");
+        wrap.style.cursor = "default";
+        var gefunden = st.richtig === 1;
+        msg.textContent = gefunden ? "Richtig: " + zielE.name + "." : "Das war nicht die gesuchte Stelle. Hier ist sie: " + zielE.name + ".";
+        msg.className = "meldung " + (gefunden ? "ok" : "bad");
+        info.textContent = "";
+        info.appendChild(el("p", "erkl", "Du findest „" + zielE.name + "“ hier: " + (zielE.ort || "im markierten Bereich") + "."));
+        if (s.erklaerung) info.appendChild(el("p", "erkl", s.erklaerung));
+        say(msg.textContent);
+        return;
+      }
+      if (n) {
+        msg.textContent = (last ? "Das war „" + name(last) + "“, nicht die gesuchte Stelle." : "Dort ist nichts Gesuchtes.") + " Noch " + (VERSUCHE - n) + (VERSUCHE - n === 1 ? " Versuch." : " Versuche.");
+        msg.className = "meldung bad"; say(msg.textContent);
+      }
+    }
+    function treffer(id) {
+      if (st.done) return;
+      st.val.push(id); st.von = 1;
+      if (id === s.ziel) { st.done = true; st.richtig = 1; }
+      else if (st.val.length >= VERSUCHE) { st.done = true; st.richtig = 0; }
+      zeige();
+    }
+    st.val = st.val || [];
+    if (st.val.length) zeige();
+    return null;
+  }
+
+  var BUILD = { klick: buildKlick, info: buildInfo, auswahl: buildAuswahl, lueckentext: buildLuecke, zuordnung: buildZuordnung, offen: buildOffen, checkliste: buildCheckliste };
+  var PHASE = { info: "Zum Lesen", auswahl: "Prüfe dich", lueckentext: "Prüfe dich", zuordnung: "Prüfe dich", offen: "Deine Aufgabe", checkliste: "Selbsteinschätzung", klick: "Wo klickst du?" };
 
   function titelVon(s) { return s.titel || s.frage || s.aufgabe || "Lücken ausfüllen"; }
 

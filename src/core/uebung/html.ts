@@ -19,15 +19,30 @@ export const FEEDBACK = { okInk: "#164c26", okBg: "#e1efd9", badInk: "#7a2509", 
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** The data for the page. Pairs get their right sides in a fixed shuffled order, which is never the order of the left side. */
-export function daten(u: Uebung): { schritte: (Schritt & { rechts?: string[] })[] } {
-  return {
-    schritte: u.schritte.map((s, i) => {
-      if (s.art !== "zuordnung") return s;
-      const perm = mischen(s.paare.length, `${u.titel}-${i}`);
-      return { ...s, rechts: perm.map((k) => s.paare[k]!.rechts) };
-    }),
-  };
+/** A picture for the page: the file as a data address, and the places biggest first, so a small place (a button) lies on top of the big one it sits in (the ribbon). */
+export interface BildDaten { src: string; breite: number; hoehe: number; titel: string; elemente: { id: string; name: string; ort?: string; rechteck: [number, number, number, number] }[] }
+type SeitenSchritt = Exclude<Schritt, { art: "klick" }> | { art: "klick"; aufgabe: string; bild: string; ziel: string; hinweis?: string; erklaerung?: string };
+
+/** The data for the page. Pairs get their right sides in a fixed shuffled order, which is never the order of the left side. Every picture is in the page once, however many steps use it. */
+export function daten(u: Uebung): { schritte: (SeitenSchritt & { rechts?: string[] })[]; bilder: Record<string, BildDaten> } {
+  const bilder: Record<string, BildDaten> = {};
+  const schritte = u.schritte.map((s, i): SeitenSchritt & { rechts?: string[] } => {
+    if (s.art === "klick") {
+      const b = s.bild;
+      bilder[b.id] ??= {
+        src: `data:image/png;base64,${b.png.toString("base64")}`,
+        breite: b.breite,
+        hoehe: b.hoehe,
+        titel: b.titel,
+        elemente: [...b.elemente].sort((x, y) => y.rechteck[2] * y.rechteck[3] - x.rechteck[2] * x.rechteck[3]).map((e) => ({ id: e.id, name: e.name, ort: e.ort, rechteck: e.rechteck })),
+      };
+      return { art: "klick", aufgabe: s.aufgabe, bild: b.id, ziel: s.ziel, hinweis: s.hinweis, erklaerung: s.erklaerung };
+    }
+    if (s.art !== "zuordnung") return s;
+    const perm = mischen(s.paare.length, `${u.titel}-${i}`);
+    return { ...s, rechts: perm.map((k) => s.paare[k]!.rechts) };
+  });
+  return { schritte, bilder };
 }
 
 const css = (u: Uebung) => {
@@ -85,6 +100,12 @@ button:disabled{opacity:.45;cursor:default}
 button:hover:not(:disabled){filter:brightness(.96)}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .ergebnis{font-size:22px;font-weight:600}
+.bildkarte{position:relative;display:block;max-width:100%;margin:8px 0 10px;border:2px solid var(--soft);border-radius:8px;overflow:hidden;line-height:0;cursor:crosshair;background:#fff}
+.bildkarte img{display:block;width:100%;height:auto}
+button.stelle{position:absolute;margin:0;padding:0;min-height:0;min-width:0;border:0;border-radius:0;background:transparent;cursor:crosshair}
+button.stelle:hover:not(:disabled){filter:none}
+button.stelle.ok{outline:4px solid var(--okInk);outline-offset:-2px;background:rgba(22,76,38,.2)}
+button.stelle.bad{outline:4px solid var(--badInk);outline-offset:-2px;background:rgba(122,37,9,.2)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.karte{animation:ein .25s ease-out}@keyframes ein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
 @media print{button,.fortschritt{display:none}}
