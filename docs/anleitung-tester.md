@@ -46,8 +46,14 @@ Ein Claude- oder ChatGPT-Abo funktioniert hier **nicht**. Es muss ein Schlüssel
 
 - **Windows:** Doppelklick auf **„Pult starten“** (das Symbol sieht aus wie ein kleines Zahnrad oder Fenster, die Endung ist `.bat`).
   - Es kann ein blaues Fenster erscheinen: **„Der Computer wurde durch Windows geschützt“**. Klicke auf **„Weitere Informationen“** und dann auf **„Trotzdem ausführen“**. Das Programm ist von Yannik, es hat nur keine Firma dahinter.
-- **Mac:** **Rechtsklick** auf **„Pult starten“**, dann **„Öffnen“**, dann im Fenster noch einmal **„Öffnen“**. Ein normaler Doppelklick wird beim ersten Mal vom Mac abgelehnt.
-  - Klappt das nicht: **Systemeinstellungen**, **„Datenschutz & Sicherheit“**, ganz nach unten scrollen, bei „Pult starten“ auf **„Trotzdem öffnen“** klicken. Dann noch einmal versuchen.
+- **Mac:** Doppelklick auf **„Pult starten“** (die Datei heißt „Pult starten.command“). Beim ersten Mal erscheint ein Fenster **„‚Pult starten.command‘ nicht geöffnet“** (Apple konnte nicht überprüfen, ob die Datei frei von Schadsoftware ist). Das ist normal, weil Pult nicht über den App Store kommt. So geht es weiter:
+  1. Klicke im Fenster auf **„Fertig“**. **Nicht** auf „In den Papierkorb legen“.
+  2. Öffne das **Apfel-Menü** (oben links), dann **„Systemeinstellungen“**, dann **„Datenschutz & Sicherheit“**.
+  3. **Scrolle ganz nach unten.** Dort steht, dass „Pult starten.command“ blockiert wurde. Klicke auf **„Trotzdem öffnen“** (je nach Version heißt der Knopf „Dennoch öffnen“).
+  4. Gib dein **Passwort** ein oder nutze **Touch ID**, und klicke im nächsten Fenster auf **„Öffnen“**.
+  5. Es öffnet sich das schwarze Fenster. Fragt dich der Mac, ob das **Terminal auf Dokumente oder Downloads zugreifen** darf, klicke auf **„OK“** oder **„Erlauben“**.
+
+  Das musst du nur **einmal** machen. Danach geht der Doppelklick ohne Warnung.
 
 Es öffnet sich ein **schwarzes Fenster** mit Text. Das ist normal und gehört dazu.
 
@@ -112,7 +118,7 @@ Installiere die aktuelle LTS-Version von nodejs.org (Schritt 1) und starte Pult 
 Starte „Pult starten“ noch einmal. Bleibt es: Mach ein Foto der **ersten roten Zeilen** und schick es Yannik. Häufige Ursache ist eine unterbrochene Internetverbindung. Im Schulnetz kann ein Schutzprogramm das Herunterladen blockieren. Versuche es zu Hause.
 
 **4. Windows oder Mac lässt „Pult starten“ nicht zu.**
-Siehe Schritt 4: Windows „Weitere Informationen“, „Trotzdem ausführen“. Mac Rechtsklick, „Öffnen“, oder Systemeinstellungen, „Datenschutz & Sicherheit“, „Trotzdem öffnen“. Auf dem Windows-Rechner einer Schule kann es sein, dass die IT das Ausführen verbietet. Dann geht es zu Hause.
+Siehe Schritt 4: Windows „Weitere Informationen“, „Trotzdem ausführen“. Mac: im Fenster auf „Fertig“ klicken, dann Systemeinstellungen, „Datenschutz & Sicherheit“, ganz nach unten, „Trotzdem öffnen“ (der Rechtsklick auf „Öffnen“ reicht bei neueren Macs nicht mehr). Auf dem Windows-Rechner einer Schule kann es sein, dass die IT das Ausführen verbietet. Dann geht es zu Hause.
 
 **5. Kann ich mein Claude-Abo oder ChatGPT-Abo nehmen?**
 Nein. Ein Abo ist kein Schlüssel. Du brauchst einen Schlüssel (API-Schlüssel), der getrennt abgerechnet wird. Anthropic erlaubt es Drittprogrammen nicht, Abo-Anmeldungen zu benutzen.
