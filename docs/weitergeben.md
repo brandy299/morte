@@ -56,3 +56,49 @@ Wichtig: Der Befehl nimmt den **Stand deines Ordners**. Hast du etwas noch nicht
 ## Ein späterer Installer
 
 Eine Fassung ohne Node.js und ohne Einrichtung beim Start ist die Phase „Installer“ in `ROADMAP.md`. Bis dahin ist das hier der einfachste Weg.
+
+## Nachricht an die Tester (zum Kopieren)
+
+Schick die Datei als **Link** (OneDrive, Google Drive, Dropbox), nicht als Mailanhang. Dazu diesen Text, den du nach Bedarf anpasst:
+
+> **Betreff:** Pult ausprobieren, dein Feedback hilft
+>
+> Hallo ⟨Name⟩,
+>
+> danke, dass du mitmachst! Pult ist ein KI-Arbeitsplatz für Lehrkräfte: Du sagst, was du brauchst (ein Arbeitsblatt, eine Klausur mit Erwartungshorizont, eine Stundenplanung …), und Pult erstellt druckfertiges Material. Es läuft auf deinem eigenen Computer, deine Gespräche und dein Material bleiben dort.
+>
+> **Wichtig:** Das ist ein **Probelauf**. Pult kann Fehler machen oder etwas nicht können. Genau das will ich von dir wissen.
+>
+> **Was du brauchst:**
+> 1. Einen Windows- oder Mac-Computer und etwa **30 Minuten** Zeit beim ersten Mal.
+> 2. **Node.js** (ein kleines Hilfsprogramm, einmal von nodejs.org installieren, Version „LTS“).
+> 3. Einen **Zugang zur KI** über OpenRouter. Das ist wie eine Prepaid-Karte: Du lädst einmal etwa 10 Dollar auf, und es wird nur abgezogen, was verbraucht wird. Kein Abo. Wie das geht, steht in der Anleitung mit Bildern.
+>
+> **So geht es:**
+> 1. Lade die Datei hier herunter: ⟨Link⟩
+> 2. Entpacke sie (Windows: Rechtsklick, „Alle extrahieren“).
+> 3. Öffne **„Anleitung.html“** und folge ihr Schritt für Schritt. Beim ersten Start richtet sich Pult selbst ein, das dauert ein paar Minuten.
+>
+> **Bitte probier drei Dinge aus:**
+> 1. Ein **Arbeitsblatt** zu einem Thema aus deinem Unterricht.
+> 2. Eine **Stunde oder Reihe planen** für eine deiner Klassen.
+> 3. Eine **Klausur** mit Erwartungshorizont. Pult fragt nach deinen Bewertungsregeln.
+>
+> **Datenschutz, bitte unbedingt:** **Keine Schülernamen, keine Noten und keine Fotos von Klassenarbeiten**, weder im Gespräch noch in angehängten Dateien. Deine Eingaben gehen an den KI-Anbieter.
+>
+> **Mir zurückmelden:**
+> - Klick unter jedem Material auf **„Passt“** oder **„Passt nicht“** (bei „Passt nicht“ ein Satz, warum).
+> - Wenn etwas hakt: Foto vom Bildschirm, und schreib auf, was du gerade gemacht hast.
+> - Am Ende: Was war gut, was war nervig, was hat gefehlt?
+>
+> Ich sitze gern beim ersten Start dabei. Melde dich einfach.
+>
+> Danke!
+> ⟨Dein Name⟩
+
+## Was du beim ersten Tester selbst sagen und beobachten solltest
+
+- **Vorher sagen:** „Das ist ein Probelauf. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.“ Und: „Keine Schülernamen oder Noten eingeben.“
+- **Nicht helfen, solange es geht.** Schau zu, wo die Person hängen bleibt, und schreib es auf. Die Stellen, an denen du eingreifst, sind die Fehler in der Anleitung.
+- **Typische Stolpersteine:** Warnung von Windows oder Mac beim ersten Öffnen, Node.js fehlt, das schwarze Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen.
+- **Danach fragen:** Wie lange hat es bis zum ersten Material gedauert? Hat sie die Rückfragen verstanden? Würde sie das Material so im Unterricht benutzen?
