@@ -48,7 +48,7 @@ Dazu: Klassen mit Stand und Reihen, dein **Stundenplan als Kalender (iCal)** mit
 
 ## Ausprobieren
 
-Das brauchst du: **Node.js** (nodejs.org, Version „LTS“) und einen Zugang zu einer KI (zum Beispiel OpenRouter, einmal etwa 10 Dollar Guthaben). Dann **eine Zeile** im Terminal:
+Das brauchst du: einen Zugang zu einer KI (zum Beispiel OpenRouter, einmal etwa 10 Dollar Guthaben). Dann **eine Zeile** im Terminal. Fehlt Node.js, holt die Zeile es selbst:
 
 - **Windows** (PowerShell):
   ```
