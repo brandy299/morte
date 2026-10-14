@@ -48,7 +48,7 @@ Wichtig: Der Befehl nimmt den **Stand deines Ordners**. Hast du etwas noch nicht
 
 ## Bekannte Stolpersteine
 
-- **Mac:** Beim ersten Öffnen lehnt der Mac „Pult starten.command“ ab (nicht von Apple geprüft). Lösung steht in der Anleitung (Rechtsklick, „Öffnen“).
+- **Mac:** Beim ersten Öffnen zeigt der Mac „‚Pult starten.command‘ nicht geöffnet“ (nicht von Apple geprüft). Auf neueren Macs geht der Weg über „Fertig“, dann Systemeinstellungen, Datenschutz & Sicherheit, ganz unten „Trotzdem öffnen“. Das steht so in der Anleitung (auf einem echten Mac von Yannik am 2026-10-14 gesehen; die Schritte danach noch nicht).
 - **Windows:** SmartScreen zeigt „Der Computer wurde durch Windows geschützt“. Lösung steht in der Anleitung.
 - **Schul-Rechner:** Dort sperrt die IT oft das Ausführen von Startdateien oder das Herunterladen. Dann zu Hause probieren.
 - **Nicht getestet:** Der Doppelklick auf echtem Windows und echtem Mac. Der Ablauf (auspacken, einrichten, starten) ist auf Linux durchgespielt.
