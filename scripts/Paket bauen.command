@@ -1,6 +1,6 @@
 #!/bin/bash
 # Doppelklick baut die ZIP-Datei für Tester (Mac). Beim ersten Mal richtet sich das Projekt selbst ein.
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")/.." || exit 1
 warten() { echo; read -n 1 -s -r -p "Zum Schließen eine Taste drücken."; }
 if ! command -v node >/dev/null 2>&1; then
   echo
