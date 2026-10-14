@@ -9,21 +9,45 @@ function Install-Pult {
   $ziel = if ($env:PULT_ZIEL) { $env:PULT_ZIEL } else { Join-Path $HOME "Pult" }
   $quelle = if ($env:PULT_QUELLE) { $env:PULT_QUELLE } else { "https://codeload.github.com/brandy299/morte/zip/refs/heads/main" }
 
-  if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-    Write-Host ""
-    Write-Host "Node.js ist noch nicht installiert. Pult braucht es einmalig."
-    Write-Host "Lade auf https://nodejs.org die Version LTS herunter, installiere sie, schliesse dieses Fenster,"
-    Write-Host "oeffne die PowerShell NEU und fuege die Zeile noch einmal ein."
-    Start-Process "https://nodejs.org"
-    return
+  # Kein passendes Node.js auf dem Rechner? Dann laedt dieses Skript eine eigene Kopie in den Pult-Ordner (nichts wird installiert, nichts anderes veraendert).
+  function Node-Ok {
+    if (-not (Get-Command node -ErrorAction SilentlyContinue)) { return $false }
+    return ([int](& node -p "process.versions.node.split('.')[0]") -ge 22)
   }
-  $major = [int](& node -p "process.versions.node.split('.')[0]")
-  if ($major -lt 22) {
-    Write-Host ""
-    Write-Host "Dein Node.js ist zu alt (Version $(& node -v)). Pult braucht Version 22 oder neuer."
-    Write-Host "Lade auf https://nodejs.org die Version LTS herunter, installiere sie und fuege die Zeile noch einmal ein."
-    Start-Process "https://nodejs.org"
-    return
+  $eigenes = Join-Path $ziel "node"
+  if (-not (Node-Ok) -and (Test-Path (Join-Path $eigenes "node.exe"))) { $env:Path = "$eigenes;$env:Path" }
+  if (-not (Node-Ok)) {
+    Write-Host "Pult braucht das Hilfsprogramm Node.js. Ich lade es fuer Pult dazu (rund 30 MB) ..."
+    $plattform = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "win-arm64" } else { "win-x64" }
+    $nodedir = if ($env:PULT_NODE_QUELLE) { $env:PULT_NODE_QUELLE } else { "https://nodejs.org/dist/latest-v22.x" }
+    $ntmp = Join-Path $env:TEMP "pult-node"
+    if (Test-Path $ntmp) { Remove-Item $ntmp -Recurse -Force }
+    New-Item -ItemType Directory -Path $ntmp | Out-Null
+    try {
+      $summen = (Invoke-WebRequest -Uri "$nodedir/SHASUMS256.txt" -UseBasicParsing).Content -split "`n"
+      $zeile = $summen | Where-Object { $_ -match "$plattform\.zip\s*$" } | Select-Object -First 1
+      $summe, $name = ($zeile.Trim() -split "\s+")
+      $nzip = Join-Path $ntmp "node.zip"
+      Invoke-WebRequest -Uri "$nodedir/$name" -OutFile $nzip -UseBasicParsing
+    } catch {
+      Write-Host ""
+      Write-Host "Der Download von Node.js hat nicht geklappt. Pruefe deine Internetverbindung oder installiere Node.js von https://nodejs.org."
+      return
+    }
+    if ((Get-FileHash $nzip -Algorithm SHA256).Hash.ToLower() -ne $summe.ToLower()) {
+      Write-Host "Die heruntergeladene Datei ist nicht in Ordnung (Pruefsumme stimmt nicht). Versuche es noch einmal."
+      return
+    }
+    Expand-Archive -Path $nzip -DestinationPath (Join-Path $ntmp "x") -Force
+    New-Item -ItemType Directory -Path $ziel -Force | Out-Null
+    if (Test-Path $eigenes) { Remove-Item $eigenes -Recurse -Force }
+    Move-Item (Get-ChildItem (Join-Path $ntmp "x") -Directory | Select-Object -First 1).FullName $eigenes
+    Remove-Item $ntmp -Recurse -Force -ErrorAction SilentlyContinue
+    $env:Path = "$eigenes;$env:Path"
+    if (-not (Node-Ok)) {
+      Write-Host "Node.js konnte nicht eingerichtet werden. Installiere es von https://nodejs.org."
+      return
+    }
   }
 
   Write-Host "Ich hole Pult von GitHub ..."
@@ -46,8 +70,8 @@ function Install-Pult {
   }
 
   New-Item -ItemType Directory -Path $ziel -Force | Out-Null
-  # Alte Programmdateien weg (so bleibt nichts Veraltetes liegen), die installierten Teile bleiben.
-  Get-ChildItem $ziel -Force | Where-Object { $_.Name -ne "node_modules" } | Remove-Item -Recurse -Force
+  # Alte Programmdateien weg (so bleibt nichts Veraltetes liegen), die installierten Teile und die eigene Node.js-Kopie bleiben.
+  Get-ChildItem $ziel -Force | Where-Object { $_.Name -ne "node_modules" -and $_.Name -ne "node" } | Remove-Item -Recurse -Force
   Get-ChildItem $quellordner.FullName -Force | Copy-Item -Destination $ziel -Recurse -Force
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 

@@ -4,7 +4,7 @@ Es gibt zwei Wege. **Der erste ist der empfohlene**, weil er ohne die Warnungen 
 
 ## Weg 1 (empfohlen): eine Zeile im Terminal
 
-Das Repo ist öffentlich, die Tester holen Pult direkt von GitHub. Sie brauchen nur **Node.js** (nodejs.org, „LTS“) und diese Zeile im Terminal:
+Das Repo ist öffentlich, die Tester holen Pult direkt von GitHub. Sie brauchen nur diese Zeile im Terminal. Fehlt **Node.js** (oder ist es zu alt), lädt das Skript selbst eine eigene Kopie in den Ordner „Pult“ (`node/`, von nodejs.org, mit Prüfsumme, ohne Installation und ohne Administratorrechte). Ein vorhandenes Node wird nicht angefasst:
 
 - Windows (PowerShell): `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
 - Mac (Terminal): `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
@@ -42,10 +42,10 @@ Als E-Mail-Anhang können manche Programme sie blockieren (Startdateien darin). 
 >
 > **Wichtig:** Das ist ein **Probelauf**. Pult kann Fehler machen oder etwas nicht können. Genau das will ich von dir wissen. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.
 >
-> **Was du brauchst:** einen Windows- oder Mac-Computer und beim ersten Mal etwa **30 Minuten**. **Node.js**, ein kleines Hilfsprogramm (einmal von nodejs.org installieren, Version „LTS“). Einen **Zugang zur KI** über OpenRouter, wie eine Prepaid-Karte: einmal etwa 10 Dollar aufladen, es wird nur abgezogen, was verbraucht wird, kein Abo.
+> **Was du brauchst:** einen Windows- oder Mac-Computer und beim ersten Mal etwa **30 Minuten**. Einen **Zugang zur KI** über OpenRouter, wie eine Prepaid-Karte: einmal etwa 10 Dollar aufladen, es wird nur abgezogen, was verbraucht wird, kein Abo.
 >
 > **So geht es:** Die Schritt-für-Schritt-Anleitung mit Bildern steht hier: https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
-> Kurz: Node.js installieren, bei OpenRouter einen Schlüssel besorgen, dann im Terminal (Windows: PowerShell, Mac: Terminal) **eine Zeile** einfügen:
+> Kurz: bei OpenRouter einen Schlüssel besorgen, dann im Terminal (Windows: PowerShell, Mac: Terminal) **eine Zeile** einfügen:
 > - Windows: `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
 > - Mac: `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
 >
@@ -64,5 +64,5 @@ Als E-Mail-Anhang können manche Programme sie blockieren (Startdateien darin). 
 
 - **Vorher sagen:** „Das ist ein Probelauf. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.“ Und: „Keine Schülernamen oder Noten eingeben.“
 - **Nicht helfen, solange es geht.** Schau zu, wo die Person hängen bleibt, und schreib es auf. Die Stellen, an denen du eingreifst, sind die Fehler in der Anleitung.
-- **Typische Stolpersteine:** Node.js fehlt oder das Terminal wurde nach der Installation nicht neu geöffnet, „Eingabeaufforderung“ statt PowerShell, das Terminal-Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen, GitHub ist im Schulnetz gesperrt.
+- **Typische Stolpersteine:** der Download von Node.js (nodejs.org) ist im Netz gesperrt, „Eingabeaufforderung“ statt PowerShell, das Terminal-Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen, GitHub ist im Schulnetz gesperrt.
 - **Danach fragen:** Wie lange bis zum ersten Material? Hat sie die Rückfragen verstanden? Würde sie das Material so im Unterricht benutzen?

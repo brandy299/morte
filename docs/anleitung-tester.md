@@ -8,13 +8,9 @@ Du brauchst nur **eine Zeile**, die du in ein Fenster einfügst. Mehr musst du n
 
 ## Teil 1: Einmal vorbereiten
 
-### Schritt 1: Node.js installieren
+### Schritt 1: Nichts zu tun
 
-Node.js ist ein kleines Hilfsprogramm, ohne das Pult nicht läuft. Du merkst später nichts davon.
-
-1. Öffne **nodejs.org** im Browser.
-2. Klicke auf den grünen Knopf mit **„LTS“** (nicht „Current“). Die Datei wird heruntergeladen.
-3. Öffne die heruntergeladene Datei und klicke dich durch die Installation. Überall „Weiter“ oder „Continue“, alle Voreinstellungen lassen. Ein Passwort deines Computers wird eventuell abgefragt.
+Pult braucht ein kleines Hilfsprogramm namens Node.js. Die Zeile aus Schritt 4 holt es selbst, falls es auf deinem Computer fehlt (rund 40 MB, ohne Installation und ohne Passwort). Du musst dafür nirgends hin.
 
 ### Schritt 2: Einen Schlüssel besorgen
 
@@ -102,11 +98,11 @@ Schreib uns auf, was gut und was schlecht war. Das hilft mehr als alles andere.
 
 ## FAQ: Wenn etwas nicht klappt
 
-**1. Es erscheint „Node.js ist noch nicht installiert“.**
-Dann fehlt Schritt 1, oder das Terminal kennt Node.js noch nicht. Installiere Node.js von nodejs.org (Version „LTS“), **schließe das Terminal, öffne es neu** (Schritt 3) und füge die Zeile aus Schritt 4 noch einmal ein. Hilft das nicht: Computer neu starten, dann noch einmal.
+**1. Es erscheint „Der Download von Node.js hat nicht geklappt“ oder „Dieses System kenne ich nicht“.**
+Dann konnte Pult das Hilfsprogramm nicht selbst holen. Häufige Ursache ist eine gesperrte Seite im Schulnetz oder eine unterbrochene Verbindung. Versuche es zu Hause noch einmal. Alternativ installierst du Node.js von nodejs.org (grüner Knopf „LTS“, überall „Weiter“), **schließt das Terminal, öffnest es neu** (Schritt 3) und fügst die Zeile aus Schritt 4 noch einmal ein.
 
 **2. Es erscheint „Dein Node.js ist zu alt“.**
-Installiere die aktuelle LTS-Version von nodejs.org (Schritt 1), öffne ein neues Terminal und füge die Zeile aus Schritt 4 noch einmal ein.
+Das sollte nicht mehr vorkommen, denn die Zeile holt dann selbst eine passende Version. Erscheint es trotzdem, installiere die aktuelle LTS-Version von nodejs.org, öffne ein neues Terminal und füge die Zeile aus Schritt 4 noch einmal ein.
 
 **3. Die Einrichtung beim ersten Start bricht ab, mit roten Zeilen.**
 Füge die Zeile aus Schritt 4 noch einmal ein. Bleibt es: Mach ein Foto der **ersten roten Zeilen** und schick es Yannik. Häufige Ursache ist eine unterbrochene Internetverbindung. Im Schulnetz kann ein Schutzprogramm das Herunterladen blockieren. Versuche es zu Hause.
