@@ -6,3 +6,5 @@ dist/
 .DS_Store
 evals/ergebnisse/
 *.zip
+/Anleitung.html
+/OpenRouter einrichten.html

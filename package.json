@@ -15,7 +15,8 @@
     "typecheck": "tsc",
     "eval": "tsx scripts/eval.mts",
     "bogen": "tsx scripts/bogen.mts",
-    "zip": "tsx scripts/zip.mts"
+    "zip": "tsx scripts/zip.mts",
+    "anleitung": "tsx scripts/anleitung.mts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "1.1.0",

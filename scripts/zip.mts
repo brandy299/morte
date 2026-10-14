@@ -1,8 +1,8 @@
 // Builds the package for testers: `npm run zip`. Result: pult-<version>-<date>-<commit>.zip in the project folder.
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { markdownZuHtml } from "../src/release/anleitung.tsx";
+import { anleitungenBauen } from "../src/release/anleitungen.ts";
 import { paketDateien, zipPaket } from "../src/release/paket.ts";
 import pkg from "../package.json" with { type: "json" };
 
@@ -20,25 +20,10 @@ if (spawnSync("npm", ["run", "build"], { stdio: "inherit", shell: win }).status 
 const walk = (dir: string): string[] => readdirSync(dir).flatMap((n) => (statSync(join(dir, n)).isDirectory() ? walk(join(dir, n)) : [join(dir, n)]));
 const tracked = git("ls-files", "-z").split("\0").filter(Boolean);
 const paths = [...paketDateien(tracked), ...walk("dist").map((p) => p.split("\\").join("/"))];
-const files = paths.map((path) => ({ path, data: readFileSync(path) }));
+const files: { path: string; data: Uint8Array }[] = paths.map((path) => ({ path, data: readFileSync(path) }));
 
 // The guides as single HTML files in the main folder: they open by double click, with the pictures inside.
-const ANLEITUNGEN = [
-  { quelle: "docs/anleitung-tester.md", ziel: "Anleitung.html", titel: "Pult: Anleitung" },
-  { quelle: "docs/openrouter-anleitung.md", ziel: "OpenRouter einrichten.html", titel: "Pult: OpenRouter einrichten" },
-];
-const zielVon = (href: string) => ANLEITUNGEN.find((a) => a.quelle.endsWith(`/${href}`))?.ziel;
-for (const a of ANLEITUNGEN) {
-  const html = markdownZuHtml(readFileSync(a.quelle, "utf8"), {
-    titel: a.titel,
-    bild: (src) => {
-      const file = `docs/${src}`;
-      return existsSync(file) ? `data:image/png;base64,${readFileSync(file).toString("base64")}` : undefined;
-    },
-    link: zielVon,
-  });
-  files.push({ path: a.ziel, data: Buffer.from(html, "utf8") });
-}
+for (const a of anleitungenBauen()) files.push({ path: a.ziel, data: a.data });
 
 const name = `pult-${pkg.version}-${new Date().toISOString().slice(0, 10)}-${git("rev-parse", "--short", "HEAD").trim()}.zip`;
 writeFileSync(name, zipPaket("pult", files));
