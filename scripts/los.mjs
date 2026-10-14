@@ -1,7 +1,8 @@
 // Starts Pult for people who do not use a terminal: sets everything up on the first run, starts the server, opens the browser.
 // Called by "Pult starten.bat" (Windows) and "Pult starten.command" (Mac). Only Node built-ins here, because it runs before `npm install`.
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,12 +27,35 @@ function npm(args) {
   return spawnSync("npm", args, { cwd: root, stdio: "inherit", shell: win }).status === 0;
 }
 
-if (!existsSync(join(root, "node_modules"))) {
-  say("Beim ersten Start richtet sich Pult ein. Das dauert zwei bis fünf Minuten.");
+// The stamp remembers which package-lock.json the installed packages belong to, so an update with new libraries installs them too.
+const lockHash = () => {
+  try {
+    return createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).digest("hex");
+  } catch {
+    return "";
+  }
+};
+const stamp = join(root, "node_modules", ".pult-lock");
+const installed = () => {
+  try {
+    return readFileSync(stamp, "utf8").trim();
+  } catch {
+    return "";
+  }
+};
+
+const firstRun = !existsSync(join(root, "node_modules"));
+if (firstRun || installed() !== lockHash()) {
+  say(firstRun ? "Beim ersten Start richtet sich Pult ein. Das dauert zwei bis fünf Minuten." : "Pult holt noch ein paar neue Teile. Das dauert einen Moment.");
   say("Es laufen viele Zeilen durch, auch gelbe Warnungen. Das ist normal. Bitte warte, bis es weitergeht.");
   say();
   if (!npm(["install", "--no-audit", "--no-fund"])) {
     fail("Die Einrichtung hat nicht geklappt. Prüfe deine Internetverbindung und starte noch einmal.\nHilft das nicht, mach ein Foto von den ersten roten Zeilen oben und schick es an Yannik.");
+  }
+  try {
+    writeFileSync(stamp, lockHash());
+  } catch {
+    // Without the stamp the next start only runs the (quick) install again.
   }
 }
 
@@ -39,6 +63,9 @@ if (!existsSync(join(root, "dist", "web", "index.html"))) {
   say("Pult baut die Oberfläche auf. Das dauert etwa eine Minute.");
   if (!npm(["run", "build"])) fail("Der Aufbau hat nicht geklappt. Mach ein Foto von den roten Zeilen oben und schick es an Yannik.");
 }
+
+// The guides as single HTML files next to the program, built from docs/ when the package did not bring them. Best effort.
+if (!existsSync(join(root, "Anleitung.html")) && existsSync(join(root, "docs", "anleitung-tester.md"))) npm(["run", "anleitung", "--silent"]);
 
 const server = spawn(process.execPath, [join(root, "scripts", "start.mjs")], { cwd: root, stdio: "inherit" });
 const stop = () => server.kill();
