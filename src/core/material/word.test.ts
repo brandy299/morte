@@ -1,6 +1,7 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { strFromU8, unzipSync } from "fflate";
 import mammoth from "mammoth";
 import { describe, expect, it } from "vitest";
 import { parseArbeitsblatt } from "./arbeitsblatt.ts";
@@ -82,5 +83,76 @@ describe("Word files", () => {
     expect(t.indexOf("Euer Auftrag")).toBeLessThan(t.indexOf("Steckbrief"));
     expect(t).toContain("Stellenanzeigen");
     expect(t).toContain("2 Stunden");
+  });
+
+  describe("formulas", () => {
+    const formulaSheet = () =>
+      parseArbeitsblatt({
+        titel: "Zinsen", fach: "Mathematik", klasse: "11b",
+        einleitung: "Es gilt:\n\\[K_n = K_0 \\cdot \\left(1 + \\frac{p}{100}\\right)^n\\]\nMehr Text.",
+        merkkasten: { titel: "pq-Formel", text: "Für \\(x^2 + px + q = 0\\) gilt:\n$$x_{1,2} = -\\frac{p}{2} \\pm \\sqrt{\\left(\\frac{p}{2}\\right)^2 - q}$$" },
+        aufgaben: [
+          { text: "Berechne \\(\\frac{3}{4} + \\frac{1}{8}\\) und \\(\\sqrt{50}\\).", hilfe: "Es ist \\(50 = 25 \\cdot 2\\).", punkte: 2, zeilen: 1, loesung: "\\(\\frac{7}{8}\\)" },
+          { text: "Kaputt: \\(\\frac{1}{2\\) und 5 $ sowie =SUMME($A$1:$A$5).", zeilen: 1 },
+        ],
+      });
+    const files = async (b: Buffer) => unzipSync(new Uint8Array(b));
+    const xml = async (b: Buffer) => strFromU8((await files(b))["word/document.xml"]!);
+
+    it("formulas become pictures with the LaTeX as alternative text, in the text and in boxes, hints and answers", async () => {
+      const key = await arbeitsblattWord(formulaSheet(), { lehrerexemplar: true });
+      const doc = await xml(key);
+      const alt = [...doc.matchAll(/<wp:docPr [^>]*descr="([^"]*)"/g)].map((m) => m[1]!.replaceAll("&amp;", "&"));
+      for (const tex of ["K_n = K_0 \\cdot \\left(1 + \\frac{p}{100}\\right)^n", "x^2 + px + q = 0", "\\frac{3}{4} + \\frac{1}{8}", "\\sqrt{50}", "50 = 25 \\cdot 2", "\\frac{7}{8}"]) expect(alt).toContain(tex);
+      const png = Object.keys(await files(key)).filter((n) => n.startsWith("word/media/") && n.endsWith(".png"));
+      expect(png.length).toBeGreaterThanOrEqual(6);
+      const text = await textOf(key);
+      expect(text).not.toContain("\\sqrt"); // no raw LaTeX in the text (the broken one in task 2 stays raw on purpose)
+      expect(text).not.toContain("\\cdot");
+    });
+
+    it("a formula in a sentence sits on the text line, a formula on its own line stands centered in a paragraph of its own", async () => {
+      const doc = await xml(await arbeitsblattWord(formulaSheet()));
+      expect(doc).toMatch(/<w:position w:val="-\d+"\/>/); // lowered by its depth: the fraction in the task
+      const own = [...doc.matchAll(/<w:p>(?:(?!<\/w:p>).)*?<w:jc w:val="center"\/>(?:(?!<\/w:p>).)*?<\/w:p>/g)].filter((m) => m[0].includes("<w:drawing>"));
+      expect(own.length).toBe(2); // Zinsformel and pq-Formel
+      expect(own.every((m) => !m[0].includes("<w:t"))).toBe(true); // nothing but the picture
+    });
+
+    it("pictures are sharp: at least 300 dpi", async () => {
+      const f = await files(await arbeitsblattWord(formulaSheet()));
+      const doc = strFromU8(f["word/document.xml"]!);
+      const rel = strFromU8(f["word/_rels/document.xml.rels"]!);
+      const m = /<wp:extent cx="(\d+)" cy="\d+"\/>(?:(?!<\/w:drawing>).)*?<wp:docPr [^>]*descr="K_n[^"]*"(?:(?!<\/w:drawing>).)*?r:embed="(rId\d+)"/s.exec(doc)!;
+      const target = new RegExp(`Id="${m[2]}"[^>]*Target="([^"]+)"|Target="([^"]+)"[^>]*Id="${m[2]}"`).exec(rel)!;
+      const data = f[`word/${target[1] ?? target[2]}`]!;
+      const widthPx = new DataView(data.buffer, data.byteOffset).getUint32(16); // PNG header: width
+      const inches = Number(m[1]) / 914400;
+      expect(widthPx / inches).toBeGreaterThanOrEqual(300);
+    });
+
+    it("wrong LaTeX, prices and Excel references stay text and break nothing", async () => {
+      const t = await textOf(await arbeitsblattWord(formulaSheet()));
+      expect(t).toContain("\\(\\frac{1}{2\\) und 5 $ sowie =SUMME($A$1:$A$5).");
+    });
+
+    it("text without a formula gives the same file as before: a dollar sign alone does not change it", async () => {
+      const plain = parseArbeitsblatt({ titel: "Preise", fach: "INWI", einleitung: "Kosten 5 $ und \\$ 10.", aufgaben: [{ text: "=SUMME($A$1:$A$5)", zeilen: 1 }] });
+      const doc = await xml(await arbeitsblattWord(plain));
+      expect(doc).toContain("Kosten 5 $ und \\$ 10.");
+      expect(doc).not.toContain("<w:drawing>");
+    });
+
+    it("exam answer key and cells of tables take formulas too", async () => {
+      const k = parseKlausur(
+        { titel: "Klausur", fach: "Mathematik", klasse: "11b", aufgaben: [{ titel: "pq", teile: [{ text: "Löse \\(x^2 + 2x - 8 = 0\\).", punkte: 4, bereich: "I", zeilen: 3, erwartung: "\\[x_{1,2} = -1 \\pm \\sqrt{9}\\]\nalso \\(x_1 = 2\\)." }] }] },
+        rules,
+      );
+      for (const buf of [await klausurWord(k), await erwartungshorizontWord(k)]) {
+        const doc = await xml(buf);
+        expect(doc).toContain("<w:drawing>");
+        expect(await textOf(buf)).not.toContain("\\sqrt");
+      }
+    });
   });
 });
