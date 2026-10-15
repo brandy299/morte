@@ -34,35 +34,53 @@ Als E-Mail-Anhang können manche Programme sie blockieren (Startdateien darin). 
 
 ## Nachricht an die Tester (zum Kopieren)
 
-> **Betreff:** Pult ausprobieren, dein Feedback hilft
->
-> Hallo ⟨Name⟩,
->
-> danke, dass du mitmachst! Pult ist ein KI-Arbeitsplatz für Lehrkräfte: Du sagst, was du brauchst (ein Arbeitsblatt, eine Klausur mit Erwartungshorizont, eine Stundenplanung …), und Pult erstellt druckfertiges Material. Es läuft auf deinem eigenen Computer, deine Gespräche und dein Material bleiben dort.
->
-> **Wichtig:** Das ist ein **Probelauf**. Pult kann Fehler machen oder etwas nicht können. Genau das will ich von dir wissen. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.
->
-> **Was du brauchst:** einen Windows- oder Mac-Computer und beim ersten Mal etwa **30 Minuten**. Einen **Zugang zur KI** über OpenRouter, wie eine Prepaid-Karte: einmal etwa 10 Dollar aufladen, es wird nur abgezogen, was verbraucht wird, kein Abo.
->
-> **So geht es:** Die Schritt-für-Schritt-Anleitung mit Bildern steht hier: https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
-> Kurz: bei OpenRouter einen Schlüssel besorgen, dann im Terminal (Windows: PowerShell, Mac: Terminal) **eine Zeile** einfügen:
-> - Windows: `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
-> - Mac: `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
->
-> Beim ersten Start richtet sich Pult selbst ein, das dauert ein paar Minuten, dann öffnet sich der Browser.
->
-> **Bitte probier aus:** 1. ein Arbeitsblatt zu einem Thema aus deinem Unterricht, 2. eine Stunde oder Reihe planen, 3. eine Klausur mit Erwartungshorizont.
->
-> **Datenschutz, bitte unbedingt:** **Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten**, weder im Gespräch noch in Anhängen. Deine Eingaben gehen an den KI-Anbieter.
->
-> **Rückmeldung:** Unter jedem Material auf „Passt“ oder „Passt nicht“ klicken (bei „Passt nicht“ ein Satz, warum). Wenn etwas hakt: ein Foto vom Bildschirm und ein Satz, was du gerade getan hast. Am Ende: Was war gut, was war nervig, was hat gefehlt?
->
-> Ich sitze gern beim ersten Start dabei, melde dich einfach. Danke!
-> ⟨Dein Name⟩
+Reiner Text, ohne Formatierung: Kopieren (Knopf oben rechts im Kasten), in die Mail einfügen, ⟨Name⟩ und ⟨Dein Name⟩ ersetzen. Die Befehle stehen je in einer eigenen Zeile, damit das Mailprogramm sie nicht umbricht.
+
+```text
+Betreff: Pult ausprobieren, dein Feedback hilft
+
+Hallo ⟨Name⟩,
+
+kurz gesagt: Schlüssel bei OpenRouter holen, eine Zeile ins Terminal kopieren, drei Materialien ausprobieren und mir sagen, was hakt.
+
+Pult ist ein KI-Arbeitsplatz für Lehrkräfte. Du sagst, was du brauchst (Arbeitsblatt, Klausur mit Erwartungshorizont, Stundenplanung …), und Pult erstellt druckfertiges Material. Es läuft auf deinem Computer, dein Material bleibt dort. Das ist ein Probelauf: Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.
+
+DU BRAUCHST
+- einen Windows- oder Mac-Computer und beim ersten Mal etwa 30 Minuten
+- einen Schlüssel von OpenRouter, wie eine Prepaid-Karte: einmal etwa 10 Dollar aufladen, kein Abo
+
+SO GEHT ES
+1. Schlüssel besorgen, Anleitung mit Bildern:
+   https://github.com/brandy299/morte/blob/main/docs/openrouter-anleitung.md
+2. Terminal öffnen (Windows: PowerShell, Mac: Terminal), die Zeile für dein System einfügen und Enter drücken.
+   Windows:
+   irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex
+   Mac:
+   curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash
+   Pult holt alles Nötige selbst und öffnet nach ein paar Minuten den Browser. Lass das Terminal offen, solange du arbeitest.
+3. In Pult den Schlüssel einfügen, „Verbindung testen“ klicken, speichern.
+
+Ganze Anleitung und Hilfe bei Problemen:
+https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
+
+BITTE PROBIER AUS
+1. ein Arbeitsblatt zu einem Thema aus deinem Unterricht
+2. eine Stunde oder Reihe planen
+3. eine Klausur mit Erwartungshorizont
+
+DATENSCHUTZ
+Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten. Deine Eingaben gehen an den KI-Anbieter.
+
+RÜCKMELDUNG
+Unter jedem Material „Passt“ oder „Passt nicht“ klicken, bei „Passt nicht“ ein Satz, warum. Hakt etwas: ein Foto vom Bildschirm und ein Satz, was du gerade getan hast. Am Ende: Was war gut, was war nervig, was hat gefehlt?
+
+Ich sitze gern beim ersten Start dabei, melde dich einfach. Danke!
+⟨Dein Name⟩
+```
 
 ## Was du beim ersten Tester selbst sagen und beobachten solltest
 
 - **Vorher sagen:** „Das ist ein Probelauf. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.“ Und: „Keine Schülernamen oder Noten eingeben.“
 - **Nicht helfen, solange es geht.** Schau zu, wo die Person hängen bleibt, und schreib es auf. Die Stellen, an denen du eingreifst, sind die Fehler in der Anleitung.
-- **Typische Stolpersteine:** der Download von Node.js (nodejs.org) ist im Netz gesperrt, „Eingabeaufforderung“ statt PowerShell, das Terminal-Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen, GitHub ist im Schulnetz gesperrt.
+- **Typische Stolpersteine:** die Zeile kann Node.js nicht selbst laden, weil das Schulnetz den Download sperrt (FAQ 1 der Anleitung), „Eingabeaufforderung“ statt PowerShell, das Terminal-Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen, GitHub ist im Schulnetz gesperrt.
 - **Danach fragen:** Wie lange bis zum ersten Material? Hat sie die Rückfragen verstanden? Würde sie das Material so im Unterricht benutzen?
