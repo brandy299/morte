@@ -32,6 +32,49 @@ Als E-Mail-Anhang können manche Programme sie blockieren (Startdateien darin). 
 
 **Mac:** Beim ersten Öffnen zeigt der Mac „‚Pult starten.command‘ nicht geöffnet“. Der Weg: „Fertig“, dann Systemeinstellungen, Datenschutz & Sicherheit, ganz unten „Trotzdem öffnen“ (auf einem echten Mac am 2026-10-14 gesehen, die Schritte danach nicht). **Windows:** SmartScreen „Der Computer wurde durch Windows geschützt“, „Weitere Informationen“, „Trotzdem ausführen“ (nicht gesehen).
 
+## Kurzanleitung für Tester (zum Kopieren)
+
+Ein Befehl pro System, sehr einfach gehalten. Zum Beispiel als Anhang der Mail oder als Nachricht. Der Notfall-Block am Ende gilt nur für den Mac (`scripts/pult-zuruecksetzen.sh`); für Windows gibt es kein Reset-Skript.
+
+```text
+Pult installieren: so geht es
+
+Kurz gesagt: Terminal öffnen, eine Zeile einfügen, Enter drücken. Mehr nicht. Alles Nötige holt Pult selbst.
+
+WINDOWS
+1. Startmenü anklicken, "PowerShell" tippen, Enter drücken.
+2. Diese Zeile einfügen (Rechtsklick ins Fenster) und Enter drücken:
+
+irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex
+
+MAC
+1. Cmd + Leertaste drücken, "Terminal" tippen, Enter drücken.
+2. Diese Zeile einfügen (Cmd + V) und Enter drücken:
+
+curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash
+
+WAS PASSIERT
+Pult lädt sich herunter und richtet sich ein. Das dauert 2 bis 5 Minuten, es laufen viele Zeilen durch, auch gelbe Warnungen. Das ist normal. Wenn "Pult läuft" steht, öffnet sich der Browser von selbst. Lass das Terminal-Fenster offen, solange du mit Pult arbeitest.
+
+BEIM ERSTEN START
+Pult fragt nach einem Schlüssel (OpenRouter). Den bekommst du hier, mit Bildern:
+https://github.com/brandy299/morte/blob/main/docs/openrouter-anleitung.md
+
+NÄCHSTES MAL
+Dieselbe Zeile noch einmal einfügen. Das holt zugleich die neueste Fassung. Deine Sachen bleiben erhalten.
+
+WENN ETWAS HAKT
+Foto vom Bildschirm machen und mir schicken, dazu ein Satz, was du gerade getan hast. Hilfe zu den häufigsten Problemen:
+https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
+
+NUR IM NOTFALL (nur Mac)
+Wenn gar nichts mehr geht, setzt diese Zeile Pult komplett zurück, als wäre es nie installiert gewesen. Dein Schlüssel wird dabei entfernt, du musst ihn danach neu einfügen. Deine Daten landen in einem Sicherungsordner auf dem Schreibtisch. Vorher Pult beenden (Terminal-Fenster schließen):
+
+curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/scripts/pult-zuruecksetzen.sh | bash
+
+Danach die Zeile unter "Mac" noch einmal einfügen.
+```
+
 ## Nachricht an die Tester (zum Kopieren)
 
 Reiner Text, ohne Formatierung: Kopieren (Knopf oben rechts im Kasten), in die Mail einfügen, ⟨Name⟩ und ⟨Dein Name⟩ ersetzen. Die Befehle stehen je in einer eigenen Zeile, damit das Mailprogramm sie nicht umbricht.
