@@ -272,6 +272,13 @@ a.file-card { text-decoration: none; color: inherit; }
 .preview-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
 .preview-head strong { flex: 1; font-family: var(--serif); font-weight: 600; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .preview-head .ghost { padding: 7px 14px; font-size: 14.5px; }
+.video-status { font-size: 13.5px; color: var(--ink-soft); max-width: 240px; }
+.video-status:empty { display: none; }
+.preview-head { position: relative; }
+.video-hinweis { position: absolute; top: calc(100% + 8px); right: 12px; z-index: 5; width: min(340px, calc(100% - 24px)); padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
+.preview-head .video-hinweis strong { flex: none; white-space: normal; overflow: visible; font-size: 16px; }
+.video-hinweis p { margin: 0; font-size: 14.5px; color: var(--ink-soft); }
+.video-hinweis .ghost { align-self: flex-end; }
 .preview iframe { flex: 1; border: 0; background: #fff; }
 
 .preview-wait { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; }

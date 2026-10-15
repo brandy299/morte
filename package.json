@@ -31,6 +31,7 @@
     "ical.js": "^2.2.1",
     "mammoth": "^1.13.0",
     "mathjax-full": "3.2.2",
+    "mediabunny": "1.61.4",
     "pdfjs-dist": "^6.4.299",
     "pdfkit": "^0.20.2",
     "pptxgenjs": "4.0.1",

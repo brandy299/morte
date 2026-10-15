@@ -1,4 +1,8 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { MaterialError } from "../material/layout.ts";
 import { PALETTE, renderHtml, TAKT } from "./html.ts";
@@ -190,5 +194,39 @@ describe.skipIf(!browser)("in a real browser", () => {
       await page.close();
     }
     expect(shots[0]!.equals(shots[1]!)).toBe(true);
+  }, 60000);
+  it("shows the same picture after jumping back as when coming from the start", async () => {
+    const { page } = await open();
+    await page.evaluate("window.seek(9500)");
+    const vorwaerts = await page.screenshot();
+    await page.evaluate("window.seek(window.dauer - 1); window.seek(9500)");
+    expect((await page.screenshot()).equals(vorwaerts)).toBe(true);
+    await page.close();
+  }, 60000);
+
+  it("draws single pictures on request when opened for the video", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "pult-video-"));
+    const file = join(dir, "stueck.html");
+    await writeFile(file, html);
+    const page = await browser!.newPage();
+    await page.goto(`${pathToFileURL(file).href}?export=1`);
+    await page.evaluate("window.ready");
+    // the page is its own parent here, so it answers itself; count the colors of the picture at 9.5 s and at 0 s
+    const farben = await page.evaluate(`Promise.all([0, 9500].map((ms, nr) => new Promise((ok) => {
+      addEventListener("message", (e) => {
+        if (e.data?.pult !== "bild-fertig" || e.data.nr !== nr) return;
+        const c = new OffscreenCanvas(e.data.bild.width, e.data.bild.height); const x = c.getContext("2d"); x.drawImage(e.data.bild, 0, 0);
+        const d = x.getImageData(0, 0, c.width, c.height).data; let dunkel = 0;
+        for (let i = 0; i < d.length; i += 4) if (d[i] < 90 && d[i + 1] < 90 && d[i + 2] < 90) dunkel++;
+        ok([c.width, c.height, dunkel]);
+      });
+      postMessage({ pult: "bild", nr, ms }, "*");
+    })))`) as [number, number, number][];
+    expect(farben[0]!.slice(0, 2)).toEqual([W, H]);
+    // at 0 s nothing is shown yet, at 9.5 s there is dark text on the picture
+    expect(farben[0]![2]).toBe(0);
+    expect(farben[1]![2]).toBeGreaterThan(500);
+    await page.close();
+    await rm(dir, { recursive: true });
   }, 60000);
 });

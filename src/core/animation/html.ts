@@ -1,7 +1,8 @@
 /**
  * Draws an explainer piece (see szene.ts) as ONE html file that runs offline in any browser:
  * an svg stage, fonts and anime.js inline. The timeline is planned here once; the page only plays it.
- * `window.seek(ms)` shows any moment, so the same description always gives the same pictures (and a video can be cut from it later).
+ * `window.seek(ms)` shows any moment, so the same description always gives the same pictures.
+ * Opened with `export` in the query, the page draws single pictures on request (postMessage) for the video (src/web/video.ts).
  * No random values and no clock in the picture.
  */
 import { readFileSync } from "node:fs";
@@ -25,7 +26,8 @@ export const TAKT: Record<Tempo, { schritt: number; ein: number; halten: number 
 const AUS = 500;
 
 interface Schritt { id: string; at: number; dauer: number; art: "ein" | "pfeil" }
-interface Ablauf { szenen: { id: string; start: number; ende: number; schritte: Schritt[] }[]; dauer: number }
+/** `voll`: the moment the scene is fully built, shown when a paused piece jumps to it. */
+interface Ablauf { szenen: { id: string; start: number; voll: number; ende: number; schritte: Schritt[] }[]; dauer: number }
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const n = (v: number) => Math.round(v * 10) / 10;
@@ -50,8 +52,9 @@ function planen(szenen: GesetzteSzene[], tempo: Tempo): Ablauf {
         at += t.schritt;
       });
     }
-    const ende = at - t.schritt + t.ein * 1.6 + t.halten + (i < alle.length - 1 ? AUS : 0);
-    out.push({ id: s.id, start, ende, schritte });
+    const voll = at - t.schritt + t.ein * 1.6;
+    const ende = voll + t.halten + (i < alle.length - 1 ? AUS : 0);
+    out.push({ id: s.id, start, voll, ende, schritte });
     start = ende;
   });
   return { szenen: out, dauer: start };
@@ -154,7 +157,9 @@ ${bilder.join("\n")}
 const PLAN=${JSON.stringify(ablauf)};
 const {createTimeline}=anime;
 const $=(s,r=document)=>r.querySelector(s);
-const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const frage=new URLSearchParams(location.search);
+const ex=frage.has("export");
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches&&!ex;
 const starts=PLAN.szenen.map(s=>s.start);
 const sicht=(el,v)=>{el.style.opacity=v;};
 document.querySelectorAll(".ar").forEach(p=>{p.style.strokeDasharray="1";p.style.strokeDashoffset="1";});
@@ -171,7 +176,7 @@ if(reduced){
   addEventListener("keydown",e=>{if(e.key==="ArrowRight")zeige(idx+1);if(e.key==="ArrowLeft")zeige(idx-1);});
   window.seek=()=>{};window.dauer=0;
 }else{
-  tl=createTimeline({autoplay:false,defaults:{ease:"outQuad"}});
+  tl=createTimeline({autoplay:false,defaults:{ease:"outQuad",composition:"none"}});
   PLAN.szenen.forEach((s,k)=>{
     tl.add("#"+s.id,{opacity:[0,1],duration:1},s.start);
     s.schritte.forEach(x=>{
@@ -184,7 +189,7 @@ if(reduced){
     });
     if(k<PLAN.szenen.length-1)tl.add("#"+s.id,{opacity:[1,0],duration:${AUS}},s.ende-${AUS});
   });
-  const zu=i=>{idx=Math.max(0,Math.min(starts.length-1,i));tl.seek(starts[idx]+1);};
+  const zu=i=>{idx=Math.max(0,Math.min(starts.length-1,i));tl.seek(tl.paused?PLAN.szenen[idx].voll:starts[idx]+1);};
   const spielen=()=>{if(tl.currentTime>=PLAN.dauer-1)tl.seek(0);tl.play();spiel.textContent="Pause";};
   const pause=()=>{tl.pause();spiel.textContent="Weiter spielen";};
   const jetzt=()=>{let k=0;starts.forEach((s,i)=>{if(tl.currentTime>=s)k=i;});return k;};
@@ -194,9 +199,24 @@ if(reduced){
   addEventListener("keydown",e=>{if(e.key===" "&&e.target.tagName!=="BUTTON"){e.preventDefault();spiel.click();}if(e.key==="ArrowRight")$("#weiter").click();if(e.key==="ArrowLeft")$("#zurueck").click();});
   window.seek=ms=>{tl.seek(ms);};window.dauer=PLAN.dauer;
   tl.seek(0);
-  document.fonts.ready.then(()=>{if(!new URLSearchParams(location.search).has("still"))spielen();});
+  document.fonts.ready.then(()=>{if(!frage.has("still")&&!ex)spielen();});
 }
 window.ready=document.fonts.ready.then(()=>true);
+window.ready.then(()=>{if(parent!==window)parent.postMessage({pult:"erklaerstueck",dauer:PLAN.dauer},"*");});
+if(ex){
+  const stil=[...document.querySelectorAll("style")].map(s=>s.textContent).join("");
+  addEventListener("message",async e=>{
+    if(e.source!==parent||!e.data||e.data.pult!=="bild")return;
+    window.seek(e.data.ms);
+    const c=$("#stage").cloneNode(true);c.setAttribute("width","${W}");c.setAttribute("height","${H}");
+    const st=document.createElementNS("http://www.w3.org/2000/svg","style");st.textContent=stil;c.prepend(st);
+    const img=new Image();img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(new XMLSerializer().serializeToString(c));
+    await img.decode();
+    const leinwand=new OffscreenCanvas(${W},${H});leinwand.getContext("2d").drawImage(img,0,0);
+    const bild=leinwand.transferToImageBitmap();
+    parent.postMessage({pult:"bild-fertig",nr:e.data.nr,bild},"*",[bild]);
+  });
+}
 </script>
 </body></html>`;
 }

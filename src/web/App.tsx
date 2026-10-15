@@ -20,6 +20,7 @@ import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
+import { VideoKnopf } from "./VideoKnopf.tsx";
 
 interface Step {
   id: string;
@@ -384,6 +385,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   }, []);
   const [usage, setUsage] = useState<UsageSnapshot | undefined>();
   const [preview, setPreview] = useState<Material | null>(null);
+  const previewFrame = useRef<HTMLIFrameElement | null>(null);
   // A material step is running: the preview opens at once with a placeholder and is replaced by the file.
   const [building, setBuilding] = useState<{ id: string; label: string } | null>(null);
   const held = useRef<{ id: string; label: string } | null>(null);
@@ -1085,11 +1087,12 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             <a className="ghost" href={materialUrl(preview, true)} download={preview.name}>
               Herunterladen
             </a>
+            {isHtml(preview) && <VideoKnopf url={materialUrl(preview)} name={preview.name} rahmen={previewFrame} />}
             <button type="button" className="ghost" onClick={() => setPreview(null)}>
               Schließen
             </button>
           </div>
-          <iframe title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
+          <iframe ref={previewFrame} title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
         </aside>
       )}
     </div>
