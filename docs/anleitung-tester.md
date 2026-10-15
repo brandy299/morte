@@ -154,3 +154,12 @@ Schließe Pult (das Terminal-Fenster) und füge die Zeile aus Schritt 4 noch ein
 
 **16. Ich komme nicht weiter, oder ich will einen Fehler melden.**
 Schreib Yannik. Nenne dazu die **Version**: in Pult unten bei den Einstellungen steht „Pult 0.1.0 (Probelauf), Stand …“. Beim ersten Mal sitzt er gern dabei.
+
+**17. Ich möchte Pult auf dem Mac ganz von vorn starten, wie beim ersten Mal.**
+Die Zeile aus Schritt 4 erneuert nur das Programm. Deine Einstellungen, dein Schlüssel und deine Daten bleiben absichtlich erhalten. Für einen sauberen Neustart schließe Pult (das Terminal-Fenster), öffne das Terminal (Schritt 3) und füge diese Zeile ein:
+
+```
+curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/scripts/pult-zuruecksetzen.sh | bash
+```
+
+Sie verschiebt deinen Ordner „pult-daten“ in einen Ordner „Pult-Sicherung“ auf dem Schreibtisch (nichts geht verloren), entfernt den gespeicherten Schlüssel und den Ordner „Pult“. Danach fügst du die Zeile aus Schritt 4 noch einmal ein, und Pult fragt wieder nach Schlüssel und Modell.
