@@ -1,5 +1,14 @@
 import { type RefObject, useEffect, useRef, useState } from "react";
 
+const GESEHEN = "pult.videoHinweis";
+const schonGesehen = () => {
+  try {
+    return localStorage.getItem(GESEHEN) === "ja";
+  } catch {
+    return false;
+  }
+};
+
 /**
  * "Als Video speichern" in the preview head. Shows only when the piece in the preview says it can make pictures
  * (an Erklärstück made with this version of Pult), so interactive exercises and older pieces get no button.
@@ -9,6 +18,7 @@ export function VideoKnopf({ url, name, rahmen }: { url: string; name: string; r
   const [anteil, setAnteil] = useState<number | null>(null);
   const [meldung, setMeldung] = useState("");
   const abbruch = useRef<AbortController | null>(null);
+  const [hinweis, setHinweis] = useState(() => !schonGesehen());
 
   useEffect(() => {
     setKann(false);
@@ -25,7 +35,17 @@ export function VideoKnopf({ url, name, rahmen }: { url: string; name: string; r
 
   if (!kann) return null;
 
+  const hinweisSchliessen = () => {
+    setHinweis(false);
+    try {
+      localStorage.setItem(GESEHEN, "ja");
+    } catch {
+      // Without storage the hint shows again next time; nothing else to do.
+    }
+  };
+
   const starten = async () => {
+    hinweisSchliessen();
     const ab = new AbortController();
     abbruch.current = ab;
     setMeldung("");
@@ -51,6 +71,15 @@ export function VideoKnopf({ url, name, rahmen }: { url: string; name: string; r
 
   return (
     <>
+      {hinweis && anteil === null && (
+        <div className="video-hinweis" role="region" aria-label="Neu: Video speichern">
+          <strong>Neu: Dieses Erklärstück als Video speichern</strong>
+          <p>Mit „Als Video speichern“ entsteht eine Videodatei ohne Ton, zum Beispiel für Moodle oder PowerPoint. Das Erstellen dauert ein paar Minuten, lass das Fenster dabei offen. Es wird MP4, und wenn dein Browser das nicht kann, WebM.</p>
+          <button type="button" className="ghost" onClick={hinweisSchliessen}>
+            Verstanden
+          </button>
+        </div>
+      )}
       <span className="video-status" role="status" aria-live="polite">
         {anteil !== null ? `Video wird erstellt … ${Math.floor(anteil * 100)} %` : meldung}
       </span>
