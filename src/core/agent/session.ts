@@ -92,7 +92,9 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
     beforeToolCall: async ({ toolCall, args }, signal) => {
       const tool = tools.find((t) => t.name === toolCall.name);
       if (!tool?.ask) return undefined;
-      const allowed = await askTeacher(toolCall.id, tool.ask(args), signal);
+      const question = tool.ask(args);
+      if (!question) return undefined;
+      const allowed = await askTeacher(toolCall.id, question, signal);
       return allowed ? undefined : { block: true, reason: "Die Lehrkraft möchte das nicht. Frag nach, was stattdessen gewünscht ist." };
     },
   });
