@@ -4,12 +4,14 @@
  * The fonts are ones every Word has (Georgia for headings, Calibri for text), so nothing needs to be embedded.
  */
 import {
-  AlignmentType, BorderStyle, Document, Footer, Header, HeightRule, ImageRun, LeaderType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, VerticalAlign, WidthType,
-  type ParagraphChild,
+  AlignmentType, BorderStyle, Document, Footer, Header, HeightRule, ImageRun, LeaderType, LineRuleType, Packer, PageNumber, Paragraph, ShadingType, Table, TableCell, TableRow, TabStopType, TextRun, VerticalAlign, WidthType,
+  type IParagraphOptions, type ParagraphChild,
 } from "docx";
 import type { Koerper } from "./aufgabentypen.ts";
+import { formelTeile, mightHaveFormula, setzeFormel, type Gesetzt } from "./formel.ts";
+import { anzeigeZeilen, MATH_SCALE } from "./formel-satz.ts";
 import { szeneVon } from "./schaubild.ts";
-import { szeneAlsPng } from "./schaubild-zeichnen.ts";
+import { formelAlsPng, szeneAlsPng } from "./schaubild-zeichnen.ts";
 import { logoSize, printable } from "./layout.ts";
 import { schulkopf, type Schulkopf } from "../schule/index.ts";
 
@@ -32,6 +34,106 @@ const gap = () => new Paragraph({ spacing: { before: 0, after: 80, line: 120 }, 
 interface RunStyle { font: string; size: number; color?: string; bold?: boolean; italics?: boolean }
 const lines = (text: string, run: RunStyle): ParagraphChild[] =>
   printable(text).split(/\r?\n/).map((l, i) => new TextRun({ ...run, text: l, break: i === 0 ? undefined : 1 }));
+
+// ---------- Formulas ----------
+// Word gets each formula as a picture (Issue #21): it looks the same in every Word, but cannot be edited there.
+// The drawing is the same MathJax setting as in the PDF (formel.ts), only turned into a PNG.
+
+/** Pixels per point of the formula pictures: 600 dpi, sharp in print and at 200 % zoom. */
+const FORMEL_DPI = 600 / 72;
+/** docx sizes pictures in pixels at 96 dpi. */
+const PX = 96 / 72;
+
+/** One set formula as a picture. In a sentence it is lowered by its depth, so it sits on the baseline of the text. */
+function formelBild(g: Gesetzt, size: number, tex: string, inSentence: boolean): ImageRun {
+  const depth = Math.round(g.tief * size * 2); // half points, the unit Word lowers a run by
+  return new ImageRun({
+    type: "png",
+    data: formelAlsPng(g, size, FORMEL_DPI),
+    transformation: { width: g.breite * size * PX, height: (g.hoch + g.tief) * size * PX },
+    altText: { name: "Formel", title: "Formel", description: tex },
+    // Word reads the lowering in half points. The type of the library wants a unit, but older Word only reads the plain number.
+    ...(inSentence && depth > 0 ? { run: { position: String(-depth) as `${number}pt` } } : {}),
+  });
+}
+
+/** A paragraph's worth of runs, or a formula on its own line. */
+type Stueck = { children: ParagraphChild[]; formel: boolean };
+
+/**
+ * Text with formulas, cut into pieces: runs for one paragraph, and each formula on its own line as a piece of its own.
+ * `width` is the room of the paragraph in twips. A formula in a sentence that is wider than that goes on its own line, as in the PDF.
+ * Wrong LaTeX stays raw text. Text without a formula gives one piece with exactly the runs it had before.
+ */
+function stuecke(text: string, run: RunStyle, width: number): Stueck[] {
+  if (!mightHaveFormula(text)) return [{ children: lines(text, run), formel: false }];
+  const teile = formelTeile(text);
+  if (teile.every((t) => "text" in t)) return [{ children: lines(text, run), formel: false }]; // a dollar sign, no formula: as before
+  const size = (run.size / 2) * MATH_SCALE;
+  const room = width / 20;
+  const out: Stueck[] = [];
+  let cur: ParagraphChild[] = [];
+  let fresh = true; // nothing written in the current paragraph yet
+  const addText = (t: string) =>
+    printable(t).split(/\r?\n/).forEach((l, i) => {
+      cur.push(new TextRun({ ...run, text: l, break: i === 0 || fresh ? undefined : 1 }));
+      fresh = false;
+    });
+  for (const [i, t] of teile.entries()) {
+    if ("text" in t) {
+      // Line breaks next to a formula on its own line belong to that line, not to the text.
+      let s = t.text;
+      if (teile[i - 1] && "tex" in teile[i - 1]! && cur.length === 0) s = s.replace(/^\s+/, "");
+      if (teile[i + 1] && "tex" in teile[i + 1]!) s = s.replace(/[ \t]*\r?\n\s*$/, "");
+      if (s) addText(s);
+      continue;
+    }
+    const inline = t.anzeige ? undefined : setzeFormel(t.tex, false);
+    if (inline && inline.breite * size <= room) {
+      cur.push(formelBild(inline, size, t.tex, true));
+      fresh = false;
+      continue;
+    }
+    const set = (inline || t.anzeige) && anzeigeZeilen(t.tex, room, run.size / 2, t.anzeige);
+    if (!set) {
+      addText(t.roh);
+      continue;
+    }
+    if (cur.length) out.push({ children: cur, formel: false });
+    out.push({ children: set.flatMap(({ g, scale }, j) => [...(j ? [new TextRun({ text: "", break: 1 })] : []), formelBild(g, size * scale, t.tex, false)]), formel: true });
+    cur = [];
+    fresh = true;
+  }
+  if (cur.length || out.length === 0) out.push({ children: cur, formel: false });
+  return out;
+}
+
+/**
+ * Text with formulas as paragraphs. `base` are the options of a text paragraph; a formula on its own line keeps the indent,
+ * shading and edge (so a gray box stays one box), but stands centered. `lead` and `tail` go into the first text paragraph (a task number, points).
+ */
+function absaetze(text: string, run: RunStyle, width: number, base: Omit<IParagraphOptions, "children">, lead: ParagraphChild[] = [], tail: ParagraphChild[] = []): Paragraph[] {
+  const parts = stuecke(text, run, width);
+  const plain = parts.length === 1 && !parts[0]!.formel && !parts[0]!.children.some((c) => c instanceof ImageRun);
+  if (plain) return [new Paragraph({ ...base, children: [...lead, ...parts[0]!.children, ...tail] })];
+  if (parts[0]!.formel && (lead.length || tail.length)) parts.unshift({ children: [], formel: false });
+  const firstText = parts.findIndex((p) => !p.formel);
+  const indent = base.indent as { left?: number; right?: number } | undefined;
+  // A line spacing without its rule is read as "exactly" by LibreOffice and cuts the pictures off. Word reads it as "auto" anyway.
+  const line = base.spacing?.line === undefined ? {} : { line: base.spacing.line, lineRule: LineRuleType.AUTO };
+  return parts.map((p, i) => {
+    const last = i === parts.length - 1;
+    const before = i === 0 ? base.spacing?.before : p.formel ? 80 : 40;
+    const after = last ? (p.formel ? Math.max(base.spacing?.after ?? 0, 80) : base.spacing?.after) : p.formel ? 80 : 0;
+    const keepNext = last ? base.keepNext : true;
+    if (!p.formel) {
+      // Only the first paragraph carries the task number; the ones after it start at the indent, without hanging.
+      const own = i === firstText ? {} : { indent: indent && { left: indent.left, right: indent.right } };
+      return new Paragraph({ ...base, ...own, spacing: { ...base.spacing, ...line, before, after }, keepNext, children: i === firstText ? [...lead, ...p.children, ...tail] : p.children });
+    }
+    return new Paragraph({ ...base, spacing: { before, after }, keepNext, tabStops: undefined, alignment: AlignmentType.CENTER, indent: indent && { left: indent.left, right: indent.right }, children: p.children });
+  });
+}
 
 export interface WordDoc {
   add(...blocks: Block[]): void;
@@ -107,10 +209,9 @@ export function newWord(title: string): WordDoc {
     },
     paragraph(text, o = {}) {
       children.push(
-        new Paragraph({
+        ...absaetze(text, { font: o.font ?? SANS_W, size: Math.round((o.size ?? 10.5) * 2), color: o.color ?? INK, bold: o.bold, italics: o.italic }, PAGE_W - (o.indent ?? 0), {
           spacing: { after: o.after ?? 120, line: 276 },
           indent: o.indent ? { left: o.indent } : undefined,
-          children: lines(text, { font: o.font ?? SANS_W, size: Math.round((o.size ?? 10.5) * 2), color: o.color ?? INK, bold: o.bold, italics: o.italic }),
         }),
       );
     },
@@ -126,12 +227,11 @@ export function newWord(title: string): WordDoc {
       const parts = text.split(/\n/);
       parts.forEach((part, i) =>
         children.push(
-          new Paragraph({
+          ...absaetze(part, { font: SANS_W, size: 21, color: INK }, PAGE_W - 240, {
             shading: shade,
             border: edge,
             spacing: { before: i === 0 && !boxTitle ? 60 : 0, after: i === parts.length - 1 ? 40 : 0, line: 276 },
             indent: { left: 160, right: 80 },
-            children: lines(part, { font: SANS_W, size: 21, color: INK }),
           }),
         ),
       );
@@ -144,26 +244,24 @@ export function newWord(title: string): WordDoc {
       const left = twip(11);
       const tabs = [{ type: TabStopType.LEFT, position: left }, { type: TabStopType.RIGHT, position: PAGE_W }];
       children.push(
-        new Paragraph({
-          keepNext: Boolean(hilfe || zeilen || antwort || koerper),
-          spacing: { before: indent ? 40 : 160, after: 60, line: 276 },
-          indent: { left, hanging: left },
-          tabStops: tabs,
-          children: [
-            new TextRun({ text: `${nr}\t`, font: SANS_W, size: 22, bold: true, color: INK }),
-            ...lines(text, { font: SANS_W, size: 21, color: INK }),
-            ...(punkte ? [new TextRun({ text: `\t${punkte}`, font: SANS_W, size: 17, color: SOFT })] : []),
-          ],
-        }),
+        ...absaetze(
+          text,
+          { font: SANS_W, size: 21, color: INK },
+          PAGE_W - left,
+          { keepNext: Boolean(hilfe || zeilen || antwort || koerper), spacing: { before: indent ? 40 : 160, after: 60, line: 276 }, indent: { left, hanging: left }, tabStops: tabs },
+          [new TextRun({ text: `${nr}\t`, font: SANS_W, size: 22, bold: true, color: INK })],
+          punkte ? [new TextRun({ text: `\t${punkte}`, font: SANS_W, size: 17, color: SOFT })] : [],
+        ),
       );
       if (hilfe) {
         children.push(
-          new Paragraph({
-            spacing: { after: 60 },
-            indent: { left },
-            keepNext: Boolean(zeilen || antwort),
-            children: [new TextRun({ text: "Tipp: ", font: SANS_W, size: 19, bold: true, italics: true, color: SOFT }), ...lines(hilfe, { font: SANS_W, size: 19, italics: true, color: SOFT })],
-          }),
+          ...absaetze(
+            hilfe,
+            { font: SANS_W, size: 19, italics: true, color: SOFT },
+            PAGE_W - left,
+            { spacing: { after: 60 }, indent: { left }, keepNext: Boolean(zeilen || antwort) },
+            [new TextRun({ text: "Tipp: ", font: SANS_W, size: 19, bold: true, italics: true, color: SOFT })],
+          ),
         );
       }
       if (koerper) {
@@ -202,7 +300,7 @@ export function newWord(title: string): WordDoc {
         const edge = { left: { style: BorderStyle.SINGLE, size: 24, color: INK, space: 6 } };
         const parts = antwort.split(/\n/);
         parts.forEach((part, i) =>
-          children.push(new Paragraph({ shading: shade, border: edge, spacing: { before: i === 0 ? 40 : 0, after: i === parts.length - 1 ? 40 : 0 }, indent: { left: left + 140, right: 60 }, children: lines(part, { font: SANS_W, size: 20, color: INK }) })),
+          children.push(...absaetze(part, { font: SANS_W, size: 20, color: INK }, PAGE_W - left - 200, { shading: shade, border: edge, spacing: { before: i === 0 ? 40 : 0, after: i === parts.length - 1 ? 40 : 0 }, indent: { left: left + 140, right: 60 } })),
         );
         children.push(gap());
       }
@@ -227,8 +325,9 @@ export function newWord(title: string): WordDoc {
             right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
             bottom: { style: BorderStyle.SINGLE, size: head ? 8 : 4, color: head ? INK : LINE },
           },
-          children: printable(text).split(/\r?\n/).map(
-            (l) => new Paragraph({ alignment: columns[i]!.right ? AlignmentType.RIGHT : AlignmentType.LEFT, spacing: { after: 20 }, children: [new TextRun({ text: l, font: SANS_W, size: head ? 17 : 19, bold: head || columns[i]!.bold, color: INK })] }),
+          // One paragraph per line, as before. A formula on its own line gets a paragraph of its own, centered in the cell.
+          children: text.split(/\r?\n/).flatMap((l) =>
+            absaetze(l, { font: SANS_W, size: head ? 17 : 19, bold: head || columns[i]!.bold, color: INK }, widths[i]! - 180, { alignment: columns[i]!.right ? AlignmentType.RIGHT : AlignmentType.LEFT, spacing: { after: 20 } }),
           ),
         });
       children.push(

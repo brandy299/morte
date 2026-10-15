@@ -38,7 +38,7 @@ Im Ordner `node_modules` kommen rund **57 MB** dazu (davon `mathjax-full` 42 MB 
 
 ## Grenzen
 
-- **Word:** noch nicht. Formeln erscheinen dort als LaTeX-Text (Issue #21, als Bild).
+- **Word:** als Bild, siehe `006-word-dateien.md` (Abschnitt Formeln).
 - **Nicht geprüft:** Windows und macOS (nur Linux). Der Code benutzt nichts, was dort anders wäre.
 - **Mathe-Schrift:** MathJax-TeX (Computer Modern ähnlich), nicht Source Sans. Das ist bei Formeln üblich und im Schulbuch so.
 - **Nicht gebaut:** Funktionsgraphen, Rechnen und Prüfen, chemische Formeln.

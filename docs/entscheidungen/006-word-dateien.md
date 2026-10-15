@@ -24,3 +24,16 @@ Stand: 2026-10-06
 - Geprüft wurde das Aussehen mit LibreOffice. In Microsoft Word selbst wurde es nicht geöffnet.
 - `npm audit` meldet für `mammoth` eine Warnung der Stufe "mittel" in einer Unterbibliothek (`sprintf-js` über `argparse`, Überlastung durch eine extrem lange Formatangabe). Betroffen ist die Kommandozeile von `argparse`, die Pult nicht benutzt. Die vorgeschlagene Behebung würde `mammoth` auf eine alte Version zurücksetzen und wird nicht übernommen. Bei einem Update von `mammoth` neu prüfen.
 - Pro Reihe liegen Word- und PDF-Fassung nebeneinander. Wird eine Word-Datei geändert, ändert sich das PDF nicht mit.
+
+## Formeln in Word (Issue #21, 2026-10-15)
+
+- **Bild statt bearbeitbarer Word-Formel.** Jede Formel steht als PNG im Text. Sie sieht in jedem Word gleich aus. Nachteil: Die Lehrkraft kann sie in Word nicht anklicken und ändern. Die Bibliothek `docx` kennt zwar Formelklassen (`MathFraction` …), aber es gibt keinen Weg von LaTeX dorthin. Der zweite Weg (bearbeitbar) bleibt ein eigenes Issue und ist ohne Datenverlust nachrüstbar, weil nur die Ausgabe betroffen ist.
+- **Dieselbe Setzung wie im PDF** (`011`): `setzeFormel` liefert das SVG, `formelAlsPng` in `schaubild-zeichnen.ts` zeichnet es mit `@napi-rs/canvas` (schon eingebunden, es zeichnet auch die Schaubilder). **Keine neue Abhängigkeit**, also keine neue Lizenz und kein neues Gewicht. Klein bis mittel statt neues Paket: SVG direkt in Word ist nicht nötig, ältere Fassungen zeigen es nicht.
+- **Schärfe:** 600 dpi (Faktor 600/72 pro Punkt), Hintergrund durchsichtig, damit die Formel auch auf grauen Kästen sitzt. Ein Test prüft mindestens 300 dpi.
+- **Im Satz** sitzt das Bild auf der Textlinie: um die Tiefe der Formel nach unten versetzt (`w:position`, halbe Punkte). **Abgesetzt** (`\[ \]`, `$$ $$`, oder zu breit für die Zeile) steht es in einem eigenen, zentrierten Absatz. Zu breite Formeln werden wie im PDF verkleinert (bis 70 %) und an Operatoren umbrochen.
+- **Alternativtext:** der LaTeX-Text der Formel (Barrierefreiheit, und die Lehrkraft sieht, was dort stehen sollte).
+- **Fehler:** Kaputtes LaTeX bricht nichts ab, der Rohtext bleibt stehen, im Protokoll steht eine kurze Warnung ohne die Formel.
+- **Überall, wo Text steht:** Absatz, Kasten, Aufgabe, Tipp, Lösung, Tabellenzelle. Das gilt damit für Arbeitsblatt samt Lösung, Klausur, Erwartungshorizont, Lernsituation und Stundenverlauf (`word.ts`, `absaetze`).
+- **Ohne Formel unverändert:** Die sechs Word-Dateien (Arbeitsblatt, Lösung, Klausur, Erwartungshorizont, Lernsituation, Verlauf) mit `$` als Währung und Excel-Bezug sind Byte für Byte gleich zu vorher (im `document.xml` verglichen).
+- **Geprüft** mit LibreOffice (in PDF und Bild gewandelt, angesehen). **Nicht geprüft:** Microsoft Word selbst, Windows und macOS (die Bibliothek `@napi-rs/canvas` liefert fertige Dateien für beides, aber hier lief nur Linux).
+

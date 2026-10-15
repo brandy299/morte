@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-14 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-10-15 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -73,7 +73,7 @@ Stand: 2026-10-14 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [~] Sperrliste für Modelle, die nicht verlässlich genug arbeiten (Mechanismus fertig und an allen Stellen erzwungen, die Liste ist leer). Offen: Modelle eintragen, sobald alle Anleitungen gemessen sind und eine Schwelle festliegt (#16). Siehe `docs/entscheidungen/014-sperrliste.md`
 - [x] Schulkopf auf allem Material: Name der Schule und Logo (in Grau) im Kopf von Arbeitsblatt, Klausur, Erwartungshorizont, Lernsituation und Stundenverlauf, als PDF und Word. Einstellungen, Reiter "Schule". Siehe `docs/entscheidungen/013-schulkopf.md`
 - [x] Alte Anhänge und Bilder verlassen das Gedächtnis des Modells (Hinweis statt Inhalt ab halbvollem Gedächtnis, letzte Runde bleibt, zu große Nachricht wird mit klarer Meldung abgelehnt, Anzeige unverändert). Siehe `docs/entscheidungen/012-alte-anhaenge-kuerzen.md`
-- [x] Formeln im PDF (LaTeX im Text, gesetzt mit MathJax und svg-to-pdfkit, im Satz und abgesetzt, mit Umbruch und Rohtext bei Fehlern; Word folgt in #21). Siehe `docs/entscheidungen/011-formeln-im-pdf.md`
+- [x] Formeln im PDF (LaTeX im Text, gesetzt mit MathJax und svg-to-pdfkit, im Satz und abgesetzt, mit Umbruch und Rohtext bei Fehlern; in Word als Bild, #21, siehe `docs/entscheidungen/006-word-dateien.md`). Siehe `docs/entscheidungen/011-formeln-im-pdf.md`
 - [ ] Geführter Fragenkatalog für Material (Schulform, Bildungsgang oder Fach und Stufe, Lernfeld, Kursniveau, Bewertung, Anzahl Klausuren)
 - [~] Lehrplan hinterlegen (Bildungsgang am BK, Fach und Stufe an Gymnasium und Gesamtschule): Bewertung, schulinterne Hinweise. Bewertung steht: Anforderungsbereiche und Notenschlüssel trägt jede Lehrkraft selbst ein, nichts ist fest (Entscheidung 003). Plan.md steht über den Import (Bildschirm "Lehrpläne", Entscheidung 004). Offen: Hinweise.md (schulinterne Vorgaben) und eine Eingabemaske für die Bewertungsregeln in der Oberfläche
 - [~] Bildungsplan-Import: PDF in saubere Markdown-Gliederung umwandeln (Text aus der PDF, Modell formt, Wortlaut wird geprüft, Scans per Bild, Kosten vorab sichtbar), pro Klasse zuordnen, vom Agenten stufenweise lesbar (`lehrplan_lesen`, `lehrplan_suchen`). Siehe `docs/entscheidungen/004-lehrplaene-lesen.md`. Mit einem echten Modell noch nicht erprobt

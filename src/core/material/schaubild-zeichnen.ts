@@ -1,5 +1,6 @@
 /** Draws a diagram scene (see schaubild.ts) into a PDF, or into a picture for Word files. Both draw the same shapes. */
 import { createCanvas, GlobalFonts, Image } from "@napi-rs/canvas";
+import { formelSvg, type Gesetzt } from "./formel.ts";
 import { BOX, fontFile, FONT_NAMES, INK, LINE, SANS, SANS_BOLD, printable } from "./layout.ts";
 import type { Form, Szene } from "./schaubild.ts";
 
@@ -89,6 +90,19 @@ function canvasFonts() {
   if (fontsReady) return;
   for (const name of FONT_NAMES) GlobalFonts.registerFromPath(fontFile(name), name);
   fontsReady = true;
+}
+
+/**
+ * A set formula as a PNG (clear background, so it sits on gray boxes too), for Word files. `size` is the formula size in points, `scale` pixels per point.
+ * The canvas draws the MathJax SVG itself; text inside the formula uses the bundled body font, registered under the name the SVG asks for.
+ */
+export function formelAlsPng(g: Gesetzt, size: number, scale: number): Buffer {
+  canvasFonts();
+  const img = new Image();
+  img.src = Buffer.from(formelSvg(g, size * scale));
+  const canvas = createCanvas(Math.max(1, Math.ceil(img.width)), Math.max(1, Math.ceil(img.height)));
+  canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toBuffer("image/png");
 }
 
 /** The scene as a PNG (white background), for Word files. `scale` pixels per point. */
