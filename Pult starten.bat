@@ -1,8 +1,8 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-where node >nul 2>nul
-if errorlevel 1 if exist "%~dp0node\node.exe" set "PATH=%~dp0node;%PATH%"
+rem Hat die Installationszeile eine eigene Node.js-Kopie angelegt, geht sie immer vor.
+if exist "%~dp0node\node.exe" set "PATH=%~dp0node;%PATH%"
 where node >nul 2>nul
 if errorlevel 1 (
   echo.

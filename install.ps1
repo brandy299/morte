@@ -9,43 +9,19 @@ function Install-Pult {
   $ziel = if ($env:PULT_ZIEL) { $env:PULT_ZIEL } else { Join-Path $HOME "Pult" }
   $quelle = if ($env:PULT_QUELLE) { $env:PULT_QUELLE } else { "https://codeload.github.com/brandy299/morte/zip/refs/heads/main" }
 
-  # Kein passendes Node.js auf dem Rechner? Dann laedt dieses Skript eine eigene Kopie in den Pult-Ordner (nichts wird installiert, nichts anderes veraendert).
+  # Kein passendes Node.js auf dem Rechner? Dann haelt dieses Skript eine eigene Kopie im Pult-Ordner (nichts wird installiert, nichts anderes veraendert).
+  # Eine Regel fuer alle Stellen: Gibt es "Pult\node", ist das Pults Node.js. "Pult starten" nimmt es immer zuerst,
+  # und dieses Skript bringt es bei jedem Lauf auf die neueste Version 22 (Sicherheitsupdates).
   function Node-Ok {
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) { return $false }
-    return ([int](& node -p "process.versions.node.split('.')[0]") -ge 22)
+    try { return ([int](& node -p "process.versions.node.split('.')[0]") -ge 22) } catch { return $false }
   }
   $eigenes = Join-Path $ziel "node"
-  if (-not (Node-Ok) -and (Test-Path (Join-Path $eigenes "node.exe"))) { $env:Path = "$eigenes;$env:Path" }
-  if (-not (Node-Ok)) {
-    Write-Host "Pult braucht das Hilfsprogramm Node.js. Ich lade es fuer Pult dazu (rund 30 MB) ..."
-    $plattform = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "win-arm64" } else { "win-x64" }
-    $nodedir = if ($env:PULT_NODE_QUELLE) { $env:PULT_NODE_QUELLE } else { "https://nodejs.org/dist/latest-v22.x" }
-    $ntmp = Join-Path $env:TEMP "pult-node"
-    if (Test-Path $ntmp) { Remove-Item $ntmp -Recurse -Force }
-    New-Item -ItemType Directory -Path $ntmp | Out-Null
-    try {
-      $summen = (Invoke-WebRequest -Uri "$nodedir/SHASUMS256.txt" -UseBasicParsing).Content -split "`n"
-      $zeile = $summen | Where-Object { $_ -match "$plattform\.zip\s*$" } | Select-Object -First 1
-      $summe, $name = ($zeile.Trim() -split "\s+")
-      $nzip = Join-Path $ntmp "node.zip"
-      Invoke-WebRequest -Uri "$nodedir/$name" -OutFile $nzip -UseBasicParsing
-    } catch {
-      Write-Host ""
-      Write-Host "Der Download von Node.js hat nicht geklappt. Pruefe deine Internetverbindung oder installiere Node.js von https://nodejs.org."
-      return
-    }
-    if ((Get-FileHash $nzip -Algorithm SHA256).Hash.ToLower() -ne $summe.ToLower()) {
-      Write-Host "Die heruntergeladene Datei ist nicht in Ordnung (Pruefsumme stimmt nicht). Versuche es noch einmal."
-      return
-    }
-    Expand-Archive -Path $nzip -DestinationPath (Join-Path $ntmp "x") -Force
-    New-Item -ItemType Directory -Path $ziel -Force | Out-Null
-    if (Test-Path $eigenes) { Remove-Item $eigenes -Recurse -Force }
-    Move-Item (Get-ChildItem (Join-Path $ntmp "x") -Directory | Select-Object -First 1).FullName $eigenes
-    Remove-Item $ntmp -Recurse -Force -ErrorAction SilentlyContinue
-    $env:Path = "$eigenes;$env:Path"
+  if ((Test-Path $eigenes) -or -not (Node-Ok)) {
+    if (-not (Eigene-Node $ziel)) { return }
+    $env:PATH = $eigenes + [IO.Path]::PathSeparator + $env:PATH
     if (-not (Node-Ok)) {
-      Write-Host "Node.js konnte nicht eingerichtet werden. Installiere es von https://nodejs.org."
+      Write-Host "Node.js konnte nicht eingerichtet werden. Installiere es von https://nodejs.org (Version LTS) und fuege die Zeile noch einmal ein."
       return
     }
   }
@@ -71,7 +47,7 @@ function Install-Pult {
 
   New-Item -ItemType Directory -Path $ziel -Force | Out-Null
   # Alte Programmdateien weg (so bleibt nichts Veraltetes liegen), die installierten Teile und die eigene Node.js-Kopie bleiben.
-  Get-ChildItem $ziel -Force | Where-Object { $_.Name -ne "node_modules" -and $_.Name -ne "node" } | Remove-Item -Recurse -Force
+  Get-ChildItem $ziel -Force | Where-Object { $_.Name -ne "node_modules" -and $_.Name -ne "node" -and $_.Name -ne ".node-neu" } | Remove-Item -Recurse -Force
   Get-ChildItem $quellordner.FullName -Force | Copy-Item -Destination $ziel -Recurse -Force
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -80,4 +56,67 @@ function Install-Pult {
   Write-Host ""
   & node scripts\los.mjs
 }
+# Holt oder erneuert die eigene Node.js-Kopie in "<ziel>\node". Gibt $false zurueck (nach einer Meldung), wenn es nicht geht.
+function Eigene-Node($ziel) {
+  $eigenes = Join-Path $ziel "node"
+  $plattform = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64" -or $env:PROCESSOR_ARCHITEW6432 -eq "ARM64") { "win-arm64" } else { "win-x64" }
+  $nodedir = if ($env:PULT_NODE_QUELLE) { $env:PULT_NODE_QUELLE } else { "https://nodejs.org/dist/latest-v22.x" }
+  $vorhanden = $null
+  $exe = Join-Path $eigenes "node.exe"
+  if (Test-Path $exe) { try { $vorhanden = (& $exe -v).Trim() } catch { $vorhanden = $null } }
+  $fehler = "Der Download von Node.js hat nicht geklappt. Pruefe deine Internetverbindung oder installiere Node.js von https://nodejs.org."
+
+  $name = $null; $summe = $null
+  try {
+    $inhalt = (Invoke-WebRequest -Uri "$nodedir/SHASUMS256.txt" -UseBasicParsing).Content
+    # Je nach Server kommt die Liste als Text oder als Bytes.
+    if ($inhalt -is [byte[]]) { $inhalt = [System.Text.Encoding]::UTF8.GetString($inhalt) }
+    $summen = $inhalt -split "`n"
+    $zeile = $summen | Where-Object { $_ -match "-$plattform\.zip\s*$" } | Select-Object -First 1
+    if ($zeile) { $summe, $name = ($zeile.Trim() -split "\s+") }
+  } catch { }
+  if (-not $name) {
+    # Ohne Internet geht es mit der vorhandenen Kopie weiter.
+    if ($vorhanden) { return $true }
+    Write-Host ""; Write-Host $fehler; return $false
+  }
+  # Schon die neueste Version? Dann nichts zu tun.
+  if ($vorhanden -and $name.StartsWith("node-$vorhanden-")) { return $true }
+
+  if ($vorhanden) { Write-Host "Ich erneuere das Hilfsprogramm Node.js fuer Pult ..." } else { Write-Host "Pult braucht das Hilfsprogramm Node.js. Ich lade es fuer Pult dazu, das dauert einen Moment ..." }
+  # Arbeitsordner im Pult-Ordner selbst: so liegt alles auf demselben Laufwerk, und das Austauschen am Ende ist ein Umbenennen.
+  New-Item -ItemType Directory -Path $ziel -Force | Out-Null
+  $arbeit = Join-Path $ziel ".node-neu"
+  try {
+    if (Test-Path $arbeit) { Remove-Item $arbeit -Recurse -Force }
+    New-Item -ItemType Directory -Path $arbeit | Out-Null
+    $nzip = Join-Path $arbeit "node.zip"
+    Invoke-WebRequest -Uri "$nodedir/$name" -OutFile $nzip -UseBasicParsing
+  } catch {
+    Remove-Item $arbeit -Recurse -Force -ErrorAction SilentlyContinue
+    if ($vorhanden) { return $true }
+    Write-Host ""; Write-Host $fehler; return $false
+  }
+  if ((Get-FileHash $nzip -Algorithm SHA256).Hash.ToLower() -ne $summe.ToLower()) {
+    Remove-Item $arbeit -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "Die heruntergeladene Datei ist nicht in Ordnung (Pruefsumme stimmt nicht). Versuche es noch einmal."
+    return $false
+  }
+  # Erst vollstaendig entpacken, dann austauschen: Bricht es ab, bleibt die alte Kopie heil.
+  try {
+    Expand-Archive -Path $nzip -DestinationPath (Join-Path $arbeit "x") -Force
+    $neu = Get-ChildItem (Join-Path $arbeit "x") -Directory | Select-Object -First 1
+    if (-not $neu -or -not (Test-Path (Join-Path $neu.FullName "node.exe"))) { throw "kein node.exe" }
+    if (Test-Path $eigenes) { Remove-Item $eigenes -Recurse -Force }
+    Move-Item $neu.FullName $eigenes
+  } catch {
+    Write-Host ""
+    Write-Host "Node.js liess sich nicht entpacken. Ist auf dem Computer noch genug Platz frei? Schliesse andere Pult-Fenster und versuche es noch einmal."
+    return $false
+  } finally {
+    Remove-Item $arbeit -Recurse -Force -ErrorAction SilentlyContinue
+  }
+  return $true
+}
+
 Install-Pult

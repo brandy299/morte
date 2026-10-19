@@ -4,7 +4,7 @@ Es gibt zwei Wege. **Der erste ist der empfohlene**, weil er ohne die Warnungen 
 
 ## Weg 1 (empfohlen): eine Zeile im Terminal
 
-Das Repo ist öffentlich, die Tester holen Pult direkt von GitHub. Sie brauchen nur diese Zeile im Terminal. Fehlt **Node.js** (oder ist es zu alt), lädt das Skript selbst eine eigene Kopie in den Ordner „Pult“ (`node/`, von nodejs.org, mit Prüfsumme, ohne Installation und ohne Administratorrechte). Ein vorhandenes Node wird nicht angefasst:
+Das Repo ist öffentlich, die Tester holen Pult direkt von GitHub. Sie brauchen nur diese Zeile im Terminal. Fehlt **Node.js** (oder ist es zu alt), lädt das Skript selbst eine eigene Kopie in den Ordner „Pult“ (`node/`, neueste Version 22 von nodejs.org, mit Prüfsumme, ohne Installation und ohne Administratorrechte). Ein vorhandenes passendes Node wird nicht angefasst. Gibt es `Pult/node`, nimmt „Pult starten“ immer diese Kopie, und jeder weitere Lauf der Zeile bringt sie auf den neuesten Stand (ohne Internet geht es mit der alten weiter):
 
 - Windows (PowerShell): `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
 - Mac (Terminal): `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
