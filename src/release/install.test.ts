@@ -103,6 +103,8 @@ afterAll(() => {
   if (base) rmSync(base, { recursive: true, force: true });
 });
 
+// Each case starts real shells. PowerShell alone needs a few seconds to start on a cold CI machine, hence the long timeouts below.
+
 /** A fresh case: its own Pult folder, optionally a fake system node of the given version. */
 function scene(systemNode?: string) {
   const dir = mkdtempSync(join(base, "fall-"));
@@ -118,7 +120,7 @@ function scene(systemNode?: string) {
 const sh = (s: ReturnType<typeof scene>, extra: Record<string, string> = {}) =>
   run("bash", [join(repo, "install.sh")], { PATH: s.PATH, HOME: s.dir, PULT_ZIEL: s.ziel, PULT_QUELLE: `${url}/pult.tar.gz`, PULT_NODE_QUELLE: `${url}/node`, ...extra }, s.dir);
 
-describe.skipIf(!unix)("install.sh", () => {
+describe.skipIf(!unix)("install.sh", { timeout: 60_000 }, () => {
   it("fetches its own Node.js when the computer has none, and starts Pult with it", async () => {
     const s = scene();
     const r = await sh(s);
@@ -180,7 +182,7 @@ describe.skipIf(!unix)("install.sh", () => {
   });
 });
 
-describe.skipIf(!pwsh)("install.ps1 (PowerShell)", () => {
+describe.skipIf(!pwsh)("install.ps1 (PowerShell)", { timeout: 60_000 }, () => {
   const ps = (s: ReturnType<typeof scene>, extra: Record<string, string> = {}) =>
     run(pwsh!, ["-NoProfile", "-NonInteractive", "-File", join(repo, "install.ps1")], { PATH: s.PATH, HOME: s.dir, TEMP: s.dir, PULT_ZIEL: s.ziel, PULT_QUELLE: `${url}/pult.zip`, PULT_NODE_QUELLE: `${url}/node`, DOTNET_CLI_TELEMETRY_OPTOUT: "1", ...extra }, s.dir);
 
