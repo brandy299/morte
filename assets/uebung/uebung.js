@@ -171,6 +171,121 @@
     return null;
   }
 
+  // Crossword: one input per letter cell. Typing moves on along the current direction; arrow keys and Backspace move too.
+  function buildKreuzwort(s, box, st) {
+    var G = s.gitter, cells = {}, dir = "waagerecht";
+    var key = function (r, c) { return r + "," + c; };
+    G.eintraege.forEach(function (e) {
+      for (var i = 0; i < e.wort.length; i++) {
+        var r = e.zeile + (e.richtung === "senkrecht" ? i : 0), c = e.spalte + (e.richtung === "waagerecht" ? i : 0), k = key(r, c);
+        var z = cells[k] || (cells[k] = { r: r, c: c, buchstabe: e.wort.charAt(i), nr: 0, richtungen: [] });
+        z.richtungen.push(e.richtung);
+        if (i === 0) z.nr = e.nr;
+      }
+    });
+    st.val = st.val || {};
+    var tabelle = el("div", "gitter"); tabelle.style.gridTemplateColumns = "repeat(" + G.spalten + ", minmax(0, 40px))";
+    var inputs = {};
+    for (var r = 0; r < G.zeilen; r++) for (var c = 0; c < G.spalten; c++) {
+      var z = cells[key(r, c)], cell = el("div", z ? "zelle" : "leer");
+      if (z) {
+        if (z.nr) cell.appendChild(el("span", "nr", String(z.nr)));
+        var inp = el("input"); inp.type = "text"; inp.maxLength = 1; inp.autocomplete = "off"; inp.setAttribute("autocapitalize", "characters"); inp.spellcheck = false;
+        inp.setAttribute("aria-label", "Zeile " + (r + 1) + ", Spalte " + (c + 1) + (z.nr ? ", Start von " + z.nr : ""));
+        inp.value = st.val[key(r, c)] || "";
+        inputs[key(r, c)] = inp; cell.appendChild(inp);
+      }
+      tabelle.appendChild(cell);
+    }
+    Object.keys(inputs).forEach(function (k) {
+      var z = cells[k], inp = inputs[k];
+      function go(dr, dc) { var n = inputs[key(z.r + dr, z.c + dc)]; if (n) { n.focus(); n.select(); } return !!n; }
+      inp.addEventListener("focus", function () { if (z.richtungen.length === 1) dir = z.richtungen[0]; inp.select(); });
+      inp.addEventListener("input", function () {
+        inp.value = inp.value.toLocaleUpperCase("de").slice(-1); st.val[k] = inp.value;
+        if (inp.value) { if (dir === "waagerecht") go(0, 1); else go(1, 0); }
+      });
+      inp.addEventListener("keydown", function (ev) {
+        var m = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowDown: [1, 0], ArrowUp: [-1, 0] }[ev.key];
+        if (m) { ev.preventDefault(); go(m[0], m[1]); }
+        else if (ev.key === "Backspace" && !inp.value) { ev.preventDefault(); if (dir === "waagerecht") go(0, -1); else go(-1, 0); }
+      });
+    });
+    box.appendChild(tabelle);
+    ["waagerecht", "senkrecht"].forEach(function (d) {
+      var list = G.eintraege.filter(function (e) { return e.richtung === d; });
+      if (!list.length) return;
+      box.appendChild(el("h3", "kopf-klein", d === "waagerecht" ? "Waagerecht" : "Senkrecht"));
+      var ol = el("ul", "hinweise");
+      list.forEach(function (e) { ol.appendChild(el("li", "", e.nr + ". " + e.hinweis + " (" + e.wort.length + " Buchstaben)")); });
+      box.appendChild(ol);
+    });
+    function show() {
+      Object.keys(inputs).forEach(function (k) {
+        var inp = inputs[k], ok = inp.value === cells[k].buchstabe;
+        inp.disabled = true; inp.classList.add(ok ? "ok" : "bad");
+        if (!ok) inp.value = cells[k].buchstabe;
+      });
+    }
+    function richtig() {
+      return G.eintraege.filter(function (e) {
+        for (var i = 0; i < e.wort.length; i++) {
+          var k = key(e.zeile + (e.richtung === "senkrecht" ? i : 0), e.spalte + (e.richtung === "waagerecht" ? i : 0));
+          if ((st.val[k] || "") !== e.wort.charAt(i)) return false;
+        }
+        return true;
+      }).length;
+    }
+    return {
+      check: function () {
+        if (!Object.keys(st.val).some(function (k) { return st.val[k]; })) return { fertig: false, msg: "Trage zuerst mindestens einen Buchstaben ein." };
+        st.von = G.eintraege.length; st.richtig = richtig(); show();
+        return { fertig: true, msg: st.richtig === st.von ? "Alle Wörter stimmen." : st.richtig + " von " + st.von + " Wörtern stimmen. Die richtigen Buchstaben stehen jetzt im Gitter." };
+      },
+      show: function () { st.richtig = richtig(); show(); }
+    };
+  }
+
+  // Flashcards: turn the card, then say whether it was known. Self-check only, it does not count for the score.
+  function buildKarten(s, box, st) {
+    st.val = st.val || { i: 0, gewusst: [] };
+    var v = st.val, n = s.karten.length;
+    var zaehler = el("p", "zaehler"); box.appendChild(zaehler);
+    var karte = el("div", "kartei"); karte.setAttribute("role", "group"); box.appendChild(karte);
+    var nav = el("div", "nav"); box.appendChild(nav);
+    function draw(umgedreht) {
+      karte.textContent = ""; nav.textContent = "";
+      if (v.i >= n) {
+        var ja = v.gewusst.filter(Boolean).length;
+        karte.appendChild(el("p", "ergebnis", "Gewusst: " + ja + " von " + n + "."));
+        if (ja < n) karte.appendChild(el("p", "hinweis", "Schau dir die anderen Karten gleich noch einmal an."));
+        zaehler.textContent = ""; say("Alle Karten angesehen. Gewusst: " + ja + " von " + n + ".");
+        var neu = el("button", "sek", "Karten noch einmal"); neu.type = "button";
+        neu.addEventListener("click", function () { v.i = 0; v.gewusst = []; draw(false); });
+        nav.appendChild(neu); return;
+      }
+      var k = s.karten[v.i];
+      zaehler.textContent = "Karte " + (v.i + 1) + " von " + n;
+      karte.setAttribute("aria-label", "Karte " + (v.i + 1) + " von " + n);
+      karte.classList.toggle("hinten", umgedreht);
+      karte.appendChild(el("p", "kartenseite", umgedreht ? "Rückseite" : "Vorderseite"));
+      karte.appendChild(el("p", "kartentext", umgedreht ? k.hinten : k.vorne));
+      if (!umgedreht) {
+        var b = el("button", "prim", "Umdrehen"); b.type = "button";
+        b.addEventListener("click", function () { draw(true); say(k.hinten); });
+        nav.appendChild(b); b.focus();
+      } else {
+        [["Gewusst", true], ["Noch üben", false]].forEach(function (x) {
+          var c = el("button", x[1] ? "prim" : "sek", x[0]); c.type = "button";
+          c.addEventListener("click", function () { v.gewusst[v.i] = x[1]; v.i += 1; draw(false); });
+          nav.appendChild(c);
+        });
+      }
+    }
+    draw(false);
+    return null;
+  }
+
   // "Wo klickst du?": the pupil clicks the place in a screenshot. Every place is also a real button (keyboard, screen reader);
   // a click beside all places counts as a miss. Three tries, then the place is shown.
   var VERSUCHE = 3;
@@ -227,8 +342,8 @@
     return null;
   }
 
-  var BUILD = { klick: buildKlick, info: buildInfo, auswahl: buildAuswahl, lueckentext: buildLuecke, zuordnung: buildZuordnung, offen: buildOffen, checkliste: buildCheckliste };
-  var PHASE = { info: "Zum Lesen", auswahl: "Prüfe dich", lueckentext: "Prüfe dich", zuordnung: "Prüfe dich", offen: "Deine Aufgabe", checkliste: "Selbsteinschätzung", klick: "Wo klickst du?" };
+  var BUILD = { kreuzwort: buildKreuzwort, karten: buildKarten, klick: buildKlick, info: buildInfo, auswahl: buildAuswahl, lueckentext: buildLuecke, zuordnung: buildZuordnung, offen: buildOffen, checkliste: buildCheckliste };
+  var PHASE = { info: "Zum Lesen", auswahl: "Prüfe dich", lueckentext: "Prüfe dich", zuordnung: "Prüfe dich", offen: "Deine Aufgabe", checkliste: "Selbsteinschätzung", klick: "Wo klickst du?", karten: "Karteikarten", kreuzwort: "Kreuzworträtsel" };
 
   function titelVon(s) { return s.titel || s.frage || s.aufgabe || "Lücken ausfüllen"; }
 
