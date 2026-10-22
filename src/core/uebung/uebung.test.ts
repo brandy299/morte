@@ -343,3 +343,82 @@ describe.skipIf(!browser)("karten step in a real browser", () => {
     await page.close();
   }, 30000);
 });
+
+
+describe("kreuzwort step (crossword)", () => {
+  const woerter = [
+    { wort: "Wirtschaft", hinweis: "Alles, was mit Herstellen und Verkaufen zu tun hat" },
+    { wort: "Angebot", hinweis: "Was Firmen zum Kauf anbieten" },
+    { wort: "Nachfrage", hinweis: "Was Kunden kaufen wollen" },
+    { wort: "Preis", hinweis: "Das kostet etwas" },
+    { wort: "Markt", hinweis: "Hier treffen sich Käufer und Verkäufer" },
+  ];
+  const gitterVon = (w = woerter) => (eins({ art: "kreuzwort", titel: "Markt", kreuzwoerter: w }).schritte[0] as Extract<ReturnType<typeof parseUebung>["schritte"][number], { art: "kreuzwort" }>).gitter;
+
+  it("lays every word on the grid, crossing only at shared letters and never side by side", () => {
+    const g = gitterVon();
+    expect(g.eintraege).toHaveLength(5);
+    const zellen = new Map<string, string>();
+    for (const e of g.eintraege) {
+      for (let i = 0; i < e.wort.length; i++) {
+        const r = e.zeile + (e.richtung === "senkrecht" ? i : 0), c = e.spalte + (e.richtung === "waagerecht" ? i : 0);
+        expect(r).toBeLessThan(g.zeilen);
+        expect(c).toBeLessThan(g.spalten);
+        const da = zellen.get(`${r},${c}`);
+        if (da !== undefined) expect(da).toBe(e.wort[i]); // a crossing has the same letter in both words
+        zellen.set(`${r},${c}`, e.wort[i]!);
+      }
+    }
+    // every run of two or more letters in the grid is one of the words, so nothing touches by accident
+    const laeufe = new Set<string>();
+    for (let r = 0; r < g.zeilen; r++) for (let c = 0; c < g.spalten; c++) {
+      for (const [dr, dc] of [[0, 1], [1, 0]] as const) {
+        if (!zellen.has(`${r},${c}`) || zellen.has(`${r - dr},${c - dc}`)) continue;
+        let w = "", k = 0;
+        while (zellen.has(`${r + dr * k},${c + dc * k}`)) w += zellen.get(`${r + dr * k},${c + dc * k}`)!, k++;
+        if (w.length > 1) laeufe.add(w);
+      }
+    }
+    expect([...laeufe].sort()).toEqual(woerter.map((w) => w.wort.toUpperCase()).sort());
+  });
+
+  it("numbers the clues in reading order and gives the same grid every time", () => {
+    const g = gitterVon();
+    expect(g.eintraege.map((e) => e.nr)).toEqual([...g.eintraege.map((e) => e.nr)].sort((a, b) => a - b));
+    expect(g.eintraege[0]!.nr).toBe(1);
+    expect(gitterVon()).toEqual(g);
+  });
+
+  it("explains in plain words: count, letters, short word, doubles, a word that does not fit", () => {
+    expect(() => gitterVon(woerter.slice(0, 3))).toThrow("Es sind 3 Wörter. Nötig sind 4 bis 10.");
+    expect(() => gitterVon([...woerter.slice(0, 4), { wort: "Zwei Worte", hinweis: "x" }])).toThrow("darf nur aus Buchstaben bestehen");
+    expect(() => gitterVon([...woerter.slice(0, 4), { wort: "ab", hinweis: "x" }])).toThrow("zu kurz");
+    expect(() => gitterVon([...woerter.slice(0, 4), { wort: "preis", hinweis: "x" }])).toThrow("zweimal");
+    expect(() => gitterVon([...woerter.slice(0, 4), { wort: "Jux", hinweis: "x" }])).toThrow(/„JUX“ lässt sich nicht ins Rätsel legen/);
+    expect(() => eins({ art: "kreuzwort", titel: "T" })).toThrow("Es fehlen die Wörter.");
+  });
+});
+
+describe.skipIf(!browser)("kreuzwort step in a real browser", () => {
+  it("types along the word, checks by word and shows the right letters", async () => {
+    const page = await browser!.newPage({ viewport: { width: 420, height: 900 } });
+    const problems: string[] = [];
+    page.on("pageerror", (e: Error) => problems.push(String(e)));
+    const u = parseUebung({ titel: "R", schritte: [{ art: "kreuzwort", titel: "Markt", kreuzwoerter: [
+      { wort: "Wirtschaft", hinweis: "a" }, { wort: "Angebot", hinweis: "b" }, { wort: "Nachfrage", hinweis: "c" }, { wort: "Preis", hinweis: "d" }, { wort: "Markt", hinweis: "e" },
+    ] }] });
+    await page.setContent(renderUebung(u), { waitUntil: "load" });
+    await page.click('button:has-text("Prüfen")');
+    expect(await page.textContent(".meldung")).toBe("Trage zuerst mindestens einen Buchstaben ein.");
+    const erster = u.schritte[0]!.art === "kreuzwort" ? u.schritte[0]!.gitter.eintraege.find((e) => e.nr === 1)! : undefined;
+    await page.locator(".gitter input").first().click();
+    await page.keyboard.type(erster!.wort.slice(0, 3));
+    expect(await page.locator(".gitter input").evaluateAll((l: Element[]) => l.map((i) => (i as HTMLInputElement).value).join(""))).toBe(erster!.wort.slice(0, 3));
+    await page.click('button:has-text("Prüfen")');
+    expect(await page.textContent(".meldung")).toBe("0 von 5 Wörtern stimmen. Die richtigen Buchstaben stehen jetzt im Gitter.");
+    expect(await page.locator(".gitter input.ok").count()).toBe(3);
+    expect(await page.locator(".gitter input.bad").count()).toBeGreaterThan(10);
+    expect(problems).toEqual([]);
+    await page.close();
+  }, 30000);
+});
