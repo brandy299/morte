@@ -152,6 +152,7 @@ ${bilder.join("\n")}
 <script>${anime}</script>
 <script>
 const PLAN=${JSON.stringify(ablauf)};
+const TITEL=${JSON.stringify([e.titel, ...e.szenen.map((s) => s.titel ?? "")]).replace(/</g, "\\u003c")};
 const {createTimeline}=anime;
 const $=(s,r=document)=>r.querySelector(s);
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -159,7 +160,7 @@ const starts=PLAN.szenen.map(s=>s.start);
 const sicht=(el,v)=>{el.style.opacity=v;};
 document.querySelectorAll(".ar").forEach(p=>{p.style.strokeDasharray="1";p.style.strokeDashoffset="1";});
 document.querySelectorAll(".ah,.al").forEach(p=>sicht(p,0));
-let tl=null,idx=0;
+let tl=null,idx=0,aktuell=()=>0;
 const spiel=$("#spiel");
 function zeige(i){
   idx=Math.max(0,Math.min(PLAN.szenen.length-1,i));
@@ -169,7 +170,7 @@ if(reduced){
   spiel.hidden=true;zeige(0);
   $("#zurueck").onclick=()=>zeige(idx-1);$("#weiter").onclick=()=>zeige(idx+1);
   addEventListener("keydown",e=>{if(e.key==="ArrowRight")zeige(idx+1);if(e.key==="ArrowLeft")zeige(idx-1);});
-  window.seek=()=>{};window.dauer=0;
+  window.seek=()=>{};window.dauer=0;aktuell=()=>idx;
 }else{
   tl=createTimeline({autoplay:false,defaults:{ease:"outQuad"}});
   PLAN.szenen.forEach((s,k)=>{
@@ -192,10 +193,12 @@ if(reduced){
   $("#zurueck").onclick=()=>{const k=jetzt();zu(tl.currentTime-starts[k]>1500?k:k-1);};
   $("#weiter").onclick=()=>zu(jetzt()+1);
   addEventListener("keydown",e=>{if(e.key===" "&&e.target.tagName!=="BUTTON"){e.preventDefault();spiel.click();}if(e.key==="ArrowRight")$("#weiter").click();if(e.key==="ArrowLeft")$("#zurueck").click();});
-  window.seek=ms=>{tl.seek(ms);};window.dauer=PLAN.dauer;
+  window.seek=ms=>{tl.seek(ms);};aktuell=()=>{if(!tl.paused)pause();return jetzt();};window.dauer=PLAN.dauer;
   tl.seek(0);
   document.fonts.ready.then(()=>{if(!new URLSearchParams(location.search).has("still"))spielen();});
 }
+// Pult's preview asks which scene is showing, so a teacher can leave a note on it. Standing alone, nobody asks.
+addEventListener("message",e=>{if(!e.data||e.data.pult!=="szene?"||e.source!==parent)return;const n=aktuell();parent.postMessage({pult:"szene",n,titel:TITEL[n]||""},"*");});
 window.ready=document.fonts.ready.then(()=>true);
 </script>
 </body></html>`;
