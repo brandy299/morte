@@ -12,10 +12,15 @@ import { keyHint } from "./keyHint.ts";
 import { Logo } from "./Logo.tsx";
 
 /** Where to get a key, in plain words, per provider. */
-const KEY_HELP: Record<string, { text: string; url?: string }> = {
+const KEY_HELP: Record<string, { text: string; steps?: string[]; note?: string; url?: string }> = {
   anthropic: { text: "Melde dich bei Anthropic an, lege ein Guthaben an (ein paar Euro reichen zum Start) und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://console.anthropic.com/settings/keys" },
   openai: { text: "Melde dich bei OpenAI an, lege ein Guthaben an und erstelle einen neuen Schlüssel. Kopiere ihn gleich, später wird er nicht mehr gezeigt.", url: "https://platform.openai.com/api-keys" },
-  openrouter: { text: "OpenRouter ist wie eine Prepaid-Karte für KI: Du lädst einmal etwa 10 Dollar auf, und Pult verbraucht davon nur so viel, wie es braucht. Es gibt kein Abo. So geht es: Anmelden, Guthaben aufladen, unter „API Keys“ mit „New Key“ einen Schlüssel erstellen. Wähle dabei eine Ausgabengrenze (zum Beispiel 10 Dollar) und einen Ablauf von mehr als 30 Tagen. Kopiere den Schlüssel sofort, er wird nur einmal gezeigt. Eine Anleitung mit Bildern liegt im Pult-Ordner als Datei „OpenRouter einrichten“.", url: "https://openrouter.ai/keys" },
+  openrouter: {
+    text: "OpenRouter ist wie eine Prepaid-Karte für KI: Du lädst einmal etwa 10 Dollar auf, und Pult verbraucht davon nur so viel, wie es braucht. Es gibt kein Abo.",
+    steps: ["Bei OpenRouter anmelden.", "Guthaben aufladen.", "Unter „API Keys“ mit „New Key“ einen Schlüssel erstellen.", "Eine Ausgabengrenze wählen (zum Beispiel 10 Dollar) und einen Ablauf von mehr als 30 Tagen.", "Den Schlüssel sofort kopieren. Er wird nur einmal gezeigt."],
+    note: "Eine Anleitung mit Bildern liegt im Pult-Ordner als Datei „OpenRouter einrichten“.",
+    url: "https://openrouter.ai/keys",
+  },
   deepseek: { text: "Melde dich bei DeepSeek an, lade etwas Guthaben auf und erstelle einen Schlüssel. In manchen Schulnetzen ist DeepSeek gesperrt. Dann geht es über OpenRouter.", url: "https://platform.deepseek.com/api_keys" },
   "opencode-go": { text: "Den Schlüssel findest du in deinem Konto bei OpenCode, wenn du das Go-Abo hast." },
 };
@@ -136,6 +141,7 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
             }}
           />
         </label>
+        {!custom && <p className="key-note">Alles, was du schreibst oder anhängst, geht an deinen KI-Anbieter{providerId === "openrouter" ? " und von dort an das gewählte Modell" : ""}.</p>}
         {keyHint(providerId, apiKey) && (
           <p className="error" role="status">
             {keyHint(providerId, apiKey)}
@@ -145,6 +151,14 @@ export function Setup({ status, onDone, onCancel, embedded }: { status: SetupSta
           <details className="key-help" open={providerId === "openrouter" && !alreadyStored ? true : undefined}>
             <summary>Wo bekomme ich einen Schlüssel?</summary>
             <p>{KEY_HELP[providerId]!.text}</p>
+            {KEY_HELP[providerId]!.steps && (
+              <ol>
+                {KEY_HELP[providerId]!.steps!.map((st) => (
+                  <li key={st}>{st}</li>
+                ))}
+              </ol>
+            )}
+            {KEY_HELP[providerId]!.note && <p>{KEY_HELP[providerId]!.note}</p>}
             {KEY_HELP[providerId]!.url && (
               <p>
                 <a href={KEY_HELP[providerId]!.url} target="_blank" rel="noopener noreferrer">
