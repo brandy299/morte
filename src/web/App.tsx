@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { Gespraechsliste } from "./Gespraechsliste.tsx";
-import { nurFuerLehrkraft } from "./vorschau.ts";
+import { nurFuerLehrkraft, szenenAntwort, szenenNotiz } from "./vorschau.ts";
 import { melde } from "./mitteilung.ts";
 import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
@@ -422,6 +422,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   };
   const suggestions = tree.length === 0 ? FIRST_SUGGESTIONS : SUGGESTIONS;
   const abortRef = useRef<AbortController | null>(null);
+  const previewFrame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     getUsage().then((u) => setUsage(u.session)).catch(() => {});
@@ -637,6 +638,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     // Only once when the conversation opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // An explainer answers with the scene it shows; the note starts in the chat with that scene named.
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      const a = e.source === previewFrame.current?.contentWindow ? szenenAntwort(e.data) : null;
+      if (a) ask(szenenNotiz(a.n, a.titel));
+    };
+    addEventListener("message", onMessage);
+    return () => removeEventListener("message", onMessage);
+  });
 
   const ask = (text: string) => {
     setInput(text);
@@ -1088,11 +1099,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             <a className="ghost" href={materialUrl(preview, true)} download={preview.name}>
               Herunterladen
             </a>
+            {/Erklaerstueck/i.test(preview.name) && (
+              <button type="button" className="ghost" onClick={() => previewFrame.current?.contentWindow?.postMessage({ pult: "szene?" }, "*")}>
+                Hier etwas ändern
+              </button>
+            )}
             <button type="button" className="ghost" onClick={() => setPreview(null)}>
               Schließen
             </button>
           </div>
-          <iframe title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
+          <iframe ref={previewFrame} title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
         </aside>
       )}
     </div>
