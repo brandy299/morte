@@ -351,6 +351,8 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
 }
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
+// Without a class the two questions above lead nowhere; offer what the first test tasks are.
+const FIRST_SUGGESTIONS = ["Ein Arbeitsblatt zu einem Thema aus meinem Unterricht", "Eine Unterrichtsreihe planen", "Eine Klausur mit Erwartungshorizont"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -418,6 +420,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     setSlashZu(true);
     inputRef.current?.focus();
   };
+  const suggestions = tree.length === 0 ? FIRST_SUGGESTIONS : SUGGESTIONS;
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -795,14 +798,14 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 <h1>Woran arbeiten wir heute?</h1>
                 <p>Schreib einfach, was du brauchst. Ich frage nach, wenn mir etwas fehlt.</p>
                 <div className="suggest">
-                  {SUGGESTIONS.map((q, qi) => (
+                  {suggestions.map((q, qi) => (
                     <button key={q} type="button" style={{ "--i": qi } as CSSProperties} onClick={() => void submit(q)}>
                       {q}
                     </button>
                   ))}
                   <button
                     type="button"
-                    style={{ "--i": SUGGESTIONS.length } as CSSProperties}
+                    style={{ "--i": suggestions.length } as CSSProperties}
                     onClick={() => {
                       setInput((t) => t || "Bau mir so etwas wie auf diesem Bild, mit eigenen Aufgaben.");
                       fileRef.current?.click();
