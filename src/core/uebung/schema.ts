@@ -6,7 +6,7 @@ import type { Bild } from "../bilder/index.ts";
 import { MaterialError, str } from "../material/layout.ts";
 import { PALETTEN, type Palette } from "../animation/szene.ts";
 
-export const ARTEN = ["info", "auswahl", "lueckentext", "zuordnung", "offen", "checkliste", "klick"] as const;
+export const ARTEN = ["info", "auswahl", "lueckentext", "zuordnung", "offen", "checkliste", "klick", "karten"] as const;
 export type Art = (typeof ARTEN)[number];
 export const MAX_SCHRITTE = 20;
 /** Pictures in one exercise and their total size: the file carries them inside, so it must stay small enough to send. */
@@ -22,7 +22,9 @@ export interface Offen { art: "offen"; aufgabe: string; hinweis?: string; muster
 export interface Checkliste { art: "checkliste"; titel: string; punkte: string[] }
 /** "Wo klickst du?": the pupil clicks the place `ziel` (the id of an element of the picture) in a screenshot from the library. */
 export interface Klick { art: "klick"; aufgabe: string; bild: Bild; ziel: string; hinweis?: string; erklaerung?: string }
-export type Schritt = Info | Auswahl | Lueckentext | Zuordnung | Offen | Checkliste | Klick;
+/** Flashcards: the pupil turns each card and says whether they knew it. Self-check only, it does not count for the score. */
+export interface Karten { art: "karten"; titel: string; karten: { vorne: string; hinten: string }[] }
+export type Schritt = Info | Auswahl | Lueckentext | Zuordnung | Offen | Checkliste | Klick | Karten;
 
 export interface Uebung {
   titel: string;
@@ -135,6 +137,17 @@ export function parseUebung(raw: unknown): Uebung {
       if (bild.elemente.length < 2) throw new MaterialError(`${stelle}: Im Bild „${bild.id}“ ist nur eine Stelle beschrieben. Zum Suchen braucht es mindestens zwei.`);
       if (!bild.elemente.some((e) => e.id === ziel)) throw new MaterialError(`${stelle}: Die Stelle „${ziel}“ gibt es im Bild „${bild.id}“ nicht. Vorhanden: ${bild.elemente.map((e) => e.id).join(", ")}.`);
       return { art, aufgabe, bild, ziel, hinweis: feld(stelle, s.hinweis, "der Hinweis", 200), erklaerung: feld(stelle, s.erklaerung, "die Erklärung", 300) };
+    }
+    if (art === "karten") {
+      if (!Array.isArray(s.karten)) throw new MaterialError(`${stelle}: Es fehlen die Karten.`);
+      if (s.karten.length < 2 || s.karten.length > 12) throw new MaterialError(`${stelle}: Es sind ${s.karten.length} Karten. Nötig sind 2 bis 12.`);
+      const karten = s.karten.map((x, j) => {
+        const k = (x ?? {}) as Record<string, unknown>;
+        const where = `${stelle}, Karte ${j + 1}`;
+        return { vorne: feld(where, k.vorne, "die Vorderseite", 120, true)!, hinten: feld(where, k.hinten, "die Rückseite", 240, true)! };
+      });
+      if (new Set(karten.map((k) => k.vorne.toLowerCase())).size < karten.length) throw new MaterialError(`${stelle}: Zwei Karten haben dieselbe Vorderseite.`);
+      return { art, titel: feld(stelle, s.titel, "der Titel", 80, true)!, karten };
     }
     return { art: "checkliste", titel: feld(stelle, s.titel, "der Titel", 80, true)!, punkte: list(s.punkte, "Die Punkte", 2, 8, 120, stelle) };
   });

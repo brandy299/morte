@@ -171,6 +171,46 @@
     return null;
   }
 
+  // Flashcards: turn the card, then say whether it was known. Self-check only, it does not count for the score.
+  function buildKarten(s, box, st) {
+    st.val = st.val || { i: 0, gewusst: [] };
+    var v = st.val, n = s.karten.length;
+    var zaehler = el("p", "zaehler"); box.appendChild(zaehler);
+    var karte = el("div", "kartei"); karte.setAttribute("role", "group"); box.appendChild(karte);
+    var nav = el("div", "nav"); box.appendChild(nav);
+    function draw(umgedreht) {
+      karte.textContent = ""; nav.textContent = "";
+      if (v.i >= n) {
+        var ja = v.gewusst.filter(Boolean).length;
+        karte.appendChild(el("p", "ergebnis", "Gewusst: " + ja + " von " + n + "."));
+        if (ja < n) karte.appendChild(el("p", "hinweis", "Schau dir die anderen Karten gleich noch einmal an."));
+        zaehler.textContent = ""; say("Alle Karten angesehen. Gewusst: " + ja + " von " + n + ".");
+        var neu = el("button", "sek", "Karten noch einmal"); neu.type = "button";
+        neu.addEventListener("click", function () { v.i = 0; v.gewusst = []; draw(false); });
+        nav.appendChild(neu); return;
+      }
+      var k = s.karten[v.i];
+      zaehler.textContent = "Karte " + (v.i + 1) + " von " + n;
+      karte.setAttribute("aria-label", "Karte " + (v.i + 1) + " von " + n);
+      karte.classList.toggle("hinten", umgedreht);
+      karte.appendChild(el("p", "kartenseite", umgedreht ? "Rückseite" : "Vorderseite"));
+      karte.appendChild(el("p", "kartentext", umgedreht ? k.hinten : k.vorne));
+      if (!umgedreht) {
+        var b = el("button", "prim", "Umdrehen"); b.type = "button";
+        b.addEventListener("click", function () { draw(true); say(k.hinten); });
+        nav.appendChild(b); b.focus();
+      } else {
+        [["Gewusst", true], ["Noch üben", false]].forEach(function (x) {
+          var c = el("button", x[1] ? "prim" : "sek", x[0]); c.type = "button";
+          c.addEventListener("click", function () { v.gewusst[v.i] = x[1]; v.i += 1; draw(false); });
+          nav.appendChild(c);
+        });
+      }
+    }
+    draw(false);
+    return null;
+  }
+
   // "Wo klickst du?": the pupil clicks the place in a screenshot. Every place is also a real button (keyboard, screen reader);
   // a click beside all places counts as a miss. Three tries, then the place is shown.
   var VERSUCHE = 3;
@@ -227,8 +267,8 @@
     return null;
   }
 
-  var BUILD = { klick: buildKlick, info: buildInfo, auswahl: buildAuswahl, lueckentext: buildLuecke, zuordnung: buildZuordnung, offen: buildOffen, checkliste: buildCheckliste };
-  var PHASE = { info: "Zum Lesen", auswahl: "Prüfe dich", lueckentext: "Prüfe dich", zuordnung: "Prüfe dich", offen: "Deine Aufgabe", checkliste: "Selbsteinschätzung", klick: "Wo klickst du?" };
+  var BUILD = { karten: buildKarten, klick: buildKlick, info: buildInfo, auswahl: buildAuswahl, lueckentext: buildLuecke, zuordnung: buildZuordnung, offen: buildOffen, checkliste: buildCheckliste };
+  var PHASE = { info: "Zum Lesen", auswahl: "Prüfe dich", lueckentext: "Prüfe dich", zuordnung: "Prüfe dich", offen: "Deine Aufgabe", checkliste: "Selbsteinschätzung", klick: "Wo klickst du?", karten: "Karteikarten" };
 
   function titelVon(s) { return s.titel || s.frage || s.aufgabe || "Lücken ausfüllen"; }
 

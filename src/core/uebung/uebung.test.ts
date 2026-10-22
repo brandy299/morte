@@ -305,3 +305,41 @@ describe.skipIf(!browser)("klick step in a real browser", () => {
     await page.close();
   }, 30000);
 });
+
+
+describe("karten step (flashcards)", () => {
+  const karten = [{ vorne: "to rely on", hinten: "sich verlassen auf" }, { vorne: "to apply for", hinten: "sich bewerben um" }];
+  it("accepts 2 to 12 cards with different fronts", () => {
+    expect(eins({ art: "karten", titel: "Vokabeln", karten }).schritte[0]).toMatchObject({ art: "karten", karten });
+  });
+  it("explains in plain words: too few, too many, empty side, same front", () => {
+    expect(() => eins({ art: "karten", titel: "T", karten: [karten[0]] })).toThrow("Es sind 1 Karten. Nötig sind 2 bis 12.");
+    expect(() => eins({ art: "karten", titel: "T", karten: Array.from({ length: 13 }, (_, i) => ({ vorne: `v${i}`, hinten: "h" })) })).toThrow("Nötig sind 2 bis 12");
+    expect(() => eins({ art: "karten", titel: "T", karten: [karten[0], { vorne: "x", hinten: "" }] })).toThrow("Schritt 1, Karte 2");
+    expect(() => eins({ art: "karten", titel: "T", karten: [karten[0], { vorne: "TO RELY ON", hinten: "x" }] })).toThrow("dieselbe Vorderseite");
+    expect(() => eins({ art: "karten", titel: "T" })).toThrow("Es fehlen die Karten.");
+  });
+});
+
+describe.skipIf(!browser)("karten step in a real browser", () => {
+  it("turns the cards, counts what was known and does not count for the score", async () => {
+    const page = await browser!.newPage({ viewport: { width: 420, height: 820 } });
+    const problems: string[] = [];
+    page.on("pageerror", (e: Error) => problems.push(String(e)));
+    const karten = [{ vorne: "to rely on", hinten: "sich verlassen auf" }, { vorne: "to apply for", hinten: "sich bewerben um" }];
+    await page.setContent(renderUebung(parseUebung({ titel: "V", schritte: [{ art: "karten", titel: "Vokabeln", karten }] })), { waitUntil: "load" });
+    expect(await page.textContent(".kartentext")).toBe("to rely on");
+    await page.click('button:has-text("Umdrehen")');
+    expect(await page.textContent(".kartentext")).toBe("sich verlassen auf");
+    await page.click('button:has-text("Gewusst")');
+    expect(await page.textContent(".zaehler")).toBe("Karte 2 von 2");
+    await page.click('button:has-text("Umdrehen")');
+    await page.click('button:has-text("Noch üben")');
+    expect(await page.textContent(".ergebnis")).toBe("Gewusst: 1 von 2.");
+    await page.click('button:has-text("Fertig")');
+    expect(await page.locator(".ergebnis").count()).toBe(0); // no score line: cards are a self-check
+    expect(await page.textContent("h2")).toBe("Geschafft");
+    expect(problems).toEqual([]);
+    await page.close();
+  }, 30000);
+});
