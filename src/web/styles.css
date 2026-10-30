@@ -222,6 +222,10 @@ a.file-card { text-decoration: none; color: inherit; }
 .grow { flex: 1; }
 .icon-btn { padding: 7px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); display: grid; place-items: center; transition: background 0.12s, color 0.12s; }
 .icon-btn:hover { background: var(--paper-deep); color: var(--accent-deep); }
+.icon-btn.mic.on { background: var(--danger-wash); color: var(--danger-ink); animation: mic-puls 1.4s ease-in-out infinite; }
+.mic-status { font-size: 13px; color: var(--ink-soft); margin-left: 4px; }
+@keyframes mic-puls { 50% { opacity: 0.65; } }
+@media (prefers-reduced-motion: reduce) { .icon-btn.mic.on { animation: none; } }
 .send, .stop { padding: 8px 20px; border-radius: 12px; font-weight: 600; border: 0; }
 .send { background: var(--accent); color: var(--accent-ink); transition: background 0.15s; }
 .send:hover:not(:disabled) { background: var(--accent-deep); }
