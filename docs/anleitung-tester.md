@@ -10,7 +10,7 @@ Du brauchst nur **eine Zeile**, die du in ein Fenster einfügst. Mehr musst du n
 
 ### Schritt 1: Nichts zu tun
 
-Pult braucht ein kleines Hilfsprogramm namens Node.js. Die Zeile aus Schritt 4 holt es selbst, falls es auf deinem Computer fehlt (rund 40 MB, ohne Installation und ohne Passwort). Du musst dafür nirgends hin.
+Pult braucht ein kleines Hilfsprogramm namens Node.js. Die Zeile aus Schritt 4 holt es selbst, falls es auf deinem Computer fehlt oder zu alt ist, und hält es bei jedem Update aktuell. Es wird nichts installiert, und es braucht kein Passwort. Du musst dafür nirgends hin.
 
 ### Schritt 2: Einen Schlüssel besorgen
 
@@ -101,8 +101,8 @@ Schreib uns auf, was gut und was schlecht war. Das hilft mehr als alles andere.
 **1. Es erscheint „Der Download von Node.js hat nicht geklappt“ oder „Dieses System kenne ich nicht“.**
 Dann konnte Pult das Hilfsprogramm nicht selbst holen. Häufige Ursache ist eine gesperrte Seite im Schulnetz oder eine unterbrochene Verbindung. Versuche es zu Hause noch einmal. Alternativ installierst du Node.js von nodejs.org (grüner Knopf „LTS“, überall „Weiter“), **schließt das Terminal, öffnest es neu** (Schritt 3) und fügst die Zeile aus Schritt 4 noch einmal ein.
 
-**2. Es erscheint „Dein Node.js ist zu alt“.**
-Das sollte nicht mehr vorkommen, denn die Zeile holt dann selbst eine passende Version. Erscheint es trotzdem, installiere die aktuelle LTS-Version von nodejs.org, öffne ein neues Terminal und füge die Zeile aus Schritt 4 noch einmal ein.
+**2. Es erscheint „Node.js ist noch nicht installiert“ oder „Dein Node.js ist zu alt“.**
+Das kommt nur vor, wenn du Pult aus einer ZIP-Datei startest (FAQ 4). Nur die Zeile aus Schritt 4 holt Node.js selbst. Am einfachsten fügst du diese Zeile ein. Oder du installierst Node.js von nodejs.org (grüner Knopf „LTS“, überall „Weiter“) und startest „Pult starten“ danach noch einmal.
 
 **3. Die Einrichtung beim ersten Start bricht ab, mit roten Zeilen.**
 Füge die Zeile aus Schritt 4 noch einmal ein. Bleibt es: Mach ein Foto der **ersten roten Zeilen** und schick es Yannik. Häufige Ursache ist eine unterbrochene Internetverbindung. Im Schulnetz kann ein Schutzprogramm das Herunterladen blockieren. Versuche es zu Hause.
@@ -154,3 +154,12 @@ Schließe Pult (das Terminal-Fenster) und füge die Zeile aus Schritt 4 noch ein
 
 **16. Ich komme nicht weiter, oder ich will einen Fehler melden.**
 Schreib Yannik. Nenne dazu die **Version**: in Pult unten bei den Einstellungen steht „Pult 0.1.0 (Probelauf), Stand …“. Beim ersten Mal sitzt er gern dabei.
+
+**17. Ich möchte Pult auf dem Mac ganz von vorn starten, wie beim ersten Mal.**
+Die Zeile aus Schritt 4 erneuert nur das Programm. Deine Einstellungen, dein Schlüssel und deine Daten bleiben absichtlich erhalten. Für einen sauberen Neustart schließe Pult (das Terminal-Fenster), öffne das Terminal (Schritt 3) und füge diese Zeile ein:
+
+```
+curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/scripts/pult-zuruecksetzen.sh | bash
+```
+
+Sie verschiebt deinen Ordner „pult-daten“ in einen Ordner „Pult-Sicherung“ auf dem Schreibtisch (nichts geht verloren), entfernt den gespeicherten Schlüssel und den Ordner „Pult“. Danach fügst du die Zeile aus Schritt 4 noch einmal ein, und Pult fragt wieder nach Schlüssel und Modell.

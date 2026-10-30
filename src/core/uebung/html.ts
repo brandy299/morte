@@ -106,6 +106,19 @@ button.stelle{position:absolute;margin:0;padding:0;min-height:0;min-width:0;bord
 button.stelle:hover:not(:disabled){filter:none}
 button.stelle.ok{outline:4px solid var(--okInk);outline-offset:-2px;background:rgba(22,76,38,.2)}
 button.stelle.bad{outline:4px solid var(--badInk);outline-offset:-2px;background:rgba(122,37,9,.2)}
+.kartei{background:#fff;border:2px solid var(--soft);border-radius:14px;padding:28px 20px;min-height:160px;text-align:center}
+.kartei.hinten{background:var(--tint)}
+.kartenseite{margin:0 0 10px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.kartentext{margin:0;font-size:24px;font-weight:600}
+.gitter{display:grid;gap:2px;justify-content:center;margin:10px 0 14px}
+.gitter .leer{aspect-ratio:1}
+.gitter .zelle{position:relative;aspect-ratio:1;background:#fff;border:2px solid var(--soft);border-radius:4px}
+.gitter .nr{position:absolute;left:2px;top:0;font-size:11px;line-height:1.3;color:var(--soft);pointer-events:none}
+.gitter input{width:100%;height:100%;min-height:0;padding:8px 0 0;border:0;border-radius:2px;text-align:center;text-transform:uppercase;font-weight:600;font-size:20px;background:transparent}
+.gitter input.ok{background:var(--okBg);color:var(--okInk)}
+.gitter input.bad{background:var(--badBg);color:var(--badInk)}
+h3.kopf-klein{font-size:16px;margin:12px 0 4px}
+.hinweise{margin:0;padding-left:22px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion:no-preference){.karte{animation:ein .25s ease-out}@keyframes ein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
 @media print{button,.fortschritt{display:none}}

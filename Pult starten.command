@@ -1,8 +1,8 @@
 #!/bin/bash
 # Doppelklick startet Pult (Mac). Beim ersten Start richtet sich Pult selbst ein.
 cd "$(dirname "$0")" || exit 1
-# Eine eigene Node.js-Kopie, die die Installationszeile angelegt hat, wird benutzt, wenn der Rechner keine hat.
-[ -x node/bin/node ] && ! command -v node >/dev/null 2>&1 && export PATH="$PWD/node/bin:$PATH"
+# Hat die Installationszeile eine eigene Node.js-Kopie angelegt, geht sie immer vor (auch vor einem zu alten Node.js auf dem Rechner).
+if [ -x node/bin/node ]; then export PATH="$PWD/node/bin:$PATH"; fi
 if ! command -v node >/dev/null 2>&1; then
   echo
   echo "Node.js ist noch nicht installiert. Pult braucht es einmalig."

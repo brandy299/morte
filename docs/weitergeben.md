@@ -4,7 +4,7 @@ Es gibt zwei Wege. **Der erste ist der empfohlene**, weil er ohne die Warnungen 
 
 ## Weg 1 (empfohlen): eine Zeile im Terminal
 
-Das Repo ist öffentlich, die Tester holen Pult direkt von GitHub. Sie brauchen nur diese Zeile im Terminal. Fehlt **Node.js** (oder ist es zu alt), lädt das Skript selbst eine eigene Kopie in den Ordner „Pult“ (`node/`, von nodejs.org, mit Prüfsumme, ohne Installation und ohne Administratorrechte). Ein vorhandenes Node wird nicht angefasst:
+Das Repo ist öffentlich, die Tester holen Pult direkt von GitHub. Sie brauchen nur diese Zeile im Terminal. Fehlt **Node.js** (oder ist es zu alt), lädt das Skript selbst eine eigene Kopie in den Ordner „Pult“ (`node/`, neueste Version 22 von nodejs.org, mit Prüfsumme, ohne Installation und ohne Administratorrechte). Ein vorhandenes passendes Node wird nicht angefasst. Gibt es `Pult/node`, nimmt „Pult starten“ immer diese Kopie, und jeder weitere Lauf der Zeile bringt sie auf den neuesten Stand (ohne Internet geht es mit der alten weiter):
 
 - Windows (PowerShell): `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
 - Mac (Terminal): `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
@@ -32,37 +32,98 @@ Als E-Mail-Anhang können manche Programme sie blockieren (Startdateien darin). 
 
 **Mac:** Beim ersten Öffnen zeigt der Mac „‚Pult starten.command‘ nicht geöffnet“. Der Weg: „Fertig“, dann Systemeinstellungen, Datenschutz & Sicherheit, ganz unten „Trotzdem öffnen“ (auf einem echten Mac am 2026-10-14 gesehen, die Schritte danach nicht). **Windows:** SmartScreen „Der Computer wurde durch Windows geschützt“, „Weitere Informationen“, „Trotzdem ausführen“ (nicht gesehen).
 
+## Kurzanleitung für Tester (zum Kopieren)
+
+Ein Befehl pro System, sehr einfach gehalten. Zum Beispiel als Anhang der Mail oder als Nachricht. Der Notfall-Block am Ende gilt nur für den Mac (`scripts/pult-zuruecksetzen.sh`); für Windows gibt es kein Reset-Skript.
+
+```text
+Pult installieren: so geht es
+
+Kurz gesagt: Terminal öffnen, eine Zeile einfügen, Enter drücken. Mehr nicht. Alles Nötige holt Pult selbst.
+
+WINDOWS
+1. Startmenü anklicken, "PowerShell" tippen, Enter drücken.
+2. Diese Zeile einfügen (Rechtsklick ins Fenster) und Enter drücken:
+
+irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex
+
+MAC
+1. Cmd + Leertaste drücken, "Terminal" tippen, Enter drücken.
+2. Diese Zeile einfügen (Cmd + V) und Enter drücken:
+
+curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash
+
+WAS PASSIERT
+Pult lädt sich herunter und richtet sich ein. Das dauert 2 bis 5 Minuten, es laufen viele Zeilen durch, auch gelbe Warnungen. Das ist normal. Wenn "Pult läuft" steht, öffnet sich der Browser von selbst. Lass das Terminal-Fenster offen, solange du mit Pult arbeitest.
+
+BEIM ERSTEN START
+Pult fragt nach einem Schlüssel (OpenRouter). Den bekommst du hier, mit Bildern:
+https://github.com/brandy299/morte/blob/main/docs/openrouter-anleitung.md
+
+NÄCHSTES MAL
+Dieselbe Zeile noch einmal einfügen. Das holt zugleich die neueste Fassung. Deine Sachen bleiben erhalten.
+
+WENN ETWAS HAKT
+Foto vom Bildschirm machen und mir schicken, dazu ein Satz, was du gerade getan hast. Hilfe zu den häufigsten Problemen:
+https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
+
+NUR IM NOTFALL (nur Mac)
+Wenn gar nichts mehr geht, setzt diese Zeile Pult komplett zurück, als wäre es nie installiert gewesen. Dein Schlüssel wird dabei entfernt, du musst ihn danach neu einfügen. Deine Daten landen in einem Sicherungsordner auf dem Schreibtisch. Vorher Pult beenden (Terminal-Fenster schließen):
+
+curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/scripts/pult-zuruecksetzen.sh | bash
+
+Danach die Zeile unter "Mac" noch einmal einfügen.
+```
+
 ## Nachricht an die Tester (zum Kopieren)
 
-> **Betreff:** Pult ausprobieren, dein Feedback hilft
->
-> Hallo ⟨Name⟩,
->
-> danke, dass du mitmachst! Pult ist ein KI-Arbeitsplatz für Lehrkräfte: Du sagst, was du brauchst (ein Arbeitsblatt, eine Klausur mit Erwartungshorizont, eine Stundenplanung …), und Pult erstellt druckfertiges Material. Es läuft auf deinem eigenen Computer, deine Gespräche und dein Material bleiben dort.
->
-> **Wichtig:** Das ist ein **Probelauf**. Pult kann Fehler machen oder etwas nicht können. Genau das will ich von dir wissen. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.
->
-> **Was du brauchst:** einen Windows- oder Mac-Computer und beim ersten Mal etwa **30 Minuten**. Einen **Zugang zur KI** über OpenRouter, wie eine Prepaid-Karte: einmal etwa 10 Dollar aufladen, es wird nur abgezogen, was verbraucht wird, kein Abo.
->
-> **So geht es:** Die Schritt-für-Schritt-Anleitung mit Bildern steht hier: https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
-> Kurz: bei OpenRouter einen Schlüssel besorgen, dann im Terminal (Windows: PowerShell, Mac: Terminal) **eine Zeile** einfügen:
-> - Windows: `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
-> - Mac: `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
->
-> Beim ersten Start richtet sich Pult selbst ein, das dauert ein paar Minuten, dann öffnet sich der Browser.
->
-> **Bitte probier aus:** 1. ein Arbeitsblatt zu einem Thema aus deinem Unterricht, 2. eine Stunde oder Reihe planen, 3. eine Klausur mit Erwartungshorizont.
->
-> **Datenschutz, bitte unbedingt:** **Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten**, weder im Gespräch noch in Anhängen. Deine Eingaben gehen an den KI-Anbieter.
->
-> **Rückmeldung:** Unter jedem Material auf „Passt“ oder „Passt nicht“ klicken (bei „Passt nicht“ ein Satz, warum). Wenn etwas hakt: ein Foto vom Bildschirm und ein Satz, was du gerade getan hast. Am Ende: Was war gut, was war nervig, was hat gefehlt?
->
-> Ich sitze gern beim ersten Start dabei, melde dich einfach. Danke!
-> ⟨Dein Name⟩
+Reiner Text, ohne Formatierung: Kopieren (Knopf oben rechts im Kasten), in die Mail einfügen, ⟨Name⟩ und ⟨Dein Name⟩ ersetzen. Die Befehle stehen je in einer eigenen Zeile, damit das Mailprogramm sie nicht umbricht.
+
+```text
+Betreff: Pult ausprobieren, dein Feedback hilft
+
+Hallo ⟨Name⟩,
+
+kurz gesagt: Schlüssel bei OpenRouter holen, eine Zeile ins Terminal kopieren, drei Materialien ausprobieren und mir sagen, was hakt.
+
+Pult ist ein KI-Arbeitsplatz für Lehrkräfte. Du sagst, was du brauchst (Arbeitsblatt, Klausur mit Erwartungshorizont, Stundenplanung …), und Pult erstellt druckfertiges Material. Es läuft auf deinem Computer, dein Material bleibt dort. Das ist ein Probelauf: Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.
+
+DU BRAUCHST
+- einen Windows- oder Mac-Computer und beim ersten Mal etwa 30 Minuten
+- einen Schlüssel von OpenRouter, wie eine Prepaid-Karte: einmal etwa 10 Dollar aufladen, kein Abo
+
+SO GEHT ES
+1. Schlüssel besorgen, Anleitung mit Bildern:
+   https://github.com/brandy299/morte/blob/main/docs/openrouter-anleitung.md
+2. Terminal öffnen (Windows: PowerShell, Mac: Terminal), die Zeile für dein System einfügen und Enter drücken.
+   Windows:
+   irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex
+   Mac:
+   curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash
+   Pult holt alles Nötige selbst und öffnet nach ein paar Minuten den Browser. Lass das Terminal offen, solange du arbeitest.
+3. In Pult den Schlüssel einfügen, „Verbindung testen“ klicken, speichern.
+
+Ganze Anleitung und Hilfe bei Problemen:
+https://github.com/brandy299/morte/blob/main/docs/anleitung-tester.md
+
+BITTE PROBIER AUS
+1. ein Arbeitsblatt zu einem Thema aus deinem Unterricht
+2. eine Stunde oder Reihe planen
+3. eine Klausur mit Erwartungshorizont
+
+DATENSCHUTZ
+Keine Schülernamen, keine Noten, keine Fotos von Klassenarbeiten. Deine Eingaben gehen an den KI-Anbieter.
+
+RÜCKMELDUNG
+Unter jedem Material „Passt“ oder „Passt nicht“ klicken, bei „Passt nicht“ ein Satz, warum. Hakt etwas: ein Foto vom Bildschirm und ein Satz, was du gerade getan hast. Am Ende: Was war gut, was war nervig, was hat gefehlt?
+
+Ich sitze gern beim ersten Start dabei, melde dich einfach. Danke!
+⟨Dein Name⟩
+```
 
 ## Was du beim ersten Tester selbst sagen und beobachten solltest
 
 - **Vorher sagen:** „Das ist ein Probelauf. Wenn etwas nicht klappt, liegt es an Pult, nicht an dir.“ Und: „Keine Schülernamen oder Noten eingeben.“
 - **Nicht helfen, solange es geht.** Schau zu, wo die Person hängen bleibt, und schreib es auf. Die Stellen, an denen du eingreifst, sind die Fehler in der Anleitung.
-- **Typische Stolpersteine:** der Download von Node.js (nodejs.org) ist im Netz gesperrt, „Eingabeaufforderung“ statt PowerShell, das Terminal-Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen, GitHub ist im Schulnetz gesperrt.
+- **Typische Stolpersteine:** die Zeile kann Node.js nicht selbst laden, weil das Schulnetz den Download sperrt (FAQ 1 der Anleitung), „Eingabeaufforderung“ statt PowerShell, das Terminal-Fenster wird geschlossen, der Schlüssel wird beim falschen Anbieter eingefügt, die Ausgabengrenze oder der Ablauf des Schlüssels (30 Tage) wird vergessen, GitHub ist im Schulnetz gesperrt.
 - **Danach fragen:** Wie lange bis zum ersten Material? Hat sie die Rückfragen verstanden? Würde sie das Material so im Unterricht benutzen?

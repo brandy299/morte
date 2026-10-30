@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { Gespraechsliste } from "./Gespraechsliste.tsx";
-import { nurFuerLehrkraft } from "./vorschau.ts";
+import { nurFuerLehrkraft, szenenAntwort, szenenNotiz } from "./vorschau.ts";
 import { melde } from "./mitteilung.ts";
 import { ModelInfo } from "./ModelInfo.tsx";
 import { UsageMeter } from "./UsageMeter.tsx";
@@ -20,6 +20,8 @@ import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
+import { Diktat } from "./Diktat.tsx";
+import { fuegeDiktatEin } from "./diktat.ts";
 
 interface Step {
   id: string;
@@ -351,6 +353,8 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
 }
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
+// Without a class the two questions above lead nowhere; offer what the first test tasks are.
+const FIRST_SUGGESTIONS = ["Ein Arbeitsblatt zu einem Thema aus meinem Unterricht", "Eine Unterrichtsreihe planen", "Eine Klausur mit Erwartungshorizont"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -418,7 +422,9 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     setSlashZu(true);
     inputRef.current?.focus();
   };
+  const suggestions = tree.length === 0 ? FIRST_SUGGESTIONS : SUGGESTIONS;
   const abortRef = useRef<AbortController | null>(null);
+  const previewFrame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     getUsage().then((u) => setUsage(u.session)).catch(() => {});
@@ -635,6 +641,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // An explainer answers with the scene it shows; the note starts in the chat with that scene named.
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      const a = e.source === previewFrame.current?.contentWindow ? szenenAntwort(e.data) : null;
+      if (a) ask(szenenNotiz(a.n, a.titel));
+    };
+    addEventListener("message", onMessage);
+    return () => removeEventListener("message", onMessage);
+  });
+
   const ask = (text: string) => {
     setInput(text);
     setView("chat");
@@ -795,14 +811,14 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 <h1>Woran arbeiten wir heute?</h1>
                 <p>Schreib einfach, was du brauchst. Ich frage nach, wenn mir etwas fehlt.</p>
                 <div className="suggest">
-                  {SUGGESTIONS.map((q, qi) => (
+                  {suggestions.map((q, qi) => (
                     <button key={q} type="button" style={{ "--i": qi } as CSSProperties} onClick={() => void submit(q)}>
                       {q}
                     </button>
                   ))}
                   <button
                     type="button"
-                    style={{ "--i": SUGGESTIONS.length } as CSSProperties}
+                    style={{ "--i": suggestions.length } as CSSProperties}
                     onClick={() => {
                       setInput((t) => t || "Bau mir so etwas wie auf diesem Bild, mit eigenen Aufgaben.");
                       fileRef.current?.click();
@@ -1036,6 +1052,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
                 </svg>
               </button>
+              <Diktat disabled={working} onProblem={setAttachProblem} onText={(t) => { setInput((v) => fuegeDiktatEin(v, t)); inputRef.current?.focus(); }} />
               <span className="grow" />
               <ModelInfo status={status} onSettings={onSettings} />
               <UsageMeter usage={usage} />
@@ -1085,11 +1102,16 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             <a className="ghost" href={materialUrl(preview, true)} download={preview.name}>
               Herunterladen
             </a>
+            {/Erklaerstueck/i.test(preview.name) && (
+              <button type="button" className="ghost" onClick={() => previewFrame.current?.contentWindow?.postMessage({ pult: "szene?" }, "*")}>
+                Hier etwas ändern
+              </button>
+            )}
             <button type="button" className="ghost" onClick={() => setPreview(null)}>
               Schließen
             </button>
           </div>
-          <iframe title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
+          <iframe ref={previewFrame} title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
         </aside>
       )}
     </div>
