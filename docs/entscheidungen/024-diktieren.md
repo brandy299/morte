@@ -23,5 +23,5 @@ Lehrkräfte sollen Aufgaben für Pult sprechen können, statt zu tippen.
 
 - **Netz in Schulen:** Sperrt eine Schule `huggingface.co` oder `*.hf.co`, klappt das erste Laden nicht. Dann Modell mit ins Paket legen (Option „mitliefern“).
 - **Paketgröße:** `@huggingface/transformers` zieht `onnxruntime-node` (ca. 550 MB) mit, das Pult nicht braucht. Prüfen, ob es sich ausschließen lässt, bevor das Zip für Kollegen wächst.
-- **Genauigkeit und Tempo auf Schul-Laptops** mit echter deutscher Sprache messen; bei Bedarf `whisper-small` oder WebGPU.
+- **Genauigkeit und Tempo auf Schul-Laptops** messen; bei Bedarf `whisper-small` oder WebGPU. Erster Lauf (2026-10-30, Chromium auf Linux, Telefonaufnahme mit Rauschen, 8 Sekunden Sprache): Modell geladen, Text nach unter einer Minute inklusive Download, Satz bis auf die letzten Wörter richtig ("wie kann ich das tun" wurde zu "Wir können nicht das tun").
 - Safari ab 26 und Firefox, sowie das Aufnehmen im Electron-Fenster, sind nicht angesehen.
