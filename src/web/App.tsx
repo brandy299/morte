@@ -20,6 +20,8 @@ import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
+import { Diktat } from "./Diktat.tsx";
+import { fuegeDiktatEin } from "./diktat.ts";
 
 interface Step {
   id: string;
@@ -351,6 +353,8 @@ function followUps(materials: Material[]): { label: string; text: string }[] {
 }
 
 const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
+// Without a class the two questions above lead nowhere; offer what the first test tasks are.
+const FIRST_SUGGESTIONS = ["Ein Arbeitsblatt zu einem Thema aus meinem Unterricht", "Eine Unterrichtsreihe planen", "Eine Klausur mit Erwartungshorizont"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -418,6 +422,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
     setSlashZu(true);
     inputRef.current?.focus();
   };
+  const suggestions = tree.length === 0 ? FIRST_SUGGESTIONS : SUGGESTIONS;
   const abortRef = useRef<AbortController | null>(null);
   const previewFrame = useRef<HTMLIFrameElement>(null);
 
@@ -806,14 +811,14 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 <h1>Woran arbeiten wir heute?</h1>
                 <p>Schreib einfach, was du brauchst. Ich frage nach, wenn mir etwas fehlt.</p>
                 <div className="suggest">
-                  {SUGGESTIONS.map((q, qi) => (
+                  {suggestions.map((q, qi) => (
                     <button key={q} type="button" style={{ "--i": qi } as CSSProperties} onClick={() => void submit(q)}>
                       {q}
                     </button>
                   ))}
                   <button
                     type="button"
-                    style={{ "--i": SUGGESTIONS.length } as CSSProperties}
+                    style={{ "--i": suggestions.length } as CSSProperties}
                     onClick={() => {
                       setInput((t) => t || "Bau mir so etwas wie auf diesem Bild, mit eigenen Aufgaben.");
                       fileRef.current?.click();
@@ -1047,6 +1052,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
                 </svg>
               </button>
+              <Diktat disabled={working} onProblem={setAttachProblem} onText={(t) => { setInput((v) => fuegeDiktatEin(v, t)); inputRef.current?.focus(); }} />
               <span className="grow" />
               <ModelInfo status={status} onSettings={onSettings} />
               <UsageMeter usage={usage} />

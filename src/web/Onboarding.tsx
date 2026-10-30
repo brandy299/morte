@@ -12,7 +12,7 @@ const TITLES: Record<Step, string> = { willkommen: "Willkommen", ki: "KI einrich
 const POINTS = [
   { title: "Du sagst, was du brauchst", text: "Ein Arbeitsblatt, eine Stunde, eine Klausur oder ein Foto als Vorlage. Ich frage nach, wenn etwas fehlt." },
   { title: "Druckfertig und bearbeitbar", text: "Material kommt als PDF, in Graustufen gut lesbar, und auf Wunsch als Word-Datei." },
-  { title: "Deine Daten bleiben bei dir", text: "Klassen, Material und Gespräche liegen auf diesem Computer. Schülernamen gehören nirgends hinein." },
+  { title: "Klar, wohin was geht", text: "Klassen, Material und Gespräche liegen auf diesem Computer. Was du schreibst oder anhängst, geht an deinen KI-Anbieter. Schülernamen gehören nirgends hinein." },
 ];
 
 /** First start: a few calm steps, one question each. Ends with a choice of what to set up first. */
