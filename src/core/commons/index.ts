@@ -189,7 +189,7 @@ export function pruefeTreffer(page: any): { treffer: Treffer } | { grund: string
   const urheber = ohneDoppelt(klartext(field(m, "Artist"), 200)) || undefined;
   const namensnennung = String(field(m, "AttributionRequired")).toLowerCase() === "true" || art === "cc-by" || art === "cc-by-sa";
   if (namensnennung && !urheber) return { grund: "Urheber fehlt, die Lizenz verlangt aber die Nennung" };
-  const einschraenkungen = klartext(field(m, "Restrictions"), 200).split(/[|,;\s]+/).filter(Boolean);
+  const einschraenkungen = klartext(field(m, "Restrictions"), 200).split(/[|,;]+/).map((r) => r.trim()).filter(Boolean);
   return {
     treffer: {
       id: `commons-${page.pageid}`,

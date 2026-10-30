@@ -303,4 +303,11 @@ describe("Quellenzeile und Rechte-Hinweis", () => {
     expect(rechteHinweise({ einschraenkungen: [] })).toEqual([]);
     expect(rechteHinweise({ einschraenkungen: ["seltsam"] })[0]).toContain("seltsam");
   });
+  it("trennt Restrictions nur an Komma, Strich und Semikolon (mehrere Wörter bleiben zusammen)", () => {
+    const p = structuredClone(pages[0]);
+    p.imageinfo[0].extmetadata.Restrictions = { value: "personality,freedom of panorama" };
+    const t = (pruefeTreffer(p) as { treffer: Treffer }).treffer;
+    expect(t.einschraenkungen).toEqual(["personality", "freedom of panorama"]);
+    expect(rechteHinweise(t).join(" ")).toContain("Bauwerke");
+  });
 });
