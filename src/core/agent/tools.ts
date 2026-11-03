@@ -10,6 +10,7 @@ import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
 import { ARTEN, FORMEN, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
+import { ARTEN as BEFUND_ARTEN, gesamtErreicht, gesamtMax, notenHinweis, parseRueckmeldung, renderRueckmeldung } from "../material/rueckmeldung.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
 import { outline, planFor, search, section } from "../lehrplan/store.ts";
@@ -827,6 +828,66 @@ const klausurErstellen = defineTool({
   },
 });
 
+const rueckmeldungErstellen = defineTool({
+  name: "rueckmeldung_erstellen",
+  producesMaterial: true,
+  label: "Rückmeldung zu einem Text erstellen",
+  description:
+    "Builds a print-ready gray PDF with feedback on a student text the teacher gave you. You only deliver findings as data: strengths, criteria with points, findings (place, short quote, kind, explanation, suggestion) and next steps. The program sums the points and looks up the grade range on the teacher's own scale; never calculate or name a grade yourself. No names of students, ever. Give klasse only to use that class's grading scale; never ask for a class name just for this.",
+  parameters: Type.Object({
+    titel: Type.String({ description: "e.g. Rückmeldung zum Aufsatz" }),
+    fach: Type.Optional(Type.String()),
+    klasse: Type.Optional(Type.String()),
+    staerken: Type.Optional(Type.Array(Type.String(), { description: "Up to 6 things that worked well" })),
+    kriterien: Type.Optional(
+      Type.Array(
+        Type.Object({
+          name: Type.String(),
+          max: Type.Number({ description: "Possible points, half steps" }),
+          erreicht: Type.Number({ description: "Points suggested, half steps, at most max" }),
+          begruendung: Type.Optional(Type.String()),
+        }),
+        { description: "Up to 12 criteria; only from the teacher's rules or what the teacher said" },
+      ),
+    ),
+    befunde: Type.Optional(
+      Type.Array(
+        Type.Object({
+          abschnitt: Type.String({ description: "Where in the text, e.g. Absatz 2" }),
+          zitat: Type.Optional(Type.String({ description: "Short quote, at most one sentence" })),
+          art: StringEnum([...BEFUND_ARTEN]),
+          erklaerung: Type.String(),
+          vorschlag: Type.Optional(Type.String()),
+        }),
+        { description: "Up to 40 findings" },
+      ),
+    ),
+    naechsteSchritte: Type.Optional(Type.Array(Type.String(), { description: "Up to 6" })),
+    reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
+    datum: Type.Optional(Type.String()),
+  }),
+  async execute(_id, args) {
+    const { reihe, datum, ...content } = args;
+    const own = content.klasse ? await readBewertung(content.klasse).catch(() => undefined) : undefined;
+    const r = parseRueckmeldung(content, { notenschluessel: own?.bewertung.notenschluessel });
+    const pdf = await renderRueckmeldung(r);
+    const saved = await saveMaterial(pdf.pdf, { art: "Rückmeldung", titel: r.titel, klasse: r.klasse, fach: r.fach, reihe, datum });
+    const gesamt = gesamtMax(r);
+    const hint = gesamt ? notenHinweis(gesamtErreicht(r), gesamt, r.notenschluessel) : undefined;
+    return {
+      content: [{
+        type: "text" as const,
+        text: [
+          `Die Rückmeldung ist fertig (${pdf.pages} ${pdf.pages === 1 ? "Seite" : "Seiten"}) und rechts in der Vorschau zu sehen.`,
+          gesamt ? `Das Programm hat ${gesamtErreicht(r)} von ${gesamt} Punkten gezählt.` : "Es sind keine Punkte vergeben, das Blatt enthält nur Hinweise.",
+          hint ? `Nach dem Notenschlüssel liegt das bei Note ${hint}. Sag das nur als Hinweis, die Note legt die Lehrkraft fest.` : gesamt ? "Es ist kein Notenschlüssel hinterlegt, deshalb steht keine Note im Blatt." : "",
+        ].filter(Boolean).join("\n"),
+      }],
+      details: { materials: [{ title: r.titel, name: saved.name, path: saved.path }] },
+    };
+  },
+});
+
 const NO_PLAN = "Für diese Klasse ist kein Lehrplan hinterlegt. Arbeite ohne und sag der Lehrkraft ehrlich, dass dir der Plan fehlt. Sie kann ihn links unter „Lehrpläne“ hinzufügen.";
 
 const lehrplanLesen = defineTool({
@@ -868,7 +929,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, rueckmeldungErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

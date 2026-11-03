@@ -48,3 +48,19 @@ describe("exam rules given in the request", () => {
     await expect(run("klausur_erstellen", { ...exam, bereiche: [{ kurz: "I" }, { kurz: "i" }] })).rejects.toThrow(/gleich/);
   });
 });
+
+describe("rueckmeldung_erstellen", () => {
+  it("counts the points itself, uses the class scale only as a hint and asks nothing", async () => {
+    const { writeBewertung } = await import("../workspace/bewertung.ts");
+    await writeBewertung("HHS", ["11a"], { bereiche: [], notenschluessel: [{ note: "1", abProzent: 87 }, { note: "2", abProzent: 73 }, { note: "3", abProzent: 59 }, { note: "4", abProzent: 45 }, { note: "5", abProzent: 18 }, { note: "6", abProzent: 0 }] });
+    const out = await run("rueckmeldung_erstellen", {
+      titel: "Rückmeldung", klasse: "11a",
+      kriterien: [{ name: "Inhalt", max: 10, erreicht: 7.5 }, { name: "Sprache", max: 10, erreicht: 6 }],
+      befunde: [{ abschnitt: "Absatz 1", art: "Grammatik", erklaerung: "Zeitform." }],
+    });
+    expect(out).toContain("13.5 von 20"); // program-side sum
+    expect(out).toContain("Note 3");
+    expect(out).toMatch(/die Note legt die Lehrkraft fest/);
+    expect(tools.find((t) => t.name === "rueckmeldung_erstellen")!.ask).toBeUndefined();
+  });
+});

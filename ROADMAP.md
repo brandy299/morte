@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-10-30 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-11-03 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -62,6 +62,7 @@ Stand: 2026-10-30 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Material auf Wunsch auch als Word-Datei (Arbeitsblatt, Klausur mit Erwartungshorizont, Stundenverlauf, Lernsituation) und Word-Dateien aus Reihen lesen. Siehe `docs/entscheidungen/006-word-dateien.md`. Mit LibreOffice angesehen und mit einem echten Modell durchgespielt, nicht in Microsoft Word geöffnet
 - [x] Präsentationen als PowerPoint-Datei (16:9, Titelfolie mit Schulkopf, Stichpunkte, Schaubilder, Sprechernotizen, Abschnittsfolien), Vorschau als PDF, Anleitung `praesentation`. Überfüllte Folien lehnt das Werkzeug ab. Siehe `docs/entscheidungen/016-praesentationen.md`. Schaubilder auf den Folien sind echte, bearbeitbare PowerPoint-Objekte (#47). Offen: in PowerPoint selbst angesehen, Säulen als echtes Diagramm, Folienmaster
 - [~] Qualitätsprüfung: Kriterienlisten (P/R/O/M) und Testsätze pro Skill, Auswertung durch ein KI-Modell als Prüfer, bei jeder Skill-Änderung und jedem Modellwechsel. Gerüst fertig (`npm run eval`, `evals/`), erste Messung mit Haiku 4.5 und Sonnet 4.5 in `evals/BASELINE.md`. Dritte Messung (2026-10-08): Testsätze und Kriterien für `bewertung` und `vorlage-bauen` stehen, beide mit sieben empfohlenen Modellen zweifach gemessen (Tabelle in `evals/BASELINE.md`). Offen: die übrigen Anleitungen für die empfohlenen Modelle (geschätzt 30 bis 50 US-$ mit diesem Prüfer), MiMo × Vorlage bauen, Kriterien mit Lehrkräften gegenlesen
+- [~] Anleitung `korrektur` und Werkzeug `rueckmeldung_erstellen`: Rückmeldung zu einem eingefügten Schülertext als PDF (Stärken, Kriterien mit Punkten, Befunde mit Stelle und Vorschlag). Das Programm zählt die Punkte, die Note bleibt bei der Lehrkraft (nur ein Hinweis nach dem Notenschlüssel), keine Namensfelder. Siehe `docs/entscheidungen/025-korrektur.md`. Tests laufen, PDF angesehen. Offen: Durchlauf mit einem echten Modell (DeepSeek v4.1 flash), Prüfkriterien in `evals/`, Word-Ausgabe, Handschrift-Foto in der Oberfläche
 - [~] Anleitung `elternbrief`: Elternbriefe, Elterninfos und Rückmeldungen als Text zum Kopieren, mit Platzhaltern statt Namen. Idee aus dem Vergleich mit anderen Lehrer-KI-Tools. Mit einem echten Modell noch nicht durchgespielt, keine Prüfkriterien
 - [~] Anleitung `uebersetzen`: vorhandenes Blatt in eine andere Sprache übersetzen, ganz oder zweisprachig, mit Hinweis, dass die Übersetzung von einer Lehrkraft gegengelesen werden muss. Nicht mit einem echten Modell durchgespielt, keine Prüfkriterien. Schriften für Arabisch, Persisch und Chinesisch fehlen
 - [x] Skill-Builder (in der Oberfläche "Vorlagen"): geführt per Fragen, Beispiel als Foto, Prüfliste beim Speichern, Probelauf, Nachschärfen; dazu "Daraus eine Vorlage machen" nach einem Ergebnis im Chat. Seite "Vorlagen" in der Seitenleiste (ansehen, eigene löschen). Mit einem echten Modell durchgespielt (Anlegen, Ausprobieren, Ändern); noch von keiner Lehrkraft erprobt
