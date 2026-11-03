@@ -642,6 +642,11 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 /* ---------- Assign a lesson to a class ---------- */
 .assign-hint { margin: -4px 0 12px; font-size: 15px; }
+/* Assigning a lesson: panel at the bottom, no dark backdrop, the week above stays visible and clickable. */
+.modal-back.docked { background: none; place-items: end center; padding: 0 20px 16px; pointer-events: none; animation: none; }
+.modal-back.docked .modal { pointer-events: auto; max-height: 42vh; box-shadow: 0 -4px 30px rgba(35, 32, 27, 0.22); border: 1px solid var(--line); }
+.start:has(.modal-back.docked) { padding-bottom: 46vh; }
+.lesson.selected { border-color: var(--accent-deep); box-shadow: 0 0 0 3px var(--accent-wash); }
 .assign-inline { display: flex; flex-direction: column; gap: 10px; }
 .assign-inline h3 { margin: 4px 0 0; font-family: var(--serif); font-weight: 600; font-size: 19px; }
 .assign-inline p { margin: 0; }
