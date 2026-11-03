@@ -166,7 +166,7 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
                   return here.length === 0 ? null : (
                     <div key={time} className="slot" style={{ gridRow: ri + 2 }}>
                       {here.map((s) => (
-                        <LessonCard key={`${s.uid}`} s={s} color={classVar(colors, s.klasse)} past={t.datum < data!.heute} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
+                        <LessonCard key={`${s.uid}`} s={s} color={classVar(colors, s.klasse)} past={t.datum < data!.heute} selected={open?.uid === s.uid && !open.klasse} onOpen={() => setOpen(s)} onDrop={(files) => void drop(s, files)} />
                       ))}
                     </div>
                   );
@@ -195,13 +195,13 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
 
 const isTodayInWeek = (w: NonNullable<WocheAntwort["woche"]>, heute: string) => w.tage.some((t) => t.datum === heute);
 
-function LessonCard({ s, past, color, onOpen, onDrop }: { s: WochenStunde; past: boolean; color?: string; onOpen: () => void; onDrop: (files: FileList) => void }) {
+function LessonCard({ s, past, color, selected, onOpen, onDrop }: { s: WochenStunde; past: boolean; color?: string; selected?: boolean; onOpen: () => void; onDrop: (files: FileList) => void }) {
   const [over, setOver] = useState(false);
   const title = s.klasse ?? ([s.titel, s.gruppe].filter(Boolean).join(" · ") || "Ohne Titel");
   return (
     <button
       type="button"
-      className={`lesson ${s.zustand}${over ? " over" : ""}${past ? " past" : ""}${color ? " colored" : ""}`}
+      className={`lesson ${s.zustand}${over ? " over" : ""}${past ? " past" : ""}${selected ? " selected" : ""}${color ? " colored" : ""}`}
       style={color ? ({ "--k": color } as CSSProperties) : undefined}
       onClick={onOpen}
       onDragOver={(e) => {
@@ -242,7 +242,7 @@ function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: Wo
     dialogRef.current?.focus();
     const keys = (e: KeyboardEvent) => {
       if (e.key === "Escape") return onClose();
-      if (e.key !== "Tab" || !dialogRef.current) return;
+      if (e.key !== "Tab" || !dialogRef.current || !s.klasse) return;
       const items = [...dialogRef.current.querySelectorAll<HTMLElement>("a[href], button:not(:disabled), input, select, textarea")].filter((el) => el.offsetParent !== null);
       if (items.length === 0) return;
       const first = items[0]!;
@@ -261,11 +261,12 @@ function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: Wo
       document.removeEventListener("keydown", keys);
       before?.focus();
     };
-  }, [onClose]);
+  }, [onClose, s.klasse]);
   const when = `${new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long" }).format(at(s.datum))}, ${s.von} bis ${s.bis} Uhr`;
   return (
-    <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="Stunde" tabIndex={-1} ref={dialogRef}>
+    // A lesson without a class opens as a panel at the bottom, so the week stays visible and clickable while assigning.
+    <div className={s.klasse ? "modal-back" : "modal-back docked"} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" role="dialog" aria-modal={s.klasse ? "true" : "false"} aria-label="Stunde" tabIndex={-1} ref={dialogRef}>
         <button type="button" className="modal-x" aria-label="Schließen" onClick={onClose}>
           ×
         </button>
