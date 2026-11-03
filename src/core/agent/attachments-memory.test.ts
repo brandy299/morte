@@ -33,8 +33,8 @@ const events = async (run: (on: (e: ChatEvent) => void) => Promise<void>) => {
 
 describe("old attachments leave the model's memory", () => {
   it("replaces pictures and file text with notes one round later, once the memory is half full, and keeps the last rounds", async () => {
-    // A memory of 24,000 tokens. The instructions and tool descriptions take about 8,000 (more tools, more tokens: raise the memory here when this grows), one file of 30,000 characters (7,500 tokens) the rest to more than half.
-    const { session, seen } = make(24_000);
+    // A memory of 26,000 tokens. The instructions and tool descriptions take about 8,000 (more tools, more tokens: raise the memory here when this grows), one file of 30,000 characters (7,500 tokens) the rest to more than half.
+    const { session, seen } = make(26_000);
     await session.send(withFiles("Mach daraus ein Blatt.", [file("arbeitsblatt.docx", 30_000)]), () => {}, [{ data: "AAAA", mimeType: "image/png" }]);
     expect(text(firstUser(seen[0]!))).toContain("Inhalt von arbeitsblatt.docx");
 
@@ -72,7 +72,7 @@ describe("old attachments leave the model's memory", () => {
   });
 
   it("goes on after reopening: the notes are saved with the conversation", async () => {
-    const first = make(24_000);
+    const first = make(26_000);
     await first.session.send(withFiles("Mach daraus ein Blatt.", [file("arbeitsblatt.docx", 30_000)]), () => {});
     await first.session.send("Danke, noch eine Frage dazu.", () => {});
     await first.session.send("Und noch eine.", () => {});
@@ -80,7 +80,7 @@ describe("old attachments leave the model's memory", () => {
     expect(JSON.stringify(saved.messages)).toContain(FILE_NOTE("arbeitsblatt.docx"));
     expect(JSON.stringify(saved.messages)).not.toContain("Inhalt von arbeitsblatt");
 
-    const second = make(24_000);
+    const second = make(26_000);
     second.session.restore(saved);
     await second.session.send("Und weiter.", () => {});
     const again = text(firstUser(second.seen[0]!));

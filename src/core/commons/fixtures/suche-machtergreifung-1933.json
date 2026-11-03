@@ -1,0 +1,1111 @@
+{
+ "_aufgezeichnet": "2026-10-15, echte Antwort von commons.wikimedia.org auf generator=search, Suchtext \"Machtergreifung 1933\" (Felder gekürzt: ohne Vorschau-Adressen)",
+ "query": {
+  "pages": [
+   {
+    "pageid": 5414062,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 102-02985A, Berlin, Fackelzug zur Machtergreifung Hitlers.jpg",
+    "index": 14,
+    "imageinfo": [
+     {
+      "size": 68801,
+      "width": 800,
+      "height": 575,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Bundesarchiv_Bild_102-02985A%2C_Berlin%2C_Fackelzug_zur_Machtergreifung_Hitlers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_102-02985A,_Berlin,_Fackelzug_zur_Machtergreifung_Hitlers.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "<div class=\"fn\">\n<div class=\"language de\" style=\"display:inline;font-weight:bold;\"><b>Berlin, Fackelzug zur Machtergreifung Hitlers</b></div> <abbr class=\"BArchtooltips\" title=\"Short title assigned by the archive\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<div class=\"fn value\">\nUnknown<span style=\"display: none;\">Unknown </span></div>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">Der Fackelzug zu Ehren des neuen Reichskanzlers Adolf Hitler bewegt sich durch die Wilhelmstraße in Berlin am Abend des 30. Januar 1933.</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0 de",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0 de",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5418919,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 146-1972-026-11, Machtübernahme Hitlers.jpg",
+    "index": 8,
+    "imageinfo": [
+     {
+      "size": 297900,
+      "width": 778,
+      "height": 542,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/93/Bundesarchiv_Bild_146-1972-026-11%2C_Macht%C3%BCbernahme_Hitlers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_146-1972-026-11,_Macht%C3%BCbernahme_Hitlers.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "To the power of Hitler",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<bdi><a href=\"https://www.wikidata.org/wiki/Q1504478\" class=\"extiw\" title=\"d:Q1504478\"><span title=\"German photographer and athlete (1885-1940)(1885-1940)\">Robert Sennecke</span></a></bdi>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">30. Januar 1933<br>\n<p>Hitler am Fenster der Reichskanzlei in der Wilhelmstraße in Berlin bei der Entgegennahme der Ovationen der Bevölkerung am Abend des Tages.<br>\n</p>\n(Aufnahme: Robert Sennecke, Berlin)</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5419264,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 146-1982-004-13A, Aufmarsch am Abend der Machtergreifung Hitlers.jpg",
+    "index": 1,
+    "imageinfo": [
+     {
+      "size": 56204,
+      "width": 800,
+      "height": 560,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Bundesarchiv_Bild_146-1982-004-13A%2C_Aufmarsch_am_Abend_der_Machtergreifung_Hitlers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_146-1982-004-13A,_Aufmarsch_am_Abend_der_Machtergreifung_Hitlers.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "<div class=\"fn\">\n<div class=\"language de\" style=\"display:inline;font-weight:bold;\"><b>Aufmarsch am Abend der Machtergreifung Hitlers</b></div> <abbr class=\"BArchtooltips\" title=\"Short title assigned by the archive\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<div class=\"fn value\">\nUnknown<span style=\"display: none;\">Unknown </span></div>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">S.A. defiliert am Abend des 30. Januar 1933 vor dem Reichskanzler Palais in der Wilhelmstraße.</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0 de",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0 de",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5434087,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 183-H28422, Reichskabinett Adolf Hitler.jpg",
+    "index": 12,
+    "imageinfo": [
+     {
+      "size": 183159,
+      "width": 729,
+      "height": 548,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/41/Bundesarchiv_Bild_183-H28422%2C_Reichskabinett_Adolf_Hitler.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_183-H28422,_Reichskabinett_Adolf_Hitler.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "<div class=\"fn\">\n<div class=\"language de\" style=\"display:inline;font-weight:bold;\">Reichskabinett Adolf Hitler</div> <abbr class=\"BArchtooltips\" title=\"Short title assigned by the archive\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<div class=\"fn value\">\nUnknown author<span style=\"display: none;\">Unknown author</span></div>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">Zentralbild<br>\n<p>Die deutschen Faschisten bilden nach der Machtergreifung am 30.1.1933 ihr erstes Kabinett unter Adolf Hitler.<br>\nUBz: vlnr, sitzend: Hermann Göring, Reichskommissar für Luftfahrt und das preussische Innenministerium, Adolf Hitler, Reichskanzler, Franz von Papen, Vizekanzler<br>\nstehend: Franz Seldte, Arbeitsminister, Dr. Dr. Günther Gereke, Lutz Graf Schwerin von Krosigk, Reichsfinanzminister, Wilhelm Frick, Reichsinnenminister, Werner von Blomberg, Reichswehrminister, Alfred Hugenberg, Wirtschafts- und Ernährungsminister<br>\n</p>\n3633-33</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0 de",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0 de",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5479535,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 102-02982A, Berlin, Fackelzug zur Machtergreifung Hitlers.jpg",
+    "index": 17,
+    "imageinfo": [
+     {
+      "size": 58238,
+      "width": 800,
+      "height": 601,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Bundesarchiv_Bild_102-02982A%2C_Berlin%2C_Fackelzug_zur_Machtergreifung_Hitlers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_102-02982A,_Berlin,_Fackelzug_zur_Machtergreifung_Hitlers.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "<div class=\"fn\">\n<div class=\"language de\" style=\"display:inline;font-weight:bold;\">Berlin, Fackelzug zur Machtergreifung Hitlers</div> <abbr class=\"BArchtooltips\" title=\"Short title assigned by the archive\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<div class=\"fn value\">\nUnknown author<span style=\"display: none;\">Unknown author</span></div>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">Fackelzug vor den Fenstern des Reichspräsidenten und des Reichskanzlers am Abend des 30. Januar 1933. Links am Fenster Reichspräsident v. Hindenburg</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0 de",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0 de",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5481347,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 102-15347, Berlin, Ernennung Adolf Hitlers zum Reichskanzler.jpg",
+    "index": 7,
+    "imageinfo": [
+     {
+      "size": 73398,
+      "width": 548,
+      "height": 795,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Bundesarchiv_Bild_102-15347%2C_Berlin%2C_Ernennung_Adolf_Hitlers_zum_Reichskanzler.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_102-15347,_Berlin,_Ernennung_Adolf_Hitlers_zum_Reichskanzler.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "<div class=\"fn\">\n<div class=\"language de\" style=\"display:inline;font-weight:bold;\">Berlin, Ernennung Adolf Hitlers zum Reichskanzler</div> <abbr class=\"BArchtooltips\" title=\"Short title assigned by the archive\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<div class=\"fn value\">\nUnknown author<span style=\"display: none;\">Unknown author</span></div>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">Ein interessanter Rückblick auf das ereignisreiche Jahr der nationalen Erhebung in Deutschland, vom 30. Januar 1933 bis jetzt!<br>\n<p>Der historische 30. Januar 1933 in Berlin.<br>\n</p>\nAdolf Hitler wurde vom Reichspräsidenten von Hindenburg zum Reichskanzler ernannt. Das Auto mit  Reichskanzler Adolf Hitler verläßt um 12 Uhr 40, von der jubelnden Menschenmenge begrüßt, die Reichskanzlei, dem damaligen Sitz des Reichspräsidenten in der Wilhelmstrasse.</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0 de",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0 de",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5481348,
+    "ns": 6,
+    "title": "File:Bundesarchiv Bild 102-15348, Reichskabinett Adolf Hitler.jpg",
+    "index": 10,
+    "imageinfo": [
+     {
+      "size": 151438,
+      "width": 800,
+      "height": 548,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Bundesarchiv_Bild_102-15348%2C_Reichskabinett_Adolf_Hitler.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_102-15348,_Reichskabinett_Adolf_Hitler.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "<div class=\"fn\">\n<div class=\"language de\" style=\"display:inline;font-weight:bold;\">Reichskabinett Adolf Hitler</div> <abbr class=\"BArchtooltips\" title=\"Short title assigned by the archive\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<div class=\"fn value\">\nUnknown author<span style=\"display: none;\">Unknown author</span></div>",
+        "source": "commons-desc-page"
+       },
+       "ImageDescription": {
+        "value": "<div class=\"description\">\n<div style=\"background:var(--background-color-neutral, #eaecf0); color:inherit; font-size:86%; direction:ltr;\">For documentary purposes the German Federal Archive often retained the <b>original image captions</b>, which may be <b>erroneous, biased, obsolete or politically extreme</b>. <abbr class=\"BArchtooltips\" title=\"Files from the inventories “Bild 101 Propagandakompanien der Wehrmacht” and “Bild 183 ADN” may have particularly biased or politically extreme descriptions.\"><span typeof=\"mw:File\"><span><img src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/20px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"15\" height=\"15\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Info_non-talk.svg/40px-Info_non-talk.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"62\" data-file-height=\"62\"></span></span></abbr></div><div class=\"language de\">Ein interessanter Rückblick auf das ereignissreiche Jahr der Nationalen Erhebung in Deutschland vom 30. Januar 1933 bis jetzt!<br>\nDer historische 30. Januar 1933 in Berlin. Nach der ersten Sitzung des neuen Reichkabinetts unter dem Vorsitz des Reichskanzlers Adolf Hitler um 1/2 7 Uhr Abends in der Reichskanzlei. In der ersten Reihe von links nach rechts: Ministerpräsident Hermann Göring, Reichskanzler Adolf Hitler, und Vizekanzler v. Papen. In der zweiten Reiche von links nach rechts: Reichsminister v. Schwerin-Krossik, Reichsinnenminister Dr. Frick, Reichswehrminister v. Blomberg, und der ehem. Reichsernährungsminister Dr. Hugenberg.</div></div>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<table style=\"width:100%; clear: both; text-align: center; margin: 0.5em auto; background-color: var(--background-color-interactive-subtle, #f9f9f9); color: inherit; border: 2px solid var(--border-color-muted, #e0e0e0);\" dir=\"ltr\" lang=\"en\" class=\"layouttemplate partnershiptemplate\" role=\"presentation\">\n<tbody><tr>\n<td style=\"width:100px;\"><span typeof=\"mw:File\"><a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv/en\" title=\"Logo Bundesarchiv\"><img alt=\"Logo Bundesarchiv\" src=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/120px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail\" decoding=\"async\" loading=\"lazy\" width=\"100\" height=\"83\" class=\"mw-file-element\" srcset=\"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Bundesarchiv-Logo-ohne-Wappen.svg/250px-Bundesarchiv-Logo-ohne-Wappen.svg.png?utm_source=commons.wikimedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x\" data-file-width=\"240\" data-file-height=\"200\"></a></span>\n</td>\n<td>This image was provided to Wikimedia Commons by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bundesarchiv.de/\">German Federal Archive</a> (Deutsches Bundesarchiv) as part of a <a href=\"//commons.wikimedia.org/wiki/Commons:Bundesarchiv\" title=\"Commons:Bundesarchiv\">cooperation project</a>. The German Federal Archive guarantees an authentic representation only using the originals (negative and/or positive), resp. the digitalization of the originals as provided by the <a rel=\"nofollow\" class=\"external text\" href=\"http://www.bild.bundesarchiv.de\">Digital Image Archive</a>.\n</td></tr></tbody></table>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 3.0 de",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 3.0 de",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5791572,
+    "ns": 6,
+    "title": "File:DR 1943 829 Brandenburger Tor.jpg",
+    "index": 19,
+    "imageinfo": [
+     {
+      "size": 579727,
+      "width": 720,
+      "height": 840,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/DR_1943_829_Brandenburger_Tor.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:DR_1943_829_Brandenburger_Tor.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "DR 1943 829 Brandenburger Tor",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "10th anniversary of the takeover by Hitler",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "scanned by <a href=\"//commons.wikimedia.org/wiki/User:NobbiP\" title=\"User:NobbiP\">NobbiP</a>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "scanned by <a href=\"//commons.wikimedia.org/wiki/User:NobbiP\" title=\"User:NobbiP\">NobbiP</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "nazi",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 5996372,
+    "ns": 6,
+    "title": "File:DR 1944 865 Adolf Hitler.jpg",
+    "index": 16,
+    "imageinfo": [
+     {
+      "size": 599351,
+      "width": 840,
+      "height": 720,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/DR_1944_865_Adolf_Hitler.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:DR_1944_865_Adolf_Hitler.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "DR 1944 865 Adolf Hitler",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "11th anniversary of the takeover by Hitler",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "scanned by <a href=\"//commons.wikimedia.org/wiki/User:NobbiP\" title=\"User:NobbiP\">NobbiP</a>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "scanned by <a href=\"//commons.wikimedia.org/wiki/User:NobbiP\" title=\"User:NobbiP\">NobbiP</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "nazi",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 17612582,
+    "ns": 6,
+    "title": "File:HitlerYSuGobierno1933.jpeg",
+    "index": 9,
+    "imageinfo": [
+     {
+      "size": 164101,
+      "width": 775,
+      "height": 600,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/HitlerYSuGobierno1933.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:HitlerYSuGobierno1933.jpeg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "HitlerYSuGobierno1933",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Adolfo Hitler y los miembros de su gobierno a comienzos de 1933.",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "Bibliothèque nationale de France",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<bdi><a href=\"https://www.wikidata.org/wiki/Q1504478\" class=\"extiw\" title=\"d:Q1504478\"><span title=\"German photographer and athlete (1885-1940)(1885-1940)\">Robert Sennecke</span></a></bdi>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 33411200,
+    "ns": 6,
+    "title": "File:Postkarte250-Hitler+Hindenburg.jpg",
+    "index": 15,
+    "imageinfo": [
+     {
+      "size": 34088,
+      "width": 500,
+      "height": 362,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Postkarte250-Hitler%2BHindenburg.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Postkarte250-Hitler%2BHindenburg.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Postkarte250-Hitler+Hindenburg",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Michel-Nummer: P 250, Sonderkarte zur Erinnerung an den Tag der Machtergreifung durch Hitler, Hindenburg und Hitler (beide in Zivil)",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<a rel=\"nofollow\" class=\"external free\" href=\"http://www.german-reich.de/german/start.php?1933-1945.php\">http://www.german-reich.de/german/start.php?1933-1945.php</a>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "Deutsche Reichspost",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "nazi",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 42283612,
+    "ns": 6,
+    "title": "File:Otto Riethmüller Deutschlands Erwachen (1933).pdf",
+    "index": 18,
+    "imageinfo": [
+     {
+      "size": 17361,
+      "width": 1239,
+      "height": 1754,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Otto_Riethm%C3%BCller_Deutschlands_Erwachen_%281933%29.pdf?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Otto_Riethm%C3%BCller_Deutschlands_Erwachen_(1933).pdf",
+      "mime": "application/pdf",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Otto Riethmüller Deutschlands Erwachen (1933)",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Otto Riethmüller: <i>Deutschlands Erwachen</i> (1933) mit Kommentar von Peter Gerloff",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "Poem: Erika Funk-Hennigs/Johannes Jäger: <i>Rassismus, Musik und Gewalt</i>, Münster 1996, S. 50; commentary: <span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "Otto Riethmüller (1889-1938) / <a rel=\"mw:WikiLink/Interwiki\" href=\"https://de.wikipedia.org/wiki/Benutzer:Rabanus%20Flavus\" title=\"de:Benutzer:Rabanus Flavus\" class=\"extiw\">Peter Gerloff</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 76127320,
+    "ns": 6,
+    "title": "File:Propagandafälschung Mi Nr 32.jpg",
+    "index": 20,
+    "imageinfo": [
+     {
+      "size": 373567,
+      "width": 654,
+      "height": 761,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/09/Propagandaf%C3%A4lschung_Mi_Nr_32.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Propagandaf%C3%A4lschung_Mi_Nr_32.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Propagandafälschung Mi Nr 32",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Britische Propagandafälschung für Deutschland, 1944. \"Himmler fesselt Zivilisten\".",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "www.forgery.de",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "British Government",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 78283668,
+    "ns": 6,
+    "title": "File:Reichseiche Willmersdorf, 1933 (Cottbus).png",
+    "index": 4,
+    "imageinfo": [
+     {
+      "size": 12733751,
+      "width": 2592,
+      "height": 1944,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Reichseiche_Willmersdorf%2C_1933_%28Cottbus%29.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Reichseiche_Willmersdorf,_1933_(Cottbus).png",
+      "mime": "image/png",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Reichseiche Willmersdorf, 1933 (Cottbus)",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Reichseiche (1933) at Dorfstraße in Cottbus-Willmerdorf. It may have been planted to mark the takeover of power in Weimar Germany by the NSDAP on January 30, 1933.",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Trio3D&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Trio3D (page does not exist)\">Trio3D</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 81065071,
+    "ns": 6,
+    "title": "File:Hamburger Echo vom 28.2.1933.JPG",
+    "index": 3,
+    "imageinfo": [
+     {
+      "size": 2338216,
+      "width": 4090,
+      "height": 3270,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/08/Hamburger_Echo_vom_28.2.1933.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Hamburger_Echo_vom_28.2.1933.JPG",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Hamburger Echo vom 28.2.1933",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Hamburger Echo von 28.2.1933",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "Foto aus einer Broschüre der Landeszentrale für politische Bildung Hamburg, Hamburg auf dem Weg ins Dritte Reich",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "selber erstellt",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Zero, Public Domain Dedication",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 93163625,
+    "ns": 6,
+    "title": "File:Abendblatt Der Angriff Machtergreifung.jpg",
+    "index": 2,
+    "imageinfo": [
+     {
+      "size": 5241191,
+      "width": 3137,
+      "height": 1650,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Abendblatt_Der_Angriff_Machtergreifung.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Abendblatt_Der_Angriff_Machtergreifung.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Abendblatt Der Angriff Machtergreifung",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "Pressemitteilung des Berliner Abendblatts \"Der Angriff\" vom 30. Januar 1933 zur Machtergreifung Adolf Hitlers (eigener Scan des Autors Mabit1)",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<a href=\"//commons.wikimedia.org/wiki/User:Mabit1\" title=\"User:Mabit1\">Mabit1</a>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 115112059,
+    "ns": 6,
+    "title": "File:Arthur Kampf (1864–1950) - Der 30. Januar 1933 (The 30th of January 1933) Nazi propaganda history painting.jpg",
+    "index": 5,
+    "imageinfo": [
+     {
+      "size": 54120,
+      "width": 759,
+      "height": 553,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Arthur_Kampf_%281864%E2%80%931950%29_-_Der_30._Januar_1933_%28The_30th_of_January_1933%29_Nazi_propaganda_history_painting.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Arthur_Kampf_(1864%E2%80%931950)_-_Der_30._Januar_1933_(The_30th_of_January_1933)_Nazi_propaganda_history_painting.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Arthur Kampf (1864–1950) - Der 30. Januar 1933 (The 30th of January 1933) Nazi propaganda history painting",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "<a href=\"https://en.wikipedia.org/wiki/Arthur_Kampf\" class=\"extiw\" title=\"en:Arthur Kampf\">Arthur Kampf</a> (1864–1950): <i>The 30th of January 1933</i> (German original title: <i>Der 30. Januar 1933</i>)\n<ul><li><a href=\"https://en.wikipedia.org/wiki/Nazi_propaganda\" class=\"extiw\" title=\"en:Nazi propaganda\">Nazi propaganda</a> history painting: Torchlight procession of the Nazi organisations SA (<i><a href=\"https://en.wikipedia.org/wiki/Sturmabteilung\" class=\"extiw\" title=\"en:Sturmabteilung\">Sturmabteilung</a></i>), SS (<i><a href=\"https://en.wikipedia.org/wiki/Schutzstaffel\" class=\"extiw\" title=\"en:Schutzstaffel\">Schutzstaffel</a></i>), and <i><a href=\"https://en.wikipedia.org/wiki/Der_Stahlhelm,_Bund_der_Frontsoldaten\" class=\"extiw\" title=\"en:Der Stahlhelm, Bund der Frontsoldaten\">Der Stahlhelm</a></i> along the Charlottenburg Chaussee, through the <a href=\"https://en.wikipedia.org/wiki/Brandenburg_Gate\" class=\"extiw\" title=\"en:Brandenburg Gate\">Brandenburg Gate</a> to Wilhelmsstrasse to celebrate Adolf Hitler's  ‘<a href=\"https://en.wikipedia.org/wiki/Adolf_Hitler%27s_rise_to_power#Seizure_of_control_(1931%E2%80%931933)\" class=\"extiw\" title=\"en:Adolf Hitler's rise to power\">seizure of power</a>’.<i></i></li></ul>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<a rel=\"nofollow\" class=\"external free\" href=\"https://alchetron.com/Arthur-Kampf#arthur-kampf-781b11ff-151c-455b-8ba6-26ed0e298e0-resize-750.jpeg\">https://alchetron.com/Arthur-Kampf#arthur-kampf-781b11ff-151c-455b-8ba6-26ed0e298e0-resize-750.jpeg</a>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "<bdi><a href=\"https://en.wikipedia.org/wiki/en:Arthur_Kampf\" class=\"extiw\" title=\"w:en:Arthur Kampf\"><span title=\"German history painter (1864-1950)\">Arthur Kampf</span></a></bdi>",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 124774579,
+    "ns": 6,
+    "title": "File:1933 Unser der Sieg! Heil Hitler! Sturmabteilung SA Braunhemden SA-Mann Plakat Postkarte Nazi Germany propaganda poster postcard Color drawing of brownshirts uniforms 1918-33 Swastika flag salute Unidentified artist No known copyright.jpg",
+    "index": 6,
+    "imageinfo": [
+     {
+      "size": 128066,
+      "width": 682,
+      "height": 960,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/33/1933_Unser_der_Sieg%21_Heil_Hitler%21_Sturmabteilung_SA_Braunhemden_SA-Mann_Plakat_Postkarte_Nazi_Germany_propaganda_poster_postcard_Color_drawing_of_brownshirts_uniforms_1918-33_Swastika_flag_salute_Unidentified_artist_No_known_copyright.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:1933_Unser_der_Sieg!_Heil_Hitler!_Sturmabteilung_SA_Braunhemden_SA-Mann_Plakat_Postkarte_Nazi_Germany_propaganda_poster_postcard_Color_drawing_of_brownshirts_uniforms_1918-33_Swastika_flag_salute_Unidentified_artist_No_known_copyright.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "1933 Unser der Sieg! Heil Hitler! Sturmabteilung SA Braunhemden SA-Mann Plakat Postkarte Nazi Germany propaganda poster postcard Color drawing of brownshirts uniforms 1918-33 Swastika flag salute Unidentified artist No known copyright",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "<i><b>1933 Unser der Sieg! Heil Hitler!</b></i> (<i>Our victory! Hail Hitler!</i>)\n<ul><li>Poster or postcard with coloured drawings depicting the progression of the German Nazi Party (<a href=\"https://en.wikipedia.org/wiki/NSDAP\" class=\"extiw\" title=\"en:NSDAP\">NSDAP</a>) and the <a href=\"https://en.wikipedia.org/wiki/brownshirts\" class=\"extiw\" title=\"en:brownshirts\">brownshirt</a> uniforms of the <a href=\"https://en.wikipedia.org/wiki/Sturmabteilung\" class=\"extiw\" title=\"en:Sturmabteilung\">Sturmabteilung</a> (SA), the party's paramilitary \"street thugs\" troops, from the veteran's <i>Freikorps</i> movements after the end of World War I, through the party ban 1923–25, the 1930 uniform ban was lifted by Reich President Paul von Hindenburg in June 1932 to the January 1933 election of <a href=\"https://en.wikipedia.org/wiki/Adolf_Hitler%27s_rise_to_power#Seizure_of_control_(1931%E2%80%931933)\" class=\"extiw\" title=\"en:Adolf Hitler's rise to power\">Hitler as Chancellor</a></li>\n<li><a href=\"https://en.wikipedia.org/wiki/Uniforms_and_insignia_of_the_Sturmabteilung\" class=\"extiw\" title=\"en:Uniforms and insignia of the Sturmabteilung\">Uniforms and insignia of the Sturmabteilung</a> (SA); <a href=\"https://en.wikipedia.org/wiki/Hitler_salute\" class=\"extiw\" title=\"en:Hitler salute\">Hitler salute</a>; Swastika flag, etc.</li>\n<li>Artist/illustrator/designer: Alexander Schaaff (unidentified years of birth and death). No known copyright restrictions.</li>\n<li><a href=\"https://en.wikipedia.org/wiki/Nazi_propaganda\" class=\"extiw\" title=\"en:Nazi propaganda\">Nazi propaganda</a></li></ul>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<a rel=\"nofollow\" class=\"external free\" href=\"https://no.pinterest.com/pin/328833210280643768/\">https://no.pinterest.com/pin/328833210280643768/</a>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "Alexander Schaaff (German artist/illustrator, active in the 1930s, unknown years of birth and death). No known copyright restrictions.",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "CC BY-SA 4.0",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Creative Commons Attribution-Share Alike 4.0",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "true",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "LicenseUrl": {
+        "value": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "commons-desc-page"
+       },
+       "Restrictions": {
+        "value": "nazi",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 129496659,
+    "ns": 6,
+    "title": "File:Hitler's officers.jpg",
+    "index": 13,
+    "imageinfo": [
+     {
+      "size": 2645336,
+      "width": 2490,
+      "height": 2377,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Hitler%27s_officers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Hitler%27s_officers.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Hitler's officers",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "<a href=\"https://en.wikipedia.org/wiki/Nazi_seizure_of_Power\" class=\"extiw\" title=\"en:Nazi seizure of Power\">Nazi seizure of power</a>: <i>The staff of the Führer taken on the day of his appointment as Reich Chancellor on January 30, 1933.</i>\n<p><i>From left to right:</i>\n</p>\n<ul><li><i>Oberpräsident</i> <a href=\"https://en.wikipedia.org/wiki/wilhelm_Kube\" class=\"extiw\" title=\"en:wilhelm Kube\">Wilhelm Kube</a></li>\n<li>Justice Minister <a href=\"https://en.wikipedia.org/wiki/Hanns_Kerrl\" class=\"extiw\" title=\"en:Hanns Kerrl\">Hanns Kerrl</a></li>\n<li>Minister Dr. <a href=\"https://en.wikipedia.org/wiki/Joseph_Goebbels\" class=\"extiw\" title=\"en:Joseph Goebbels\">Joseph Goebbels</a></li>\n<li><i>Der Führer</i> <a href=\"https://en.wikipedia.org/wiki/Adolf_Hitler\" class=\"extiw\" title=\"en:Adolf Hitler\">Adolf Hitler</a></li>\n<li>Chief of Staff <a href=\"https://en.wikipedia.org/wiki/Ernst_R%C3%B6hm\" class=\"extiw\" title=\"en:Ernst Röhm\">Ernst Röhm</a></li>\n<li><i>Ministerpräsident</i> <a href=\"https://en.wikipedia.org/wiki/Hermann_G%C3%B6ring\" class=\"extiw\" title=\"en:Hermann Göring\">Hermann Göring</a></li>\n<li>Minister <a href=\"https://en.wikipedia.org/wiki/Walther_Darr%C3%A9\" class=\"extiw\" title=\"en:Walther Darré\">Walther Darré</a></li>\n<li><i>Reichsführer</i> of the SS <a href=\"https://en.wikipedia.org/wiki/Heinrich_Himmler\" class=\"extiw\" title=\"en:Heinrich Himmler\">Heinrich Himmler</a></li>\n<li>Deputy <i>Führer</i> <a href=\"https://en.wikipedia.org/wiki/Rudolf_Hess\" class=\"extiw\" title=\"en:Rudolf Hess\">Rudolf Hess</a></li>\n<li>Minister <a href=\"https://en.wikipedia.org/wiki/Wilhelm_Frick\" class=\"extiw\" title=\"en:Wilhelm Frick\">Wilhelm Frick</a> seated in the front</li></ul>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "<a rel=\"nofollow\" class=\"external text\" href=\"https://archive.org/details/kampfumsdrittere00sche/page/n64/mode/1up\">Kampf um's Dritte Reich : eine historische Bilderfolge</a>",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "Unknown photographer, publisher: Altona-Bahrenfeld: Cigaretten-Bilderdienst",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "nazi",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "pageid": 158134317,
+    "ns": 6,
+    "title": "File:Kundgebung und Fackelzug der Nationalsozialisten am 31. Januar 1933 in Köln.jpg",
+    "index": 11,
+    "imageinfo": [
+     {
+      "size": 1040527,
+      "width": 1431,
+      "height": 2234,
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/50/Kundgebung_und_Fackelzug_der_Nationalsozialisten_am_31._Januar_1933_in_K%C3%B6ln.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "descriptionurl": "https://commons.wikimedia.org/wiki/File:Kundgebung_und_Fackelzug_der_Nationalsozialisten_am_31._Januar_1933_in_K%C3%B6ln.jpg",
+      "mime": "image/jpeg",
+      "extmetadata": {
+       "ObjectName": {
+        "value": "Kundgebung und Fackelzug der Nationalsozialisten am 31. Januar 1933 in Köln",
+        "source": "mediawiki-metadata"
+       },
+       "ImageDescription": {
+        "value": "<i><a href=\"https://de.wikipedia.org/wiki/K%C3%B6lnische_Zeitung\" class=\"extiw\" title=\"de:Kölnische Zeitung\">Kölnische Zeitung</a></i> February 1, 1933: <b><i>Assembly and Torchlight Parade in Cologne; Cologne, January 31.</i></b>\n<dl><dd><i>The National Socialists held a rally this evening in the exhibition hall to celebrate <a href=\"https://en.wikipedia.org/wiki/Adolf_Hitler\" class=\"extiw\" title=\"en:Adolf Hitler\">Hitler</a>'s appointment as Reich Chancellor. The large hall and the adjacent Majolica Hall were so overcrowded long before the event began that they had to be closed by the police. The rally also included several flag delegations from the <a href=\"https://en.wikipedia.org/wiki/Der_Stahlhelm,_Bund_der_Frontsoldaten\" class=\"extiw\" title=\"en:Der Stahlhelm, Bund der Frontsoldaten\">Stahlhelm organization</a>, which were received with particular applause. After the entry of the flags and several fanfare marches, Gauleiter <a href=\"https://en.wikipedia.org/wiki/Josef_Groh%C3%A9\" class=\"extiw\" title=\"en:Josef Grohé\">Grohé</a> (M. d. L.) gave a speech. He said, among other things:</i></dd></dl>\n<dl><dd><i>\"Yesterday was a decisive day for Germany. The November system has been overthrown, and a new Germany is emerging. Thanks must be given to the renowned Field Marshal and Reich President <a href=\"https://en.wikipedia.org/wiki/Paul_von_Hindenburg\" class=\"extiw\" title=\"en:Paul von Hindenburg\">von Hindenburg</a> for entrusting Hitler with the office of Reich Chancellor. There had often been doubts about whether Hindenburg understood young Germany as well. All the greater, therefore, is the joy at yesterday's decision by the Reich President.</i></dd></dl>\n<dl><dd><i>The National Socialists are proud of Hitler because he is a man of action. It fills everyone with satisfaction that all of national Germany has now come together for joint efforts. Not only Germany, but the entire world, has been stirred by Hitler's appointment as Reich Chancellor. The world is listening because it knows that Germany is gaining new life. The National Socialist movement and Hitler's government are firmly determined to use every means of power to combat communism if the interests of the fatherland demand it.</i></dd></dl>\n<dl><dd><i>The era of political parties is definitively over. Now there is only one party, and that party is Germany. Hitler has now come to power and will never relinquish that power. Anyone who acts against the interests of the nation will no longer have freedom in Germany.</i></dd></dl>\n<dl><dd><i>In conclusion, Grohé emphasized that the National Socialists are firmly committed to following their leader, Hitler, in every way. They are prepared for any effort, knowing that at the end of this struggle, a Germany of honor and freedom must stand.\"</i></dd></dl>\n<dl><dd><i>After Grohé's speech, Stahlhelm leader Haumann gave a brief address urging unity. The assembly sent a telegram of thanks to Hindenburg and a tribute telegram to Hitler.</i></dd></dl>\n<dl><dd><i>Following the rally, a torchlight parade took place through the main streets of the city, involving the SA, the SS, the <a href=\"https://en.wikipedia.org/wiki/Hitler_Youth\" class=\"extiw\" title=\"en:Hitler Youth\">Hitler Youth</a>, and a group from the Stahlhelm. On the Hohenzollernring, a march-past was held in front of the leaders of the Cologne-Aachen Gau.</i></dd></dl>",
+        "source": "commons-desc-page"
+       },
+       "Credit": {
+        "value": "Kölnische Zeitung 1. Februar 1933",
+        "source": "commons-desc-page"
+       },
+       "Artist": {
+        "value": "Redaktion der Kölnischen Zeitung",
+        "source": "commons-desc-page"
+       },
+       "LicenseShortName": {
+        "value": "Public domain",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "UsageTerms": {
+        "value": "Public domain",
+        "source": "commons-desc-page"
+       },
+       "AttributionRequired": {
+        "value": "false",
+        "source": "commons-desc-page",
+        "hidden": ""
+       },
+       "Restrictions": {
+        "value": "",
+        "source": "commons-desc-page",
+        "hidden": ""
+       }
+      }
+     }
+    ]
+   }
+  ]
+ }
+}

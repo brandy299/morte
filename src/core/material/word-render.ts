@@ -13,6 +13,7 @@ export async function arbeitsblattWord(a: Arbeitsblatt, opts: { lehrerexemplar?:
   const w = newWord(key ? `${a.titel} (Lösung)` : a.titel);
   w.header({ kicker: [a.fach, a.klasse, a.niveau, key ? "Lösung für die Lehrkraft" : undefined].filter(Boolean).join(" · "), title: a.titel, fields: !key });
   if (a.einleitung) w.paragraph(a.einleitung, { after: 160 });
+  if (a.einleitungsbild) w.bild(a.einleitungsbild);
   if (a.merkkasten) w.box({ title: a.merkkasten.titel, text: a.merkkasten.text });
   for (const [i, t] of a.aufgaben.entries()) {
     w.task({
@@ -24,6 +25,7 @@ export async function arbeitsblattWord(a: Arbeitsblatt, opts: { lehrerexemplar?:
       antwort: key ? (loesungText(a, i) ?? "—") : undefined,
       koerper: koerper(a, i),
       loesungsansicht: key,
+      bild: t.bild,
     });
   }
   return w.build(a.fuss);

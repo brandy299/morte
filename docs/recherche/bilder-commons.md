@@ -51,3 +51,11 @@ Außerdem gibt es das Feld `Restrictions` (Persönlichkeitsrechte, Marken, Denkm
 ## Zusammenhang mit "Nichts erfinden"
 
 Für Geschichte gilt zusätzlich: Zitate nur mit Quellenangabe, sonst als sinngemäß kennzeichnen. Das ist eine Regel für die Anleitung des Geschichtsmaterials und kommt in ein eigenes Issue, sobald die Gegenlese die ersten Beispielblätter gesehen hat.
+
+## Umsetzung und echte Probe (2026-10-15, Issue #22)
+
+Gebaut nach `docs/entscheidungen/024-bilder-von-commons.md`. Die Tests in `npm test` laufen mit einer **aufgezeichneten Antwort** (`src/core/commons/fixtures/`, echte Antwort von Commons auf „Machtergreifung 1933“, Felder gekürzt) und ohne Netzzugriff. Die Fälle „CC BY-NC“ und „ohne Lizenzangabe“ gab es in der Aufzeichnung nicht, sie sind dort aus echten Einträgen mit geänderter Lizenz gebaut. Echte Dateien dazu ließen sich wegen der Anfragegrenze nicht mehr abholen.
+
+**Probe mit echtem Zugriff** (derselbe Code wie in der App, `suchen`, `vorschau`, `bildHolen`, dann Blatt in PDF und Word): Die Suche lieferte 8 erlaubte Treffer, 1 Datei (ein PDF) wurde ausgelassen. Das Bild „To the power of Hitler“ (Public domain, Robert Sennecke) und „Aufmarsch am Abend der Machtergreifung Hitlers“ (CC BY-SA 3.0 de) wurden geladen, in Graustufen gewandelt und in ein Blatt gesetzt: `docs/recherche/bilder-commons/beispielblatt-machtergreifung-1933.pdf`. Beobachtet: HTTP 429 kam auch hier mehrfach, die Wiederholung nach `Retry-After` genügte. Die Thumbnail-Adresse der Schnittstelle liegt auf `thumb.wikimedia.org` (dritte Adresse), Pult baut stattdessen die Adresse auf `upload.wikimedia.org`.
+
+Nicht geprüft: Wikimedia-Nutzungsregeln (Seiten gesperrt), Word-Datei in Word selbst (nur Aufbau der Datei und Text geprüft), Auswahlqualität mit einem echten Sprachmodell.

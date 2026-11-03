@@ -8,6 +8,7 @@ import {
   type ParagraphChild,
 } from "docx";
 import type { Koerper } from "./aufgabentypen.ts";
+import { bildGroesse, bildText, type Quellbild } from "./quellbild.ts";
 import { szeneVon } from "./schaubild.ts";
 import { szeneAlsPng } from "./schaubild-zeichnen.ts";
 import { logoSize, printable } from "./layout.ts";
@@ -43,8 +44,10 @@ export interface WordDoc {
   box(opts: { title?: string; text: string }): void;
   /** Row of small facts, e.g. "45 Minuten · 14.10.". */
   facts(items: string[]): void;
+  /** A picture from Wikimedia Commons with its source line right below it. The line stays with the picture across a page break. */
+  bild(q: Quellbild, indent?: number): void;
   /** One numbered task: number, text, optional hint, points, lines or answer. */
-  task(opts: { nr: string; text: string; hilfe?: string; punkte?: string; zeilen?: number; antwort?: string; indent?: boolean; koerper?: Koerper; loesungsansicht?: boolean }): void;
+  task(opts: { nr: string; text: string; hilfe?: string; punkte?: string; zeilen?: number; antwort?: string; indent?: boolean; koerper?: Koerper; loesungsansicht?: boolean; bild?: Quellbild }): void;
   table(columns: { title: string; share: number; bold?: boolean; right?: boolean }[], rows: string[][], opts?: { noHeader?: boolean; minHeight?: number }): void;
   pageBreak(): void;
   build(footnote?: string): Promise<Buffer>;
@@ -140,12 +143,26 @@ export function newWord(title: string): WordDoc {
     facts(items) {
       if (items.length) doc.paragraph(items.join("   ·   "), { color: SOFT, after: 160 });
     },
-    task({ nr, text, hilfe, punkte, zeilen = 0, antwort, indent, koerper, loesungsansicht }) {
+    bild(q, indent = 0) {
+      const size = bildGroesse(q, ((PAGE_W - indent) * 72) / 1440);
+      const px = 96 / 72;
+      children.push(
+        new Paragraph({
+          keepNext: true,
+          keepLines: true,
+          spacing: { before: 80, after: 40 },
+          indent: { left: indent },
+          children: [new ImageRun({ type: "jpg", data: q.jpg, transformation: { width: Math.round(size.w * px), height: Math.round(size.h * px) }, altText: { title: bildText(q), description: bildText(q), name: "Bild" } })],
+        }),
+        new Paragraph({ keepLines: true, spacing: { after: 140 }, indent: { left: indent }, children: lines(q.quelle, { font: SANS_W, size: 16, color: SOFT, italics: true }) }),
+      );
+    },
+    task({ nr, text, hilfe, punkte, zeilen = 0, antwort, indent, koerper, loesungsansicht, bild }) {
       const left = twip(11);
       const tabs = [{ type: TabStopType.LEFT, position: left }, { type: TabStopType.RIGHT, position: PAGE_W }];
       children.push(
         new Paragraph({
-          keepNext: Boolean(hilfe || zeilen || antwort || koerper),
+          keepNext: Boolean(hilfe || zeilen || antwort || koerper || bild),
           spacing: { before: indent ? 40 : 160, after: 60, line: 276 },
           indent: { left, hanging: left },
           tabStops: tabs,
@@ -166,6 +183,7 @@ export function newWord(title: string): WordDoc {
           }),
         );
       }
+      if (bild) doc.bild(bild, left);
       if (koerper) {
         if (koerper.art === "schaubild") {
           // The diagram is a picture in the Word file (the same drawing as in the PDF), 450 points wide.

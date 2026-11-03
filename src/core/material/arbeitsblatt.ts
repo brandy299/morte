@@ -3,6 +3,7 @@
  * The look lives in layout.ts (shared by all material), so it does not depend on how good the chosen model is.
  */
 import { koerperVon, loesungVon, parseTyp, type Koerper, type Typ } from "./aufgabentypen.ts";
+import { bildHoehe, parseQuellbild, zeichneBild, type Quellbild } from "./quellbild.ts";
 import { szeneVon, type Szene } from "./schaubild.ts";
 import { zeichnePdf } from "./schaubild-zeichnen.ts";
 import { BOX, INK, LINE, MaterialError, SANS, SANS_BOLD, SANS_BOLD_ITALIC, SANS_ITALIC, SOFT, mm, newSheet, printable, str, type Sheet } from "./layout.ts";
@@ -20,6 +21,8 @@ export interface Aufgabe {
   loesung?: string;
   /** Matching, gap text, multiple choice, table, or free text. */
   typ: Typ;
+  /** A picture from Wikimedia Commons with its source line, shown below the task text. Put in by the tool. */
+  bild?: Quellbild;
 }
 
 /** Seed for shuffling, so the same task always looks the same. */
@@ -35,6 +38,8 @@ export interface Arbeitsblatt {
   /** Level of a differentiated version, e.g. "Basis". Shown in the header. */
   niveau?: string;
   einleitung?: string;
+  /** A picture from Wikimedia Commons with its source line, shown below the introduction. Put in by the tool. */
+  einleitungsbild?: Quellbild;
   merkkasten?: { titel?: string; text: string };
   aufgaben: Aufgabe[];
   /** Small print in the footer, e.g. "Ohne hinterlegten Lehrplan erstellt". */
@@ -52,7 +57,7 @@ export function parseArbeitsblatt(raw: unknown): Arbeitsblatt {
     const punkte = t.punkte === undefined ? undefined : Number(t.punkte);
     if (!Number.isInteger(zeilen) || zeilen < 0 || zeilen > 15) throw new MaterialError(`Aufgabe ${i + 1}: Die Zahl der Schreibzeilen muss zwischen 0 und 15 liegen.`);
     if (punkte !== undefined && (!Number.isFinite(punkte) || punkte < 0 || punkte > 100)) throw new MaterialError(`Aufgabe ${i + 1}: Die Punkte sind nicht gültig.`);
-    return { text: str(t.text, `Text von Aufgabe ${i + 1}`, 3000, true)!, hilfe: str(t.hilfe, `Hilfe zu Aufgabe ${i + 1}`, 800), punkte, zeilen, loesung: str(t.loesung, `Lösung zu Aufgabe ${i + 1}`, 1500), typ: parseTyp(t, i + 1) };
+    return { text: str(t.text, `Text von Aufgabe ${i + 1}`, 3000, true)!, hilfe: str(t.hilfe, `Hilfe zu Aufgabe ${i + 1}`, 800), punkte, zeilen, loesung: str(t.loesung, `Lösung zu Aufgabe ${i + 1}`, 1500), typ: parseTyp(t, i + 1), bild: parseQuellbild(t.bildDaten, `Aufgabe ${i + 1}`) };
   });
   const mk = o.merkkasten as Record<string, unknown> | undefined;
   return {
@@ -61,6 +66,7 @@ export function parseArbeitsblatt(raw: unknown): Arbeitsblatt {
     klasse: str(o.klasse, "die Klasse", 60),
     niveau: str(o.niveau, "das Niveau", 40),
     einleitung: str(o.einleitung, "die Einleitung", 4000),
+    einleitungsbild: parseQuellbild(o.bildDaten, "Einleitung"),
     merkkasten: mk ? { titel: str(mk.titel, "der Titel des Merkkastens", 60), text: str(mk.text, "der Text des Merkkastens", 3000, true)! } : undefined,
     aufgaben,
     fuss: str(o.fuss, "der Fußtext", 200),
@@ -177,6 +183,12 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
     fields: key ? undefined : ["Name:", "Datum:"],
   });
   if (a.einleitung) sheet.paragraph(a.einleitung);
+  if (a.einleitungsbild) {
+    const h = bildHoehe(sheet, a.einleitungsbild, width);
+    sheet.room(h + mm(4));
+    zeichneBild(sheet, a.einleitungsbild, left, sheet.y, width);
+    sheet.y += h + mm(4);
+  }
   if (a.merkkasten) sheet.box({ title: a.merkkasten.titel, text: a.merkkasten.text });
 
   const numW = mm(7.5);
@@ -187,12 +199,13 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
     const punkteW = t.punkte ? 44 : 0;
     const textH = sheet.height(t.text, SANS, 10.5, textW - punkteW);
     const hilfeH = t.hilfe ? sheet.height(t.hilfe, SANS_ITALIC, 9.5, textW, { lead: TIPP }) + 4 : 0;
+    const imageH = t.bild ? bildHoehe(sheet, t.bild, textW) + mm(3) : 0;
     const body = koerper(a, i);
     const bodyH = body ? bodyHeight(sheet, body, textW, key) + mm(2) : 0;
     const answer = key ? (loesungText(a, i) ?? "—") : undefined;
     const answerH = answer ? sheet.height(answer, SANS, 10, textW - mm(8)) + mm(5) : 0;
     const linesH = key ? answerH : t.zeilen ? t.zeilen * lineH + mm(2) : 0;
-    const h = Math.max(numW, textH + hilfeH + bodyH + linesH);
+    const h = Math.max(numW, textH + hilfeH + imageH + bodyH + linesH);
     sheet.room(h + mm(5));
     const y = sheet.y;
     doc.save().roundedRect(left, y, numW, numW, mm(1.8)).fill(INK).restore();
@@ -208,6 +221,11 @@ export async function renderArbeitsblatt(a: Arbeitsblatt, opts: { lehrerexemplar
     if (t.hilfe) {
       sheet.text(t.hilfe, textX, by, { font: SANS_ITALIC, size: 9.5, color: SOFT, width: textW, lead: TIPP });
       by += hilfeH - 2;
+    }
+    if (t.bild) {
+      by += mm(1.5);
+      zeichneBild(sheet, t.bild, textX, by, textW);
+      by += imageH - mm(1.5);
     }
     if (body) {
       by += mm(1.5);

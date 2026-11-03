@@ -6,6 +6,7 @@ import { arbeitsblattWord, erwartungshorizontWord, klausurWord, lernsituationWor
 import { parseLernsituation, renderLernsituation } from "../material/lernsituation.ts";
 import { renderHtml } from "../animation/html.ts";
 import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
+import { bildHolen, gespeichertesBild, ERLAUBTE_LIZENZEN, MAX_TREFFER, rechteHinweise, suchen as commonsSuchen, trefferImSpeicher, trefferVon, vorschau as commonsVorschau, type Quellbild } from "../commons/index.ts";
 import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
 import { ARTEN, FORMEN, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
@@ -25,11 +26,11 @@ import {
  * `label` is German and shown in the progress display.
  * `ask` marks a tool that changes files: the teacher is asked first, in plain language.
  */
-export type TeacherTool = AgentTool<any> & { ask?: (args: any) => string; producesMaterial?: boolean };
+export type TeacherTool = AgentTool<any> & { ask?: (args: any) => string | undefined; producesMaterial?: boolean };
 
 type Params = Tool["parameters"];
 /** Keeps the argument types of each tool while the list below holds them as one type. */
-const defineTool = <P extends Params>(tool: AgentTool<P> & { ask?: (args: any) => string; producesMaterial?: boolean }): TeacherTool => tool as TeacherTool;
+const defineTool = <P extends Params>(tool: AgentTool<P> & { ask?: (args: any) => string | undefined; producesMaterial?: boolean }): TeacherTool => tool as TeacherTool;
 
 const wordParam = Type.Optional(Type.Boolean({ description: "Also save an editable Word version (.docx) next to the PDF. Only when the teacher asks for Word or wants to edit the material; never by default." }));
 
@@ -348,6 +349,65 @@ const bilderSuchen = defineTool({
   },
 });
 
+const bildHinweis = (t: NonNullable<ReturnType<typeof trefferImSpeicher>>) => rechteHinweise(t).join(" ");
+
+const commonsBilderSuchen = defineTool({
+  name: "commons_bilder_suchen",
+  label: "Bilder bei Wikimedia Commons suchen",
+  description:
+    "Searches Wikimedia Commons for freely licensed pictures (photos, posters, maps, drawings) for teaching material, for example history. Returns up to 8 hits with id, title, author, license, size and a small preview that you can see. Only pictures with a free license are listed (public domain, CC0, CC BY, CC BY-SA); others are left out on purpose. Only your search words leave the computer, so NEVER put names of students, classes or files into the search. Search in the language of the file titles (often German for German history). Pick by looking at the previews, not only at the titles. Then call commons_bild_einfuegen with the id. If nothing fits or there is no internet, say so honestly and make the material without a picture. Nothing about licenses or authors is written by you: the program prints the source line under the picture.",
+  parameters: Type.Object({ suche: Type.String({ description: "Search words, 1 to 6 words, e.g. 'Reichstagsbrand 1933'" }) }),
+  async execute(_id, { suche }) {
+    const { treffer, ausgelassen } = await commonsSuchen(suche);
+    if (treffer.length === 0) return text(`Zu „${suche}“ gibt es keine frei nutzbaren Bilder.${ausgelassen ? ` ${ausgelassen} Treffer wurden ausgelassen, weil ihre Lizenz nicht passt oder Angaben fehlen.` : ""} Versuche andere Suchwörter, sonst mach das Material ohne Bild.`);
+    const content: Array<{ type: "text"; text: string } | { type: "image"; data: string; mimeType: string }> = [];
+    content.push({
+      type: "text",
+      text: `${treffer.length} Treffer (nur frei nutzbare Lizenzen: ${ERLAUBTE_LIZENZEN.join(", ")}${ausgelassen ? `; ${ausgelassen} weitere ausgelassen` : ""}). Die Vorschaubilder folgen in derselben Reihenfolge.`,
+    });
+    for (const [i, t] of treffer.entries()) {
+      const hint = bildHinweis(t);
+      content.push({ type: "text", text: `${i + 1}. ${t.id}: ${t.titel}${t.beschreibung ? ` – ${t.beschreibung}` : ""} | Urheber: ${t.urheber ?? "nicht angegeben"} | Lizenz: ${t.lizenz} | ${t.breite} x ${t.hoehe} Pixel${hint ? ` | Rechte-Hinweis: ${hint}` : ""}` });
+      const pic = await commonsVorschau(t);
+      if (pic) content.push({ type: "image", data: pic.toString("base64"), mimeType: "image/jpeg" });
+      else content.push({ type: "text", text: "(keine Vorschau verfügbar)" });
+    }
+    return { content, details: undefined };
+  },
+});
+
+const commonsBildEinfuegen = defineTool({
+  name: "commons_bild_einfuegen",
+  label: "Bild von Commons laden",
+  description:
+    `Loads one hit of commons_bilder_suchen, checks it (license, type, size) and prepares it for the material in gray. Then give the same id as \`bild\` in arbeitsblatt_erstellen: at the top level (below the introduction) or in one task (below its text). The program prints title, author, license and link under the picture itself. At most ${MAX_TREFFER} pictures per sheet make sense; one or two are usually enough. If the hit has a rights note, the teacher is asked first. If loading fails (no internet, too many requests), tell the teacher in plain words and make the sheet without that picture.`,
+  parameters: Type.Object({ id: Type.String({ description: "The id from commons_bilder_suchen, e.g. commons-12345" }) }),
+  ask: ({ id }) => {
+    const t = trefferImSpeicher(id);
+    const hint = t ? bildHinweis(t) : "";
+    return hint ? `Das Bild „${t!.titel}“ hat einen Rechte-Hinweis: ${hint} Soll ich es trotzdem ins Material einfügen?` : undefined;
+  },
+  async execute(_id, { id }) {
+    const q = await bildHolen(await trefferVon(id));
+    return text(`Das Bild ${q.id} ist bereit (${q.breite} x ${q.hoehe} Pixel, Graustufen). Nimm die Kennung als \`bild\` in arbeitsblatt_erstellen. Die Quellenzeile setzt das Programm selbst darunter.`);
+  },
+});
+
+/** Puts the Commons pictures that the model named by id into the content. A picture that is not ready is left out and reported. */
+async function mitCommonsBildern<T extends { aufgaben?: unknown; bild?: unknown }>(content: T): Promise<{ content: T; fehlt: string[] }> {
+  const fehlt: string[] = [];
+  const hole = async (id: unknown, wo: string): Promise<Quellbild | undefined> => {
+    if (id === undefined || id === null || id === "") return undefined;
+    const q = await gespeichertesBild(id);
+    if (!q) fehlt.push(`${wo}: Das Bild „${String(id)}“ war nicht geladen (zuerst commons_bild_einfuegen aufrufen)`);
+    return q;
+  };
+  const aufgaben = Array.isArray(content.aufgaben)
+    ? await Promise.all(content.aufgaben.map(async (a, i) => ({ ...(a as object), bildDaten: await hole((a as { bild?: unknown })?.bild, `Aufgabe ${i + 1}`) })))
+    : content.aufgaben;
+  return { content: { ...content, aufgaben, bildDaten: await hole(content.bild, "Einleitung") }, fehlt };
+}
+
 const arbeitsblattErstellen = defineTool({
   name: "arbeitsblatt_erstellen",
   producesMaterial: true,
@@ -361,9 +421,11 @@ const arbeitsblattErstellen = defineTool({
     niveau: Type.Optional(Type.String({ description: "Level of a differentiated version, e.g. Basis, Standard, Erweiterung" })),
     einleitung: Type.Optional(Type.String({ description: "The material the tasks refer to: an information text, a case, a source (up to about 3000 characters), or a short intro. Explain technical terms" })),
     merkkasten: Type.Optional(Type.Object({ titel: Type.Optional(Type.String()), text: Type.String() })),
+    bild: Type.Optional(Type.String({ description: "A picture from Wikimedia Commons below the introduction: the id you loaded with commons_bild_einfuegen. The program adds the source line" })),
     aufgaben: Type.Array(
       Type.Object({
         text: Type.String(),
+        bild: Type.Optional(Type.String({ description: "A picture from Wikimedia Commons below the task text (id loaded with commons_bild_einfuegen). The program adds the source line" })),
         hilfe: Type.Optional(Type.String({ description: "Short hint for students" })),
         punkte: Type.Optional(Type.Number()),
         zeilen: Type.Optional(Type.Number({ description: "Writing lines under the task, 0 to 15" })),
@@ -390,7 +452,8 @@ const arbeitsblattErstellen = defineTool({
   }),
   async execute(_id, args) {
     const { reihe, datum, stunde, word, ...raw } = args;
-    const content = await mitBildern(raw);
+    const mitLibrary = await mitBildern(raw);
+    const { content, fehlt } = await mitCommonsBildern(mitLibrary);
     const sheet = parseArbeitsblatt({
       ...content,
       // Honest note instead of invented curriculum references (see docs/skills.md).
@@ -410,7 +473,7 @@ const arbeitsblattErstellen = defineTool({
       : "fehlt klasse, fach, reihe oder datum";
     if (entered === true && wordSheet) await tryAttach(content.klasse!, content.fach!, reihe!, { datum: datum!, stunde: stunde ?? "", thema: sheet.titel }, wordSheet.saved.name, { append: true });
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}${fehlt.length ? ` ACHTUNG, das Blatt ist ohne diese Bilder fertig geworden: ${fehlt.join("; ")}. Sag der Lehrkraft, was fehlt.` : ""}` }],
       details: {
         materials: [
           { title: shown, name: saved.name, path: saved.path },
@@ -868,7 +931,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  bilderSuchen, commonsBilderSuchen, commonsBildEinfuegen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];
