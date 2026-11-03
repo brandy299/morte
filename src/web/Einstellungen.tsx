@@ -5,12 +5,13 @@ import { Setup } from "./Setup.tsx";
 import { LookPicker } from "./LookPicker.tsx";
 import { MitteilungenSchalter } from "./MitteilungenSchalter.tsx";
 
-type Tab = "aussehen" | "ordner" | "schule" | "ki" | "datenschutz";
+type Tab = "aussehen" | "ordner" | "schule" | "ki" | "update" | "datenschutz";
 const TABS: { id: Tab; label: string }[] = [
   { id: "aussehen", label: "Aussehen" },
   { id: "ordner", label: "Ordner" },
   { id: "schule", label: "Schule" },
   { id: "ki", label: "KI-Anbieter" },
+  { id: "update", label: "Update" },
   { id: "datenschutz", label: "Datenschutz" },
 ];
 
@@ -96,6 +97,60 @@ function Ordner() {
   );
 }
 
+interface UpdateInfo {
+  verfuegbar: boolean;
+  aktuell: string;
+  neu: string;
+  hinweis?: string;
+}
+
+function Update() {
+  const [info, setInfo] = useState<UpdateInfo | null>(null);
+  const [phase, setPhase] = useState<"idle" | "running" | "failed">("idle");
+  useEffect(() => {
+    fetch("/api/update")
+      .then((r) => r.json())
+      .then(setInfo)
+      .catch(() => setInfo({ verfuegbar: false, aktuell: "", neu: "", hinweis: "Ich konnte nicht nachsehen." }));
+  }, []);
+
+  const start = async () => {
+    setPhase("running");
+    const res = await fetch("/api/update/start", { method: "POST" }).catch(() => undefined);
+    if (!res?.ok) setPhase("failed");
+  };
+
+  if (phase === "running") {
+    return (
+      <div className="settings-panel prose" role="status">
+        <h2>Pult wird aktualisiert</h2>
+        <p className="lead">Pult startet gleich neu und öffnet sich in einem neuen Fenster. Das dauert ein bis zwei Minuten. Du kannst dieses Fenster schließen. Deine Gespräche, Klassen und Schlüssel bleiben erhalten.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="settings-panel prose">
+      <h2>Neue Version holen</h2>
+      {!info && <p className="lead">Ich sehe nach …</p>}
+      {info?.hinweis && <p className="lead">{info.hinweis}</p>}
+      {info && !info.hinweis && (
+        <p className="lead">{info.verfuegbar ? "Es gibt eine neuere Version von Pult." : "Du hast die neueste Version."}</p>
+      )}
+      {phase === "failed" && <p role="alert">Das Aktualisieren hat nicht geklappt. Versuche es später noch einmal.</p>}
+      {info?.verfuegbar && (
+        <>
+          <p className="muted">Alles, was du in Pult gemacht hast, bleibt erhalten. Pult schließt sich kurz und startet dann von selbst neu.</p>
+          <div className="setup-actions">
+            <button type="button" className="primary" onClick={start}>
+              Jetzt aktualisieren
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Datenschutz() {
   return (
     <div className="settings-panel prose">
@@ -145,6 +200,7 @@ export function Einstellungen({ status, onClose, onDone }: { status: SetupStatus
           {tab === "ordner" && <Ordner />}
           {tab === "schule" && <Schule />}
           {tab === "ki" && <Setup status={status} embedded onDone={onDone} />}
+          {tab === "update" && <Update />}
           {tab === "datenschutz" && <Datenschutz />}
         </div>
         <p className="muted version">

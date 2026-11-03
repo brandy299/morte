@@ -18,6 +18,7 @@ import { applyEvent, deleteConversation, listConversations, loadConversation, ne
 import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { vorlagenRoutes } from "./vorlagen.ts";
+import { updateRoutes } from "./update.ts";
 import { lehrplanRoutes } from "./lehrplan.ts";
 import { stundenplanRoutes } from "./stundenplan.ts";
 import { keyName, type AppState } from "./state.ts";
@@ -461,6 +462,7 @@ export function createApp(state: AppState) {
   lehrplanRoutes(app, state);
   stundenplanRoutes(app, state);
   vorlagenRoutes(app);
+  updateRoutes(app);
 
   return app;
 }
