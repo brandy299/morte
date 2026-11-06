@@ -21,6 +21,7 @@ import { Einstellungen } from "./Einstellungen.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
 import { Diktat } from "./Diktat.tsx";
+import { OrdnerKnopf } from "./OrdnerKnopf.tsx";
 import { fuegeDiktatEin } from "./diktat.ts";
 
 interface Step {
@@ -1052,6 +1053,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   <path d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l7.9-7.9" />
                 </svg>
               </button>
+              <OrdnerKnopf onProblem={setAttachProblem} />
               <Diktat disabled={working} onProblem={setAttachProblem} onText={(t) => { setInput((v) => fuegeDiktatEin(v, t)); inputRef.current?.focus(); }} />
               <span className="grow" />
               <ModelInfo status={status} onSettings={onSettings} />

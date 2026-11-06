@@ -150,3 +150,16 @@ describe("only models that can do the job are accepted", () => {
     expect(state.session).toBeDefined();
   });
 });
+
+describe("folder to work in", () => {
+  it("is chosen, shown and forgotten again, and refuses a bad folder", async () => {
+    const app = createApp(await loadState(memoryStore()));
+    const put = (pfad: string) => app.request("/api/arbeitsordner", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ pfad }) });
+    expect(await (await app.request("/api/arbeitsordner")).json()).toEqual({ pfad: null, name: null });
+    expect((await put("/")).status).toBe(400);
+    const ok = await put(home);
+    expect(ok.status).toBe(200);
+    expect((await ok.json()).pfad).toBeTruthy();
+    expect((await (await app.request("/api/arbeitsordner", { method: "DELETE" })).json()).pfad).toBeNull();
+  });
+});

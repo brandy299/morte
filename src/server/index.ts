@@ -1,8 +1,9 @@
 import { changeDataDir, openDataDir, ordnerInfo, OrdnerError, pickFolder, resetDataDir } from "../core/ordner/index.ts";
+import { ArbeitsordnerError, pruefeOrdner } from "../core/arbeitsordner/index.ts";
 import { AnhangError, extractFile, MAX_FILES, MAX_TOTAL_CHARS, withFiles, type SentFile } from "../core/anhang/extract.ts";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { extname, join, normalize } from "node:path";
+import { basename, extname, join, normalize } from "node:path";
 import { serve } from "@hono/node-server";
 import { Hono, type Context, type MiddlewareHandler } from "hono";
 import { streamSSE } from "hono/streaming";
@@ -50,7 +51,7 @@ async function buildSession(state: AppState, choice: NonNullable<AppState["choic
   state.conversation = undefined; // a new session starts a new conversation
   state.session?.abort();
   const { skills } = await listSkills();
-  state.session = createChatSession({ ...choice, apiKey }, { skills, onUsage: (d) => void addUsage(d).catch(() => {}) });
+  state.session = createChatSession({ ...choice, apiKey }, { skills, ordner: () => state.ordner, onUsage: (d) => void addUsage(d).catch(() => {}) });
 }
 
 export async function loadState(secrets: SecretStore): Promise<AppState> {
@@ -179,7 +180,24 @@ export function createApp(state: AppState) {
     }
   };
   app.post("/api/ordner/oeffnen", ordnerAction(() => openDataDir()));
-  app.post("/api/ordner/waehlen", async (c) => c.json({ pfad: (await pickFolder()) ?? null }));
+  app.post("/api/ordner/waehlen", async (c) => c.json({ pfad: (await pickFolder(c.req.query("zweck") === "arbeit" ? "In welchem Ordner sollen wir arbeiten?" : undefined)) ?? null }));
+
+  // Folder to work in: the assistant may look into it, read files and add new text files. Chosen by the teacher, forgotten at the next start.
+  const ordnerAntwort = (state: AppState) => ({ pfad: state.ordner ?? null, name: state.ordner ? basename(state.ordner) : null });
+  app.get("/api/arbeitsordner", (c) => c.json(ordnerAntwort(state)));
+  app.put("/api/arbeitsordner", async (c) => {
+    try {
+      state.ordner = await pruefeOrdner(String((await c.req.json<{ pfad?: string }>().catch((): { pfad?: string } => ({}))).pfad ?? ""));
+      return c.json(ordnerAntwort(state));
+    } catch (e) {
+      if (e instanceof ArbeitsordnerError) return c.json({ error: e.message }, 400);
+      throw e;
+    }
+  });
+  app.delete("/api/arbeitsordner", (c) => {
+    state.ordner = undefined;
+    return c.json(ordnerAntwort(state));
+  });
   app.post("/api/ordner/aendern", ordnerAction(async (c) => changeDataDir(String((await c.req.json<{ pfad?: string }>()).pfad ?? ""))));
   app.post("/api/ordner/standard", ordnerAction(() => resetDataDir()));
 

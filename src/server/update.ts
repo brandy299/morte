@@ -13,7 +13,8 @@ export function updateRoutes(app: Hono) {
       throw err;
     }
     // The updater waits until this server is gone, then swaps the files. The answer must be out first.
-    setTimeout(() => process.exit(0), 500);
+    // In the desktop app the code is already swapped; exit code 75 tells the app to start the server again from the new code.
+    setTimeout(() => process.exit(process.env.PULT_APP === "1" ? 75 : 0), 500);
     return c.json({ ok: true });
   });
 }

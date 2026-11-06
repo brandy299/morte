@@ -12,6 +12,8 @@ export interface AppState {
   /** The conversation on screen. Saved after every answer, so it can be reopened later. */
   /** For tests: builds the one-off model access used outside the chat. */
   makeCompleter?: typeof createCompleter;
+  /** The folder on the computer the teacher chose to work in (real path). Kept until changed; the folder tools of the assistant work only there. */
+  ordner?: string;
   conversation?: { id: string; titel: string; erstellt: string; anzeige: StoredMessage[] };
   /** For tests: replaces the connection test, so they need no network. */
   runTest?: typeof testConnection;

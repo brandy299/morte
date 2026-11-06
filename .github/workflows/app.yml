@@ -1,0 +1,79 @@
+name: Programm bauen
+
+# Baut Pult als normales Programm: Mac (Apple-Chip und Intel) und Windows.
+# Von Hand starten (Actions, "Programm bauen", "Run workflow") oder mit einem Tag wie v0.2.0: dann landen die Dateien
+# als Download bei den Releases. Ohne Tag liegen sie 14 Tage lang unter "Artifacts" des Laufs.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  bauen:
+    name: ${{ matrix.name }}
+    # Die Installationsdateien nur von Hand oder mit einem Tag, nicht bei jedem Stand auf main.
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Mac (Apple-Chip), os: macos-latest, args: "--mac --arm64" }
+          - { name: Mac (Intel), os: macos-15-intel, args: "--mac --x64" }
+          - { name: Windows, os: windows-latest, args: "--win --x64" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vite build
+      # Der Stand im Programm, damit der Update-Knopf weiß, welche Version installiert ist.
+      - run: node -e "require('fs').writeFileSync('.pult-stand', process.env.GITHUB_SHA)"
+      # Ohne Zertifikat: Das Programm ist unsigniert, Mac und Windows zeigen beim ersten Öffnen eine Warnung (siehe docs/programm.md).
+      - run: npx electron-builder ${{ matrix.args }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pult-${{ matrix.os }}
+          path: |
+            release-app/*.dmg
+            release-app/*.exe
+          if-no-files-found: error
+          retention-days: 14
+      - name: An das Release hängen
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-app/*.dmg
+            release-app/*.exe
+
+  # Die kleinen Updates für den Update-Knopf im Programm: Pults eigener Code (ohne Bibliotheken und ohne Programmhülle).
+  # Liegt immer unter dem Release "code" und wird bei jedem Stand auf main ersetzt.
+  code:
+    name: Update-Paket
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run code-paket
+      - name: Release "code" ersetzen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view code >/dev/null 2>&1 || gh release create code --prerelease --title "Update-Paket (automatisch)" --notes "Wird bei jedem Stand auf main ersetzt. Nicht von Hand herunterladen: Pult holt es selbst über den Update-Knopf."
+          gh release upload code code-paket/code.zip code-paket/code.json --clobber

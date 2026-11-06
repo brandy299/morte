@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-11-03 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-11-06 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -134,7 +134,8 @@ Stand: 2026-11-03 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [~] Paket für Tester: `npm run zip` baut eine ZIP mit „Pult starten“ (Doppelklick für Windows und Mac, richtet sich beim ersten Start selbst ein, öffnet den Browser). Siehe `docs/weitergeben.md`. Auf Linux durchgespielt (auspacken, einrichten, starten, Seite wird ausgeliefert). Auf einem echten Mac (Yannik, 2026-10-14) gesehen: Die Mac-Sperre „nicht geöffnet“ erscheint, der Rechtsklick „Öffnen“ reicht dort nicht, der Weg geht über Systemeinstellungen, Datenschutz & Sicherheit; Anleitung entsprechend geändert, die Schritte danach und Windows noch nicht getestet
 - [~] Schritt-für-Schritt-Anleitung mit FAQ für Tester: `docs/anleitung-tester.md` (nie auf echtem Windows/Mac von einer fremden Person durchgespielt). OpenRouter-Anleitung `docs/openrouter-anleitung.md` (mit sechs Bildschirmfotos der echten Oberfläche, persönliche Angaben geschwärzt). Schlüssel-Empfehlung für Tester: `docs/schluessel-empfehlung.md` (OpenRouter + DeepSeek V4.1 flash, gemessen). Arbeitsweise für Yannik mit Stift und Claude Code: `docs/entwicklung-lokal.md`
 - [x] Update-Knopf in den Einstellungen (Reiter „Update“): sieht bei GitHub nach, holt auf Klick die neue Version, ersetzt die Programmdateien (Daten, installierte Teile und eigene Node.js-Kopie bleiben) und startet Pult neu. Test `src/release/update.test.ts` mit nachgebautem Download-Server. Nicht auf einem echten Mac oder Windows ausgeführt; im Entwicklungsordner (mit git) ist er aus
-- [ ] Installer als normales Programm, Mac und Windows
+- [~] Installer als normales Programm, Mac und Windows: Electron-Hülle (`electron/`), Bau per GitHub Actions (`.github/workflows/app.yml`, `.dmg` und `Setup.exe`), Anleitung `docs/programm.md`, Entscheidung 025. Unter Linux gepackt und gestartet (Fenster, Server, Ordner-Brücke). Update-Knopf im Programm holt nur den eigenen Code (Release „code“, bei jedem Stand auf `main`), mit echtem Electron unter Linux durchgespielt (holen, Neustart aus dem neuen Code). Offen: Lauf auf echtem Mac und Windows, der GitHub-Bau selbst, Signatur (Apple 99 $/Jahr, Windows-Zertifikat), Updates für Bibliotheken und Hülle
+- [x] Ordner zum Arbeiten: Ordner-Knopf am Eingabefeld (Programm: Systemdialog, Mac-Browser: Dialog, sonst Pfad eintippen). Der Assistent sieht nach, liest Dateien (PDF, Word, Excel, Text) und legt neue Textdateien an; Ersetzen fragt vorher, Löschen gibt es nicht. Nur innerhalb des Ordners (`..` und Links nach draußen geprüft), nicht die ganze Platte und nicht der ganze Benutzerordner. Gemerkt bis zum Neustart. Tests `src/core/arbeitsordner`. Oberfläche im Programmfenster noch nicht mit echtem Dialog gesehen; PDF/Word schreiben geht weiter über die Material-Werkzeuge
 - [ ] Login und DSGVO-konformes Backend (EU-Hosting, Auftragsverarbeitung, Auswahl nach Datenschutz kennzeichnen)
 - [ ] Abstimmung mit Schulleitung und Datenschutzbeauftragten
 - [ ] Optional: Schülerebene, lokal und pseudonymisiert, nur nach Rücksprache mit der Schule

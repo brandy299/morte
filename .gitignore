@@ -11,3 +11,5 @@ evals/ergebnisse/
 /node/
 /.node-neu/
 .pult-stand
+/release-app/
+/code-paket/

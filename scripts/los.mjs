@@ -24,7 +24,8 @@ if (major < 22) fail(`Dein Node.js ist zu alt (Version ${process.versions.node})
 
 /** Runs `npm <args>` in the Pult folder and shows its output. */
 function npm(args) {
-  return spawnSync("npm", args, { cwd: root, stdio: "inherit", shell: win }).status === 0;
+  // The Electron program is only needed to build the desktop app, not to run Pult in the browser: skip its big download.
+  return spawnSync("npm", args, { cwd: root, stdio: "inherit", shell: win, env: { ...process.env, ELECTRON_SKIP_BINARY_DOWNLOAD: "1" } }).status === 0;
 }
 
 // The stamp remembers which package-lock.json the installed packages belong to, so an update with new libraries installs them too.

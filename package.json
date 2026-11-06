@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
+  "description": "Pult: der KI-Arbeitsplatz für Lehrkräfte",
+  "author": "Pult",
+  "homepage": "https://github.com/brandy299/morte",
+  "main": "electron/main.mjs",
+  "pultHuelle": 1,
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -16,7 +21,10 @@
     "eval": "tsx scripts/eval.mts",
     "bogen": "tsx scripts/bogen.mts",
     "zip": "tsx scripts/zip.mts",
-    "anleitung": "tsx scripts/anleitung.mts"
+    "anleitung": "tsx scripts/anleitung.mts",
+    "app": "vite build && electron .",
+    "app:bauen": "vite build && electron-builder",
+    "code-paket": "vite build && node scripts/code-paket.mjs"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "1.1.0",
@@ -39,6 +47,7 @@
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
     "svg-to-pdfkit": "0.1.8",
+    "tsx": "^4.23.15",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
@@ -47,7 +56,8 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "tsx": "^4.23.15",
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",
     "vitest": "^5.0.3"
@@ -56,5 +66,54 @@
     "speech-rule-engine": {
       "@xmldom/xmldom": "0.9.12"
     }
+  },
+  "build": {
+    "appId": "de.pult.app",
+    "productName": "Pult",
+    "executableName": "Pult",
+    "asar": false,
+    "npmRebuild": false,
+    "directories": {
+      "buildResources": "build",
+      "output": "release-app"
+    },
+    "files": [
+      "electron/**",
+      "src/**",
+      "!src/**/*.test.ts",
+      "skills/**",
+      "assets/**",
+      "dist/web/**",
+      "package.json",
+      "!**/*.map",
+      "package-lock.json",
+      ".pult-stand"
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        "dmg"
+      ],
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Pult braucht das Mikrofon nur zum Diktieren. Die Sprache bleibt auf deinem Computer."
+      },
+      "files": [
+        "!node_modules/onnxruntime-node/bin/napi-v*/{linux,win32}/**"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "files": [
+        "!node_modules/onnxruntime-node/bin/napi-v*/{linux,darwin}/**"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false
+    },
+    "artifactName": "Pult-${version}-${os}-${arch}.${ext}"
   }
 }
