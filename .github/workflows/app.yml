@@ -1,22 +1,39 @@
 name: Programm bauen
 
 # Baut Pult als normales Programm: Mac (Apple-Chip und Intel) und Windows.
-# Von Hand starten (Actions, "Programm bauen", "Run workflow") oder mit einem Tag wie v0.2.0: dann landen die Dateien
-# als Download bei den Releases. Ohne Tag liegen sie 14 Tage lang unter "Artifacts" des Laufs.
+# Ein neues Release entsteht von selbst: Steht in package.json eine Version, zu der es noch kein Release "v<Version>" gibt,
+# baut GitHub beim nächsten Stand auf main die Dateien und legt das Release an (Downloads unter "Releases").
+# Von Hand starten (Actions, "Programm bauen", "Run workflow") geht auch: dann liegen die Dateien 14 Tage unter "Artifacts".
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    tags: ["v*"]
 
 permissions:
   contents: write
 
 jobs:
+  version:
+    name: Neue Version?
+    runs-on: ubuntu-latest
+    outputs:
+      neu: ${{ steps.pruefen.outputs.neu }}
+      version: ${{ steps.pruefen.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pruefen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(node -p "require('./package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && ! gh release view "v$v" >/dev/null 2>&1; then echo "neu=true" >> "$GITHUB_OUTPUT"; else echo "neu=false" >> "$GITHUB_OUTPUT"; fi
+
   bauen:
+    needs: version
     name: ${{ matrix.name }}
-    # Die Installationsdateien nur von Hand oder mit einem Tag, nicht bei jedem Stand auf main.
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    # Die Installationsdateien nur von Hand oder bei einer neuen Version, nicht bei jedem Stand auf main.
+    if: github.event_name == 'workflow_dispatch' || needs.version.outputs.neu == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     strategy:
@@ -48,13 +65,22 @@ jobs:
             release-app/*.exe
           if-no-files-found: error
           retention-days: 14
-      - name: An das Release hängen
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+
+  veroeffentlichen:
+    name: Release anlegen
+    needs: [version, bauen]
+    if: needs.version.outputs.neu == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
         with:
-          files: |
-            release-app/*.dmg
-            release-app/*.exe
+          path: dateien
+          merge-multiple: true
+      - name: Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ needs.version.outputs.version }}" dateien/*.dmg dateien/*.exe -R "${{ github.repository }}" --target "${{ github.sha }}" --title "Pult ${{ needs.version.outputs.version }}" --notes "Pult als Programm. Mac: die .dmg-Datei (arm64 = Apple-Chip, x64 = Intel), Windows: die .exe-Datei. Beim ersten Öffnen kommt eine Warnung, die Anleitung steht in docs/programm.md."
 
   # Die kleinen Updates für den Update-Knopf im Programm: Pults eigener Code (ohne Bibliotheken und ohne Programmhülle).
   # Liegt immer unter dem Release "code" und wird bei jedem Stand auf main ersetzt.
