@@ -16,6 +16,7 @@ Einstieg für alle: [Pult ausprobieren](anleitung-tester.md) und [OpenRouter ein
 | Datei | Worum es geht |
 |---|---|
 | [weitergeben.md](weitergeben.md) | Pult an Tester weitergeben, Nachricht zum Kopieren, Hinweise für den ersten Termin |
+| [programm.md](programm.md) | Pult als Programm installieren (Mac und Windows), Warnung beim ersten Öffnen |
 | [entwicklung-lokal.md](entwicklung-lokal.md) | Mit dem Dev-Stift und Claude Code an Pult arbeiten |
 | [skills.md](skills.md) | Wie die Anleitungen für den Assistenten (Skills) aufgebaut sind |
 | [ordnerstruktur.md](ordnerstruktur.md) | Wie der Arbeitsordner pro Nutzer aussieht (Klassen, Stand, Reihen, Material) |

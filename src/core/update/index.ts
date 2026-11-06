@@ -24,6 +24,10 @@ const short = (sha: string) => sha.slice(0, 7);
 /** Development folders (with git history) are updated with git, never overwritten by the updater. */
 export const istEntwicklungsordner = () => existsSync(join(root(), ".git"));
 
+/** The installed desktop app (PULT_APP is set by electron/main.mjs). Its files are part of the program and are replaced by a new download, not by this updater. */
+export const istProgramm = () => process.env.PULT_APP === "1";
+const PROGRAMM_HINWEIS = "Pult ist als Programm installiert. Eine neue Version lädst du auf der Download-Seite herunter und installierst sie einfach darüber. Deine Daten bleiben.";
+
 export const installedSha = (): string => {
   try {
     return readFileSync(stampFile(), "utf8").trim();
@@ -45,6 +49,7 @@ export async function latestSha(): Promise<string> {
 
 export async function checkUpdate(): Promise<UpdateInfo> {
   const aktuell = installedSha();
+  if (istProgramm()) return { verfuegbar: false, aktuell: short(aktuell), neu: "", hinweis: PROGRAMM_HINWEIS };
   if (istEntwicklungsordner()) return { verfuegbar: false, aktuell: short(aktuell), neu: "", hinweis: "Das ist ein Entwicklungsordner. Dort wird mit git aktualisiert." };
   let neu: string;
   try {
@@ -61,6 +66,7 @@ export async function checkUpdate(): Promise<UpdateInfo> {
  * The caller must stop the server right after this returns.
  */
 export async function startUpdate(): Promise<void> {
+  if (istProgramm()) throw new UpdateError(PROGRAMM_HINWEIS);
   if (istEntwicklungsordner()) throw new UpdateError("Das ist ein Entwicklungsordner. Dort wird mit git aktualisiert.");
   const sha = await latestSha().catch(() => {
     throw new UpdateError("Ich konnte nicht nachsehen. Prüfe deine Internetverbindung.");
