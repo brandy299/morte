@@ -20,7 +20,7 @@
   <img src="docs/bilder/readme/arbeitsblatt.png" alt="Pult mit einem fertigen Arbeitsblatt in der Vorschau" width="900">
 </p>
 
-> **Probelauf.** Pult ist in Erprobung (Version 0.1.0). Es kann Fehler machen oder etwas nicht können. Ob ein Arbeitsblatt fachlich gut ist, beurteilt am Ende nur eine Lehrkraft.
+> **Probelauf.** Pult ist in Erprobung (Version 0.2.0). Es kann Fehler machen oder etwas nicht können. Ob ein Arbeitsblatt fachlich gut ist, beurteilt am Ende nur eine Lehrkraft.
 
 *English in short: Pult is a lean, local AI workspace for teachers (worksheets, exams, lesson plans, interactive exercises). The interface and the material are in German. Apache-2.0, bring your own API key, nothing leaves your computer except the requests to the AI provider you choose.*
 
@@ -48,18 +48,18 @@ Dazu: Klassen mit Stand und Reihen, dein **Stundenplan als Kalender (iCal)** mit
 
 ## Ausprobieren
 
-Das brauchst du: einen Zugang zu einer KI (zum Beispiel OpenRouter, einmal etwa 10 Dollar Guthaben). Dann **eine Zeile** im Terminal. Fehlt Node.js, holt die Zeile es selbst:
+Das brauchst du: einen Zugang zu einer KI (zum Beispiel OpenRouter, einmal etwa 10 Dollar Guthaben). Dann Pult als normales Programm installieren, ohne Terminal:
 
-- **Windows** (PowerShell):
-  ```
-  irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex
-  ```
-- **Mac** (Terminal):
-  ```
-  curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash
-  ```
+1. Auf der Seite [Releases](https://github.com/brandy299/morte/releases/latest) die Datei für deinen Rechner herunterladen: **Mac** `…-mac-arm64.dmg` (Apple-Chip) oder `…-mac-x64.dmg` (Intel), **Windows** `…-win-x64.exe`.
+2. Doppelklicken und installieren. Beim ersten Öffnen zeigen Mac und Windows eine Warnung, weil Pult noch nicht eingetragen ist: [so geht es trotzdem](docs/programm.md).
+3. Pult öffnet sich und führt dich durch die Einrichtung.
 
-Pult richtet sich beim ersten Mal selbst ein (zwei bis fünf Minuten) und öffnet den Browser. Dieselbe Zeile später noch einmal holt die neueste Fassung. Die Schritt-für-Schritt-Anleitung mit allen Antworten auf häufige Fragen: [Anleitung für Tester](docs/anleitung-tester.md), dazu [OpenRouter einrichten](docs/openrouter-anleitung.md) mit Bildern.
+Neue Versionen holt Pult selbst: **Einstellungen → Update**. Die Schritt-für-Schritt-Anleitung mit allen Antworten auf häufige Fragen: [Anleitung für Tester](docs/anleitung-tester.md), dazu [OpenRouter einrichten](docs/openrouter-anleitung.md) mit Bildern.
+
+Lieber ohne Programm, im Browser? Eine Zeile im Terminal genügt (fehlt Node.js, holt die Zeile es selbst):
+
+- **Windows** (PowerShell): `irm https://raw.githubusercontent.com/brandy299/morte/main/install.ps1 | iex`
+- **Mac** (Terminal): `curl -fsSL https://raw.githubusercontent.com/brandy299/morte/main/install.sh | bash`
 
 ## So arbeitet Pult
 
@@ -83,6 +83,7 @@ npm run typecheck  # Typen
 npm run build      # Oberfläche bauen, danach: npm start (http://localhost:3001)
 npm run eval       # Prüfläufe mit einem Sprachmodell als Prüfer, siehe evals/README.md
 npm run zip        # Paket für Tester (ZIP mit Doppelklick-Start)
+npm run app        # Programmfenster (Electron) ansehen, siehe docs/programm.md
 ```
 
 TypeScript, Node.js (ab 22), [Hono](https://hono.dev) als Server, React mit Vite als Oberfläche, pi-ai und pi-agent-core (`@earendil-works`, exakt gepinnt) als Agentenkern, den nur `src/core/agent` importiert.
