@@ -14,7 +14,9 @@
 
 ## Neue Version
 
-Lade die neue Datei herunter und installiere sie einfach darüber. Deine Daten bleiben erhalten.
+In Pult: **Einstellungen → Update → Jetzt aktualisieren**. Pult holt die neuen Teile selbst und startet kurz neu. Du musst nichts herunterladen oder neu installieren, deine Daten bleiben.
+
+Nur selten (wenn sich der Unterbau ändert) steht dort, dass eine neue Installation nötig ist. Dann lädst du die neue Datei von der Release-Seite und installierst sie über die alte, deine Daten bleiben auch dann.
 
 ## Warum die Warnung?
 
@@ -22,4 +24,4 @@ Pult ist noch nicht bei Apple und Microsoft eingetragen. Das kostet jährlich Ge
 
 ## Für Entwickler
 
-`npm run app` baut die Oberfläche und öffnet das Fenster. `npm run app:bauen` baut das Programm für das eigene System nach `release-app/`. Die Dateien für Mac und Windows baut GitHub (Actions, „Programm bauen“; mit einem Tag `v0.2.0` kommen sie zu den Releases). Siehe `docs/entscheidungen/025-desktop-app.md`.
+`npm run app` baut die Oberfläche und öffnet das Fenster. `npm run app:bauen` baut das Programm für das eigene System nach `release-app/`. Bei jedem Stand auf `main` baut GitHub das kleine Update-Paket (Release „code“: `code.zip`, `code.json`), das der Update-Knopf holt. Die Installationsdateien für Mac und Windows baut GitHub (Actions, „Programm bauen“; mit einem Tag `v0.2.0` kommen sie zu den Releases). Siehe `docs/entscheidungen/025-desktop-app.md`.

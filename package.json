@@ -7,6 +7,7 @@
   "author": "Pult",
   "homepage": "https://github.com/brandy299/morte",
   "main": "electron/main.mjs",
+  "pultHuelle": 1,
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -22,7 +23,8 @@
     "zip": "tsx scripts/zip.mts",
     "anleitung": "tsx scripts/anleitung.mts",
     "app": "vite build && electron .",
-    "app:bauen": "vite build && electron-builder"
+    "app:bauen": "vite build && electron-builder",
+    "code-paket": "vite build && node scripts/code-paket.mjs"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "1.1.0",
@@ -83,7 +85,9 @@
       "assets/**",
       "dist/web/**",
       "package.json",
-      "!**/*.map"
+      "!**/*.map",
+      "package-lock.json",
+      ".pult-stand"
     ],
     "mac": {
       "category": "public.app-category.education",

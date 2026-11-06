@@ -117,14 +117,23 @@ function Update() {
   const start = async () => {
     setPhase("running");
     const res = await fetch("/api/update/start", { method: "POST" }).catch(() => undefined);
-    if (!res?.ok) setPhase("failed");
+    if (!res?.ok) return setPhase("failed");
+    // In the desktop app the window stays: wait until the server is back, then load the new page.
+    if (window.pultApp) {
+      await new Promise((r) => setTimeout(r, 1500));
+      for (let i = 0; i < 120; i++) {
+        if (await fetch("/api/setup/status").then((r) => r.ok, () => false)) return location.reload();
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      setPhase("failed");
+    }
   };
 
   if (phase === "running") {
     return (
       <div className="settings-panel prose" role="status">
         <h2>Pult wird aktualisiert</h2>
-        <p className="lead">Pult startet gleich neu und öffnet sich in einem neuen Fenster. Das dauert ein bis zwei Minuten. Du kannst dieses Fenster schließen. Deine Gespräche, Klassen und Schlüssel bleiben erhalten.</p>
+        <p className="lead">{window.pultApp ? "Das dauert einen Moment, dann geht es hier von allein weiter. Bitte schließe das Fenster nicht. " : "Pult startet gleich neu und öffnet sich in einem neuen Fenster. Das dauert ein bis zwei Minuten. Du kannst dieses Fenster schließen. "}Deine Gespräche, Klassen und Schlüssel bleiben erhalten.</p>
       </div>
     );
   }
@@ -139,7 +148,7 @@ function Update() {
       {phase === "failed" && <p role="alert">Das Aktualisieren hat nicht geklappt. Versuche es später noch einmal.</p>}
       {info?.verfuegbar && (
         <>
-          <p className="muted">Alles, was du in Pult gemacht hast, bleibt erhalten. Pult schließt sich kurz und startet dann von selbst neu.</p>
+          <p className="muted">Alles, was du in Pult gemacht hast, bleibt erhalten. Pult startet kurz neu und geht dann von selbst weiter.</p>
           <div className="setup-actions">
             <button type="button" className="primary" onClick={start}>
               Jetzt aktualisieren

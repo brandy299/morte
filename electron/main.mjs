@@ -2,13 +2,31 @@
 // (the Electron program started as plain Node.js), exactly as `npm start` does. Nothing is installed besides this app.
 import { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } from "electron";
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// The program as installed. Updates from inside the app put newer code in `<app data>/code/aktuell`; it is used as long as
+// it was made for this very program (same libraries and shell, same installed version) and starts. Otherwise the installed code runs.
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const tsx = createRequire(join(root, "package.json")).resolve("tsx/cli");
+const codeDir = join(app.getPath("userData"), "code");
+const override = join(codeDir, "aktuell");
+const read = (p) => {
+  try {
+    return readFileSync(p, "utf8").trim();
+  } catch {
+    return "";
+  }
+};
+const huelle = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).pultHuelle ?? 0;
+// Must be computed exactly as in scripts/code-paket.mjs.
+const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).update(`\n${huelle}`).digest("hex");
+const useOverride = () => existsSync(override) && read(join(override, ".basis")) === `${basis}/${app.getVersion()}`;
+let codeRoot = root;
 // A fixed address, so settings kept by the page (look, drafts) stay between starts. Another one only if this one is taken.
 const WISH_PORT = Number(process.env.PULT_PORT ?? 38517);
 
@@ -46,18 +64,36 @@ async function waitForServer(port) {
 }
 
 function startServer(port) {
+  codeRoot = useOverride() ? override : root;
   server = spawn(process.execPath, [tsx, "src/server/index.ts"], {
-    cwd: root,
+    cwd: codeRoot,
     windowsHide: true,
     stdio: ["ignore", "inherit", "inherit"],
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", PULT_APP: "1", PORT: String(port), NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1", NODE_OPTIONS: "--disable-warning=UNDICI-EHPA" },
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", PULT_APP: "1", PULT_BASIS: basis, PULT_APP_VERSION: app.getVersion(), PULT_CODE_DIR: codeDir, PULT_NODE_MODULES: join(root, "node_modules"), PORT: String(port), NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1", NODE_OPTIONS: "--disable-warning=UNDICI-EHPA" },
   });
-  server.on("exit", () => {
+  const mine = server;
+  server.on("exit", async (code) => {
+    if (server !== mine) return;
+    // Exit code 75: an update put new code in place. Start from it and load the page again.
+    if (code === 75 && !quitting) {
+      startServer(port);
+      if (await waitForServer(port)) BrowserWindow.getAllWindows().forEach((w) => w.loadURL(origin));
+      else if (await fallBack(port)) BrowserWindow.getAllWindows().forEach((w) => w.loadURL(origin));
+      return;
+    }
     if (!quitting) {
       say("Pult wurde beendet", "Pult ist unerwartet angehalten worden. Bitte starte es noch einmal. Hilft das nicht, schick ein Foto dieser Meldung an Yannik.");
       app.quit();
     }
   });
+}
+
+/** New code that does not start is thrown away; the installed code takes over again. True when the server then answers. */
+async function fallBack(port) {
+  server?.kill();
+  rmSync(override, { recursive: true, force: true });
+  startServer(port);
+  return waitForServer(port);
 }
 
 function openWindow() {
@@ -114,7 +150,7 @@ else {
       return result.canceled ? null : (result.filePaths[0] ?? null);
     });
 
-    if (!(await waitForServer(port))) {
+    if (!(await waitForServer(port)) && !(codeRoot === override && (await fallBack(port)))) {
       say("Pult startet nicht", "Pult konnte nicht starten. Bitte starte es noch einmal. Hilft das nicht, schick ein Foto dieser Meldung an Yannik.");
       app.quit();
       return;

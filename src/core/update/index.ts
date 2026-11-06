@@ -1,6 +1,8 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { installierteBasis, ladeCode, ladeManifest, RELEASES_SEITE } from "./app.ts";
+import { UpdateError } from "./errors.ts";
 
 /** The program folder (two levels up from src/core/update). */
 const root = () => join(import.meta.dirname, "..", "..", "..");
@@ -17,7 +19,7 @@ export interface UpdateInfo {
   hinweis?: string;
 }
 
-export class UpdateError extends Error {}
+export { UpdateError };
 
 const short = (sha: string) => sha.slice(0, 7);
 
@@ -26,7 +28,7 @@ export const istEntwicklungsordner = () => existsSync(join(root(), ".git"));
 
 /** The installed desktop app (PULT_APP is set by electron/main.mjs). Its files are part of the program and are replaced by a new download, not by this updater. */
 export const istProgramm = () => process.env.PULT_APP === "1";
-const PROGRAMM_HINWEIS = "Pult ist als Programm installiert. Eine neue Version lädst du auf der Download-Seite herunter und installierst sie einfach darüber. Deine Daten bleiben.";
+const NEUINSTALLATION = `Diese neue Version braucht eine neue Installation. Lade sie hier herunter und installiere sie einfach darüber, deine Daten bleiben: ${RELEASES_SEITE}`;
 
 export const installedSha = (): string => {
   try {
@@ -49,7 +51,15 @@ export async function latestSha(): Promise<string> {
 
 export async function checkUpdate(): Promise<UpdateInfo> {
   const aktuell = installedSha();
-  if (istProgramm()) return { verfuegbar: false, aktuell: short(aktuell), neu: "", hinweis: PROGRAMM_HINWEIS };
+  if (istProgramm()) {
+    try {
+      const m = await ladeManifest();
+      if (m.basis !== installierteBasis()) return { verfuegbar: false, aktuell: short(aktuell), neu: short(m.sha), hinweis: NEUINSTALLATION };
+      return { verfuegbar: m.sha !== aktuell, aktuell: short(aktuell), neu: short(m.sha) };
+    } catch {
+      return { verfuegbar: false, aktuell: short(aktuell), neu: "", hinweis: "Ich konnte nicht nachsehen. Prüfe deine Internetverbindung." };
+    }
+  }
   if (istEntwicklungsordner()) return { verfuegbar: false, aktuell: short(aktuell), neu: "", hinweis: "Das ist ein Entwicklungsordner. Dort wird mit git aktualisiert." };
   let neu: string;
   try {
@@ -66,7 +76,14 @@ export async function checkUpdate(): Promise<UpdateInfo> {
  * The caller must stop the server right after this returns.
  */
 export async function startUpdate(): Promise<void> {
-  if (istProgramm()) throw new UpdateError(PROGRAMM_HINWEIS);
+  if (istProgramm()) {
+    const m = await ladeManifest().catch(() => {
+      throw new UpdateError("Ich konnte nicht nachsehen. Prüfe deine Internetverbindung.");
+    });
+    if (m.basis !== installierteBasis()) throw new UpdateError(NEUINSTALLATION);
+    await ladeCode(m);
+    return;
+  }
   if (istEntwicklungsordner()) throw new UpdateError("Das ist ein Entwicklungsordner. Dort wird mit git aktualisiert.");
   const sha = await latestSha().catch(() => {
     throw new UpdateError("Ich konnte nicht nachsehen. Prüfe deine Internetverbindung.");
