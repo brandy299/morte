@@ -289,7 +289,7 @@ export const getOrdner = () => ordnerCall("");
 export const openOrdner = () => ordnerCall("/oeffnen");
 export const resetOrdner = () => ordnerCall("/standard");
 export const moveOrdner = (pfad: string) => ordnerCall("/aendern", { pfad });
-export const chooseOrdner = async (): Promise<string | null> => (await (await fetch("/api/ordner/waehlen", { method: "POST" })).json()).pfad;
+export const chooseOrdner = async (zweck: "daten" | "arbeit" = "daten"): Promise<string | null> => (await (await fetch(`/api/ordner/waehlen?zweck=${zweck}`, { method: "POST" })).json()).pfad;
 
 /** Sends the choices for the assistant's questions. `null` skips them. Returns a problem text, or null when it worked. */
 export async function answerFragen(id: string, antworten: { antwort: string; eigene?: boolean }[] | null): Promise<string | null> {
@@ -309,3 +309,13 @@ export const saveSchulname = async (name: string) => schuleAntwort(await fetch("
 export const saveSchullogo = async (file: File) => schuleAntwort(await fetch("/api/schule/logo", { method: "POST", headers: { "content-type": "application/octet-stream" }, body: file }));
 export const removeSchullogo = async () => schuleAntwort(await fetch("/api/schule/logo", { method: "DELETE" }));
 export const schullogoUrl = (version: number) => `/api/schule/logo?v=${version}`;
+
+export interface GewaehlterOrdner { pfad: string | null; name: string | null }
+const ordnerJson = async (res: Response): Promise<GewaehlterOrdner> => {
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.error ?? "Das hat nicht geklappt.");
+  return body;
+};
+export const getGewaehlterOrdner = async (): Promise<GewaehlterOrdner> => ordnerJson(await fetch("/api/arbeitsordner"));
+export const setGewaehlterOrdner = async (pfad: string) => ordnerJson(await fetch("/api/arbeitsordner", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ pfad }) }));
+export const clearGewaehlterOrdner = async () => ordnerJson(await fetch("/api/arbeitsordner", { method: "DELETE" }));

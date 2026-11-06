@@ -19,10 +19,10 @@ export async function openDataDir(platform: NodeJS.Platform = process.platform):
 }
 
 /** Lets the teacher pick a folder in the system dialog. Only macOS has one that needs nothing installed; elsewhere the path is typed. */
-export async function pickFolder(): Promise<string | undefined> {
+export async function pickFolder(frage = "Wo sollen deine Pult-Daten liegen?"): Promise<string | undefined> {
   if (process.platform !== "darwin") return undefined;
   return new Promise((done) => {
-    execFile("osascript", ["-e", 'POSIX path of (choose folder with prompt "Wo sollen deine Pult-Daten liegen?")'], (err, out) => done(err ? undefined : out.trim().replace(/\/$/, "") || undefined));
+    execFile("osascript", ["-e", `POSIX path of (choose folder with prompt "${frage}")`], (err, out) => done(err ? undefined : out.trim().replace(/\/$/, "") || undefined));
   });
 }
 
