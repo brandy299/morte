@@ -7,6 +7,7 @@ import { AUTO_RETRY, classifyFailure, MAX_AUTO_RETRIES, retryDelay, type Failure
 import { keyFor } from "./custom.ts";
 import { ModelNotAllowed, modelProblem, resolveModel } from "./models.ts";
 import { fragenTool, matchGegeben, type Frage, type Gegeben } from "./fragen.ts";
+import { PRUEF_LABEL, pruefAnfrage } from "./pruefen.ts";
 import { tools as baseTools } from "./tools.ts";
 import { ordnerTools } from "./ordner-tools.ts";
 import type { AgentSettings, ChatEvent, ChatSession, UsageSnapshot } from "./types.ts";
@@ -214,6 +215,8 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   let lastActivity = Date.now();
   // The model request under way, and when its first output arrived.
   let request: { at: string; t0: number; firstOutputMs?: number } | undefined;
+  // Titles of the material made in the current turn, for the second look.
+  let made: string[] = [];
   const toolStarts = new Map<string, { at: string; t0: number }>();
 
   agent.subscribe((event) => {
@@ -280,6 +283,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
         const details = event.result?.details;
         const files = details?.materials ?? (details?.material ? [details.material] : []);
         if (!event.isError) for (const file of files) emit({ type: "material", ...file });
+        if (!event.isError && files.length > 0) made.push(files[0].title);
         break;
       }
     }
@@ -354,8 +358,15 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   };
 
   return {
-    async send(text, onEvent, images = []) {
+    async send(text, onEvent, images = [], options = {}) {
       const turn = { at: stamp(), t0: Date.now() };
+      made = [];
+      let failed = false;
+      const original = onEvent;
+      onEvent = (event) => {
+        if (event.type === "error") failed = true;
+        original(event);
+      };
       emit = onEvent;
       wroteText = false;
       aborted = false;
@@ -388,6 +399,13 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
             return undefined;
           },
         );
+        if (options.pruefen && made.length > 0 && !failed && !aborted) {
+          const titles = [...new Set(made)];
+          onEvent({ type: "step_start", id: "pruefen", label: PRUEF_LABEL });
+          made = [];
+          await settleTurn(() => agent.prompt(pruefAnfrage(titles)), onEvent);
+          onEvent({ type: "step_end", id: "pruefen", ok: !failed });
+        }
       } catch (err) {
         onEvent({ type: "error", message: classifyFailure(err instanceof Error ? err.message : String(err)).message, retryable: true });
       } finally {

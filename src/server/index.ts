@@ -250,7 +250,7 @@ export function createApp(state: AppState) {
   app.post("/api/chat", async (c) => {
     const session = state.session;
     if (!session) return c.json({ error: "Bitte richte zuerst die KI ein." }, 409);
-    const { text, images = [], dateien = [] } = await c.req.json<{ text?: string; images?: ImageAttachment[]; dateien?: SentFile[] }>();
+    const { text, images = [], dateien = [], pruefen = false } = await c.req.json<{ text?: string; images?: ImageAttachment[]; dateien?: SentFile[]; pruefen?: boolean }>();
     if (!text?.trim()) return c.json({ error: "Bitte schreibe zuerst etwas." }, 400);
     const bad = images.length > MAX_IMAGES || images.some((i) => !IMAGE_TYPES.includes(i.mimeType) || i.data.length > MAX_IMAGE_BASE64);
     if (bad) return c.json({ error: "Bilder gehen nur als JPG, PNG, WebP oder GIF, höchstens acht Stück und jeweils unter 5 MB." }, 400);
@@ -272,6 +272,7 @@ export function createApp(state: AppState) {
             void stream.writeSSE({ data: JSON.stringify(event) });
           },
           images,
+          { pruefen: pruefen === true },
         );
       } finally {
         conversation.anzeige.push(settle(answer));

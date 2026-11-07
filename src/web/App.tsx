@@ -22,6 +22,7 @@ import { Einstellungen } from "./Einstellungen.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
 import { Diktat } from "./Diktat.tsx";
+import { PruefSchalter, pruefenAn } from "./PruefSchalter.tsx";
 import { OrdnerKnopf } from "./OrdnerKnopf.tsx";
 import { fuegeDiktatEin } from "./diktat.ts";
 
@@ -421,6 +422,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   }, [currentId]);
   const [view, setView] = useState<"chat" | "start" | "material">(initialView);
   const [input, setInput] = useState("");
+  const [pruefen, setPruefen] = useState(pruefenAn);
   const [working, setWorking] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -640,7 +642,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
       { role: "user", text, images: sent.flatMap((a) => (a.preview ? [a.preview] : [])), dateien: sent.filter((a) => a.text !== undefined).map((a) => a.name), steps: [] },
       { role: "assistant", text: "", steps: [] },
     ]);
-    await stream((signal, onEvent) => sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), onEvent, signal));
+    await stream((signal, onEvent) => sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), onEvent, signal, pruefen));
   };
 
   /** Runs one request to the assistant and takes care of what happens when the connection breaks. */
@@ -1124,6 +1126,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               </button>
               <OrdnerKnopf onProblem={setAttachProblem} />
               <Diktat disabled={working} onProblem={setAttachProblem} onText={(t) => { setInput((v) => fuegeDiktatEin(v, t)); inputRef.current?.focus(); }} />
+              <PruefSchalter on={pruefen} onChange={setPruefen} />
               <span className="grow" />
               <ModelInfo status={status} onSettings={onSettings} />
               <UsageMeter usage={usage} />

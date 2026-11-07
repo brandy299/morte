@@ -779,3 +779,5 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
 .swatch.on { border-color: var(--ink); }
 .swatch:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+.pruef-schalter { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); font-size: 0.85rem; cursor: pointer; }
+.pruef-schalter.an { border-color: var(--ink-soft); color: var(--ink); }
