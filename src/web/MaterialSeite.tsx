@@ -29,7 +29,7 @@ export function MaterialSeite({ tree, onPreview, onAsk }: Props) {
     getMaterialListe().then(setFiles, () => setFailed(true));
   }, []);
 
-  const colors = useMemo(() => classColors(tree.map((k) => k.name)), [tree]);
+  const colors = useMemo(() => classColors(tree), [tree]);
   const classes = useMemo(() => [...new Set((files ?? []).map((f) => f.klasse))].sort((a, b) => a.localeCompare(b, "de", { numeric: true })), [files]);
   const shown = useMemo(() => filterFiles(files ?? [], { klasse, art, suche }), [files, klasse, art, suche]);
   const groups = useMemo(() => groupFiles(shown), [shown]);

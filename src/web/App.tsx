@@ -1,7 +1,7 @@
 import { bestaetigen, BestaetigenHost } from "./bestaetigen.tsx";
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { addFach, answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { setzeKlassenfarbe, addFach, answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { Gespraechsliste } from "./Gespraechsliste.tsx";
 import { nurFuerLehrkraft, szenenAntwort, szenenNotiz } from "./vorschau.ts";
@@ -15,7 +15,7 @@ import { Stundenplan } from "./Stundenplan.tsx";
 import { NewClass } from "./NewClass.tsx";
 import { Onboarding } from "./Onboarding.tsx";
 import { filterVorlagen, kurz, slashQuery, startText as slashStart } from "./slashMenu.ts";
-import { classColors, classVar } from "./klassenfarbe.ts";
+import { classColors, classVar, PALETTE_SIZE } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
@@ -405,6 +405,9 @@ const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 const FIRST_SUGGESTIONS = ["Ein Arbeitsblatt zu einem Thema aus meinem Unterricht", "Eine Unterrichtsreihe planen", "Eine Klausur mit Erwartungshorizont"];
 
 function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, neueVersion, onUpdate, status }: ChatProps) {
+  // Classes in the side menu start folded, so a long list stays tidy.
+  const [openClasses, setOpenClasses] = useState<Set<string>>(new Set());
+  const [colorOpen, setColorOpen] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   // "Passt" / "Passt nicht" of the conversation that is open, by material path.
   const [rueck, setRueck] = useState<Record<string, Rueckmeldung>>({});
@@ -760,7 +763,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Neues Gespräch
+          Neuer Chat
         </button>
         <div className="side-scroll">
         {history.length > 0 && <Gespraechsliste history={history} currentId={currentId} onOpen={onOpen} onDelete={onDelete} onChanged={refreshHistory} />}
@@ -772,11 +775,24 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
           {tree.length === 0 && <p className="side-note">Noch keine Klasse. Lege die erste an, dann kann ich mit ihr arbeiten.</p>}
           {tree.map((k) => (
             <div key={k.name} className="tree-klasse">
-              <button type="button" className="tree-node k" onClick={() => ask(`Wo stehen wir in ${k.name}?`)}>
-                <span className="legend-dot" style={{ background: classVar(classColors(tree.map((x) => x.name)), k.name) }} aria-hidden />
-                {k.name}
-              </button>
-              {k.faecher.map((f) => (
+              <div className="tree-klasse-row">
+                <button type="button" className="legend-dot-btn" aria-label={`Farbe für ${k.name} ändern`} aria-expanded={colorOpen === k.name} onClick={() => setColorOpen(colorOpen === k.name ? null : k.name)}>
+                  <span className="legend-dot" style={{ background: classVar(classColors(tree), k.name) }} aria-hidden />
+                </button>
+                <button type="button" className="tree-node k" aria-expanded={openClasses.has(k.name)} onClick={() => setOpenClasses((s) => { const n = new Set(s); if (!n.delete(k.name)) n.add(k.name); return n; })}>
+                  {k.name}
+                  <span className={openClasses.has(k.name) ? "chev open" : "chev"} aria-hidden>›</span>
+                </button>
+              </div>
+              {colorOpen === k.name && (
+                <div className="swatches" role="group" aria-label={`Farbe für ${k.name}`}>
+                  {Array.from({ length: PALETTE_SIZE }, (_, i) => (
+                    <button type="button" key={i} aria-label={`Farbe ${i + 1}`} aria-pressed={classColors(tree).get(k.name) === i} className={classColors(tree).get(k.name) === i ? "swatch on" : "swatch"} style={{ background: `var(--k${i})` }}
+                      onClick={() => void setzeKlassenfarbe(k.name, i).then(() => { setColorOpen(null); refreshTree(); })} />
+                  ))}
+                </div>
+              )}
+              {openClasses.has(k.name) && k.faecher.map((f) => (
                 <div key={f.name}>
                   <button type="button" className="tree-node f" onClick={() => ask(`Wo stehen wir in ${k.name}, ${f.name}?`)}>
                     {f.name}
@@ -795,7 +811,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   ))}
                 </div>
               ))}
-              <FachHinzufuegen klasse={k} alle={tree} onDone={refreshTree} />
+              {openClasses.has(k.name) && <FachHinzufuegen klasse={k} alle={tree} onDone={refreshTree} />}
             </div>
           ))}
         </nav>

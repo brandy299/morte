@@ -2,8 +2,10 @@
 export const PALETTE_SIZE = 8;
 
 /** Index into the palette (--k0 … --k7). Classes are taken in alphabetical order, so neighbours get different colors. */
-export function classColors(names: string[]): Map<string, number> {
-  return new Map([...new Set(names)].sort((a, b) => a.localeCompare(b, "de", { numeric: true })).map((name, i) => [name, i % PALETTE_SIZE]));
+export function classColors(classes: { name: string; farbe?: number }[]): Map<string, number> {
+  const sorted = [...new Map(classes.map((k) => [k.name, k])).values()].sort((a, b) => a.name.localeCompare(b.name, "de", { numeric: true }));
+  // A color the teacher chose wins over the automatic one.
+  return new Map(sorted.map((k, i) => [k.name, k.farbe !== undefined && k.farbe >= 0 && k.farbe < PALETTE_SIZE ? k.farbe : i % PALETTE_SIZE]));
 }
 
 /** CSS variable value for a class, or nothing when it has no color (a lesson without class). */
