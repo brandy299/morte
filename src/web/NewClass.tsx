@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createClass } from "./api.ts";
+import { deuteKlassenname } from "./klassenkuerzel.ts";
 
 const SCHULFORMEN = ["Berufskolleg", "Gymnasium", "Gesamtschule"];
 const NIVEAUS: Record<string, { label: string; options: string[] } | undefined> = {
@@ -11,7 +12,7 @@ const NIVEAU_NAMES: Record<string, string> = { "": "Keine Angabe", GK: "Grundkur
 type Step = "name" | "schulform" | "stufe" | "niveau" | "faecher" | "besonderheiten" | "fertig";
 
 /** One question per screen. The answers become Klasse.md and one folder per subject. */
-export function NewClass({ onDone, onCancel }: { onDone: (name: string) => void; onCancel: () => void }) {
+export function NewClass({ onDone, onCancel, bekannteFaecher = [] }: { onDone: (name: string) => void; onCancel: () => void; bekannteFaecher?: string[] }) {
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [schulform, setSchulform] = useState("");
@@ -23,6 +24,10 @@ export function NewClass({ onDone, onCancel }: { onDone: (name: string) => void;
   const [problem, setProblem] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const deutung = deuteKlassenname(name);
+  const uebernommen = Boolean(deutung) && schulform === deutung!.schulform && stufe === deutung!.stufe;
+  // Subjects that are already used in other classes and not yet chosen here, offered as one click.
+  const vorschlaege = bekannteFaecher.filter((f) => !faecher.some((x) => x.toLowerCase() === f.toLowerCase()));
   const niveau = NIVEAUS[schulform];
   const order: Step[] = ["name", "schulform", "stufe", ...(niveau ? ["niveau" as Step] : []), "faecher", "besonderheiten", "fertig"];
   const index = order.indexOf(step);
@@ -74,6 +79,18 @@ export function NewClass({ onDone, onCancel }: { onDone: (name: string) => void;
           <>
             <h1>Wie heißt die Klasse oder der Kurs?</h1>
             <input autoFocus className="big" value={name} placeholder="zum Beispiel 11a" onChange={(e) => { setName(e.target.value); setProblem(null); }} />
+            {deutung && (
+              <p className="guess-box" role="status">
+                Ich vermute: <strong>{name.trim()}</strong> heißt {deutung.stufe}.{" "}
+                {uebernommen ? (
+                  <span className="muted">Übernommen, du kannst es gleich noch ändern.</span>
+                ) : (
+                  <button type="button" className="link" onClick={() => { setSchulform(deutung.schulform); setKursniveau(""); setStufe(deutung.stufe); }}>
+                    Stimmt, übernehmen
+                  </button>
+                )}
+              </p>
+            )}
           </>
         )}
         {step === "schulform" && (
@@ -113,6 +130,18 @@ export function NewClass({ onDone, onCancel }: { onDone: (name: string) => void;
               <input autoFocus className="big" value={fachInput} placeholder="zum Beispiel Business English" onChange={(e) => setFachInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && fachInput.trim()) { e.preventDefault(); addFach(); } }} />
               <button type="button" className="ghost" onClick={addFach} disabled={!fachInput.trim()}>Hinzufügen</button>
             </div>
+            {vorschlaege.length > 0 && (
+              <div>
+                <p className="lead">Schon bei anderen Klassen eingetragen. Tippe aufs Fach, um es zu übernehmen:</p>
+                <ul className="chips pick" aria-label="Schon eingetragene Fächer">
+                  {vorschlaege.map((f) => (
+                    <li key={f}>
+                      <button type="button" onClick={() => setFaecher([...faecher, f])}>+ {f}</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <ul className="chips">
               {faecher.map((f) => (
                 <li key={f}>
