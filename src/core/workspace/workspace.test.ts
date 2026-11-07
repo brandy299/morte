@@ -120,6 +120,16 @@ describe("workspace", () => {
     expect(await readReihe("11a", "Business English", "Bewerbung")).toContain("| 14.10. | Mi 3 | Vorstellungsgespräch | b.pdf | Material fertig |");
   });
 
+  it("enters material at a planned lesson without a date by its number", async () => {
+    await createReihe("11a", "Business English", { thema: "Bewerbung", ablauf: [{ thema: "Einstieg" }, { thema: "Lebenslauf" }] });
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "", stunde: "", nr: 2, thema: "Arbeitsblatt" }, "b.pdf", { append: true });
+    await attachMaterial("11a", "Business English", "Bewerbung", { datum: "", stunde: "", nr: 2 }, "c.pdf", { append: true });
+    const md = await readReihe("11a", "Business English", "Bewerbung");
+    expect(md).toContain("Lebenslauf | b.pdf, c.pdf | Material fertig |");
+    expect(md).toMatch(/Einstieg \|\s*\|\s*geplant/);
+    await expect(attachMaterial("11a", "Business English", "Bewerbung", { datum: "", stunde: "", nr: 9 }, "x.pdf")).rejects.toThrow(/gibt es nicht/);
+  });
+
   it("finds the planned row by date when the lesson name is not given", async () => {
     await createReihe("11a", "Business English", { thema: "Bewerbung" });
     // A planned row from the series planning has a date and a topic but no lesson name yet.

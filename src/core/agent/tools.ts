@@ -387,9 +387,10 @@ const arbeitsblattErstellen = defineTool({
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+    nr: Type.Optional(Type.Number({ description: "Row number of the lesson in the Reihe (1-based). Use it instead of datum when the lessons have no dates yet" })),
   }),
   async execute(_id, args) {
-    const { reihe, datum, stunde, word, ...raw } = args;
+    const { reihe, datum, stunde, nr, word, ...raw } = args;
     const content = await mitBildern(raw);
     const sheet = parseArbeitsblatt({
       ...content,
@@ -405,12 +406,12 @@ const arbeitsblattErstellen = defineTool({
     const savedKey = key ? await saveMaterial(key.pdf, { art: "Loesung", titel: label, ...where }) : undefined;
     const wordSheet = word ? await saveWord(await arbeitsblattWord(sheet), { art: "Arbeitsblatt", titel: label, ...where }, `${shown} (Word)`) : undefined;
     const wordKey = word && key ? await saveWord(await arbeitsblattWord(sheet, { lehrerexemplar: true }), { art: "Loesung", titel: label, ...where }, `${shown} (Lösung, Word)`) : undefined;
-    const entered = content.klasse && content.fach && reihe && datum
-      ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: sheet.titel }, saved.name, { append: true })
-      : "fehlt klasse, fach, reihe oder datum";
-    if (entered === true && wordSheet) await tryAttach(content.klasse!, content.fach!, reihe!, { datum: datum!, stunde: stunde ?? "", thema: sheet.titel }, wordSheet.saved.name, { append: true });
+    const entered = content.klasse && content.fach && reihe && (datum || nr)
+      ? await tryAttach(content.klasse, content.fach, reihe, { datum: datum ?? "", nr, stunde: stunde ?? "", thema: sheet.titel }, saved.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum (oder Nummer der Stunde)";
+    if (entered === true && wordSheet) await tryAttach(content.klasse!, content.fach!, reihe!, { datum: datum ?? "", nr, stunde: stunde ?? "", thema: sheet.titel }, wordSheet.saved.name, { append: true });
     return {
-      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""} ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Arbeitsblatt ist fertig (${pages} ${pages === 1 ? "Seite" : "Seiten"}) und in der Vorschau zu sehen.${savedKey ? " Dazu gibt es ein Blatt mit den Lösungen für die Lehrkraft, ohne Feld für den Namen." : ""}${wordSheet ? " Es gibt auch eine Word-Fassung zum Bearbeiten." : ""}${pages > 3 ? " Es sind mehr als drei Seiten. Prüfe, ob alles nötig ist. Kürze nur, wenn die Lehrkraft ein kurzes Blatt wollte, und streiche nie Aufgaben, die sie ausdrücklich verlangt hat." : ""} ${entered === true ? `Es ist in der Stundentabelle ${datum ? `am ${datum}` : `bei Stunde ${nr}`} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: {
         materials: [
           { title: shown, name: saved.name, path: saved.path },
@@ -448,9 +449,10 @@ const praesentationErstellen = defineTool({
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+    nr: Type.Optional(Type.Number({ description: "Row number of the lesson in the Reihe (1-based). Use it instead of datum when the lessons have no dates yet" })),
   }),
   async execute(_id, args) {
-    const { reihe, datum, stunde, ...raw } = args;
+    const { reihe, datum, stunde, nr, ...raw } = args;
     const content = await mitBildern(raw);
     const deck = parsePraesentation({
       ...content,
@@ -461,11 +463,11 @@ const praesentationErstellen = defineTool({
     const pptx = await saveMaterial(await renderPptx(deck), { art: "Praesentation", titel: deck.titel, ...where, ext: "pptx" });
     const { pdf, seiten } = await renderVorschau(deck);
     const preview = await saveMaterial(pdf, { art: "Praesentation", titel: deck.titel, ...where });
-    const entered = content.klasse && content.fach && reihe && datum
-      ? await tryAttach(content.klasse, content.fach, reihe, { datum, stunde: stunde ?? "", thema: deck.titel }, pptx.name, { append: true })
-      : "fehlt klasse, fach, reihe oder datum";
+    const entered = content.klasse && content.fach && reihe && (datum || nr)
+      ? await tryAttach(content.klasse, content.fach, reihe, { datum: datum ?? "", nr, stunde: stunde ?? "", thema: deck.titel }, pptx.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum (oder Nummer der Stunde)";
     return {
-      content: [{ type: "text" as const, text: `Die Präsentation ist fertig (${seiten} Folien mit Titelfolie) und in der Vorschau zu sehen. Die PowerPoint-Datei liegt zum Herunterladen bereit. ${entered === true ? `Sie ist in der Stundentabelle am ${datum} eingetragen.` : `Sie ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Die Präsentation ist fertig (${seiten} Folien mit Titelfolie) und in der Vorschau zu sehen. Die PowerPoint-Datei liegt zum Herunterladen bereit. ${entered === true ? `Sie ist in der Stundentabelle ${datum ? `am ${datum}` : `bei Stunde ${nr}`} eingetragen.` : `Sie ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: {
         materials: [
           { title: deck.titel, name: preview.name, path: preview.path },
@@ -538,16 +540,17 @@ const uebungErstellen = defineTool({
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+    nr: Type.Optional(Type.Number({ description: "Row number of the lesson in the Reihe (1-based). Use it instead of datum when the lessons have no dates yet" })),
   }),
   async execute(_id, args) {
-    const { reihe, datum, stunde, klasse, fach, ...content } = args;
+    const { reihe, datum, stunde, nr, klasse, fach, ...content } = args;
     const uebung = parseUebung(await uebungMitBildern(content));
     const file = await saveMaterial(Buffer.from(renderUebung(uebung), "utf8"), { art: "Uebung", titel: uebung.titel, klasse, fach, reihe, datum, stunde, ext: "html" });
-    const entered = klasse && fach && reihe && datum
-      ? await tryAttach(klasse, fach, reihe, { datum, stunde: stunde ?? "", thema: uebung.titel }, file.name, { append: true })
-      : "fehlt klasse, fach, reihe oder datum";
+    const entered = klasse && fach && reihe && (datum || nr)
+      ? await tryAttach(klasse, fach, reihe, { datum: datum ?? "", nr, stunde: stunde ?? "", thema: uebung.titel }, file.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum (oder Nummer der Stunde)";
     return {
-      content: [{ type: "text" as const, text: `Die Übung ist fertig (${uebung.schritte.length} Schritte) und in der Vorschau zu sehen. Sie lässt sich als Datei herunterladen und läuft in jedem Browser ohne Internet, auch am Handy. Die Ergebnisse bleiben im Browser und werden nicht gespeichert. ${entered === true ? `Sie ist in der Stundentabelle am ${datum} eingetragen.` : `Sie ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Die Übung ist fertig (${uebung.schritte.length} Schritte) und in der Vorschau zu sehen. Sie lässt sich als Datei herunterladen und läuft in jedem Browser ohne Internet, auch am Handy. Die Ergebnisse bleiben im Browser und werden nicht gespeichert. ${entered === true ? `Sie ist in der Stundentabelle ${datum ? `am ${datum}` : `bei Stunde ${nr}`} eingetragen.` : `Sie ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: { materials: [{ title: uebung.titel, name: file.name, path: file.path }] },
     };
   },
@@ -588,18 +591,19 @@ const erklaerstueckErstellen = defineTool({
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
     stunde: Type.Optional(Type.String({ description: "e.g. Mi 3" })),
+    nr: Type.Optional(Type.Number({ description: "Row number of the lesson in the Reihe (1-based). Use it instead of datum when the lessons have no dates yet" })),
   }),
   async execute(_id, args) {
-    const { reihe, datum, stunde, klasse, fach, ...content } = args;
+    const { reihe, datum, stunde, nr, klasse, fach, ...content } = args;
     const stueck = parseErklaerstueck(content);
     stueckSetzen(stueck); // refuses what does not fit before anything is saved
     const where = { klasse, fach, reihe, datum, stunde };
     const file = await saveMaterial(Buffer.from(renderHtml(stueck), "utf8"), { art: "Erklaerstueck", titel: stueck.titel, ...where, ext: "html" });
-    const entered = klasse && fach && reihe && datum
-      ? await tryAttach(klasse, fach, reihe, { datum, stunde: stunde ?? "", thema: stueck.titel }, file.name, { append: true })
-      : "fehlt klasse, fach, reihe oder datum";
+    const entered = klasse && fach && reihe && (datum || nr)
+      ? await tryAttach(klasse, fach, reihe, { datum: datum ?? "", nr, stunde: stunde ?? "", thema: stueck.titel }, file.name, { append: true })
+      : "fehlt klasse, fach, reihe oder datum (oder Nummer der Stunde)";
     return {
-      content: [{ type: "text" as const, text: `Das Erklärstück ist fertig (${stueck.szenen.length} Szenen) und in der Vorschau zu sehen. Es lässt sich als Datei herunterladen und läuft in jedem Browser ohne Internet. ${entered === true ? `Es ist in der Stundentabelle am ${datum} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
+      content: [{ type: "text" as const, text: `Das Erklärstück ist fertig (${stueck.szenen.length} Szenen) und in der Vorschau zu sehen. Es lässt sich als Datei herunterladen und läuft in jedem Browser ohne Internet. ${entered === true ? `Es ist in der Stundentabelle ${datum ? `am ${datum}` : `bei Stunde ${nr}`} eingetragen.` : `Es ist NICHT in die Stundentabelle eingetragen (${entered}).`}` }],
       details: { materials: [{ title: stueck.titel, name: file.name, path: file.path }] },
     };
   },
@@ -802,7 +806,7 @@ const klausurErstellen = defineTool({
     const wordE = word ? await saveWord(await erwartungshorizontWord(exam), { art: "Erwartungshorizont", titel: exam.titel, ...where }, `Erwartungshorizont: ${exam.titel} (Word)`) : undefined;
     const entered = content.klasse && content.fach && reihe && content.datum
       ? await tryAttach(content.klasse, content.fach, reihe, { datum: content.datum, stunde: stunde ?? "", thema: exam.titel }, savedK.name)
-      : "fehlt klasse, fach, reihe oder datum";
+      : "fehlt klasse, fach, reihe oder datum (oder Nummer der Stunde)";
     const notes = [
       `Die Klausur ist fertig (${klausur.pages} ${klausur.pages === 1 ? "Seite" : "Seiten"}, ${gesamtpunkte(exam)} Punkte) und der Erwartungshorizont dazu (${ehz.pages} ${ehz.pages === 1 ? "Seite" : "Seiten"}). Beides ist in der Vorschau zu sehen.`,
       exam.notenschluessel.length
