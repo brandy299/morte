@@ -769,8 +769,6 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .rueckfrage .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .rueckfrage .danger { padding: 10px 18px; border-radius: 12px; border: 0; background: var(--danger-ink); color: var(--paper); font: inherit; font-weight: 600; cursor: pointer; }
 
-/* An open lesson is already marked by its dashed frame, so its label only stays for screen readers. */
-.lesson.nicht-zugeordnet .lesson-foot { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .tree-klasse-row { display: flex; align-items: center; gap: 2px; margin-top: 6px; }
 .tree-klasse-row .tree-node.k { margin-top: 0; flex: 1; min-width: 0; align-items: center; }
@@ -782,3 +780,18 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .farbpunkt { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
 .farbpunkt.on { border-color: var(--ink); }
 .farbpunkt:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+
+/* A lesson is one line until clicked; the rest slides open. */
+.lesson { gap: 0; padding: 0; }
+.lesson-head { display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 6px 10px 6px 13px; border: 0; background: none; text-align: left; color: inherit; min-width: 0; }
+.lesson-head .lesson-time { flex: none; }
+.lesson-head .lesson-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.lesson-chev { flex: none; color: var(--ink-soft); transition: transform 0.25s var(--ease); font-size: 16px; line-height: 1; }
+.lesson.open .lesson-chev { transform: rotate(90deg); }
+.lesson-more { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.28s var(--ease), opacity 0.2s ease; }
+.lesson.open .lesson-more { grid-template-rows: 1fr; opacity: 1; }
+.lesson-more-in { overflow: hidden; min-height: 0; display: flex; flex-direction: column; gap: 4px; padding: 0 10px 0 13px; }
+.lesson.open .lesson-more-in { padding-bottom: 8px; }
+.lesson-meta { font-size: 12.5px; color: var(--ink-soft); }
+.lesson-open { align-self: flex-start; font-size: 13.5px; }
+.lesson-foot { margin-top: 0; }
