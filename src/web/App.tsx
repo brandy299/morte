@@ -53,6 +53,12 @@ interface Message {
 export function App() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [startTab, setStartTab] = useState<"aussehen" | "update">("aussehen");
+  // Desktop app: a note in the sidebar when there is a new version (small updates come by themselves).
+  const [neueVersion, setNeueVersion] = useState(false);
+  useEffect(() => {
+    if (window.pultApp) fetch("/api/update").then((r) => r.json()).then((u) => setNeueVersion(Boolean(u.verfuegbar)), () => {});
+  }, []);
   // First start: the welcome steps run until the teacher finishes them, also after the key was saved on the way.
   const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const [newClassOpen, setNewClassOpen] = useState(false);
@@ -146,12 +152,15 @@ export function App() {
           startText={chat.startText}
           onVorlagen={() => setVorlagenOpen(true)}
           onLehrplan={() => setLehrplanOpen(true)}
-          onSettings={() => setSetupOpen(true)}
+          onSettings={() => (setStartTab("aussehen"), setSetupOpen(true))}
+          neueVersion={neueVersion}
+          onUpdate={() => (setStartTab("update"), setSetupOpen(true))}
           status={status}
         />
       </div>
       {setupOpen && (
         <Einstellungen
+          startTab={startTab}
           status={status}
           onClose={() => setSetupOpen(false)}
           onDone={() => {
@@ -259,6 +268,8 @@ interface ChatProps {
   /** Sent as the first message when the conversation opens, e.g. to start the template builder. */
   startText?: string;
   onSettings: () => void;
+  neueVersion?: boolean;
+  onUpdate?: () => void;
   status: SetupStatus;
 }
 
@@ -392,7 +403,7 @@ const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 // Without a class the two questions above lead nowhere; offer what the first test tasks are.
 const FIRST_SUGGESTIONS = ["Ein Arbeitsblatt zu einem Thema aus meinem Unterricht", "Eine Unterrichtsreihe planen", "Eine Klausur mit Erwartungshorizont"];
 
-function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
+function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, neueVersion, onUpdate, status }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   // "Passt" / "Passt nicht" of the conversation that is open, by material path.
   const [rueck, setRueck] = useState<Record<string, Rueckmeldung>>({});
@@ -803,6 +814,11 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             </svg>
             Lehrpläne
           </button>
+          {neueVersion && (
+            <button type="button" className="foot-btn update-hinweis" onClick={onUpdate}>
+              Neue Version – jetzt holen
+            </button>
+          )}
           <button type="button" className="foot-btn" onClick={onSettings}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="12" cy="12" r="3" />

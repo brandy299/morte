@@ -76,11 +76,14 @@ jobs:
         with:
           path: dateien
           merge-multiple: true
+      - name: Prüfsummen
+        # Der Update-Knopf im Programm prüft den Download damit.
+        run: cd dateien && sha256sum *.dmg *.exe > SHA256SUMS.txt
       - name: Release anlegen
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${{ needs.version.outputs.version }}" dateien/*.dmg dateien/*.exe -R "${{ github.repository }}" --target "${{ github.sha }}" --title "Pult ${{ needs.version.outputs.version }}" --notes "Pult als Programm. Mac: die .dmg-Datei (arm64 = Apple-Chip, x64 = Intel), Windows: die .exe-Datei. Beim ersten Öffnen kommt eine Warnung, die Anleitung steht in docs/programm.md."
+          gh release create "v${{ needs.version.outputs.version }}" dateien/*.dmg dateien/*.exe dateien/SHA256SUMS.txt -R "${{ github.repository }}" --target "${{ github.sha }}" --title "Pult ${{ needs.version.outputs.version }}" --notes "Pult als Programm. Mac: die .dmg-Datei (arm64 = Apple-Chip, x64 = Intel), Windows: die .exe-Datei. Beim ersten Öffnen kommt eine Warnung, die Anleitung steht in docs/programm.md."
 
   # Die kleinen Updates für den Update-Knopf im Programm: Pults eigener Code (ohne Bibliotheken und ohne Programmhülle).
   # Liegt immer unter dem Release "code" und wird bei jedem Stand auf main ersetzt.
