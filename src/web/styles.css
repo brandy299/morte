@@ -768,3 +768,14 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 /* An open lesson is already marked by its dashed frame, so its label only stays for screen readers. */
 .lesson.nicht-zugeordnet .lesson-foot { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.tree-klasse-row { display: flex; align-items: center; gap: 2px; margin-top: 6px; }
+.tree-klasse-row .tree-node.k { margin-top: 0; flex: 1; min-width: 0; align-items: center; }
+.legend-dot-btn { border: 0; background: none; padding: 6px 4px 6px 8px; border-radius: 8px; display: grid; place-items: center; }
+.legend-dot-btn:hover { background: var(--paper); }
+.chev { margin-left: auto; color: var(--ink-soft); transition: transform 0.15s; font-size: 18px; line-height: 1; }
+.chev.open { transform: rotate(90deg); }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 8px 8px 14px; }
+.swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
+.swatch.on { border-color: var(--ink); }
+.swatch:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }

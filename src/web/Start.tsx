@@ -63,7 +63,7 @@ export function Start({ tree, onSetup, onAsk, onChanged, onNewClass }: StartProp
   };
 
   const w = data?.woche;
-  const colors = classColors(tree.map((k) => k.name));
+  const colors = classColors(tree);
   const isToday = (d: string) => d === data?.heute;
   // Every start time of the week, earliest first ("07:30" before "08:00").
   const times = [...new Set(w?.tage.flatMap((t) => t.stunden.map((x) => x.von)) ?? [])].sort();
@@ -328,7 +328,7 @@ function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: Wo
 
 function Overview({ tree, onAsk }: { tree: KlasseInfo[]; onAsk: (t: string) => void }) {
   if (tree.length === 0) return null;
-  const colorMap = classColors(tree.map((k) => k.name));
+  const colorMap = classColors(tree);
   return (
     <section className="overview" aria-label="Deine Klassen">
       <h2>Deine Klassen</h2>

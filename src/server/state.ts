@@ -7,7 +7,7 @@ export interface AppState {
   secrets: SecretStore;
   session: ChatSession | undefined;
   configured: { provider: string; model: string } | undefined;
-  /** Last choice, so "Neues Gespräch" can rebuild the session and pick up new skills. */
+  /** Last choice, so "Neuer Chat" can rebuild the session and pick up new skills. */
   choice?: { provider: string; model?: string; baseUrl?: string; contextWindow?: number };
   /** The conversation on screen. Saved after every answer, so it can be reopened later. */
   /** For tests: builds the one-off model access used outside the chat. */

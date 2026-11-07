@@ -62,7 +62,7 @@ const stripNumber = (n: string) => n.replace(/^\d+\s+/, "");
 
 export interface ReiheInfo { name: string; stunden: number; gehalten: number; ohneMaterial: number }
 export interface FachInfo { name: string; reihen: ReiheInfo[] }
-export interface KlasseInfo { name: string; schulform?: string; faecher: FachInfo[] }
+export interface KlasseInfo { name: string; schulform?: string; /** Index of the color the teacher chose, if any. */ farbe?: number; faecher: FachInfo[] }
 
 export async function listTree(): Promise<KlasseInfo[]> {
   const result: KlasseInfo[] = [];
@@ -81,8 +81,10 @@ export async function listTree(): Promise<KlasseInfo[]> {
       }
       faecher.push({ name: f, reihen });
     }
-    const schulform = (await readText(join(klassenDir(), k, "Klasse.md"))).match(/^Schulform:[ \t]*(.+)$/m)?.[1]?.trim();
-    result.push({ name: k, schulform, faecher });
+    const klasseMd = await readText(join(klassenDir(), k, "Klasse.md"));
+    const schulform = klasseMd.match(/^Schulform:[ \t]*(.+)$/m)?.[1]?.trim();
+    const farbe = klasseMd.match(/^Farbe:[ \t]*(\d+)[ \t]*$/m)?.[1];
+    result.push({ name: k, schulform, ...(farbe !== undefined ? { farbe: Number(farbe) } : {}), faecher });
   }
   return result;
 }
@@ -151,6 +153,17 @@ export async function addFach(klasse: string, fachRaw: string): Promise<string> 
     await writeFile(file, text.replace(/^Fächer:(.*)$/m, (_, list: string) => `Fächer:${list.trim() ? `${list.trimEnd()}, ${fach}` : ` ${fach}`}`));
   }
   return fach;
+}
+
+/** Saves the color the teacher picked for a class (0 to 7) as a line in Klasse.md. */
+export async function setKlasseFarbe(klasse: string, farbe: number): Promise<void> {
+  if (!Number.isInteger(farbe) || farbe < 0 || farbe > 7) throw new UserError("Diese Farbe gibt es nicht.");
+  const k = await resolveDir(klassenDir(), klasse, "Die Klasse");
+  const file = join(klassenDir(), k, "Klasse.md");
+  const text = await readText(file);
+  const line = `Farbe: ${farbe}`;
+  if (!text.trim()) throw new UserError("Zu dieser Klasse fehlt die Datei Klasse.md.");
+  await writeFile(file, /^Farbe:.*$/m.test(text) ? text.replace(/^Farbe:.*$/m, line) : `${text.replace(/\s*$/, "")}\n${line}\n`);
 }
 
 // ---------- Read ----------

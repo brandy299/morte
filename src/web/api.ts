@@ -114,7 +114,7 @@ export const startDemo = () => post<{ ok: true }>("/api/setup/demo");
 
 export interface ReiheInfo { name: string; stunden: number; gehalten: number; ohneMaterial: number }
 export interface FachInfo { name: string; reihen: ReiheInfo[] }
-export interface KlasseInfo { name: string; schulform?: string; faecher: FachInfo[] }
+export interface KlasseInfo { name: string; schulform?: string; farbe?: number; faecher: FachInfo[] }
 export interface NewClass { name: string; schulform: string; stufe: string; kursniveau: string; faecher: string[]; besonderheiten: string }
 
 export const getTree = async (): Promise<KlasseInfo[]> => (await (await fetch("/api/workspace/tree")).json()).klassen;
@@ -130,6 +130,8 @@ export async function createClass(input: NewClass): Promise<string | null> {
   if (res.ok) return null;
   return (await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.";
 }
+
+export const setzeKlassenfarbe = (klasse: string, farbe: number) => fetch("/api/workspace/farbe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ klasse, farbe }) });
 
 /** Returns an error message in plain German, or null on success. */
 export async function addFach(klasse: string, fach: string): Promise<string | null> {

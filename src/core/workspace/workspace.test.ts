@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  addFach, createClass, createReihe, initWorkspace, listTree, materialLuecken, readKlasse, readReihe, readStand,
+  addFach, setKlasseFarbe, createClass, createReihe, initWorkspace, listTree, materialLuecken, readKlasse, readReihe, readStand,
   setStunde, UserError, writeStand, saveMaterial, attachMaterial, materialFile, hasLehrplan,
 } from "./index.ts";
 
@@ -172,5 +172,16 @@ describe("workspace", () => {
 
   it("tells the Schulform of each class in the tree", async () => {
     expect((await listTree())[0]!.schulform).toBe("Berufskolleg");
+  });
+
+  it("saves a class color in Klasse.md and shows it in the tree", async () => {
+    expect((await listTree())[0]!.farbe).toBeUndefined();
+    await setKlasseFarbe("11A", 5);
+    await setKlasseFarbe("11a", 2);
+    expect((await listTree())[0]!.farbe).toBe(2);
+    expect((await readKlasse("11a")).match(/^Farbe:/gm)).toHaveLength(1);
+    expect(await readKlasse("11a")).toContain("Schulform: Berufskolleg");
+    await expect(setKlasseFarbe("11a", 8)).rejects.toBeInstanceOf(UserError);
+    await expect(setKlasseFarbe("9z", 1)).rejects.toBeInstanceOf(UserError);
   });
 });
