@@ -775,7 +775,7 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .legend-dot-btn:hover { background: var(--paper); }
 .chev { margin-left: auto; color: var(--ink-soft); transition: transform 0.15s; font-size: 18px; line-height: 1; }
 .chev.open { transform: rotate(90deg); }
-.swatches { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 8px 8px 14px; }
-.swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
-.swatch.on { border-color: var(--ink); }
-.swatch:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+.farbwahl { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 8px 8px 14px; }
+.farbpunkt { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
+.farbpunkt.on { border-color: var(--ink); }
+.farbpunkt:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
