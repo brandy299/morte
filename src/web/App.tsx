@@ -1,3 +1,4 @@
+import { bestaetigen, BestaetigenHost } from "./bestaetigen.tsx";
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import { addFach, answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
@@ -91,10 +92,10 @@ export function App() {
     void refreshHistory();
   };
   const remove = async (c: ConversationInfo) => {
-    if (!window.confirm(`Soll das Gespräch „${c.titel}“ gelöscht werden?`)) return;
+    if (!(await bestaetigen(`Soll das Gespräch „${c.titel}“ gelöscht werden?`))) return;
     const res = await deleteHistory(c.id);
     if (!res.ok) {
-      window.alert((await res.json().catch(() => ({}))).error ?? "Das Löschen hat nicht geklappt.");
+      await bestaetigen((await res.json().catch(() => ({}))).error ?? "Das Löschen hat nicht geklappt.", "OK");
       return;
     }
     if (c.id === currentId) show([]);

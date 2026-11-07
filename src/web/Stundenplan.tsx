@@ -1,3 +1,4 @@
+import { bestaetigen } from "./bestaetigen.tsx";
 import { useEffect, useRef, useState } from "react";
 import {
   aktualisierePlan,
@@ -181,7 +182,7 @@ function Zuordnen({ status, onChanged, onClose }: { status: PlanStatus; onChange
             Jetzt aktualisieren
           </button>
         )}
-        <button type="button" className="ghost small" disabled={busy} onClick={() => { if (window.confirm("Soll der Stundenplan entfernt werden? Dein Material und deine Reihen bleiben erhalten.")) void entfernePlan().then(onChanged); }}>
+        <button type="button" className="ghost small" disabled={busy} onClick={async () => { if (await bestaetigen("Soll der Stundenplan entfernt werden? Dein Material und deine Reihen bleiben erhalten.", "Ja, entfernen")) void entfernePlan().then(onChanged); }}>
           Anderen Stundenplan laden
         </button>
       </div>

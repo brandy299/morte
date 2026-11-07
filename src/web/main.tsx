@@ -1,11 +1,17 @@
 import { createRoot } from "react-dom/client";
+import { BestaetigenHost } from "./bestaetigen.tsx";
 import { App } from "./App.tsx";
 import "./styles.css";
 import { startTheme } from "./theme.ts";
 
 startTheme();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <>
+    <App />
+    <BestaetigenHost />
+  </>,
+);
 
 // The dev pencil is its own bundle part and only loads when the server says it is on (PULT_STIFT=1).
 void fetch("/api/stift/status")

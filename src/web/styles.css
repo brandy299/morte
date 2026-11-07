@@ -41,27 +41,27 @@
 
 /* ---------- Color themes (set by theme.ts: data-theme = light | dark, data-accent, data-calm) ---------- */
 :root[data-theme="dark"] {
-  --paper: #1d1b18;
-  --paper-deep: #272420;
-  --card: #2b2824;
-  --ink: #f0eadf;
-  --ink-soft: #b9b1a2;
-  --line: #433e36;
+  --paper: #121211;
+  --paper-deep: #1a1918;
+  --card: #1f1e1c;
+  --ink: #ece8e1;
+  --ink-soft: #a9a398;
+  --line: #302e2a;
   --accent: #d97a4c;
   --accent-deep: #eb9a70;
-  --accent-wash: #3b2b21;
+  --accent-wash: #2d2119;
   /* Marked text: clearly visible on every surface, also on the teacher's own messages. */
-  --selection: #72462f;
-  --accent-ink: #1d1208;
+  --selection: #66402b;
+  --accent-ink: #160e06;
   --ok: #8fc79f;
   --danger-ink: #f2ae94;
-  --danger-wash: #43271d;
-  --ok-wash: #22362a;
+  --danger-wash: #38201a;
+  --ok-wash: #1b2c22;
   --ok-ink: #a6d6b3;
   --overlay: rgba(0, 0, 0, 0.55);
-  --overlay-soft: rgba(29, 27, 24, 0.85);
-  --hint-wash: rgba(59, 43, 33, 0.92);
-  --ring: #4d473d;
+  --overlay-soft: rgba(18, 18, 17, 0.85);
+  --hint-wash: rgba(45, 33, 25, 0.92);
+  --ring: #3b3833;
   --lift: 0 2px 10px rgba(0, 0, 0, 0.35);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
@@ -759,3 +759,9 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .chips.pick li { padding: 0; background: none; }
 
 .foot-btn.update-hinweis { color: var(--accent-deep); font-weight: 600; }
+
+.rueckfrage { border: 0; border-radius: 18px; padding: 26px 28px; width: min(440px, calc(100% - 40px)); background: var(--card); color: var(--ink); box-shadow: var(--shadow); font-size: 17px; line-height: 1.45; }
+.rueckfrage::backdrop { background: var(--overlay); }
+.rueckfrage p { margin: 0 0 20px; }
+.rueckfrage .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.rueckfrage .danger { padding: 10px 18px; border-radius: 12px; border: 0; background: var(--danger-ink); color: var(--paper); font: inherit; font-weight: 600; cursor: pointer; }
