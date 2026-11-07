@@ -1,3 +1,4 @@
+import { bestaetigen } from "./bestaetigen.tsx";
 import { useEffect, useState } from "react";
 import { entferneVorlage, getVorlagen, type VorlageInfo } from "./api.ts";
 
@@ -16,7 +17,7 @@ export function Vorlagen({ onClose, onBuild }: { onClose: () => void; onBuild: (
   }, []);
 
   const remove = async (v: VorlageInfo) => {
-    if (!window.confirm(`Soll deine Vorlage „${v.titel}“ gelöscht werden?`)) return;
+    if (!(await bestaetigen(`Soll deine Vorlage „${v.titel}“ gelöscht werden?`))) return;
     const res = await entferneVorlage(v.name);
     if (!res.ok) setProblem((await res.json().catch(() => ({}))).error ?? "Das Löschen hat nicht geklappt.");
     void reload();

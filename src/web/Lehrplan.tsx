@@ -1,3 +1,4 @@
+import { bestaetigen } from "./bestaetigen.tsx";
 import { useEffect, useRef, useState } from "react";
 import {
   entferneLehrplan,
@@ -56,7 +57,7 @@ export function Lehrplan({ onClose }: { onClose: () => void }) {
 function Liste({ data, onNew, onClasses, onChanged }: { data: LehrplaeneData | null; onNew: () => void; onClasses: (p: LehrplanInfo) => void; onChanged: () => void }) {
   const [problem, setProblem] = useState<string | null>(null);
   const remove = async (p: LehrplanInfo) => {
-    if (!window.confirm(`Soll der Lehrplan „${p.name}“ entfernt werden? Deine Bewertungsregeln dazu bleiben erhalten.`)) return;
+    if (!(await bestaetigen(`Soll der Lehrplan „${p.name}“ entfernt werden? Deine Bewertungsregeln dazu bleiben erhalten.`, "Ja, entfernen"))) return;
     const res = await entferneLehrplan(p.name);
     if (!res.ok) setProblem("Das Entfernen hat nicht geklappt.");
     onChanged();
