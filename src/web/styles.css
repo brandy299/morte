@@ -779,3 +779,25 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
 .swatch.on { border-color: var(--ink); }
 .swatch:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+
+/* Update: Hinweis oben und Fortschrittsanzeige */
+.update-hinweis-karte { position: fixed; z-index: 40; top: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; max-width: min(640px, calc(100vw - 24px)); padding: 12px 14px 12px 18px; border: 1px solid var(--accent); border-radius: 14px; background: var(--paper); color: var(--ink); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); animation: rise 0.28s ease-out; }
+.update-hinweis-karte strong { display: block; }
+.update-hinweis-karte span { color: var(--ink-soft); font-size: 0.9rem; }
+.update-hinweis-karte .aktionen { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.update-hinweis-karte .primary { padding: 8px 14px; }
+.update-hinweis-karte .ghost { padding: 8px 10px; }
+.update-lauf { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(6px); }
+.update-karte { width: min(460px, 100%); padding: 28px 28px 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18); animation: rise 0.3s ease-out; }
+.update-karte h2 { margin: 18px 0 6px; font-family: var(--serif, inherit); }
+.update-balken { height: 10px; margin: 18px 0 16px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; }
+.update-balken .fuell { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent-deep), var(--accent), var(--accent-deep)); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; transition: width 0.4s ease; }
+.update-balken .fuell.wartet { animation-duration: 0.9s; }
+.update-schritte { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; color: var(--ink-soft); }
+.update-schritte li { display: flex; align-items: center; gap: 10px; }
+.update-schritte .punkt { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 12px; color: var(--accent-ink); flex-shrink: 0; }
+.update-schritte li.jetzt { color: var(--ink); font-weight: 600; }
+.update-schritte li.jetzt .punkt { border-color: var(--accent); border-top-color: transparent; animation: spin 0.9s linear infinite; }
+.update-schritte li.fertig .punkt { background: var(--accent); border-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .update-balken .fuell, .update-schritte li.jetzt .punkt, .update-karte, .update-hinweis-karte { animation: none; } }
+@media (max-width: 560px) { .update-hinweis-karte { flex-wrap: wrap; } }

@@ -19,6 +19,7 @@ import { classColors, classVar, PALETTE_SIZE } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Logo } from "./Logo.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
+import { UpdateLauf, useNeueVersion } from "./UpdateLauf.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
 import { Diktat } from "./Diktat.tsx";
@@ -55,11 +56,10 @@ export function App() {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
   const [startTab, setStartTab] = useState<"aussehen" | "update">("aussehen");
-  // Desktop app: a note in the sidebar when there is a new version (small updates come by themselves).
-  const [neueVersion, setNeueVersion] = useState(false);
-  useEffect(() => {
-    if (window.pultApp) fetch("/api/update").then((r) => r.json()).then((u) => setNeueVersion(Boolean(u.verfuegbar)), () => {});
-  }, []);
+  // Desktop app: a note at the top when there is a new version (small updates come by themselves), and the progress display.
+  const neu = useNeueVersion();
+  const [updateLaeuft, setUpdateLaeuft] = useState(false);
+  const [updateProblem, setUpdateProblem] = useState("");
   // First start: the welcome steps run until the teacher finishes them, also after the key was saved on the way.
   const [onboarding, setOnboarding] = useState<boolean | null>(null);
   const [newClassOpen, setNewClassOpen] = useState(false);
@@ -154,11 +154,27 @@ export function App() {
           onVorlagen={() => setVorlagenOpen(true)}
           onLehrplan={() => setLehrplanOpen(true)}
           onSettings={() => (setStartTab("aussehen"), setSetupOpen(true))}
-          neueVersion={neueVersion}
-          onUpdate={() => (setStartTab("update"), setSetupOpen(true))}
           status={status}
         />
       </div>
+      {neu.verfuegbar && !updateLaeuft && !setupOpen && (
+        <div className="update-hinweis-karte" role="status">
+          <div>
+            <strong>Es gibt eine neue Version von Pult</strong>
+            <span>{updateProblem || "Ein Klick, den Rest macht Pult von allein. Deine Daten bleiben."}</span>
+          </div>
+          <div className="aktionen">
+            <button type="button" className="ghost" onClick={neu.spaeter}>Später</button>
+            <button type="button" className="primary" onClick={() => (setUpdateProblem(""), setUpdateLaeuft(true))}>Jetzt aktualisieren</button>
+          </div>
+        </div>
+      )}
+      {updateLaeuft && (
+        <UpdateLauf
+          neuInstallieren={neu.neuInstallieren}
+          onFehler={(text) => (setUpdateLaeuft(false), setUpdateProblem(text))}
+        />
+      )}
       {setupOpen && (
         <Einstellungen
           startTab={startTab}
@@ -269,8 +285,6 @@ interface ChatProps {
   /** Sent as the first message when the conversation opens, e.g. to start the template builder. */
   startText?: string;
   onSettings: () => void;
-  neueVersion?: boolean;
-  onUpdate?: () => void;
   status: SetupStatus;
 }
 
@@ -404,7 +418,7 @@ const SUGGESTIONS = ["Welche Klassen habe ich?", "Wo fehlt noch Material?"];
 // Without a class the two questions above lead nowhere; offer what the first test tasks are.
 const FIRST_SUGGESTIONS = ["Ein Arbeitsblatt zu einem Thema aus meinem Unterricht", "Eine Unterrichtsreihe planen", "Eine Klausur mit Erwartungshorizont"];
 
-function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, neueVersion, onUpdate, status }: ChatProps) {
+function Chat({ initialMessages, initialView, planVersion, onStundenplan, history, currentId, refreshHistory, onOpen, onDelete, onNew, tree, refreshTree, onNewClass, onLehrplan, onVorlagen, startText, onSettings, status }: ChatProps) {
   // Classes in the side menu start folded, so a long list stays tidy.
   const [openClasses, setOpenClasses] = useState<Set<string>>(new Set());
   const [colorOpen, setColorOpen] = useState<string | null>(null);
@@ -831,11 +845,6 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             </svg>
             Lehrpläne
           </button>
-          {neueVersion && (
-            <button type="button" className="foot-btn update-hinweis" onClick={onUpdate}>
-              Neue Version – jetzt holen
-            </button>
-          )}
           <button type="button" className="foot-btn" onClick={onSettings}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="12" cy="12" r="3" />
