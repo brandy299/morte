@@ -92,6 +92,7 @@ Stand: 2026-11-07 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Startseite "Start" mit Überblick über alle Klassen
 - [x] Klassenzuordnung einfacher: Kürzel wie HHUC werden als Vorschlag gedeutet, schon eingetragene Fächer lassen sich auswählen, Fächer und Stunden-Zuordnung sind nachträglich änderbar, die Schulform wird nur beim ersten Mal gefragt
 - [x] Rückfragen zum Löschen in Pults eigenem Fenster, dunklerer Dunkelmodus
+- [x] Stundenplan kompakter: ganze Woche passt auf einen Bildschirm, Zuordnungsliste enger
 
 ## Querschnitt: Barrierefreiheit
 
