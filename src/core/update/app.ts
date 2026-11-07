@@ -26,6 +26,32 @@ export interface CodeManifest {
 const BASE = () => process.env.PULT_CODE_URL ?? "https://github.com/brandy299/morte/releases/download/code";
 export const RELEASES_SEITE = "https://github.com/brandy299/morte/releases";
 
+/** Where the running update stands, for the progress display. `anteil` (0 to 1) is only set while downloading. */
+export interface Fortschritt {
+  schritt: "laden" | "pruefen" | "einrichten" | "installieren";
+  anteil?: number;
+}
+let fortschritt: Fortschritt | undefined;
+export const updateFortschritt = () => fortschritt;
+const setze = (f: Fortschritt | undefined) => void (fortschritt = f);
+
+/** Reads a download to the end and reports how far it is (the size comes from the answer of the server, when it gives one). */
+async function leseMitFortschritt(res: Response): Promise<Buffer> {
+  const gesamt = Number(res.headers.get("content-length")) || 0;
+  const teile: Uint8Array[] = [];
+  let da = 0;
+  const reader = res.body?.getReader();
+  if (!reader) return Buffer.from(await res.arrayBuffer());
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    teile.push(value);
+    da += value.length;
+    if (gesamt) setze({ schritt: "laden", anteil: Math.min(1, da / gesamt) });
+  }
+  return Buffer.concat(teile);
+}
+
 export async function ladeManifest(): Promise<CodeManifest> {
   const res = await fetch(`${BASE()}/code.json`, { signal: AbortSignal.timeout(8000) });
   const m = (await res.json().catch(() => undefined)) as Partial<CodeManifest> | undefined;
@@ -43,16 +69,27 @@ export const installierteBasis = () => process.env.PULT_BASIS ?? "";
  * Nothing is touched before the package is complete and checked.
  */
 export async function ladeCode(manifest: CodeManifest): Promise<void> {
+  try {
+    await ladeCodeEinzeln(manifest);
+  } finally {
+    setze(undefined);
+  }
+}
+
+async function ladeCodeEinzeln(manifest: CodeManifest): Promise<void> {
   const ziel = process.env.PULT_CODE_DIR;
   const bibliotheken = process.env.PULT_NODE_MODULES;
   if (!ziel || !bibliotheken) throw new UpdateError("Das Aktualisieren geht hier nicht.");
   if (manifest.basis !== installierteBasis()) throw new UpdateError("Diese Version braucht eine neue Installation.");
 
+  setze({ schritt: "laden", anteil: 0 });
   const res = await fetch(`${BASE()}/code.zip`, { signal: AbortSignal.timeout(180000) }).catch(() => undefined);
   if (!res?.ok) throw new UpdateError("Ich konnte die neue Version nicht laden. Prüfe deine Internetverbindung.");
-  const zip = Buffer.from(await res.arrayBuffer());
+  const zip = await leseMitFortschritt(res);
+  setze({ schritt: "pruefen" });
   if (createHash("sha256").update(zip).digest("hex") !== manifest.pruefsumme) throw new UpdateError("Der Download ist beschädigt. Versuche es später noch einmal.");
 
+  setze({ schritt: "einrichten" });
   const dateien = unzipSync(new Uint8Array(zip));
   if (!dateien["package.json"]) throw new UpdateError("Der Download sieht nicht richtig aus.");
   // Every version gets a folder of its own (named by its commit): the one the app runs from cannot be replaced while it runs (Windows).
@@ -93,6 +130,14 @@ export function installerFuer(version: string, plattform = process.platform, arc
 
 /** Downloads the installer of the new version and checks it against the checksum list of the release. */
 export async function ladeInstaller(version: string, plattform = process.platform, arch = process.arch): Promise<string> {
+  try {
+    return await ladeInstallerEinzeln(version, plattform, arch);
+  } finally {
+    setze(undefined);
+  }
+}
+
+async function ladeInstallerEinzeln(version: string, plattform: NodeJS.Platform, arch: NodeJS.Architecture): Promise<string> {
   const inst = installerFuer(version, plattform, arch);
   if (!inst) throw new UpdateError("Für diesen Computer gibt es keine automatische Aktualisierung.");
   const base = inst.url.slice(0, inst.url.lastIndexOf("/"));
@@ -101,9 +146,11 @@ export async function ladeInstaller(version: string, plattform = process.platfor
   if (!sums?.ok) throw new UpdateError("Die neue Version ist noch nicht fertig. Versuche es in ein paar Minuten noch einmal.");
   const erwartet = (await sums.text()).split(/\r?\n/).map((z) => z.trim().split(/\s+/)).find(([, n]) => n?.replace(/^\*/, "") === inst.name)?.[0];
   if (!erwartet || !/^[0-9a-f]{64}$/i.test(erwartet)) throw new UpdateError("Die neue Version ist noch nicht fertig. Versuche es in ein paar Minuten noch einmal.");
+  setze({ schritt: "laden", anteil: 0 });
   const res = await get(inst.url, 600000);
   if (!res?.ok) throw new UpdateError("Ich konnte die neue Version nicht laden. Prüfe deine Internetverbindung.");
-  const datei = Buffer.from(await res.arrayBuffer());
+  const datei = await leseMitFortschritt(res);
+  setze({ schritt: "pruefen" });
   if (createHash("sha256").update(datei).digest("hex") !== erwartet.toLowerCase()) throw new UpdateError("Der Download ist beschädigt. Versuche es später noch einmal.");
   const ziel = join(process.env.PULT_CODE_DIR ?? tmpdir(), "installer");
   await rm(ziel, { recursive: true, force: true });

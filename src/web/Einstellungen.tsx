@@ -1,3 +1,4 @@
+import { UpdateLauf } from "./UpdateLauf.tsx";
 import { useEffect, useState } from "react";
 import { chooseOrdner, getOrdner, moveOrdner, openOrdner, resetOrdner, type OrdnerInfo, type SetupStatus } from "./api.ts";
 import { Schule } from "./Schule.tsx";
@@ -108,7 +109,7 @@ interface UpdateInfo {
 
 function Update() {
   const [info, setInfo] = useState<UpdateInfo | null>(null);
-  const [phase, setPhase] = useState<"idle" | "running" | "failed">("idle");
+  const [laeuft, setLaeuft] = useState(false);
   const [problem, setProblem] = useState("");
   useEffect(() => {
     fetch("/api/update")
@@ -117,33 +118,7 @@ function Update() {
       .catch(() => setInfo({ verfuegbar: false, aktuell: "", neu: "", hinweis: "Ich konnte nicht nachsehen." }));
   }, []);
 
-  const start = async () => {
-    setPhase("running");
-    const res = await fetch("/api/update/start", { method: "POST" }).catch(() => undefined);
-    if (!res?.ok) {
-      setProblem((await res?.json().catch(() => undefined))?.error ?? "");
-      return setPhase("failed");
-    }
-    if (info?.neuInstallieren) return;
-    // In the desktop app the window stays: wait until the server is back, then load the new page.
-    if (window.pultApp) {
-      await new Promise((r) => setTimeout(r, 1500));
-      for (let i = 0; i < 120; i++) {
-        if (await fetch("/api/setup/status").then((r) => r.ok, () => false)) return location.reload();
-        await new Promise((r) => setTimeout(r, 500));
-      }
-      setPhase("failed");
-    }
-  };
-
-  if (phase === "running") {
-    return (
-      <div className="settings-panel prose" role="status">
-        <h2>Pult wird aktualisiert</h2>
-        <p className="lead">{info?.neuInstallieren ? "Pult lädt die neue Version, schließt sich dann und öffnet sich nach dem Installieren von allein wieder. Das dauert etwa eine Minute. " : window.pultApp ? "Das dauert einen Moment, dann geht es hier von allein weiter. Bitte schließe das Fenster nicht. " : "Pult startet gleich neu und öffnet sich in einem neuen Fenster. Das dauert ein bis zwei Minuten. Du kannst dieses Fenster schließen. "}Deine Gespräche, Klassen und Schlüssel bleiben erhalten.</p>
-      </div>
-    );
-  }
+  if (laeuft) return <UpdateLauf neuInstallieren={info?.neuInstallieren} onFehler={(text) => (setLaeuft(false), setProblem(text))} />;
   return (
     <div className="settings-panel prose">
       <h2>Neue Version holen</h2>
@@ -152,12 +127,12 @@ function Update() {
       {info && !info.hinweis && (
         <p className="lead">{info.verfuegbar ? "Es gibt eine neuere Version von Pult." : "Du hast die neueste Version."}</p>
       )}
-      {phase === "failed" && <p role="alert">{problem || "Das Aktualisieren hat nicht geklappt. Versuche es später noch einmal."}</p>}
+      {problem && <p role="alert">{problem}</p>}
       {info?.verfuegbar && (
         <>
           <p className="muted">Alles, was du in Pult gemacht hast, bleibt erhalten. {info.neuInstallieren ? "Pult schließt sich kurz und öffnet sich von allein wieder." : "Pult startet kurz neu und geht dann von selbst weiter."}</p>
           <div className="setup-actions">
-            <button type="button" className="primary" onClick={start}>
+            <button type="button" className="primary" onClick={() => (setProblem(""), setLaeuft(true))}>
               Jetzt aktualisieren
             </button>
           </div>

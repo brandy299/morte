@@ -14,7 +14,7 @@
 
 ## Neue Version
 
-Kleine Updates holt Pult beim Start von selbst im Hintergrund, du merkst nichts. Größere Updates meldet Pult links unten („Neue Version – jetzt holen“). Ein Klick auf **Jetzt aktualisieren** genügt: Pult lädt die neue Version, schließt sich, installiert sie und öffnet sich von allein wieder. Du musst nichts herunterladen. Die Warnung von Mac oder Windows kommt dabei nicht noch einmal. Deine Daten bleiben.
+Kleine Updates holt Pult beim Start von selbst im Hintergrund, du merkst nichts. Größere Updates meldet Pult mit einem Hinweis oben im Fenster („Es gibt eine neue Version von Pult“, mit „Jetzt aktualisieren“ und „Später“). Pult sieht beim Start und danach alle 30 Minuten nach. Ein Klick genügt: Eine Anzeige zeigt, wie weit es ist, dann schließt sich Pult, installiert die neue Version und öffnet sich von allein wieder. Du musst nichts herunterladen. Die Warnung von Mac oder Windows kommt dabei nicht noch einmal. Deine Daten bleiben.
 
 ## Warum die Warnung?
 
