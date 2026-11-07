@@ -90,7 +90,7 @@ Stand: 2026-11-07 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Wochenübersicht: Was steht an, wo fehlt Material
 - [x] Drag-and-Drop: Material auf eine Stunde ziehen, Datei landet im Reihen-Ordner und in der Stundentabelle
 - [x] Startseite "Start" mit Überblick über alle Klassen
-- [x] Klassenzuordnung einfacher: Kürzel wie HHUC werden als Vorschlag gedeutet, schon eingetragene Fächer lassen sich auswählen, Fächer und Stunden-Zuordnung sind nachträglich änderbar
+- [x] Klassenzuordnung einfacher: Kürzel wie HHUC werden als Vorschlag gedeutet, schon eingetragene Fächer lassen sich auswählen, Fächer und Stunden-Zuordnung sind nachträglich änderbar, die Schulform wird nur beim ersten Mal gefragt
 
 ## Querschnitt: Barrierefreiheit
 

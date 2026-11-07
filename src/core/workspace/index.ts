@@ -62,7 +62,7 @@ const stripNumber = (n: string) => n.replace(/^\d+\s+/, "");
 
 export interface ReiheInfo { name: string; stunden: number; gehalten: number; ohneMaterial: number }
 export interface FachInfo { name: string; reihen: ReiheInfo[] }
-export interface KlasseInfo { name: string; faecher: FachInfo[] }
+export interface KlasseInfo { name: string; schulform?: string; faecher: FachInfo[] }
 
 export async function listTree(): Promise<KlasseInfo[]> {
   const result: KlasseInfo[] = [];
@@ -81,7 +81,8 @@ export async function listTree(): Promise<KlasseInfo[]> {
       }
       faecher.push({ name: f, reihen });
     }
-    result.push({ name: k, faecher });
+    const schulform = (await readText(join(klassenDir(), k, "Klasse.md"))).match(/^Schulform:[ \t]*(.+)$/m)?.[1]?.trim();
+    result.push({ name: k, schulform, faecher });
   }
   return result;
 }

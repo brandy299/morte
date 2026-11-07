@@ -12,10 +12,12 @@ const NIVEAU_NAMES: Record<string, string> = { "": "Keine Angabe", GK: "Grundkur
 type Step = "name" | "schulform" | "stufe" | "niveau" | "faecher" | "besonderheiten" | "fertig";
 
 /** One question per screen. The answers become Klasse.md and one folder per subject. */
-export function NewClass({ onDone, onCancel, bekannteFaecher = [] }: { onDone: (name: string) => void; onCancel: () => void; bekannteFaecher?: string[] }) {
+export function NewClass({ onDone, onCancel, bekannteFaecher = [], bekannteSchulform }: { onDone: (name: string) => void; onCancel: () => void; bekannteFaecher?: string[]; bekannteSchulform?: string }) {
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
-  const [schulform, setSchulform] = useState("");
+  // All classes so far are at one kind of school: take it over and do not ask again. Teachers mostly work at one school.
+  const [schulform, setSchulform] = useState(bekannteSchulform ?? "");
+  const [schulformFrage, setSchulformFrage] = useState(false);
   const [stufe, setStufe] = useState("");
   const [kursniveau, setKursniveau] = useState("");
   const [faecher, setFaecher] = useState<string[]>([]);
@@ -29,7 +31,7 @@ export function NewClass({ onDone, onCancel, bekannteFaecher = [] }: { onDone: (
   // Subjects that are already used in other classes and not yet chosen here, offered as one click.
   const vorschlaege = bekannteFaecher.filter((f) => !faecher.some((x) => x.toLowerCase() === f.toLowerCase()));
   const niveau = NIVEAUS[schulform];
-  const order: Step[] = ["name", "schulform", "stufe", ...(niveau ? ["niveau" as Step] : []), "faecher", "besonderheiten", "fertig"];
+  const order: Step[] = ["name", ...(bekannteSchulform && !schulformFrage ? [] : ["schulform" as Step]), "stufe", ...(niveau ? ["niveau" as Step] : []), "faecher", "besonderheiten", "fertig"];
   const index = order.indexOf(step);
   const next = () => setStep(order[index + 1]!);
   const back = () => (index === 0 ? onCancel() : setStep(order[index - 1]!));
@@ -79,6 +81,12 @@ export function NewClass({ onDone, onCancel, bekannteFaecher = [] }: { onDone: (
           <>
             <h1>Wie heißt die Klasse oder der Kurs?</h1>
             <input autoFocus className="big" value={name} placeholder="zum Beispiel 11a" onChange={(e) => { setName(e.target.value); setProblem(null); }} />
+            {bekannteSchulform && !schulformFrage && (
+              <p className="muted">
+                Schulform: {schulform}.{" "}
+                <button type="button" className="link" onClick={() => setSchulformFrage(true)}>Andere Schulform?</button>
+              </p>
+            )}
             {deutung && (
               <p className="guess-box" role="status">
                 Ich vermute: <strong>{name.trim()}</strong> heißt {deutung.stufe}.{" "}
