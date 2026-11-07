@@ -9,12 +9,13 @@ import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// The program as installed. Updates from inside the app put newer code in `<app data>/code/aktuell`; it is used as long as
+// The program as installed. Updates from inside the app put newer code in `<app data>/code/<commit>`; it is used as long as
 // it was made for this very program (same libraries and shell, same installed version) and starts. Otherwise the installed code runs.
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const tsx = createRequire(join(root, "package.json")).resolve("tsx/cli");
 const codeDir = join(app.getPath("userData"), "code");
-const override = join(codeDir, "aktuell");
+// `aktuell.txt` names the folder (a commit id) with the newest code. Every version gets its own folder: the running one cannot be replaced on Windows.
+const pointer = join(codeDir, "aktuell.txt");
 const read = (p) => {
   try {
     return readFileSync(p, "utf8").trim();
@@ -22,10 +23,21 @@ const read = (p) => {
     return "";
   }
 };
+// The lock file without Pult's own version (a new version number must not force a new installation) and without line-ending differences.
+function lockBasis() {
+  const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+  delete lock.version;
+  if (lock.packages?.[""]) delete lock.packages[""].version;
+  return JSON.stringify(lock);
+}
 const huelle = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).pultHuelle ?? 0;
 // Must be computed exactly as in scripts/code-paket.mjs. Line endings are ignored: Windows checks files out with CRLF.
-const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"), "utf8").replace(/\r\n/g, "\n")).update(`\n${huelle}`).digest("hex");
-const useOverride = () => existsSync(override) && read(join(override, ".basis")) === `${basis}/${app.getVersion()}`;
+const basis = createHash("sha256").update(lockBasis()).update(`\n${huelle}`).digest("hex");
+const useOverride = () => {
+  const name = read(pointer);
+  const dir = /^[0-9a-f]{40}$/.test(name) ? join(codeDir, name) : undefined;
+  return dir && existsSync(dir) && read(join(dir, ".basis")) === `${basis}/${app.getVersion()}` ? dir : undefined;
+};
 let codeRoot = root;
 // Switched off after new code failed to start, so a broken update cannot loop.
 let autoUpdate = true;
@@ -66,7 +78,7 @@ async function waitForServer(port) {
 }
 
 function startServer(port) {
-  codeRoot = useOverride() ? override : root;
+  codeRoot = useOverride() ?? root;
   server = spawn(process.execPath, [tsx, "src/server/index.ts"], {
     cwd: codeRoot,
     windowsHide: true,
@@ -100,7 +112,7 @@ function startServer(port) {
 async function fallBack(port) {
   autoUpdate = false;
   server?.kill();
-  rmSync(override, { recursive: true, force: true });
+  rmSync(pointer, { force: true });
   startServer(port);
   return waitForServer(port);
 }
@@ -159,7 +171,7 @@ else {
       return result.canceled ? null : (result.filePaths[0] ?? null);
     });
 
-    if (!(await waitForServer(port)) && !(codeRoot === override && (await fallBack(port)))) {
+    if (!(await waitForServer(port)) && !(codeRoot !== root && (await fallBack(port)))) {
       say("Pult startet nicht", "Pult konnte nicht starten. Bitte starte es noch einmal. Hilft das nicht, schick ein Foto dieser Meldung an Yannik.");
       app.quit();
       return;
