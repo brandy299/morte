@@ -1,8 +1,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { mkdir, rename, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rename, rm, symlink, unlink, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, normalize } from "node:path";
 import { unzipSync } from "fflate";
 import { UpdateError } from "./errors.ts";
@@ -56,27 +55,31 @@ export async function ladeCode(manifest: CodeManifest): Promise<void> {
 
   const dateien = unzipSync(new Uint8Array(zip));
   if (!dateien["package.json"]) throw new UpdateError("Der Download sieht nicht richtig aus.");
-  const neu = join(ziel, "neu");
-  await rm(neu, { recursive: true, force: true });
+  // Every version gets a folder of its own (named by its commit): the one the app runs from cannot be replaced while it runs (Windows).
+  const ordner = join(ziel, manifest.sha);
+  await rm(ordner, { recursive: true, force: true });
   for (const [name, inhalt] of Object.entries(dateien)) {
     const sauber = normalize(name);
     if (name.endsWith("/") || isAbsolute(sauber) || sauber.startsWith("..")) continue;
-    const datei = join(neu, sauber);
+    const datei = join(ordner, sauber);
     await mkdir(dirname(datei), { recursive: true });
     await writeFile(datei, inhalt);
   }
   // The libraries stay where the program put them; the new code finds them through this link.
-  await symlink(bibliotheken, join(neu, "node_modules"), "junction");
-  await writeFile(join(neu, ".pult-stand"), manifest.sha);
-  await writeFile(join(neu, ".basis"), `${manifest.basis}/${process.env.PULT_APP_VERSION ?? ""}`);
+  await symlink(bibliotheken, join(ordner, "node_modules"), "junction");
+  await writeFile(join(ordner, ".pult-stand"), manifest.sha);
+  await writeFile(join(ordner, ".basis"), `${manifest.basis}/${process.env.PULT_APP_VERSION ?? ""}`);
 
-  // Only now the old code is swapped.
-  const aktuell = join(ziel, "aktuell");
-  const alt = join(ziel, "alt");
-  await rm(alt, { recursive: true, force: true });
-  if (existsSync(aktuell)) await rename(aktuell, alt);
-  await rename(neu, aktuell);
-  await rm(alt, { recursive: true, force: true });
+  // Only now the app is pointed to the new folder (a small file, replaced in one step).
+  await writeFile(join(ziel, "aktuell.neu"), manifest.sha);
+  await rename(join(ziel, "aktuell.neu"), join(ziel, "aktuell.txt"));
+  // Older folders (also those of earlier app versions) go if they can; the one still running cannot be deleted and goes next time.
+  for (const name of await readdir(ziel).catch(() => [] as string[])) {
+    if (name === manifest.sha || !/^([0-9a-f]{40}|aktuell|neu|alt)$/.test(name)) continue;
+    // Unlink the link to the libraries first, so removing the folder can never reach the libraries themselves.
+    await unlink(join(ziel, name, "node_modules")).catch(() => {});
+    await rm(join(ziel, name), { recursive: true, force: true }).catch(() => {});
+  }
 }
 
 /** Where the installer of a version lies and under which name, for this computer. Undefined: no installer for this system. */

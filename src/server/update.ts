@@ -11,7 +11,9 @@ export function updateRoutes(app: Hono) {
       danach = await startUpdate();
     } catch (err) {
       if (err instanceof UpdateError) return c.json({ error: err.message }, 400);
-      throw err;
+      // Anything else is a technical problem: say it in one line so it can be passed on.
+      console.error("Update:", err);
+      return c.json({ error: `Das Aktualisieren hat nicht geklappt. Nenne bitte diese Zeile: ${err instanceof Error ? err.message : String(err)}` }, 500);
     }
     // The updater waits until this server is gone, then swaps the files. The answer must be out first.
     // In the desktop app the code is already swapped; exit code 75 tells the app to start the server again from the new code.

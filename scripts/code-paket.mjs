@@ -26,9 +26,17 @@ const files = {};
 for (const dir of ["src", "skills", "assets", "dist/web"]) walk(join(root, dir), files);
 files["package.json"] = new Uint8Array(readFileSync(join(root, "package.json")));
 
+// The lock file without Pult's own version (a new version number must not force a new installation) and without line-ending differences.
+function lockBasis() {
+  const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+  delete lock.version;
+  if (lock.packages?.[""]) delete lock.packages[""].version;
+  return JSON.stringify(lock);
+}
+
 const huelle = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).pultHuelle ?? 0;
 // Must be computed exactly as in electron/main.mjs. Line endings are ignored: Windows checks files out with CRLF.
-const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"), "utf8").replace(/\r\n/g, "\n")).update(`\n${huelle}`).digest("hex");
+const basis = createHash("sha256").update(lockBasis()).update(`\n${huelle}`).digest("hex");
 const sha = process.env.GITHUB_SHA ?? execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
 
 mkdirSync(out, { recursive: true });
