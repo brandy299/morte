@@ -221,6 +221,9 @@ a.file-card { text-decoration: none; color: inherit; }
 .composer-bar { display: flex; align-items: center; gap: 6px; position: relative; }
 .grow { flex: 1; }
 .icon-btn { padding: 7px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); display: grid; place-items: center; transition: background 0.12s, color 0.12s; }
+.modus-btn { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink-soft); font-size: 14.5px; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+.modus-btn:hover { border-color: var(--accent-deep); color: var(--accent-deep); }
+.modus-btn[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent-deep); color: var(--accent-deep); font-weight: 600; }
 .icon-btn:hover { background: var(--paper-deep); color: var(--accent-deep); }
 .icon-btn.mic.on { background: var(--danger-wash); color: var(--danger-ink); animation: mic-puls 1.4s ease-in-out infinite; }
 .mic-status { font-size: 13px; color: var(--ink-soft); margin-left: 4px; }

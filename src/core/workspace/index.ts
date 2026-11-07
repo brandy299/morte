@@ -452,7 +452,7 @@ export async function saveMaterialFile(
  */
 export async function attachMaterial(
   klasse: string, fach: string, reihe: string,
-  stunde: { datum: string; stunde: string; thema?: string }, datei: string,
+  stunde: { datum: string; stunde: string; thema?: string; nr?: number }, datei: string,
   opts: { append?: boolean } = {},
 ): Promise<void> {
   const { dir } = await resolveFach(klasse, fach);
@@ -460,7 +460,8 @@ export async function attachMaterial(
   const file = join(dir, r, "Reihe.md");
   const markdown = await readText(file);
   const rows = parseStunden(markdown);
-  const old = findStunde(rows, stunde);
+  if (stunde.nr !== undefined && !rows[stunde.nr - 1]) throw new UserError(`Die Reihe hat ${rows.length} Stunden, eine Stunde ${stunde.nr} gibt es nicht.`);
+  const old = stunde.nr !== undefined ? rows[stunde.nr - 1] : findStunde(rows, stunde);
   await setStunde(klasse, fach, reihe, {
     // A planned row is addressed by its number, so rows without a lesson name work too.
     ...(old ? { nr: rows.indexOf(old) + 1 } : { datum: stunde.datum }),
