@@ -23,7 +23,7 @@ export const PROVIDERS: Record<string, { name: string; make: () => Provider; rec
   "opencode-go": {
     name: "OpenCode Go (Abo für viele Modelle)",
     make: opencodeGoProvider,
-    recommended: ["deepseek-v4.1-flash", "glm-5.3-flash", "qwen3.8-flash", "mimo-v2.6-flash", "kimi-k3"],
+    recommended: ["deepseek-v4.1-flash", "claude-haiku-5-5", "glm-5.3-flash", "qwen3.8-flash", "mimo-v2.6-flash", "kimi-k3"],
   },
   deepseek: { name: "DeepSeek", make: deepseekProvider, recommended: ["deepseek-flash"] },
 };
