@@ -136,6 +136,22 @@ Besonderheiten: ${oneLine(input.besonderheiten)}
   return name;
 }
 
+/** Adds a subject to an existing class: its folder with a fresh Stand.md, and the name in Klasse.md. Nothing existing is touched. */
+export async function addFach(klasse: string, fachRaw: string): Promise<string> {
+  const k = await resolveDir(klassenDir(), klasse, "Die Klasse");
+  const fach = cleanName(fachRaw, "den Fachnamen");
+  const dir = join(klassenDir(), k);
+  if ((await subdirs(dir)).some((f) => f.toLowerCase() === fach.toLowerCase())) throw new UserError(`${fach} gibt es in ${k} schon.`);
+  await mkdir(join(dir, fach), { recursive: true });
+  await writeFile(join(dir, fach, "Stand.md"), standMarkdown(k, fach, {}));
+  const file = join(dir, "Klasse.md");
+  const text = await readText(file);
+  if (/^Fächer:.*$/m.test(text)) {
+    await writeFile(file, text.replace(/^Fächer:(.*)$/m, (_, list: string) => `Fächer:${list.trim() ? `${list.trimEnd()}, ${fach}` : ` ${fach}`}`));
+  }
+  return fach;
+}
+
 // ---------- Read ----------
 
 export async function readKlasse(klasse: string): Promise<string> {

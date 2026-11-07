@@ -233,6 +233,7 @@ function LessonCard({ s, past, color, selected, onOpen, onDrop }: { s: WochenStu
 
 function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: WochenStunde; onClose: () => void; onAsk: (t: string) => void; onFiles: (f: FileList) => void; onNewClass: () => void; onAssigned: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [aendern, setAendern] = useState(false);
   const files = s.material ? s.material.split(", ").filter(Boolean) : [];
   const base = s.klasse && s.fach && s.reihe ? `Klassen/${s.klasse}/${s.fach}/${s.reihe}/Material/` : undefined;
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -311,6 +312,15 @@ function Details({ s, onClose, onAsk, onFiles, onNewClass, onAssigned }: { s: Wo
           </a>
         )}
         {s.klasse && <p className="muted small-note">Du kannst Dateien auch einfach auf die Stunde ziehen.</p>}
+        {s.klasse && (
+          aendern ? (
+            <AssignInline s={s} onNewClass={onNewClass} onAssigned={onAssigned} change />
+          ) : (
+            <button type="button" className="link" onClick={() => setAendern(true)}>
+              Falsch zugeordnet? Klasse oder Fach ändern
+            </button>
+          )
+        )}
       </div>
     </div>
   );
@@ -352,7 +362,7 @@ function Overview({ tree, onAsk }: { tree: KlasseInfo[]; onAsk: (t: string) => v
 }
 
 /** Lets the teacher say right at the lesson which class it belongs to. The choice counts for every lesson of the same kind. */
-function AssignInline({ s, onNewClass, onAssigned }: { s: WochenStunde; onNewClass: () => void; onAssigned: () => void }) {
+function AssignInline({ s, onNewClass, onAssigned, change }: { s: WochenStunde; onNewClass: () => void; onAssigned: () => void; change?: boolean }) {
   const [data, setData] = useState<Awaited<ReturnType<typeof getTitel>> | null>(null);
   const [choice, setChoice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -363,7 +373,8 @@ function AssignInline({ s, onNewClass, onAssigned }: { s: WochenStunde; onNewCla
     getTitel().then((r) => {
       setData(r);
       const mine = r.titel.find((t) => t.titel === s.titel && (t.gruppe ?? "") === (s.gruppe ?? ""));
-      if (mine?.vorschlag) setChoice(`${mine.vorschlag.klasse}|${mine.vorschlag.fach}`);
+      const start = mine?.zuordnung ?? mine?.vorschlag;
+      if (start) setChoice(`${start.klasse}|${start.fach}`);
     }).catch(() => setProblem("Die Klassen konnten nicht geladen werden."));
   }, [s.titel, s.gruppe]);
 
@@ -385,7 +396,7 @@ function AssignInline({ s, onNewClass, onAssigned }: { s: WochenStunde; onNewCla
   const what = [s.titel, s.gruppe].filter(Boolean).join(" · ") || "Dieser Eintrag";
   return (
     <div className="assign-inline">
-      <h3>Zu welcher Klasse gehört das?</h3>
+      <h3>{change ? "Andere Klasse oder anderes Fach?" : "Zu welcher Klasse gehört das?"}</h3>
       <p className="muted">
         „{what}“ steht {entry && entry.anzahl > 1 ? `${entry.anzahl}× ` : ""}in deinem Stundenplan. Deine Wahl gilt für alle diese Stunden.
       </p>
@@ -414,10 +425,10 @@ function AssignInline({ s, onNewClass, onAssigned }: { s: WochenStunde; onNewCla
               ))}
             </select>
           </label>
-          {entry?.vorschlag && choice === `${entry.vorschlag.klasse}|${entry.vorschlag.fach}` && <p className="muted small-note">Das ist mein Vorschlag, passend zum Namen im Stundenplan.</p>}
+          {!change && entry?.vorschlag && choice === `${entry.vorschlag.klasse}|${entry.vorschlag.fach}` && <p className="muted small-note">Das ist mein Vorschlag, passend zum Namen im Stundenplan.</p>}
           <div className="modal-actions">
             <button type="button" className="primary" disabled={busy || !choice} onClick={() => void save(choice)}>
-              Zuordnen
+              {change ? "Änderung speichern" : "Zuordnen"}
             </button>
             <button type="button" className="ghost" disabled={busy} onClick={() => void save("ignorieren")}>
               Gehört nicht zu mir (ausblenden)

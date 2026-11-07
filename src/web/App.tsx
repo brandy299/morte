@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
+import { addFach, answerConfirm, deleteHistory, getHistory, getVorlagen, type VorlageInfo, getRueckmeldungen, sendeRueckmeldung, type Rueckmeldung, getPlanStatus, getStatus, getTree, openHistory, getUsage, materialUrl, zipUrl, resetChat, retryMessage, type Frage, type Gegeben, sendMessage, type ChatEvent, type ConversationInfo, type StoredMessage, type KlasseInfo, type Material, type SetupStatus, type UsageSnapshot } from "./api.ts";
 import { FILE_ACCEPT, MAX_FILES, MAX_IMAGES, readAttachment, type Attachment } from "./attachments.ts";
 import { Gespraechsliste } from "./Gespraechsliste.tsx";
 import { nurFuerLehrkraft, szenenAntwort, szenenNotiz } from "./vorschau.ts";
@@ -193,6 +193,7 @@ export function App() {
       )}
       {newClassOpen && (
         <NewClass
+          bekannteFaecher={[...new Set(tree.flatMap((k) => k.faecher.map((f) => f.name)))]}
           onCancel={() => setNewClassOpen(false)}
           onDone={() => {
             setNewClassOpen(false);
@@ -201,6 +202,39 @@ export function App() {
         />
       )}
     </>
+  );
+}
+
+/** Adds a subject to an existing class: pick one already used elsewhere, or type a new one. */
+function FachHinzufuegen({ klasse, alle, onDone }: { klasse: KlasseInfo; alle: KlasseInfo[]; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+  const known = [...new Set(alle.flatMap((k) => k.faecher.map((f) => f.name)))].filter((f) => !klasse.faecher.some((x) => x.name.toLowerCase() === f.toLowerCase()));
+  const add = async (fach: string) => {
+    const error = await addFach(klasse.name, fach).catch(() => "Keine Verbindung zu Pult.");
+    if (error) return setProblem(error);
+    setOpen(false);
+    setText("");
+    setProblem(null);
+    onDone();
+  };
+  if (!open) return <button type="button" className="tree-node f add" onClick={() => setOpen(true)}>+ Fach hinzufügen</button>;
+  return (
+    <form className="fach-add" onSubmit={(e) => { e.preventDefault(); if (text.trim()) void add(text); }}>
+      {known.length > 0 && (
+        <select aria-label={`Schon eingetragenes Fach zu ${klasse.name} hinzufügen`} value="" onChange={(e) => e.target.value && void add(e.target.value)}>
+          <option value="">Eingetragenes Fach wählen …</option>
+          {known.map((f) => <option key={f} value={f}>{f}</option>)}
+        </select>
+      )}
+      <input aria-label="Neues Fach" value={text} placeholder="oder neues Fach" onChange={(e) => { setText(e.target.value); setProblem(null); }} />
+      <div className="row">
+        <button type="submit" className="ghost small" disabled={!text.trim()}>Hinzufügen</button>
+        <button type="button" className="link" onClick={() => { setOpen(false); setProblem(null); }}>Abbrechen</button>
+      </div>
+      {problem && <p className="error">{problem}</p>}
+    </form>
   );
 }
 
@@ -748,6 +782,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                   ))}
                 </div>
               ))}
+              <FachHinzufuegen klasse={k} alle={tree} onDone={refreshTree} />
             </div>
           ))}
         </nav>

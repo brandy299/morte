@@ -10,7 +10,7 @@ import { streamSSE } from "hono/streaming";
 import { checkBaseUrl, checkChoice, createChatSession, CUSTOM_ID, CustomProviderError, fetchBalance, listProviders, ModelNotAllowed, testConnection, type ChatSession, type ImageAttachment } from "../core/agent/index.ts";
 import { createSecretStore, type SecretStore } from "../core/secrets/index.ts";
 import { zipFiles, zipName, ZIP_MAX_FILES } from "../core/workspace/zip.ts";
-import { createClass, initWorkspace, listAllMaterial, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
+import { addFach, createClass, initWorkspace, listAllMaterial, listTree, materialFile, materialInline, materialType, UserError } from "../core/workspace/index.ts";
 import pkg from "../../package.json" with { type: "json" };
 import { exportMarkdown } from "../core/history/export.ts";
 import { exportiere as exportiereStift, liste as listeStift, loescheHinweis, speichereHinweis, StiftFehler } from "../core/stift/index.ts";
@@ -329,6 +329,16 @@ export function createApp(state: AppState) {
     try {
       const name = await createClass(await c.req.json());
       return c.json({ name });
+    } catch (err) {
+      if (err instanceof UserError) return c.json({ error: err.message }, 400);
+      throw err;
+    }
+  });
+
+  app.post("/api/workspace/fach", async (c) => {
+    try {
+      const { klasse, fach } = await c.req.json<{ klasse: string; fach: string }>();
+      return c.json({ fach: await addFach(String(klasse ?? ""), String(fach ?? "")) });
     } catch (err) {
       if (err instanceof UserError) return c.json({ error: err.message }, 400);
       throw err;

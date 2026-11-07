@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  createClass, createReihe, initWorkspace, listTree, materialLuecken, readKlasse, readReihe, readStand,
+  addFach, createClass, createReihe, initWorkspace, listTree, materialLuecken, readKlasse, readReihe, readStand,
   setStunde, UserError, writeStand, saveMaterial, attachMaterial, materialFile, hasLehrplan,
 } from "./index.ts";
 
@@ -158,5 +158,15 @@ describe("workspace", () => {
 
   it("knows whether a Lehrplan is named", async () => {
     expect(await hasLehrplan("11a")).toBe(false);
+  });
+
+  it("adds a subject to an existing class without touching the others", async () => {
+    expect(await addFach("11A", "Wirtschaft")).toBe("Wirtschaft");
+    expect((await listTree())[0]!.faecher.map((f) => f.name)).toEqual(["Business English", "Wirtschaft"]);
+    expect((await readKlasse("11a")).match(/^Fächer: (.*)$/m)![1]).toBe("Business English, Wirtschaft");
+    expect(await readStand("11a", "Wirtschaft")).toContain("# Stand: 11a · Wirtschaft");
+    await expect(addFach("11a", "wirtschaft")).rejects.toThrow(/schon/);
+    await expect(addFach("11a", "../x")).rejects.toBeInstanceOf(UserError);
+    await expect(addFach("9z", "Mathe")).rejects.toBeInstanceOf(UserError);
   });
 });

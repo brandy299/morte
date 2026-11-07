@@ -750,3 +750,10 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .ordner-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ordner-chip button { border: 0; background: transparent; color: inherit; width: 22px; height: 22px; border-radius: 50%; line-height: 1; }
 .ordner-chip button:hover { background: var(--paper-deep); color: var(--accent-deep); }
+
+.guess-box { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--accent-wash); font-size: 15px; }
+.chips.pick button { border-style: dashed; }
+.tree-node.add { color: var(--ink-soft); font-size: 13.5px; }
+.fach-add { display: grid; gap: 6px; padding: 6px 8px 8px 20px; }
+.fach-add select, .fach-add input { width: 100%; font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+.chips.pick li { padding: 0; background: none; }

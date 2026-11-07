@@ -131,6 +131,12 @@ export async function createClass(input: NewClass): Promise<string | null> {
   return (await res.json().catch(() => ({}))).error ?? "Das hat nicht geklappt.";
 }
 
+/** Returns an error message in plain German, or null on success. */
+export async function addFach(klasse: string, fach: string): Promise<string | null> {
+  const res = await fetch("/api/workspace/fach", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ klasse, fach }) });
+  return res.ok ? null : ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Das hat nicht geklappt.";
+}
+
 export interface Material { title: string; name: string; path: string }
 /** One download with several material files as zip. */
 export const zipUrl = (paths: string[], name?: string) => `/api/material/zip?${[...paths.map((p) => `path=${encodeURIComponent(p)}`), ...(name ? [`name=${encodeURIComponent(name)}`] : [])].join("&")}`;
