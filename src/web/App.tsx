@@ -785,9 +785,9 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 </button>
               </div>
               {colorOpen === k.name && (
-                <div className="swatches" role="group" aria-label={`Farbe für ${k.name}`}>
+                <div className="farbwahl" role="group" aria-label={`Farbe für ${k.name}`}>
                   {Array.from({ length: PALETTE_SIZE }, (_, i) => (
-                    <button type="button" key={i} aria-label={`Farbe ${i + 1}`} aria-pressed={classColors(tree).get(k.name) === i} className={classColors(tree).get(k.name) === i ? "swatch on" : "swatch"} style={{ background: `var(--k${i})` }}
+                    <button type="button" key={i} aria-label={`Farbe ${i + 1}`} aria-pressed={classColors(tree).get(k.name) === i} className={classColors(tree).get(k.name) === i ? "farbpunkt on" : "farbpunkt"} style={{ background: `var(--k${i})` }}
                       onClick={() => void setzeKlassenfarbe(k.name, i).then(() => { setColorOpen(null); refreshTree(); })} />
                   ))}
                 </div>
