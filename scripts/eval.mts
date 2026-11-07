@@ -4,6 +4,7 @@
  *   PULT_EVAL_API_KEY=... npm run eval -- --modell openrouter/anthropic/claude-haiku-4.5 --pruefer openrouter/anthropic/claude-sonnet-4.5
  * Options: --skill a,b   only these skills     --limit 3   stop when the cost passes this many US dollars
  *          --ohne-pruefer   only the checks the program can decide (no judge, much cheaper)
+ *          --pruefen   switch "Material prüfen" on (second look after new material), to measure what it brings
  *          --wdh 2   play every test case this many times (models answer differently each time)
  *          --pruefer jev   rough, fast check with Jev (TypeSafe) instead of a language model, about a cent for all cases.
  *                          Needs TYPESAFE_API_KEY. Good after changing a skill, not for the numbers in BASELINE.md.
@@ -46,7 +47,7 @@ const now = `${stamp.slice(0, 10)} ${stamp.slice(11, 16)}`;
 const parts: string[] = [`# Prüfung der Anleitungen`, "", `Datum: ${now}  `, `Modell für das Material: ${gen.provider}/${gen.model}  `, `Prüfer: ${useJev ? `${JEV_MODEL} (grober Vortest, nicht mit einem Sprachmodell als Prüfer vergleichbar)` : judgeSpec ? `${judgeSpec.provider}/${judgeSpec.model}` : "keiner (nur Programmprüfungen)"}`, ""];
 const json: Record<string, CaseResult[]> = {};
 const dir = join(process.cwd(), "evals", "ergebnisse");
-const base = join(dir, `${stamp.slice(0, 10)}_${stamp.slice(11, 16).replace(":", "")}_${gen.model.replace(/[^\w.-]+/g, "-")}`);
+const base = join(dir, `${stamp.slice(0, 10)}_${stamp.slice(11, 16).replace(":", "")}_${gen.model.replace(/[^\w.-]+/g, "-")}${flag("pruefen") ? "_pruefen" : ""}`);
 /** Written after every skill, so a crash or a stop does not lose what is done. */
 const save = async () => {
   await mkdir(dir, { recursive: true });
@@ -65,7 +66,7 @@ for (const suite of suites) {
     // Rate limits and a judge that answers badly happen now and then: one more try before the case counts as failed.
     for (let attempt = 1; ; attempt++) {
       try {
-        const t = await runCase(c, { ...gen, apiKey });
+        const t = await runCase(c, { ...gen, apiKey }, { pruefen: flag("pruefen") });
         spent += t.kosten;
         const verdicts: Verdict[] = suite.kriterien.filter((k) => k.art === "Programm").map((k) => {
           const check = PROGRAMM[k.id];

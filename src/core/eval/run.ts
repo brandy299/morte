@@ -132,7 +132,7 @@ async function collectSaved(): Promise<string | undefined> {
  * Plays one test case in a fresh invented working folder: sends each message, says yes to every question
  * "May I ...?", and collects what the assistant said, what it did and what it left behind.
  */
-export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> & { timeoutMs?: number } = {}): Promise<Transcript> {
+export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<SessionDeps, "resolve"> & { timeoutMs?: number; pruefen?: boolean } = {}): Promise<Transcript> {
   const before = process.env.PULT_HOME;
   const home = await mkdtemp(join(tmpdir(), "pult-eval-"));
   process.env.PULT_HOME = home;
@@ -162,7 +162,7 @@ export async function runCase(c: EvalCase, settings: AgentSettings, deps: Pick<S
           turn.fragen.push(...e.fragen.map((f) => f.frage));
           session.answerQuestions(e.id, e.fragen.map((f) => ({ antwort: f.antworten[f.empfohlen - 1]!.text })));
         } else if (e.type === "error") turn.assistant += `\n[Fehler: ${e.message}]`;
-      }, n === 0 ? bilder.map(({ data, mimeType }) => ({ data, mimeType })) : []).finally(() => clearTimeout(timer));
+      }, n === 0 ? bilder.map(({ data, mimeType }) => ({ data, mimeType })) : [], { pruefen: deps.pruefen }).finally(() => clearTimeout(timer));
       turns.push(turn);
     }
     await readStand(KLASSE, FACH); // fails loudly when the folder was broken by the run

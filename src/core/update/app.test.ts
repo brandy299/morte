@@ -44,14 +44,12 @@ describe("update of the desktop app", () => {
     await publish(zipOf({ "package.json": "{}", "src/a.ts": "neu" }));
     expect((await checkUpdate()).verfuegbar).toBe(true);
     await startUpdate();
-    const aktuell = join(dir, "code", "aktuell");
+    const aktuell = join(dir, "code", SHA);
     expect(readFileSync(join(aktuell, "src", "a.ts"), "utf8")).toBe("neu");
     expect(readFileSync(join(aktuell, ".pult-stand"), "utf8")).toBe(SHA);
     expect(readFileSync(join(aktuell, ".basis"), "utf8")).toBe(`${BASIS}/1.0.0`);
     expect(existsSync(join(aktuell, "node_modules"))).toBe(true);
-    // A second update replaces the first one completely.
-    await startUpdate();
-    expect(existsSync(join(dir, "code", "alt"))).toBe(false);
+    expect(readFileSync(join(dir, "code", "aktuell.txt"), "utf8")).toBe(SHA);
   });
 
   it("cannot update by itself when the libraries or the shell changed and there is no installer for this system, and touches nothing", async () => {
@@ -64,14 +62,16 @@ describe("update of the desktop app", () => {
   });
 
   it("refuses a package with a wrong checksum and an unfinished package, and leaves the old code alone", async () => {
-    mkdirSync(join(dir, "code", "aktuell"), { recursive: true });
-    writeFileSync(join(dir, "code", "aktuell", "marker"), "alt");
+    mkdirSync(join(dir, "code", "a".repeat(40)), { recursive: true });
+    writeFileSync(join(dir, "code", "a".repeat(40), "marker"), "alt");
+    writeFileSync(join(dir, "code", "aktuell.txt"), "a".repeat(40));
     await publish(zipOf({ "package.json": "{}" }), { pruefsumme: "e".repeat(64) });
     await expect(startUpdate()).rejects.toThrow(/beschädigt/);
     server.close();
     await publish(zipOf({ "src/a.ts": "ohne package.json" }));
     await expect(startUpdate()).rejects.toThrow(/nicht richtig/);
-    expect(readFileSync(join(dir, "code", "aktuell", "marker"), "utf8")).toBe("alt");
+    expect(readFileSync(join(dir, "code", "a".repeat(40), "marker"), "utf8")).toBe("alt");
+    expect(readFileSync(join(dir, "code", "aktuell.txt"), "utf8")).toBe("a".repeat(40));
   });
 
   it("does not write outside its folder when a package contains .. paths", async () => {
@@ -86,7 +86,7 @@ describe("automatic update and installers", () => {
   it("fetches new code by itself, but only when it fits and is newer", async () => {
     await publish(zipOf({ "package.json": "{}" }));
     expect(await automatischAktualisieren()).toBe(true);
-    expect(readFileSync(join(dir, "code", "aktuell", ".pult-stand"), "utf8")).toBe(SHA);
+    expect(readFileSync(join(dir, "code", SHA, ".pult-stand"), "utf8")).toBe(SHA);
     process.env.PULT_AUTO_UPDATE = "0";
     rmSync(join(dir, "code"), { recursive: true, force: true });
     expect(await automatischAktualisieren()).toBe(false);
@@ -127,5 +127,22 @@ describe("automatic update and installers", () => {
     liste = "";
     await expect(ladeInstaller("0.3.0", "win32", "x64")).rejects.toThrow(/noch nicht fertig/);
     await expect(ladeInstaller("0.9.9", "win32", "x64")).rejects.toThrow(/noch nicht fertig/);
+  });
+});
+
+describe("the folder in use is never replaced", () => {
+  it("keeps the running folder when a newer version comes, points to the new one and leaves the libraries alone", async () => {
+    const laufend = join(dir, "code", "a".repeat(40));
+    mkdirSync(laufend, { recursive: true });
+    writeFileSync(join(laufend, "marker"), "laeuft");
+    writeFileSync(join(dir, "bibliotheken", "lib.js"), "bleibt");
+    await publish(zipOf({ "package.json": "{}" }));
+    await startUpdate();
+    expect(readFileSync(join(dir, "code", "aktuell.txt"), "utf8")).toBe(SHA);
+    // The old folder is removed when possible, but never through the link into the libraries.
+    expect(readFileSync(join(dir, "bibliotheken", "lib.js"), "utf8")).toBe("bleibt");
+    await startUpdate();
+    expect(readFileSync(join(dir, "bibliotheken", "lib.js"), "utf8")).toBe("bleibt");
+    expect(existsSync(join(dir, "code", SHA, "node_modules"))).toBe(true);
   });
 });
