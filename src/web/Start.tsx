@@ -197,13 +197,15 @@ const isTodayInWeek = (w: NonNullable<WocheAntwort["woche"]>, heute: string) => 
 
 function LessonCard({ s, past, color, selected, onOpen, onDrop }: { s: WochenStunde; past: boolean; color?: string; selected?: boolean; onOpen: () => void; onDrop: (files: FileList) => void }) {
   const [over, setOver] = useState(false);
-  const title = s.klasse ?? ([s.titel, s.gruppe].filter(Boolean).join(" · ") || "Ohne Titel");
+  // Closed it is one line. A click opens the rest in place; a lesson without a class goes straight to assigning.
+  const [open, setOpen] = useState(false);
+  const title = s.klasse ? [s.klasse, s.fach].filter(Boolean).join(" · ") : [s.titel, s.gruppe].filter(Boolean).join(" · ") || "Ohne Titel";
+  const assigned = Boolean(s.klasse);
+  const n = s.material ? s.material.split(", ").length : 0;
   return (
-    <button
-      type="button"
-      className={`lesson ${s.zustand}${over ? " over" : ""}${past ? " past" : ""}${selected ? " selected" : ""}${color ? " colored" : ""}`}
+    <div
+      className={`lesson ${s.zustand}${over ? " over" : ""}${past ? " past" : ""}${selected ? " selected" : ""}${color ? " colored" : ""}${open ? " open" : ""}`}
       style={color ? ({ "--k": color } as CSSProperties) : undefined}
-      onClick={onOpen}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
@@ -215,19 +217,26 @@ function LessonCard({ s, past, color, selected, onOpen, onDrop }: { s: WochenStu
         if (e.dataTransfer.files.length) onDrop(e.dataTransfer.files);
       }}
     >
-      <span className="lesson-time">
-        {s.von}–{s.bis}
-        {s.ort && <span className="room">{s.ort}</span>}
-      </span>
-      <strong className="lesson-title">{title}</strong>
-      {s.klasse && <span className="lesson-fach">{s.fach}</span>}
-      {s.klasse && <span className={s.thema ? "lesson-topic" : "lesson-topic none"}>{s.thema ?? "Noch nichts geplant"}</span>}
-      <span className="lesson-foot">
-        <span className={`pill ${s.zustand}`}>{LABEL[s.zustand]}</span>
-        {s.material && <span className="files">{s.material.split(", ").length} {s.material.split(", ").length === 1 ? "Datei" : "Dateien"}</span>}
-      </span>
+      <button type="button" className="lesson-head" aria-expanded={assigned ? open : undefined} aria-label={assigned ? undefined : `${title}, ${s.von} bis ${s.bis} Uhr, ${LABEL[s.zustand]}`} onClick={() => (assigned ? setOpen(!open) : onOpen())}>
+        <span className="lesson-time">{s.von}</span>
+        <strong className="lesson-title" title={title}>{title}</strong>
+        {assigned && <span className="lesson-chev" aria-hidden>›</span>}
+      </button>
+      {assigned && (
+        <div className="lesson-more" aria-hidden={!open}>
+          <div className="lesson-more-in">
+            <span className="lesson-meta">{s.von}–{s.bis}{s.ort ? ` · Raum ${s.ort}` : ""}</span>
+            <span className={s.thema ? "lesson-topic" : "lesson-topic none"}>{s.thema ?? "Noch nichts geplant"}</span>
+            <span className="lesson-foot">
+              <span className={`pill ${s.zustand}`}>{LABEL[s.zustand]}</span>
+              {n > 0 && <span className="files">{n} {n === 1 ? "Datei" : "Dateien"}</span>}
+            </span>
+            <button type="button" className="link lesson-open" tabIndex={open ? 0 : -1} onClick={onOpen}>Alle Details und Material</button>
+          </div>
+        </div>
+      )}
       {over && <span className="drop-hint">Hier ablegen</span>}
-    </button>
+    </div>
   );
 }
 
