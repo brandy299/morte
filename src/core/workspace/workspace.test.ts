@@ -169,4 +169,8 @@ describe("workspace", () => {
     await expect(addFach("11a", "../x")).rejects.toBeInstanceOf(UserError);
     await expect(addFach("9z", "Mathe")).rejects.toBeInstanceOf(UserError);
   });
+
+  it("tells the Schulform of each class in the tree", async () => {
+    expect((await listTree())[0]!.schulform).toBe("Berufskolleg");
+  });
 });

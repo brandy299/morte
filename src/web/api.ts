@@ -114,7 +114,7 @@ export const startDemo = () => post<{ ok: true }>("/api/setup/demo");
 
 export interface ReiheInfo { name: string; stunden: number; gehalten: number; ohneMaterial: number }
 export interface FachInfo { name: string; reihen: ReiheInfo[] }
-export interface KlasseInfo { name: string; faecher: FachInfo[] }
+export interface KlasseInfo { name: string; schulform?: string; faecher: FachInfo[] }
 export interface NewClass { name: string; schulform: string; stufe: string; kursniveau: string; faecher: string[]; besonderheiten: string }
 
 export const getTree = async (): Promise<KlasseInfo[]> => (await (await fetch("/api/workspace/tree")).json()).klassen;

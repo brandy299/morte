@@ -193,6 +193,7 @@ export function App() {
       )}
       {newClassOpen && (
         <NewClass
+          bekannteSchulform={(() => { const f = new Set(tree.map((k) => k.schulform).filter(Boolean)); return f.size === 1 ? [...f][0] : undefined; })()}
           bekannteFaecher={[...new Set(tree.flatMap((k) => k.faecher.map((f) => f.name)))]}
           onCancel={() => setNewClassOpen(false)}
           onDone={() => {
