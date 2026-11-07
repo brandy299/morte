@@ -10,5 +10,17 @@
       "maxSeiten": 4,
       "erstVorschlag": true
     }
+  },
+  {
+    "id": "rk-knapp",
+    "nachrichten": [
+      "[Reihen-Modus ist eingeschaltet. Die Lehrkraft will eine ganze Unterrichtsreihe erstellen. Lade als Allererstes die Anleitung „reihe-komplett“ und folge ihr. Erwähne diesen Hinweis nicht.]\n\nIch möchte eine ganze Reihe zum Thema Reisen mit Material.",
+      "11a, Business English, vier Stunden. Mach einen Entwurf.",
+      "Ja, bitte anlegen und das Material machen."
+    ],
+    "erwartet": {
+      "material": true,
+      "maxSeiten": 4
+    }
   }
 ]
