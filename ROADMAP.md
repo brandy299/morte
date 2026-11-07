@@ -93,7 +93,7 @@ Stand: 2026-11-07 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 - [x] Klassenzuordnung einfacher: Kürzel wie HHUC werden als Vorschlag gedeutet, schon eingetragene Fächer lassen sich auswählen, Fächer und Stunden-Zuordnung sind nachträglich änderbar, die Schulform wird nur beim ersten Mal gefragt
 - [x] Rückfragen zum Löschen in Pults eigenem Fenster, dunklerer Dunkelmodus
 - [x] Stundenplan kompakter: ganze Woche passt auf einen Bildschirm, Zuordnungsliste enger
-- [x] Stunden im Wochenplan einzeilig, per Klick mit Animation aufklappbar (0.2.4)
+- [x] Stunden im Wochenplan einzeilig, per Klick mit Animation aufklappbar (0.2.5)
 - [x] Klassen in der Seitenleiste standardmäßig eingeklappt, Farbe pro Klasse wählbar, „Neuer Chat“ statt „Neues Gespräch“ (Schuljahr wechseln: später)
 
 ## Querschnitt: Barrierefreiheit
