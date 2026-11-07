@@ -20,6 +20,7 @@ import { listSkills } from "../core/skills/index.ts";
 import { addUsage, monthUsage } from "../core/usage/index.ts";
 import { vorlagenRoutes } from "./vorlagen.ts";
 import { updateRoutes } from "./update.ts";
+import { automatischAktualisieren } from "../core/update/index.ts";
 import { lehrplanRoutes } from "./lehrplan.ts";
 import { stundenplanRoutes } from "./stundenplan.ts";
 import { keyName, type AppState } from "./state.ts";
@@ -530,4 +531,6 @@ if (isServerEntry(process.argv[1])) {
   serve({ fetch: app.fetch, port, hostname: "127.0.0.1" }, () =>
     console.log(`Pult läuft auf http://localhost:${port}`),
   );
+  // Desktop app: new Pult code is fetched in the background. Exit code 75 starts the server again from it (see electron/main.mjs).
+  if (process.env.PULT_APP === "1") setTimeout(() => void automatischAktualisieren().then((neu) => neu && process.exit(75)), 4000);
 }

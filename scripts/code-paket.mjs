@@ -27,12 +27,12 @@ for (const dir of ["src", "skills", "assets", "dist/web"]) walk(join(root, dir),
 files["package.json"] = new Uint8Array(readFileSync(join(root, "package.json")));
 
 const huelle = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).pultHuelle ?? 0;
-// Must be computed exactly as in electron/main.mjs.
-const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).update(`\n${huelle}`).digest("hex");
+// Must be computed exactly as in electron/main.mjs. Line endings are ignored: Windows checks files out with CRLF.
+const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"), "utf8").replace(/\r\n/g, "\n")).update(`\n${huelle}`).digest("hex");
 const sha = process.env.GITHUB_SHA ?? execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
 
 mkdirSync(out, { recursive: true });
 const zip = Buffer.from(zipSync(files, { level: 9 }));
 writeFileSync(join(out, "code.zip"), zip);
-writeFileSync(join(out, "code.json"), JSON.stringify({ sha, basis, pruefsumme: createHash("sha256").update(zip).digest("hex") }, null, 2) + "\n");
+writeFileSync(join(out, "code.json"), JSON.stringify({ sha, version: JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version, basis, pruefsumme: createHash("sha256").update(zip).digest("hex") }, null, 2) + "\n");
 console.log(`code.zip: ${(zip.length / 1e6).toFixed(1)} MB, ${Object.keys(files).length} Dateien, Stand ${sha.slice(0, 7)}`);

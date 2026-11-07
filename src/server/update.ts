@@ -6,15 +6,17 @@ export function updateRoutes(app: Hono) {
   app.get("/api/update", async (c) => c.json(await checkUpdate()));
 
   app.post("/api/update/start", async (c) => {
+    let danach: Awaited<ReturnType<typeof startUpdate>>;
     try {
-      await startUpdate();
+      danach = await startUpdate();
     } catch (err) {
       if (err instanceof UpdateError) return c.json({ error: err.message }, 400);
       throw err;
     }
     // The updater waits until this server is gone, then swaps the files. The answer must be out first.
     // In the desktop app the code is already swapped; exit code 75 tells the app to start the server again from the new code.
-    setTimeout(() => process.exit(process.env.PULT_APP === "1" ? 75 : 0), 500);
+    // Exit code 77: the whole program is replaced, the app closes (a helper installs it and starts Pult again).
+    setTimeout(() => process.exit(danach === "beenden" ? 77 : process.env.PULT_APP === "1" ? 75 : 0), 500);
     return c.json({ ok: true });
   });
 }

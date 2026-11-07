@@ -23,10 +23,12 @@ const read = (p) => {
   }
 };
 const huelle = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).pultHuelle ?? 0;
-// Must be computed exactly as in scripts/code-paket.mjs.
-const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"))).update(`\n${huelle}`).digest("hex");
+// Must be computed exactly as in scripts/code-paket.mjs. Line endings are ignored: Windows checks files out with CRLF.
+const basis = createHash("sha256").update(readFileSync(join(root, "package-lock.json"), "utf8").replace(/\r\n/g, "\n")).update(`\n${huelle}`).digest("hex");
 const useOverride = () => existsSync(override) && read(join(override, ".basis")) === `${basis}/${app.getVersion()}`;
 let codeRoot = root;
+// Switched off after new code failed to start, so a broken update cannot loop.
+let autoUpdate = true;
 // A fixed address, so settings kept by the page (look, drafts) stay between starts. Another one only if this one is taken.
 const WISH_PORT = Number(process.env.PULT_PORT ?? 38517);
 
@@ -69,7 +71,7 @@ function startServer(port) {
     cwd: codeRoot,
     windowsHide: true,
     stdio: ["ignore", "inherit", "inherit"],
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", PULT_APP: "1", PULT_BASIS: basis, PULT_APP_VERSION: app.getVersion(), PULT_CODE_DIR: codeDir, PULT_NODE_MODULES: join(root, "node_modules"), PORT: String(port), NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1", NODE_OPTIONS: "--disable-warning=UNDICI-EHPA" },
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", PULT_APP: "1", PULT_AUTO_UPDATE: autoUpdate ? "1" : "0", PULT_BASIS: basis, PULT_APP_VERSION: app.getVersion(), PULT_CODE_DIR: codeDir, PULT_NODE_MODULES: join(root, "node_modules"), PORT: String(port), NODE_USE_SYSTEM_CA: "1", NODE_USE_ENV_PROXY: "1", NODE_OPTIONS: "--disable-warning=UNDICI-EHPA" },
   });
   const mine = server;
   server.on("exit", async (code) => {
@@ -81,6 +83,12 @@ function startServer(port) {
       else if (await fallBack(port)) BrowserWindow.getAllWindows().forEach((w) => w.loadURL(origin));
       return;
     }
+    // Exit code 77: the update installs a new version of the whole program and needs this app closed.
+    if (code === 77) {
+      quitting = true;
+      app.quit();
+      return;
+    }
     if (!quitting) {
       say("Pult wurde beendet", "Pult ist unerwartet angehalten worden. Bitte starte es noch einmal. Hilft das nicht, schick ein Foto dieser Meldung an Yannik.");
       app.quit();
@@ -90,6 +98,7 @@ function startServer(port) {
 
 /** New code that does not start is thrown away; the installed code takes over again. True when the server then answers. */
 async function fallBack(port) {
+  autoUpdate = false;
   server?.kill();
   rmSync(override, { recursive: true, force: true });
   startServer(port);

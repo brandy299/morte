@@ -99,6 +99,8 @@ function Ordner() {
 
 interface UpdateInfo {
   verfuegbar: boolean;
+  /** The whole program is replaced: Pult closes, installs and opens again. */
+  neuInstallieren?: boolean;
   aktuell: string;
   neu: string;
   hinweis?: string;
@@ -107,6 +109,7 @@ interface UpdateInfo {
 function Update() {
   const [info, setInfo] = useState<UpdateInfo | null>(null);
   const [phase, setPhase] = useState<"idle" | "running" | "failed">("idle");
+  const [problem, setProblem] = useState("");
   useEffect(() => {
     fetch("/api/update")
       .then((r) => r.json())
@@ -117,7 +120,11 @@ function Update() {
   const start = async () => {
     setPhase("running");
     const res = await fetch("/api/update/start", { method: "POST" }).catch(() => undefined);
-    if (!res?.ok) return setPhase("failed");
+    if (!res?.ok) {
+      setProblem((await res?.json().catch(() => undefined))?.error ?? "");
+      return setPhase("failed");
+    }
+    if (info?.neuInstallieren) return;
     // In the desktop app the window stays: wait until the server is back, then load the new page.
     if (window.pultApp) {
       await new Promise((r) => setTimeout(r, 1500));
@@ -133,7 +140,7 @@ function Update() {
     return (
       <div className="settings-panel prose" role="status">
         <h2>Pult wird aktualisiert</h2>
-        <p className="lead">{window.pultApp ? "Das dauert einen Moment, dann geht es hier von allein weiter. Bitte schließe das Fenster nicht. " : "Pult startet gleich neu und öffnet sich in einem neuen Fenster. Das dauert ein bis zwei Minuten. Du kannst dieses Fenster schließen. "}Deine Gespräche, Klassen und Schlüssel bleiben erhalten.</p>
+        <p className="lead">{info?.neuInstallieren ? "Pult lädt die neue Version, schließt sich dann und öffnet sich nach dem Installieren von allein wieder. Das dauert etwa eine Minute. " : window.pultApp ? "Das dauert einen Moment, dann geht es hier von allein weiter. Bitte schließe das Fenster nicht. " : "Pult startet gleich neu und öffnet sich in einem neuen Fenster. Das dauert ein bis zwei Minuten. Du kannst dieses Fenster schließen. "}Deine Gespräche, Klassen und Schlüssel bleiben erhalten.</p>
       </div>
     );
   }
@@ -145,10 +152,10 @@ function Update() {
       {info && !info.hinweis && (
         <p className="lead">{info.verfuegbar ? "Es gibt eine neuere Version von Pult." : "Du hast die neueste Version."}</p>
       )}
-      {phase === "failed" && <p role="alert">Das Aktualisieren hat nicht geklappt. Versuche es später noch einmal.</p>}
+      {phase === "failed" && <p role="alert">{problem || "Das Aktualisieren hat nicht geklappt. Versuche es später noch einmal."}</p>}
       {info?.verfuegbar && (
         <>
-          <p className="muted">Alles, was du in Pult gemacht hast, bleibt erhalten. Pult startet kurz neu und geht dann von selbst weiter.</p>
+          <p className="muted">Alles, was du in Pult gemacht hast, bleibt erhalten. {info.neuInstallieren ? "Pult schließt sich kurz und öffnet sich von allein wieder." : "Pult startet kurz neu und geht dann von selbst weiter."}</p>
           <div className="setup-actions">
             <button type="button" className="primary" onClick={start}>
               Jetzt aktualisieren
@@ -183,8 +190,8 @@ function Datenschutz() {
   );
 }
 
-export function Einstellungen({ status, onClose, onDone }: { status: SetupStatus; onClose: () => void; onDone: () => void }) {
-  const [tab, setTab] = useState<Tab>("aussehen");
+export function Einstellungen({ status, onClose, onDone, startTab = "aussehen" }: { status: SetupStatus; onClose: () => void; onDone: () => void; startTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(startTab);
   return (
     <main className="setup">
       <div className="setup-card wide settings">

@@ -14,9 +14,7 @@
 
 ## Neue Version
 
-In Pult: **Einstellungen → Update → Jetzt aktualisieren**. Pult holt die neuen Teile selbst und startet kurz neu. Du musst nichts herunterladen oder neu installieren, deine Daten bleiben.
-
-Nur selten (wenn sich der Unterbau ändert) steht dort, dass eine neue Installation nötig ist. Dann lädst du die neue Datei von der Release-Seite und installierst sie über die alte, deine Daten bleiben auch dann.
+Kleine Updates holt Pult beim Start von selbst im Hintergrund, du merkst nichts. Größere Updates meldet Pult links unten („Neue Version – jetzt holen“). Ein Klick auf **Jetzt aktualisieren** genügt: Pult lädt die neue Version, schließt sich, installiert sie und öffnet sich von allein wieder. Du musst nichts herunterladen. Die Warnung von Mac oder Windows kommt dabei nicht noch einmal. Deine Daten bleiben.
 
 ## Warum die Warnung?
 
