@@ -75,8 +75,8 @@ async function streamChat(path: string, body: unknown, onEvent: (e: ChatEvent) =
   await readEvents(res.body, onEvent);
 }
 
-export const sendMessage = (text: string, images: ImageAttachment[], files: FileText[], onEvent: (e: ChatEvent) => void, signal: AbortSignal, modus?: "reihe") =>
-  streamChat("/api/chat", { text, images, dateien: files, modus }, onEvent, signal);
+export const sendMessage = (text: string, images: ImageAttachment[], files: FileText[], onEvent: (e: ChatEvent) => void, signal: AbortSignal, modus?: "reihe", pruefen = false) =>
+  streamChat("/api/chat", { text, images, dateien: files, modus, pruefen }, onEvent, signal);
 
 /** Goes on with a failed answer ("Nochmal versuchen") without asking the question again. */
 export const retryMessage = (onEvent: (e: ChatEvent) => void, signal: AbortSignal) => streamChat("/api/chat/retry", {}, onEvent, signal);

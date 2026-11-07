@@ -43,9 +43,14 @@ export interface ImageAttachment {
   mimeType: string;
 }
 
+export interface SendOptions {
+  /** After new material is made, the model checks it once more and fixes real mistakes. */
+  pruefen?: boolean;
+}
+
 export interface ChatSession {
   /** Sends one user message and streams events until the answer is complete. */
-  send(text: string, onEvent: (event: ChatEvent) => void, images?: ImageAttachment[]): Promise<void>;
+  send(text: string, onEvent: (event: ChatEvent) => void, images?: ImageAttachment[], options?: SendOptions): Promise<void>;
   /** Tries the last question again after a failure, without asking it twice. Same events as `send`. */
   retry(onEvent: (event: ChatEvent) => void): Promise<void>;
   /** There is a failed answer that `retry` can take up. */

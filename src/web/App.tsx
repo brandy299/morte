@@ -22,6 +22,7 @@ import { Einstellungen } from "./Einstellungen.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
 import { Setup } from "./Setup.tsx";
 import { Diktat } from "./Diktat.tsx";
+import { PruefSchalter, pruefenAn } from "./PruefSchalter.tsx";
 import { OrdnerKnopf } from "./OrdnerKnopf.tsx";
 import { fuegeDiktatEin } from "./diktat.ts";
 
@@ -421,6 +422,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   }, [currentId]);
   const [view, setView] = useState<"chat" | "start" | "material">(initialView);
   const [input, setInput] = useState("");
+  const [pruefen, setPruefen] = useState(pruefenAn);
   const [reiheModus, setReiheModus] = useState(() => {
     try { return localStorage.getItem("pult-modus-reihe") === "an"; } catch { return false; }
   });
@@ -647,7 +649,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
       { role: "user", text, images: sent.flatMap((a) => (a.preview ? [a.preview] : [])), dateien: sent.filter((a) => a.text !== undefined).map((a) => a.name), steps: [] },
       { role: "assistant", text: "", steps: [] },
     ]);
-    await stream((signal, onEvent) => sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), onEvent, signal, reiheModus ? "reihe" : undefined));
+    await stream((signal, onEvent) => sendMessage(text, sent.flatMap((a) => a.images), sent.flatMap((a) => (a.text !== undefined ? [{ name: a.name, text: a.text }] : [])), onEvent, signal, reiheModus ? "reihe" : undefined, pruefen));
   };
 
   /** Runs one request to the assistant and takes care of what happens when the connection breaks. */
@@ -1134,6 +1136,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
               <button type="button" className="modus-btn" aria-pressed={reiheModus} title="Mit dem Reihen-Modus planst du eine ganze Unterrichtsreihe und bekommst das Material für alle Stunden" onClick={() => stelleReiheModus(!reiheModus)}>
                 Reihe{reiheModus ? ": an" : ""}
               </button>
+              <PruefSchalter on={pruefen} onChange={setPruefen} />
               <span className="grow" />
               <ModelInfo status={status} onSettings={onSettings} />
               <UsageMeter usage={usage} />
