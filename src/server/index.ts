@@ -24,6 +24,8 @@ import { updateRoutes } from "./update.ts";
 import { automatischAktualisieren } from "../core/update/index.ts";
 import { lehrplanRoutes } from "./lehrplan.ts";
 import { stundenplanRoutes } from "./stundenplan.ts";
+import { internetRoutes, suchDienst } from "./internet.ts";
+import { internetAn } from "../core/internet/einstellung.ts";
 import { keyName, type AppState } from "./state.ts";
 
 export type { AppState };
@@ -53,7 +55,7 @@ async function buildSession(state: AppState, choice: NonNullable<AppState["choic
   state.conversation = undefined; // a new session starts a new conversation
   state.session?.abort();
   const { skills } = await listSkills();
-  state.session = createChatSession({ ...choice, apiKey }, { skills, ordner: () => state.ordner, onUsage: (d) => void addUsage(d).catch(() => {}) });
+  state.session = createChatSession({ ...choice, apiKey }, { skills, ordner: () => state.ordner, internet: { an: internetAn, dienst: () => suchDienst(state) }, onUsage: (d) => void addUsage(d).catch(() => {}) });
 }
 
 export async function loadState(secrets: SecretStore): Promise<AppState> {
@@ -503,6 +505,7 @@ export function createApp(state: AppState) {
 
   lehrplanRoutes(app, state);
   stundenplanRoutes(app, state);
+  internetRoutes(app, state);
   vorlagenRoutes(app);
   updateRoutes(app);
 
