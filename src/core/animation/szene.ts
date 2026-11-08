@@ -22,6 +22,16 @@ export const PALETTEN = ["wasser", "wiese", "abend"] as const;
 export type Palette = (typeof PALETTEN)[number];
 export const TEMPI = ["ruhig", "mittel", "zuegig"] as const;
 export type Tempo = (typeof TEMPI)[number];
+/** Quiet moving backgrounds (assets/animation/hintergrund.js), or none. */
+export const HINTERGRUENDE = ["wellenlinien", "wellenringe", "formen", "flecken", "punktraster", "flaechen", "keiner"] as const;
+export type Hintergrund = (typeof HINTERGRUENDE)[number];
+
+/** Without a choice the pieces take turns through the backgrounds: the title decides which, so the same piece keeps its own. */
+export function hintergrundFuer(titel: string): Hintergrund {
+  let h = 0;
+  for (const ch of titel) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
+  return HINTERGRUENDE[h % (HINTERGRUENDE.length - 1)]!;
+}
 
 export const MAX_SZENEN = 10;
 export const MAX_ELEMENTE = 8;
@@ -45,6 +55,7 @@ export interface Erklaerstueck {
   untertitel?: string;
   palette: Palette;
   tempo: Tempo;
+  hintergrund: Hintergrund;
   szenen: Szene[];
 }
 
@@ -109,11 +120,13 @@ export function parseErklaerstueck(raw: unknown): Erklaerstueck {
     }
     return { titel: feld(`Szene ${nr}`, e.titel, "der Titel", 80), elemente };
   });
+  const titel = str(o.titel, "der Titel", 80, true)!;
   return {
-    titel: str(o.titel, "der Titel", 80, true)!,
+    titel,
     untertitel: str(o.untertitel, "der Untertitel", 120),
     palette: oneOf(o.palette, PALETTEN, "Die Farbwelt (palette)", "wasser"),
     tempo: oneOf(o.tempo, TEMPI, "Das Tempo", "mittel"),
+    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", hintergrundFuer(titel)),
     szenen,
   };
 }
