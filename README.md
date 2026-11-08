@@ -36,7 +36,7 @@
 | „Erklärstück zum Wasserkreislauf“ | Eine animierte HTML-Datei, die du am Beamer abspielst |
 | „Präsentation zu …“ | PowerPoint-Datei mit Schaubildern als echten Objekten |
 | „Bau mir so ein Blatt wie auf dem Foto“ | Ein neues Blatt in der Machart des Fotos, mit eigenen Inhalten |
-| „Such mir aktuelle Zahlen zu …“, „Schau dir diesen Link an“ | Sucht im Internet (über DeepSeek oder OpenRouter) und liest Seiten, mit Quellenangabe. Abschaltbar |
+| „Such mir aktuelle Zahlen zu …“, „Schau dir diesen Link an“ | Sucht im Internet (ohne Schlüssel über das kostenlose Exa, mit Schlüssel über DeepSeek oder OpenRouter) und liest Seiten, mit Quellenangabe. Abschaltbar |
 | „Differenzieren“, „Verständnis-Check“ | Ein Blatt in drei Niveaus (Basis, Standard, Erweiterung); ein kurzer Test zum Stundenende mit Lösungen und typischen Fehlvorstellungen |
 
 Dazu: Klassen mit Stand und Reihen, dein **Stundenplan als Kalender (iCal)** mit Wochenansicht und „Material fehlt“, hinterlegte **Lehrpläne**, eigene **Vorlagen**, **Schulkopf** auf dem Material und unter jedem Material „Passt“ und „Passt nicht“ als Rückmeldung.

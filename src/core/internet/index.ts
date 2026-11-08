@@ -1,6 +1,7 @@
 /**
  * Searching the web and reading pages for the assistant (decision 026).
- * Search runs over a service the teacher already has a key for: DeepSeek (own search API) or OpenRouter (web plugin).
+ * Search runs over a service the teacher already has a key for: DeepSeek (own search API) or OpenRouter (web plugin);
+ * without any of them over Exa's free public endpoint, which needs no key (the same one OpenCode uses).
  * Reading a page needs no key. Pages are only fetched from public addresses: never the teacher's own computer
  * or the school network, so a page or a model cannot use Pult to look into it.
  */
@@ -12,7 +13,7 @@ export interface Seite { titel: string; url: string; text: string; gekuerzt: boo
 
 /** A search service the assistant can use. */
 export interface Dienst {
-  name: "DeepSeek" | "OpenRouter";
+  name: "DeepSeek" | "OpenRouter" | "Exa";
   suchen(frage: string, signal?: AbortSignal): Promise<Treffer[]>;
   /** Reads a page on the service's side; without it Pult reads the page itself. */
   lesen?(url: string, signal?: AbortSignal): Promise<Seite>;
@@ -105,6 +106,53 @@ export function openrouterDienst(key: string, model: string, opts: { fetch?: Fet
         .filter((a) => a.type === "url_citation" && a.url_citation?.url)
         .map((a) => ({ titel: a.url_citation!.title ?? "", url: a.url_citation!.url!, text: kurz(a.url_citation!.content ?? "", 1200) }))
         .filter((t) => /^https?:\/\//.test(t.url) && !gesehen.has(t.url) && gesehen.add(t.url));
+    },
+  };
+}
+
+/** Splits Exa's text answer ("Title: … URL: … Text: …" blocks) into hits. An answer in another shape stays one hit. */
+export function exaTreffer(text: string): Treffer[] {
+  const field = (block: string, name: string) => block.match(new RegExp(`^${name}:\\s*(.*)$`, "m"))?.[1]?.trim() ?? "";
+  const hits = text
+    .split(/\n(?=Title: )/)
+    .map((block) => {
+      const url = field(block, "URL");
+      const body = block.split(/^(?:Text|Highlights|Summary):\s*/m).slice(1).join(" ") || block.replace(/^(Title|URL|Published Date|Author|ID|Score|Image|Favicon):.*$/gm, "");
+      return { titel: field(block, "Title"), url, text: kurz(body.replace(/\s+/g, " ").trim(), 1200) };
+    })
+    .filter((t) => /^https?:\/\//.test(t.url));
+  return hits.length ? hits : text.trim() ? [{ titel: "Suchergebnis", url: "", text: kurz(text.trim(), 4000) }] : [];
+}
+
+/** Exa's public MCP endpoint: free and without a key, but rate limited. The answer is JSON or an event stream. */
+export function exaDienst(opts: { fetch?: FetchFn } = {}): Dienst {
+  const f = opts.fetch ?? fetch;
+  return {
+    name: "Exa",
+    async suchen(frage, signal) {
+      const res = await f("https://mcp.exa.ai/mcp", {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "web_search_exa", arguments: { query: kurz(frage, MAX_FRAGE), type: "auto", numResults: 6, livecrawl: "fallback", contextMaxCharacters: 8000 } },
+        }),
+        signal: signal ?? AbortSignal.timeout(30_000),
+      }).catch(() => undefined);
+      if (!res) throw new InternetError("Die kostenlose Suche ist gerade nicht erreichbar.");
+      if (res.status === 429) throw new InternetError("Die kostenlose Suche ist gerade überlastet. Versuch es in einer Minute noch einmal.");
+      if (!res.ok) throw new InternetError(`Die kostenlose Suche antwortet mit einem Fehler (${res.status}).`);
+      const raw = (await res.text().catch(() => "")).trim();
+      const jsons = raw.startsWith("{") ? [raw] : raw.split("\n").filter((l) => l.startsWith("data: ")).map((l) => l.slice(6));
+      for (const j of jsons) {
+        try {
+          const text = (JSON.parse(j) as { result?: { content?: { text?: string }[] } }).result?.content?.find((c) => c.text)?.text;
+          if (text) return exaTreffer(text);
+        } catch {}
+      }
+      return [];
     },
   };
 }

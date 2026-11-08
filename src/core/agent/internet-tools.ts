@@ -15,7 +15,7 @@ const KEIN_DIENST =
 export interface InternetDeps {
   /** Whether the teacher allows the web, read at every use. */
   an: () => Promise<boolean>;
-  /** The search service for the stored keys, read at every use. Undefined: no search, reading still works. */
+  /** The search service for the stored keys, read at every use. Undefined: no search, reading still works (kept for tests and future use). */
   dienst: () => Promise<Dienst | undefined>;
   /** For tests: reads a page without the network. */
   lesen?: (url: string, signal?: AbortSignal) => Promise<Seite>;

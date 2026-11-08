@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { internetTools, FREMD } from "../agent/internet-tools.ts";
-import { deepseekDienst, htmlZuText, InternetError, istPrivat, MAX_TEXT, openrouterDienst, pruefeAdresse, seiteLesen, type Dienst } from "./index.ts";
+import { deepseekDienst, exaDienst, htmlZuText, InternetError, istPrivat, MAX_TEXT, openrouterDienst, pruefeAdresse, seiteLesen, type Dienst } from "./index.ts";
 
 /** A fake web: answers by link, records what was asked. */
 function netz(seiten: Record<string, { status?: number; headers?: Record<string, string>; body?: string }>) {
@@ -114,6 +114,29 @@ describe("search services", () => {
   it("DeepSeek: explains a refused key in plain words", async () => {
     const { f } = netz({ "https://api.deepseek.com/v1/tools/search": { status: 401 } });
     await expect(deepseekDienst("x", { fetch: f }).suchen("a")).rejects.toThrow(/Schlüssel/);
+  });
+
+  it("Exa: asks the free endpoint without a key, reads an event stream and splits the hits", async () => {
+    const text = "Title: Wasserkreislauf\nURL: https://de.wikipedia.org/wiki/Wasserkreislauf\nPublished Date: 2024\nText: Wasser verdunstet.\n\nTitle: Klimawandel\nURL: https://b.example/\nText: Es wird warm.";
+    const rpc = JSON.stringify({ jsonrpc: "2.0", id: 1, result: { content: [{ type: "text", text }] } });
+    for (const body of [rpc, `event: message\ndata: ${rpc}\n\n`]) {
+      const { f, gefragt } = netz({ "https://mcp.exa.ai/mcp": { headers: { "content-type": "text/event-stream" }, body } });
+      const t = await exaDienst({ fetch: f }).suchen("Wasserkreislauf");
+      expect(t).toEqual([
+        { titel: "Wasserkreislauf", url: "https://de.wikipedia.org/wiki/Wasserkreislauf", text: "Wasser verdunstet." },
+        { titel: "Klimawandel", url: "https://b.example/", text: "Es wird warm." },
+      ]);
+      const init = gefragt[0]!.init!;
+      expect(JSON.stringify(init.headers)).not.toMatch(/authorization|key/i);
+      expect(JSON.parse(String(init.body))).toMatchObject({ method: "tools/call", params: { name: "web_search_exa", arguments: { query: "Wasserkreislauf" } } });
+    }
+  });
+
+  it("Exa: a busy service gives a plain sentence, an answer in another shape stays one hit", async () => {
+    await expect(exaDienst({ fetch: netz({ "https://mcp.exa.ai/mcp": { status: 429 } }).f }).suchen("a")).rejects.toThrow(/überlastet/);
+    const rpc = JSON.stringify({ result: { content: [{ type: "text", text: "Freier Text ohne Felder" }] } });
+    const t = await exaDienst({ fetch: netz({ "https://mcp.exa.ai/mcp": { body: rpc } }).f }).suchen("a");
+    expect(t).toEqual([{ titel: "Suchergebnis", url: "", text: "Freier Text ohne Felder" }]);
   });
 
   it("OpenRouter: uses the chosen model with the web plugin and returns each cited page once", async () => {

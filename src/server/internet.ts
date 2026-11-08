@@ -1,5 +1,5 @@
 import type { Hono } from "hono";
-import { deepseekDienst, openrouterDienst, type Dienst } from "../core/internet/index.ts";
+import { deepseekDienst, exaDienst, openrouterDienst, type Dienst } from "../core/internet/index.ts";
 import { internetAn, setzeInternet } from "../core/internet/einstellung.ts";
 import { addUsage } from "../core/usage/index.ts";
 import { keyName, type AppState } from "./state.ts";
@@ -8,9 +8,9 @@ const kosten = (dollar: number) => void addUsage({ input: 0, output: 0, cost: do
 
 /**
  * The search service for the keys on this computer: DeepSeek when there is a DeepSeek key (own search API,
- * cheapest), else OpenRouter when it is the chosen provider (its web plugin needs a model). Otherwise none.
+ * cheapest), else OpenRouter when it is the chosen provider (its web plugin needs a model). Otherwise Exa's free endpoint without a key.
  */
-export async function suchDienst(state: AppState): Promise<Dienst | undefined> {
+export async function suchDienst(state: AppState): Promise<Dienst> {
   const deepseek = await state.secrets.get(keyName("deepseek")).catch(() => undefined);
   if (deepseek) return deepseekDienst(deepseek, { onKosten: kosten });
   const choice = state.choice;
@@ -18,7 +18,7 @@ export async function suchDienst(state: AppState): Promise<Dienst | undefined> {
     const key = await state.secrets.get(keyName("openrouter")).catch(() => undefined);
     if (key) return openrouterDienst(key, choice.model, { onKosten: kosten });
   }
-  return undefined;
+  return exaDienst();
 }
 
 export function internetRoutes(app: Hono, state: AppState) {

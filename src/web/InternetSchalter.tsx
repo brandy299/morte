@@ -17,9 +17,11 @@ export function InternetSchalter() {
       setProblem((e as Error).message);
     }
   };
-  const wie = info.dienst
+  const wie = info.dienst === "Exa"
+    ? "Ich suche kostenlos über Exa, ohne Schlüssel. Bei sehr vielen Anfragen kann es kurz überlastet sein."
+    : info.dienst
     ? `Ich suche über ${info.dienst}. Das kostet etwas Guthaben, meist unter einem Cent pro Suche.`
-    : "Links, die du mir schickst, kann ich lesen. Selbst suchen kann ich erst mit einem Schlüssel von DeepSeek oder OpenRouter.";
+    : "Links, die du mir schickst, kann ich lesen.";
   return (
     <>
       <label className="check">

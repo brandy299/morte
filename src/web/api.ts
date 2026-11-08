@@ -328,7 +328,7 @@ export const getGewaehlterOrdner = async (): Promise<GewaehlterOrdner> => ordner
 export const setGewaehlterOrdner = async (pfad: string) => ordnerJson(await fetch("/api/arbeitsordner", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ pfad }) }));
 export const clearGewaehlterOrdner = async () => ordnerJson(await fetch("/api/arbeitsordner", { method: "DELETE" }));
 
-export interface InternetInfo { an: boolean; dienst: "DeepSeek" | "OpenRouter" | null }
+export interface InternetInfo { an: boolean; dienst: "DeepSeek" | "OpenRouter" | "Exa" | null }
 
 export async function getInternet(): Promise<InternetInfo> {
   const res = await fetch("/api/internet");
