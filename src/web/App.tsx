@@ -18,6 +18,7 @@ import { filterVorlagen, kurz, slashQuery, startText as slashStart } from "./sla
 import { classColors, classVar, PALETTE_SIZE } from "./klassenfarbe.ts";
 import { Fragen, FragenRueckblick } from "./Fragen.tsx";
 import { Logo } from "./Logo.tsx";
+import { WarteMuster } from "./WarteMuster.tsx";
 import { Einstellungen } from "./Einstellungen.tsx";
 import { UpdateLauf, useNeueVersion } from "./UpdateLauf.tsx";
 import { MaterialSeite } from "./MaterialSeite.tsx";
@@ -1018,7 +1019,7 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
             ))}
             {statusLine && (
               <div className="status" role="status" aria-live="polite">
-                <span className="dots" aria-hidden><i /><i /><i /></span>
+                <WarteMuster />
                 {statusLine}
               </div>
             )}
