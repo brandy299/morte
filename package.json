@@ -1,6 +1,6 @@
 {
   "name": "pult",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "private": true,
   "license": "Apache-2.0",
   "description": "Pult: der KI-Arbeitsplatz für Lehrkräfte",
@@ -90,6 +90,7 @@
       ".pult-stand"
     ],
     "mac": {
+      "identity": "-",
       "category": "public.app-category.education",
       "target": [
         "dmg"

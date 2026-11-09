@@ -5,6 +5,7 @@
 1. Lade die Datei „Pult-…-mac-….dmg“ herunter (Apple-Chip: „arm64“, älterer Mac mit Intel: „x64“).
 2. Öffne sie und ziehe Pult in den Ordner „Programme“.
 3. Beim ersten Öffnen kommt eine Warnung („nicht geöffnet“). Öffne **Systemeinstellungen → Datenschutz & Sicherheit**, scrolle nach unten und klicke bei Pult auf **Trotzdem öffnen**. Das ist nur beim ersten Mal nötig.
+4. Sagt der Mac stattdessen „Pult ist beschädigt und kann nicht geöffnet werden“: Die App ist in Ordnung, nur die Sperre des Macs ist zu streng (vor allem bei Downloads mit Firefox). Öffne das Programm „Terminal“, füge `xattr -cr /Applications/Pult.app` ein, drücke Enter und starte Pult neu.
 
 ## Windows
 
