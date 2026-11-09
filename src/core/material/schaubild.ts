@@ -8,6 +8,7 @@
 import { MaterialError, SANS, SANS_BOLD, str, textWidth } from "./layout.ts";
 import type { Bild } from "../bilder/index.ts";
 import { mischen } from "./mischen.ts";
+import { etikettSetzen, KOLLISION, pfadSchneidet, pruefeSzene, ueberlappt, umweg, type Punkt, type Rechteck, type Umgebung, type Variante } from "./schaubild-lage.ts";
 
 export type SchaubildArt = "ablauf" | "hierarchie" | "kreislauf" | "zeitstrahl" | "saeulen" | "oberflaeche" | "bild";
 
@@ -56,7 +57,22 @@ const ARTEN: SchaubildArt[] = ["ablauf", "hierarchie", "kreislauf", "zeitstrahl"
 
 /** Checks a diagram from the model. Messages tell the model what to correct. */
 /** `stelle` names where the diagram stands in the messages, e.g. "Aufgabe 2" or "Folie 4". */
-export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}`): Schaubild {
+export function parseSchaubild(raw: unknown, nr: number, stelle = `Aufgabe ${nr}`, breiten: number[] = [450]): Schaubild {
+  const s = parseRoh(raw, nr, stelle);
+  // Draw it once at the width it will have (a worksheet: 450 points; a slide: the caller says). A diagram that cannot be
+  // drawn without overlaps is reported now, while the model can still change it, and never reaches a PDF or a PowerPoint file.
+  for (const w of breiten) {
+    try {
+      szeneVon(s, w, false);
+    } catch (e) {
+      if (e instanceof MaterialError) throw new MaterialError(`${stelle} (Schaubild): ${e.message}`);
+      throw e;
+    }
+  }
+  return s;
+}
+
+function parseRoh(raw: unknown, nr: number, stelle: string): Schaubild {
   const o = (raw ?? {}) as Record<string, unknown>;
   const where = `${stelle} (Schaubild)`;
   const art = o.art as SchaubildArt;
@@ -188,6 +204,8 @@ export interface Szene {
   w: number;
   h: number;
   formen: Form[];
+  /** The shapes are drawn this much smaller than their coordinates say (the diagram was laid out wider so no word is cut). `w` and `h` are already the final size. */
+  k?: number;
 }
 
 const FS = 9.5;
@@ -239,11 +257,36 @@ function leave(b: { x: number; y: number; w: number; h: number }, p: [number, nu
   return [p[0] + d[0] * t, p[1] + d[1] * t];
 }
 
-/** Builds the scene for a diagram `w` points wide. `loesung`: blank boxes and bars show their content. */
+/** Smallest zoom a diagram may be shrunk by to fit the width. Below that the text gets too small to read. */
+export const MIN_ZOOM = 0.7;
+
+/**
+ * Builds the scene for a diagram `w` points wide. `loesung`: blank boxes and bars show their content.
+ * When a word needs more room than the width gives, the diagram is laid out wider and drawn smaller (`k`), so no word is ever cut.
+ * A diagram with overlaps is never returned: it is reported, so the model can make it simpler.
+ */
 export function szeneVon(s: Schaubild, w: number, loesung: boolean): Szene {
-  if (s.art === "oberflaeche") return oberflaeche(s, w, loesung);
-  if (s.art === "bild") return bildSzene(s, w, loesung);
-  const scene = s.art === "saeulen" ? saeulen(s, w, loesung) : s.art === "zeitstrahl" ? zeitstrahl(s, w) : s.art === "kreislauf" ? kreislauf(s, w, loesung) : geschichtet(s, w, loesung);
+  const roh =
+    s.art === "oberflaeche" ? oberflaeche(s, w, loesung)
+    : s.art === "bild" ? bildSzene(s, w, loesung)
+    : s.art === "saeulen" ? saeulen(s, w, loesung)
+    : s.art === "zeitstrahl" ? zeitstrahl(s, w)
+    : s.art === "kreislauf" ? kreislauf(s, w, loesung)
+    : geschichtet(s, w, loesung);
+  const k = roh.w > w + 0.5 ? Math.max(w / roh.w, MIN_ZOOM) : 1;
+  const scene: Szene = k === 1 ? roh : { ...roh, w: roh.w * k, h: roh.h * k, k };
+  const probleme = pruefeSzene(scene);
+  // A word cut in the middle ("Sozialversic-herungen") is as bad as an overlap.
+  if (s.art === "ablauf" || s.art === "hierarchie" || s.art === "kreislauf") {
+    const boxes = scene.formen.filter((f): f is Extract<Form, { k: "kasten" }> => f.k === "kasten");
+    s.knoten.forEach((k, i) => {
+      const lines = boxes[i]?.zeilen ?? [];
+      if (lines.length && lines.join(" ") !== k.text.split(/\s+/).join(" ")) probleme.push(`Ein Wort in „${k.text}“ ist zu lang für sein Kästchen.`);
+    });
+  }
+  if (probleme.length) {
+    throw new MaterialError(`Das Schaubild lässt sich nicht sauber zeichnen (${[...new Set(probleme)].slice(0, 3).join(" ")}). Nimm weniger Pfeile, kürzere Beschriftungen oder weniger Kästchen.`);
+  }
   return scene;
 }
 
@@ -257,13 +300,36 @@ const pfeilNummern = (s: Schaubild) => {
 
 const etikettBreite = (v: Schaubild["verbindungen"][number], hidden: boolean) => Math.max(hidden ? 64 : 40, Math.min(130, textWidth(v.text ?? "", SANS, 8.5) + 12));
 
-/** The label of an arrow, centred on (cx, cy). Blank labels are as wide as the text they hide, so the students have room. */
-function etikett(v: Schaubild["verbindungen"][number], cx: number, cy: number, nr: number | undefined, loesung: boolean): Form | undefined {
-  if (!v.text) return undefined;
-  const hidden = v.leer && !loesung;
-  const w = etikettBreite(v, hidden === true);
-  return { k: "etikett", x: cx - w / 2, y: cy - 9, w, h: 18, zeilen: hidden ? [] : [v.text], leer: hidden === true, nr: v.leer ? nr : undefined };
+/**
+ * The ways to write the label of an arrow: on one line, or broken into more lines when the room is tight.
+ * Blank labels are as wide as the text they hide, so the students have room.
+ */
+function etikettVarianten(v: Schaubild["verbindungen"][number], hidden: boolean): Variante[] {
+  const out: Variante[] = [];
+  for (const maxW of [130, 96, 72, 56]) {
+    const zeilen = umbrechen(v.text ?? "", maxW - 12, 8.5);
+    if (out.some((o) => o.zeilen.length === zeilen.length)) continue;
+    const w = Math.max(hidden ? 64 : 40, Math.max(...zeilen.map((z) => textWidth(z, SANS, 8.5))) + 12);
+    out.push({ zeilen, w, h: 18 + (zeilen.length - 1) * LEAD });
+  }
+  return out;
 }
+
+/** The form of a label that was placed with `etikettSetzen`. */
+function etikettForm(wahl: Rechteck & { zeilen: string[] }, hidden: boolean, nr: number | undefined): Form {
+  return { k: "etikett", x: wahl.x, y: wahl.y, w: wahl.w, h: wahl.h, zeilen: hidden ? [] : wahl.zeilen, leer: hidden, nr };
+}
+
+/** Width of the room an arrow label needs when the arrow runs left to right (labels of two lines at most). */
+const etikettRaum = (v: Schaubild["verbindungen"][number], hidden: boolean) => {
+  const vars = etikettVarianten(v, hidden);
+  return (vars.find((x) => x.w <= 100) ?? vars[vars.length - 1]!).w;
+};
+
+/** Text lines of a box. Bold text is measured bold, so it fits as drawn. */
+const kastenZeilen = (k: Knoten, w: number) => umbrechen(k.text, w - 2 * PAD, FS, k.betont ? SANS_BOLD : SANS);
+/** The width a box needs so that no word of its text is cut in the middle. */
+const wortBreite = (k: Knoten) => Math.max(0, ...k.text.split(/\s+/).filter(Boolean).map((x) => textWidth(x, k.betont ? SANS_BOLD : SANS, FS))) + 2 * PAD + 2;
 
 function kasten(k: Knoten, x: number, y: number, w: number, h: number, zeilen: string[], nummern: Map<string, number>, loesung: boolean): Form {
   const nr = nummern.get(k.id);
@@ -350,9 +416,9 @@ function oberflaeche(s: Schaubild, W: number, loesung: boolean): Szene {
 }
 
 /** Flow and structure: boxes in layers, arrows between the layers. */
-function geschichtet(s: Schaubild, W: number, loesung: boolean): Szene {
+function geschichtet(s: Schaubild, W0: number, loesung: boolean): Szene {
   const chain = kette(s);
-  if (chain) return schlange(s, chain, W, loesung);
+  if (chain) return schlange(s, chain, W0, loesung);
   const ids = s.knoten.map((k) => k.id);
   const layer = new Map<string, number>();
   const parents = new Map<string, string[]>(ids.map((id) => [id, s.verbindungen.filter((v) => v.nach === id).map((v) => v.von)]));
@@ -374,62 +440,92 @@ function geschichtet(s: Schaubild, W: number, loesung: boolean): Szene {
     row.forEach((k, i) => pos.set(k.id, i));
   });
   const widest = Math.max(...rows.map((r) => r.length));
-  const GAP = 24;
-  const horizontal = s.richtung ? s.richtung === "waagerecht" : s.art === "ablauf" && count <= 4 && count * 74 + (count - 1) * GAP <= W;
+  const labels = s.verbindungen.filter((v) => v.text);
+  const need = Math.max(...s.knoten.map(wortBreite));
+  const maxW = W0 / MIN_ZOOM;
   const nummern = leereNummern(s);
-  const formen: Form[] = [];
-  const placed = new Map<string, { x: number; y: number; w: number; h: number }>();
+  const pfeile = pfeilNummern(s);
   // A blank box is at least two lines high, so there is room to write.
   const boxH = (k: Knoten, lines: Map<string, string[]>) => boxHeight(Math.max(lines.get(k.id)!.length, k.leer ? 2 : 0));
-  let height: number;
 
-  if (horizontal) {
-    const bw = Math.min(150, (W - (count - 1) * GAP) / count);
-    const lines = new Map(s.knoten.map((k) => [k.id, umbrechen(k.text, bw - 2 * PAD)]));
-    const colH = rows.map((row) => row.reduce((n, k) => n + boxH(k, lines) + 14, -14));
-    const H = Math.max(...colH);
-    const x0 = (W - (count * bw + (count - 1) * GAP)) / 2;
-    rows.forEach((row, ci) => {
-      let y = (H - colH[ci]!) / 2;
-      for (const k of row) {
-        const h = boxH(k, lines);
-        placed.set(k.id, { x: x0 + ci * (bw + GAP), y, w: bw, h });
-        y += h + 14;
+  /** One try at the layout. `extra` adds room between the boxes; the next try uses more if a label found no free place. */
+  const bauen = (extra: number): { szene: Szene; schlecht: boolean } => {
+    // More room between the boxes helps labels find a place, but never more than the width allows.
+    const grow = (base: number, n: number, boxW: number) => (n > 1 ? Math.min(base + extra, Math.max(base, (maxW - n * boxW) / (n - 1))) : base);
+    const labelGap = labels.length ? Math.max(...labels.map((v) => etikettRaum(v, v.leer === true))) + 26 : 24;
+    const colBase = Math.max(24, labelGap);
+    // Left to right only when the columns, with room for the labels between them, fit. Otherwise the boxes are stacked.
+    const horizontal = s.richtung
+      ? s.richtung === "waagerecht" && count * Math.max(74, need) + (count - 1) * colBase <= maxW
+      : s.art === "ablauf" && count <= 4 && count * Math.max(74, need) + (count - 1) * colBase <= W0;
+    const placed = new Map<string, Rechteck>();
+    let W = W0;
+    let height: number;
+    let lines: Map<string, string[]>;
+    let GAP = 24;
+    if (horizontal) {
+      const colGap = grow(colBase, count, need);
+      const bw0 = Math.min(150, (W0 - (count - 1) * colGap) / count);
+      W = Math.min(maxW, Math.max(W0, count * Math.max(bw0, need) + (count - 1) * colGap));
+      const bw = Math.min(150, (W - (count - 1) * colGap) / count);
+      lines = new Map(s.knoten.map((k) => [k.id, kastenZeilen(k, bw)]));
+      const colH = rows.map((row) => row.reduce((n, k) => n + boxH(k, lines) + 14, -14));
+      // With labels the drawing is at least as high as a label of two lines.
+      const H = Math.max(...colH, labels.length ? 36 : 0);
+      const x0 = (W - (count * bw + (count - 1) * colGap)) / 2;
+      rows.forEach((row, ci) => {
+        let y = (H - colH[ci]!) / 2;
+        for (const k of row) {
+          const h = boxH(k, lines);
+          placed.set(k.id, { x: x0 + ci * (bw + colGap), y, w: bw, h });
+          y += h + 14;
+        }
+      });
+      height = H;
+    } else {
+      // Boxes stand 24 points apart; if a long word needs the room, they move closer, down to 10.
+      GAP = grow(widest > 1 ? Math.max(10, Math.min(24, (maxW - widest * need) / (widest - 1))) : 24, widest, need);
+      const bw0 = Math.min(170, (W0 - (widest - 1) * GAP) / widest);
+      W = Math.min(maxW, Math.max(W0, widest * Math.max(bw0, need) + (widest - 1) * GAP));
+      const bw = Math.min(170, (W - (widest - 1) * GAP) / widest);
+      lines = new Map(s.knoten.map((k) => [k.id, kastenZeilen(k, bw)]));
+      const rowGap = (labels.length ? 46 : 26) + extra;
+      let y = 0;
+      for (const row of rows) {
+        const h = Math.max(...row.map((k) => boxH(k, lines)));
+        const rowW = row.length * bw + (row.length - 1) * GAP;
+        row.forEach((k, i) => placed.set(k.id, { x: (W - rowW) / 2 + i * (bw + GAP), y, w: bw, h }));
+        y += h + rowGap;
       }
+      height = y - rowGap;
+    }
+    const formen: Form[] = s.knoten.map((k) => {
+      const b = placed.get(k.id)!;
+      return kasten(k, b.x, b.y, b.w, b.h, lines.get(k.id)!, nummern, loesung);
     });
-    height = H;
-  } else {
-    const bw = Math.min(170, (W - (widest - 1) * GAP) / widest);
-    const lines = new Map(s.knoten.map((k) => [k.id, umbrechen(k.text, bw - 2 * PAD)]));
-    let y = 0;
-    for (const row of rows) {
-      const h = Math.max(...row.map((k) => boxH(k, lines)));
-      const rowW = row.length * bw + (row.length - 1) * GAP;
-      row.forEach((k, i) => placed.set(k.id, { x: (W - rowW) / 2 + i * (bw + GAP), y, w: bw, h: boxH(k, lines) }));
-      y += h + (s.verbindungen.some((v) => v.text) ? 34 : 26);
-    }
-    height = y - (s.verbindungen.some((v) => v.text) ? 34 : 26);
-    // Boxes of one row have the height of the tallest, so the row looks even.
-    for (const row of rows) {
-      const h = Math.max(...row.map((k) => placed.get(k.id)!.h));
-      for (const k of row) placed.get(k.id)!.h = h;
-    }
+    const boxes = [...placed.values()];
+    const grenze = { w: W, h: height };
+    const pfade = s.verbindungen.map((v) => umweg(placed.get(v.von)!, placed.get(v.nach)!, boxes, grenze, rand));
+    for (const p of pfade) formen.push({ k: "pfeil", punkte: p });
+    const umgebung: Umgebung = { hindernisse: boxes, etiketten: [], pfade, grenze };
+    let schlecht = false;
+    s.verbindungen.forEach((v, i) => {
+      if (!v.text) return;
+      const hidden = v.leer === true && !loesung;
+      const wahl = etikettSetzen(pfade[i]!, i, etikettVarianten(v, v.leer === true), umgebung);
+      if (wahl.strafe >= KOLLISION / 4) schlecht = true;
+      umgebung.etiketten.push(wahl);
+      formen.push(etikettForm(wahl, hidden, v.leer ? pfeile.get(i) : undefined));
+    });
+    return { szene: { w: W, h: height, formen }, schlecht };
+  };
+
+  let versuch = bauen(0);
+  for (const extra of [16, 36, 60, 90, 130]) {
+    if (!versuch.schlecht) break;
+    versuch = bauen(extra);
   }
-  for (const k of s.knoten) {
-    const b = placed.get(k.id)!;
-    formen.push(kasten(k, b.x, b.y, b.w, b.h, umbrechen(k.text, b.w - 2 * PAD), nummern, loesung));
-  }
-  const pfeile = pfeilNummern(s);
-  for (const v of s.verbindungen) {
-    const a = placed.get(v.von)!;
-    const b = placed.get(v.nach)!;
-    const from = rand(a, b.x + b.w / 2, b.y + b.h / 2);
-    const to = rand(b, a.x + a.w / 2, a.y + a.h / 2);
-    formen.push({ k: "pfeil", punkte: [from, to] });
-    const lab = etikett(v, (from[0] + to[0]) / 2, (from[1] + to[1]) / 2, pfeile.get(s.verbindungen.indexOf(v)), loesung);
-    if (lab) formen.push(lab);
-  }
-  return { w: W, h: height, formen };
+  return versuch.szene;
 }
 
 /** The boxes in order when the diagram is a plain chain of five or more steps without labels or a fixed direction. */
@@ -447,13 +543,15 @@ function kette(s: Schaubild): Knoten[] | undefined {
 }
 
 /** A long chain in rows of three or four boxes, so it does not run down the whole page. Arrows turn at the end of a row. */
-function schlange(s: Schaubild, order: Knoten[], W: number, loesung: boolean): Szene {
+function schlange(s: Schaubild, order: Knoten[], W0: number, loesung: boolean): Szene {
   const n = order.length;
   const perRow = n >= 10 ? 4 : 3;
   const GAP = 26;
+  const need = Math.max(...order.map(wortBreite));
+  const W = Math.min(W0 / MIN_ZOOM, Math.max(W0, perRow * need + (perRow - 1) * GAP));
   const bw = Math.min(150, (W - (perRow - 1) * GAP) / perRow);
   const nummern = leereNummern(s);
-  const lines = order.map((k) => umbrechen(k.text, bw - 2 * PAD));
+  const lines = order.map((k) => kastenZeilen(k, bw));
   const hs = order.map((k, i) => boxHeight(Math.max(lines[i]!.length, k.leer ? 2 : 0)));
   const rows = Math.ceil(n / perRow);
   const rowH = Array.from({ length: rows }, (_, r) => Math.max(...hs.slice(r * perRow, (r + 1) * perRow)));
@@ -479,7 +577,7 @@ function schlange(s: Schaubild, order: Knoten[], W: number, loesung: boolean): S
 
 const mean = (a: number[]) => (a.length ? a.reduce((n, x) => n + x, 0) / a.length : 0);
 
-function kreislauf(s: Schaubild, W: number, loesung: boolean): Szene {
+function kreislauf(s: Schaubild, W0: number, loesung: boolean): Szene {
   const n = s.knoten.length;
   const nummern = leereNummern(s);
   const idx = new Map(s.knoten.map((k, i) => [k.id, i]));
@@ -492,12 +590,24 @@ function kreislauf(s: Schaubild, W: number, loesung: boolean): Szene {
   const maxLanes = Math.max(...lanes.values());
   const labelW = Math.max(0, ...arrows.map((v) => (v.text ? etikettBreite(v, true) : 0)));
   const spaceV = hasLabels ? labelW + 10 : 10;
-  const bw = n === 2 && maxLanes > 1 ? Math.min(W - 20, Math.max(150, (maxLanes - 1) * spaceV + 60)) : Math.min(130, W / (n <= 4 ? 3 : 3.6));
-  const H = n === 2 ? (hasLabels ? 190 : 150) : Math.min(W * 0.78, 270);
-  const rx = (W - bw) / 2 - 4;
-  const ry = (H - 34) / 2 - 2;
-  const lines = s.knoten.map((k) => umbrechen(k.text, bw - 2 * PAD));
+  // No word is cut: if the boxes need more room than the width gives, everything is laid out wider and drawn smaller.
+  const need = Math.max(...s.knoten.map(wortBreite));
+  const teiler = n <= 4 ? 3 : 3.6;
+  const Wb = Math.min(W0 / MIN_ZOOM, Math.max(W0, n === 2 ? need + 20 : need * teiler));
+  const bw = n === 2 && maxLanes > 1 ? Math.min(Wb - 20, Math.max(need, 150, (maxLanes - 1) * spaceV + 60)) : Math.min(Wb / 2.2, Math.max(need, Math.min(130, Wb / teiler)));
+  const lines = s.knoten.map((k) => kastenZeilen(k, bw));
   const lineCount = (i: number) => Math.max(lines[i]!.length, s.knoten[i]!.leer ? 2 : 0);
+  // The circle is as high as its tallest box needs, so boxes at the top and bottom stay inside the drawing.
+  const hmax = Math.max(34, ...s.knoten.map((_, i) => boxHeight(lineCount(i))));
+  const Hb = Math.max(n === 2 ? (hasLabels ? 190 : 150) : Math.min(Wb * 0.78, 270), 2 * hmax + 30);
+
+  /** One try at the layout. `e` stretches the circle a little more each time a label found no free place. */
+  const bauen = (e: number): { szene: Szene; schlecht: boolean } => {
+  const W = Math.min(W0 / MIN_ZOOM, Wb * (1 + 0.15 * e));
+  const H = Hb * (1 + 0.3 * e);
+  let schlecht = false;
+  const rx = (W - bw) / 2 - 4;
+  const ry = (H - hmax) / 2 - 2;
   const centers = s.knoten.map((_, i) => {
     const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
     return [W / 2 + (n === 2 ? 0 : rx * Math.cos(a)), H / 2 + ry * Math.sin(a)] as const;
@@ -506,16 +616,11 @@ function kreislauf(s: Schaubild, W: number, loesung: boolean): Szene {
     const h = boxHeight(lineCount(i));
     return { x: centers[i]![0] - bw / 2, y: centers[i]![1] - h / 2, w: bw, h };
   });
-  const formen: Form[] = [];
-  if (s.mitte) {
-    const mw = Math.min(W * 0.34, 150);
-    const zeilen = umbrechen(s.mitte, mw, 10.5, SANS_BOLD);
-    formen.push({ k: "text", x: W / 2 - mw / 2, y: H / 2 - (zeilen.length * 13) / 2, w: mw, zeilen, groesse: 10.5, fett: true, ausrichtung: "center" });
-  }
-  s.knoten.forEach((k, i) => formen.push(kasten(k, boxes[i]!.x, boxes[i]!.y, boxes[i]!.w, boxes[i]!.h, lines[i]!, nummern, loesung)));
-  const pfeile = pfeilNummern(s);
+  const formen: Form[] = s.knoten.map((k, i) => kasten(k, boxes[i]!.x, boxes[i]!.y, boxes[i]!.w, boxes[i]!.h, lines[i]!, nummern, loesung));
+  const grenze = { w: W, h: H };
+  const pfade: Punkt[][] = [];
   const seen = new Map<string, number>();
-  arrows.forEach((v, ai) => {
+  arrows.forEach((v) => {
     const i = idx.get(v.von)!;
     const j = idx.get(v.nach)!;
     const key = pairKey(v);
@@ -535,17 +640,87 @@ function kreislauf(s: Schaubild, W: number, loesung: boolean): Szene {
     const sy = centers[j]![1] - centers[i]![1];
     const from = leave(boxes[i]!, [centers[i]![0] + px, centers[i]![1] + py], [sx, sy]);
     const to = leave(boxes[j]!, [centers[j]![0] + px, centers[j]![1] + py], [-sx, -sy]);
-    formen.push({ k: "pfeil", punkte: [from, to] });
-    const lab = etikett(v, (from[0] + to[0]) / 2, (from[1] + to[1]) / 2, pfeile.get(ai), loesung);
-    if (lab) formen.push(lab);
+    const gerade: Punkt[] = [from, to];
+    // A line that would run through a third box goes around it.
+    pfade.push(boxes.some((o, oi) => oi !== i && oi !== j && pfadSchneidet(gerade, o, 1)) ? umweg(boxes[i]!, boxes[j]!, boxes, grenze, rand) : gerade);
   });
-  return { w: W, h: H, formen };
+  for (const p of pfade) formen.push({ k: "pfeil", punkte: p });
+
+  // The text in the middle: broken without cutting words, and kept clear of the boxes, arrows and labels.
+  let mitteForm: Extract<Form, { k: "text" }> | undefined;
+  let mitteRect: Rechteck | undefined;
+  if (s.mitte) {
+    const langst = Math.max(...s.mitte.split(/\s+/).map((x) => textWidth(x, SANS_BOLD, 10.5)));
+    const mw = Math.max(Math.min(W * 0.34, 150), langst + 4);
+    const zeilen = umbrechen(s.mitte, mw, 10.5, SANS_BOLD);
+    const tw = Math.max(...zeilen.map((z) => textWidth(z, SANS_BOLD, 10.5)));
+    const th = zeilen.length * 13;
+    mitteForm = { k: "text", x: W / 2 - mw / 2, y: H / 2 - th / 2, w: mw, zeilen, groesse: 10.5, fett: true, ausrichtung: "center" };
+    mitteRect = { x: W / 2 - tw / 2, y: H / 2 - th / 2, w: tw, h: th };
+  }
+  const umgebung: Umgebung = { hindernisse: mitteRect ? [...boxes, mitteRect] : boxes, etiketten: [], pfade, grenze };
+  const pfeile = pfeilNummern(s);
+  arrows.forEach((v, ai) => {
+    if (!v.text) return;
+    const hidden = v.leer === true && !loesung;
+    const wahl = etikettSetzen(pfade[ai]!, ai, etikettVarianten(v, v.leer === true), umgebung);
+    if (wahl.strafe >= KOLLISION / 4) schlecht = true;
+    umgebung.etiketten.push(wahl);
+    formen.push(etikettForm(wahl, hidden, v.leer ? pfeile.get(ai) : undefined));
+  });
+  let h = H;
+  if (mitteForm && mitteRect) {
+    const frei = (r: Rechteck) =>
+      r.x >= 0 && r.y >= 0 && r.x + r.w <= W && r.y + r.h <= H &&
+      !boxes.some((o) => ueberlappt(r, o, 3)) && !umgebung.etiketten.some((o) => ueberlappt(r, o, 3)) && !pfade.some((p) => pfadSchneidet(p, r, -3));
+    const tw = mitteRect.w;
+    const th = mitteRect.h;
+    if (!frei(mitteRect)) {
+      // Look for the free spot nearest to the middle.
+      let best: Punkt | undefined;
+      for (let cy = th / 2; cy <= H - th / 2; cy += 6) {
+        for (let cx = tw / 2; cx <= W - tw / 2; cx += 6) {
+          if (!frei({ x: cx - tw / 2, y: cy - th / 2, w: tw, h: th })) continue;
+          if (!best || Math.hypot(cx - W / 2, cy - H / 2) < Math.hypot(best[0] - W / 2, best[1] - H / 2)) best = [cx, cy];
+        }
+      }
+      if (best) {
+        mitteForm = { ...mitteForm, x: best[0] - mitteForm.w / 2, y: best[1] - th / 2 };
+      } else {
+        // Nothing is free: the text becomes a heading above the drawing.
+        const dy = th + 12;
+        verschiebe(formen, dy);
+        h = H + dy;
+        mitteForm = { ...mitteForm, x: W / 2 - mitteForm.w / 2, y: 0 };
+      }
+    }
+    formen.push(mitteForm);
+  }
+  return { szene: { w: W, h, formen }, schlecht };
+  };
+
+  let versuch = bauen(0);
+  for (const e of [1, 2, 3, 4, 5, 6]) {
+    if (!versuch.schlecht) break;
+    versuch = bauen(e);
+  }
+  return versuch.szene;
+}
+
+/** Moves every shape down by `dy`. */
+function verschiebe(formen: Form[], dy: number): void {
+  formen.forEach((f, i) => {
+    if (f.k === "pfeil") formen[i] = { ...f, punkte: f.punkte.map(([x, y]) => [x, y + dy] as Punkt) };
+    else if (f.k === "linie") formen[i] = { ...f, y1: f.y1 + dy, y2: f.y2 + dy };
+    else formen[i] = { ...f, y: f.y + dy };
+  });
 }
 
 function zeitstrahl(s: Schaubild, W: number): Szene {
   const n = s.knoten.length;
   const slot = W / n;
-  const tw = Math.min(150, slot * 1.9);
+  // Texts on the same side of the line are two slots apart and the outer ones are pushed inward, so 1.6 slots is the most that never overlaps.
+  const tw = Math.min(150, slot * 1.6);
   const items = s.knoten.map((k) => ({ datum: umbrechen(k.datum ?? "", tw, 10, SANS_BOLD), text: umbrechen(k.text, tw) }));
   const hOf = (i: number) => items[i]!.datum.length * 12.5 + items[i]!.text.length * LEAD;
   const up = Math.max(0, ...items.map((_, i) => (i % 2 === 0 ? hOf(i) : 0))) + 14;
@@ -582,7 +757,7 @@ function saeulen(s: Schaubild, W: number, loesung: boolean): Szene {
   const chartH = 150;
   const labelLines = s.saeulen.map((x) => umbrechen(x.name, (W - left) / s.saeulen.length - 6, 9));
   const labelH = Math.max(...labelLines.map((l) => l.length)) * 11 + 6;
-  const topPad = s.einheit ? 16 : 6;
+  const topPad = s.einheit ? 18 : 6;
   const y0 = topPad + chartH;
   const formen: Form[] = [];
   if (s.einheit) formen.push({ k: "text", x: 0, y: 0, w: left + 60, zeilen: [s.einheit], groesse: 8.5, ausrichtung: "left" });
