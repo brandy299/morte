@@ -21,7 +21,7 @@ export type Art = (typeof ARTEN)[number];
 export const PALETTEN = ["wasser", "wiese", "abend"] as const;
 export type Palette = (typeof PALETTEN)[number];
 /** The look of the whole piece. Wasserfarben is the original; the others bring their own colors and ignore `palette`. */
-export const STILE = ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide"] as const;
+export const STILE = ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide", "fachbuch"] as const;
 export type Stil = (typeof STILE)[number];
 export const TEMPI = ["ruhig", "mittel", "zuegig"] as const;
 export type Tempo = (typeof TEMPI)[number];
@@ -37,7 +37,7 @@ export function hintergrundFuer(titel: string): Hintergrund {
 }
 
 /** The quiet background that suits each look when none is chosen (wasserfarben takes turns, see hintergrundFuer). */
-export const STIL_HINTERGRUND: Record<Exclude<Stil, "wasserfarben">, Hintergrund> = { brutalismus: "punktraster", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner" };
+export const STIL_HINTERGRUND: Record<Exclude<Stil, "wasserfarben">, Hintergrund> = { brutalismus: "punktraster", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner", fachbuch: "punktraster" };
 
 export const MAX_SZENEN = 10;
 export const MAX_ELEMENTE = 8;

@@ -26,7 +26,7 @@ export const PALETTE: Record<Palette, Farben> = {
  * and shapes, `schatten`: offset of the hard shadow behind boxes, `rx`: corner radius, `korn`: paper grain strength,
  * `serif`: Fraunces (otherwise Source Sans bold), `ton`: color of the background lines and dots.
  */
-export interface StilDef { farben?: Farben; filter: "wc" | "kreide" | "keiner"; kante: number; schatten: number; rx: number; korn: number; serif: boolean; ton?: keyof Farben }
+export interface StilDef { farben?: Farben; filter: "wc" | "kreide" | "keiner"; kante: number; schatten: number; rx: number; korn: number; serif: boolean; ton?: keyof Farben; ecken?: boolean }
 export const STIL: Record<Stil, StilDef> = {
   wasserfarben: { filter: "wc", kante: 0, schatten: 0, rx: 14, korn: 0.45, serif: true },
   // Cream paper, thick black outlines, hard offset shadows, loud flat colors.
@@ -35,6 +35,8 @@ export const STIL: Record<Stil, StilDef> = {
   zeitung: { farben: { bg: "#f7f4ee", ink: "#1a1a1a", soft: "#505050", accent: "#9b1c1c", fills: ["#e9e4d8", "#dcd6c8", "#efe9dc"], sonne: "#d9a441", wolke: "#c9ccd1", huegel: "#9aa088", wasser: "#8aa3b8" }, filter: "keiner", kante: 2, schatten: 0, rx: 0, korn: 0.18, serif: true },
   // Blueprint: white lines on deep blue.
   blaupause: { farben: { bg: "#12306b", ink: "#f4f8ff", soft: "#c5d5f5", accent: "#ffd166", fills: ["#1c3f86", "#244a96", "#173877"], sonne: "#ffd166", wolke: "#8fb3ee", huegel: "#7fd1b9", wasser: "#5aa9f0", knopf: "#1c3f86" }, filter: "keiner", kante: 3, schatten: 0, rx: 0, korn: 0, serif: false, ton: "ink" },
+  // Technical book: warm grey, hairlines, small cross marks at the corners of boxes, one rust-orange accent.
+  fachbuch: { farben: { bg: "#dedcd3", ink: "#1c1c1a", soft: "#4a4a45", accent: "#8a3510", fills: ["#e9e7de", "#e4e2d8", "#edebe3"], sonne: "#c4622b", wolke: "#a9aaa6", huegel: "#8d9283", wasser: "#7f8f96" }, filter: "keiner", kante: 1.5, schatten: 0, rx: 0, korn: 0.1, serif: true, ton: "soft", ecken: true },
   // Chalkboard: dark green-grey with chalk-white, slightly wobbly lines.
   kreide: { farben: { bg: "#26332d", ink: "#f2f0e6", soft: "#c9cfc4", accent: "#f6d365", fills: ["#33463d", "#3b4a52", "#463f3a"], sonne: "#f6d365", wolke: "#d6dde2", huegel: "#9fd1a0", wasser: "#8cc4e0", knopf: "#33463d" }, filter: "kreide", kante: 3, schatten: 0, rx: 12, korn: 0, serif: true, ton: "ink" },
 };
@@ -112,7 +114,8 @@ function teilSvg(t: Teil, nr: number, c: Farben, st: StilDef): string {
   if (t.k === "kasten") {
     const hoehe = t.zeilen.length * t.groesse * 1.28;
     const schatten = st.schatten ? `<rect x="${n(t.x + st.schatten)}" y="${n(t.y + st.schatten)}" width="${n(t.w)}" height="${n(t.h)}" rx="${st.rx}" fill="${c.ink}"/>` : "";
-    return `${schatten}<g${filterAttr(st)}><rect x="${n(t.x)}" y="${n(t.y)}" width="${n(t.w)}" height="${n(t.h)}" rx="${st.rx}" fill="${c.fills[nr % 3]}"${kanteAttr(st, c)}/></g>${textSvg(t.zeilen, t.x + t.w / 2, t.y + (t.h - hoehe) / 2, t.groesse, c.ink)}`;
+    const ecken = st.ecken ? [[t.x, t.y], [t.x + t.w, t.y], [t.x, t.y + t.h], [t.x + t.w, t.y + t.h]].map(([x, y]) => `<path d="M${n(x! - 9)} ${n(y!)} H${n(x! + 9)} M${n(x!)} ${n(y! - 9)} V${n(y! + 9)}" stroke="${c.ink}" stroke-width="1.5" fill="none"/>`).join("") : "";
+    return `${schatten}<g${filterAttr(st)}><rect x="${n(t.x)}" y="${n(t.y)}" width="${n(t.w)}" height="${n(t.h)}" rx="${st.rx}" fill="${c.fills[nr % 3]}"${kanteAttr(st, c)}/></g>${textSvg(t.zeilen, t.x + t.w / 2, t.y + (t.h - hoehe) / 2, t.groesse, c.ink)}${ecken}`;
   }
   if (t.k === "zahl") {
     const z = `<text x="${n(t.x + t.w / 2)}" y="${n(t.y + t.groesse * 0.98)}" font-size="${t.groesse}" fill="${c.accent}" text-anchor="middle">${esc(t.zahl)}</text>`;
