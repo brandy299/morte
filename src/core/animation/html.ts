@@ -29,8 +29,8 @@ export const PALETTE: Record<Palette, Farben> = {
 export interface StilDef { farben?: Farben; filter: "wc" | "kreide" | "keiner"; kante: number; schatten: number; rx: number; korn: number; serif: boolean; ton?: keyof Farben; ecken?: boolean }
 export const STIL: Record<Stil, StilDef> = {
   wasserfarben: { filter: "wc", kante: 0, schatten: 0, rx: 14, korn: 0.45, serif: true },
-  // Cream paper, thick black outlines, hard offset shadows, loud flat colors.
-  brutalismus: { farben: { bg: "#fff2c6", ink: "#111111", soft: "#3a3a3a", accent: "#c1121f", fills: ["#ffd93d", "#ff8fb8", "#7fe3ff"], sonne: "#ff9f1c", wolke: "#c6b6ff", huegel: "#5fe39a", wasser: "#3fa7ff" }, filter: "keiner", kante: 6, schatten: 10, rx: 4, korn: 0, serif: false, ton: "ink" },
+  // Cream paper, thick dark outlines, hard offset shadows, loud flat colors (yellow, violet) after the open neobrutalism token set (Apache-2.0, nexu-io/open-design).
+  brutalismus: { farben: { bg: "#fbf3d5", ink: "#1c293c", soft: "#3a4658", accent: "#432dd7", fills: ["#fdc800", "#c9c0ff", "#a8ecd0"], sonne: "#fdc800", wolke: "#c9c0ff", huegel: "#7ddba8", wasser: "#7a8cff" }, filter: "keiner", kante: 6, schatten: 10, rx: 4, korn: 0, serif: false, ton: "ink" },
   // Newsprint: warm white, hairlines, quiet grey-beige boxes, one dark red accent.
   zeitung: { farben: { bg: "#f7f4ee", ink: "#1a1a1a", soft: "#505050", accent: "#9b1c1c", fills: ["#e9e4d8", "#dcd6c8", "#efe9dc"], sonne: "#d9a441", wolke: "#c9ccd1", huegel: "#9aa088", wasser: "#8aa3b8" }, filter: "keiner", kante: 2, schatten: 0, rx: 0, korn: 0.18, serif: true },
   // Blueprint: white lines on deep blue.
