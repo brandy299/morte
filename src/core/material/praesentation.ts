@@ -5,9 +5,7 @@
  */
 import PDFDocument from "pdfkit";
 import PptxGenJS from "pptxgenjs";
-import { stilInfo } from "../animation/html.ts";
-import { katalog } from "../animation/stile.ts";
-import { STILE } from "../animation/szene.ts";
+import { stilInfo, STILE } from "../animation/stile.ts";
 import { schulkopf } from "../schule/index.ts";
 import { MaterialError, printable, registerFonts, SANS, SANS_BOLD, SANS_ITALIC, SERIF, str } from "./layout.ts";
 import { parseSchaubild, szeneVon, umbrechen, type Schaubild, type Szene } from "./schaubild.ts";
@@ -49,7 +47,7 @@ ${loesung}` : loesung;
 }
 
 /** Looks a presentation can have: the same as explainer pieces. */
-export const PRAESENTATION_STILE = [...STILE, ...katalog().map((s) => s.id)] as string[];
+export const PRAESENTATION_STILE = STILE.map((s) => s.id);
 function stilPruefen(v: unknown): string | undefined {
   if (v === undefined || v === null || v === "") return undefined;
   if (typeof v !== "string" || !PRAESENTATION_STILE.includes(v)) throw new MaterialError(`Der Stil: „${String(v)}“ gibt es nicht. Such mit stile_vorschlagen einen heraus.`);
@@ -98,7 +96,7 @@ interface Look { paper: string; ink: string; soft: string; accent: string; titel
 const KLASSISCH: Look = { paper: PAPER, ink: INK, soft: SOFT, accent: ACCENT, titel: "serif" };
 /** The colors and headline font of a presentation: the classic look, or the one of the chosen style. */
 export function look(p: Pick<Praesentation, "stil">): Look {
-  if (!p.stil || p.stil === "wasserfarben") return KLASSISCH;
+  if (!p.stil) return KLASSISCH;
   const i = stilInfo(p.stil);
   return { paper: i.farben.bg, ink: i.farben.ink, soft: i.farben.soft, accent: i.farben.accent, titel: i.serif ? "serif" : "sans-bold" };
 }

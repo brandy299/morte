@@ -5,7 +5,10 @@
 import type { Bild } from "../bilder/index.ts";
 import { MaterialError, str } from "../material/layout.ts";
 import { legeKreuzwort, type Kreuzwort as Gitter } from "./kreuzwort.ts";
-import { PALETTEN, type Palette } from "../animation/szene.ts";
+
+/** Color worlds of an exercise. */
+export const PALETTEN = ["wasser", "wiese", "abend"] as const;
+export type Palette = (typeof PALETTEN)[number];
 
 export const ARTEN = ["info", "auswahl", "lueckentext", "zuordnung", "offen", "checkliste", "klick", "karten", "kreuzwort"] as const;
 export type Art = (typeof ARTEN)[number];

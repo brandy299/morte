@@ -8,9 +8,9 @@ import { parseLernsituation, renderLernsituation } from "../material/lernsituati
 import { renderHtml } from "../animation/html.ts";
 import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
 import { renderUebung } from "../uebung/html.ts";
-import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
-import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
-import { katalog, stilZeile } from "../animation/stile.ts";
+import { ARTEN as UEBUNG_ARTEN, PALETTEN, parseUebung } from "../uebung/schema.ts";
+import { HINTERGRUENDE, LAYOUTS, parseErklaerstueck, TEMPI } from "../animation/szene.ts";
+import { STILE, stilZeile } from "../animation/stile.ts";
 import { symbole, symbolZeile } from "../animation/symbole.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
@@ -560,19 +560,11 @@ const uebungErstellen = defineTool({
   },
 });
 
-const EIGENE_STILE = [
-  "wasserfarben: Wasserfarben (soft watercolor, warm paper, the classic look); heller Hintergrund, weich, Serifenschrift",
-  "brutalismus: Neo-Brutalismus (hand-made); heller Hintergrund, dicke Kanten, harte Schatten, knallige Farben, serifenlose Schrift",
-  "zeitung: Zeitung (hand-made); heller Hintergrund, feine Linien, ruhig und seriös, Serifenschrift",
-  "blaupause: Blaupause (hand-made); dunkler Hintergrund, weiße Linien auf tiefem Blau, serifenlose Schrift",
-  "kreide: Kreide-Tafel (hand-made); dunkler Hintergrund, Kreide-Look, Serifenschrift",
-  "fachbuch: Fachbuch (hand-made); heller Hintergrund, warmes Grau, feine Linien, Eckmarken, Serifenschrift",
-];
 const symboleSuchen = defineTool({
   name: "symbole_suchen",
   label: "Symbole heraussuchen",
   description:
-    "Searches the symbols (simple outline pictures: drop, sun, gear, book, scale, factory, microscope, euro, …) that an explainer piece can show as an element of the art symbol. Each line has the id, the German name and words to find it by. Search with one or two German words (for example 'wasser', 'geld', 'tier'). Without suche it lists everything. Use only ids from this list, never invent one. If nothing fits, leave the symbol out or use a form instead.",
+    "Searches the symbols (simple outline pictures: drop, sun, gear, book, scale, factory, microscope, euro, …) that an explainer piece can show on a card (symbol). Each line has the id, the German name and words to find it by. Search with one or two German words (for example 'wasser', 'geld', 'tier'). Without suche it lists everything. Use only ids from this list, never invent one. If nothing fits, leave the symbol out.",
   parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "One or two German words. Leave out to list all symbols" })) }),
   async execute(_id, { suche }) {
     const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);
@@ -585,50 +577,59 @@ const stileVorschlagen = defineTool({
   name: "stile_vorschlagen",
   label: "Stile heraussuchen",
   description:
-    "Lists looks (stil) for an explainer piece, each with id, name and a short description of how it looks, so you can propose two or three that fit the topic and class to the teacher. Without suche it lists a varied selection (the six hand-made looks and about 40 more). With suche (a word such as 'retro', 'dunkel', 'weich', 'Serifen', a category like 'Editorial') it lists only the matches. Pass the id you and the teacher chose as stil to erklaerstueck_erstellen. Never invent an id.",
-  parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "A word to look for in id, name, category or description. Leave out for a varied selection" })) }),
+    "Lists the looks (stil) for an explainer piece or a presentation, each with id, name and a short description of how it looks and what it suits, so you can pick three that fit the topic and class for stil_waehlen. Without suche it lists all of them. With suche (a word such as 'dunkel', 'Serifen', 'Technik', 'jüngere') it lists only the matches. Pass the id the teacher chose as stil. Never invent an id.",
+  parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "A word to look for in id, name or description. Leave out to list all" })) }),
   async execute(_id, { suche }) {
-    const alle = [...EIGENE_STILE, ...katalog().map(stilZeile)];
     const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);
-    const hit = alle.filter((z) => words.every((w) => z.toLowerCase().includes(w)));
+    const hit = STILE.map(stilZeile).filter((z) => words.every((w) => z.toLowerCase().includes(w)));
     return text(hit.length ? hit.join("\n") : "Dazu gibt es keinen Stil. Versuche ein anderes Wort oder lass suche weg.");
   },
 });
+
+/** Subject and class for the small line over the title; left out when together they are too long for one line. */
+const kopfzeile = (fach?: string, klasse?: string) => {
+  const zeile = [fach, klasse].filter(Boolean).join(" · ");
+  return zeile.length <= 100 ? zeile : undefined;
+};
 
 const erklaerstueckErstellen = defineTool({
   name: "erklaerstueck_erstellen",
   producesMaterial: true,
   label: "Erklärstück erstellen",
   description:
-    "Builds a short animated explainer as ONE html file that runs offline in any browser (beamer, school PC), shown in the preview. You write only the content as scenes; the program does look, timing and layout, and refuses what does not fit. Each scene has an optional title and 1 to 8 elements, which appear one after the other. Every element sits in one of 9 places (lage). Several elements in one place are stacked. An arrow (art pfeil) connects two elements by their id (von, nach) and may carry a short label; it needs a free path between the two. It cannot draw pictures, photos or maps and has no sound. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+    "Builds a short animated explainer as ONE html file that runs offline in any browser (beamer, school PC), shown in the preview. You write only the content as scenes; the program does look, sizes and timing. Every scene uses one layout: punkte (2 to 6 cards side by side), schritte (2 to 5 numbered steps), ablauf (2 to 4 stations joined by arrows), kreislauf (3 to 4 stations in a loop), zahl (one big number with a statement), vergleich (two sides, each a short list), zeitstrahl (3 to 5 dates on a line), aussage (a title with a few sentences, optionally a big symbol), merksatz (one sentence, large). The parts of a scene appear one after the other. It refuses what does not fit a layout and says what to change. It cannot show photos, maps or free drawings and has no sound. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
   parameters: Type.Object({
-    titel: Type.String({ description: "Title, shown first" }),
-    untertitel: Type.Optional(Type.String()),
-    stil: Type.Optional(Type.String({ description: "Look of the whole piece. Default wasserfarben. Hand-made: wasserfarben (soft watercolor), brutalismus (thick dark outlines, hard shadows, loud colors), zeitung (newspaper, calm, serif), blaupause (white lines on deep blue, technology), kreide (chalkboard), fachbuch (technical book: warm grey, hairlines, corner marks). Or the id of any style that stile_vorschlagen lists. Use the one the teacher chose, or your recommendation" })),
-    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors, only for stil wasserfarben: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser. The other looks bring their own colors" })),
+    titel: Type.String({ description: "Title, shown first on its own slide (up to 80 characters)" }),
+    untertitel: Type.Optional(Type.String({ description: "One sentence under the title that makes curious" })),
+    stil: Type.Optional(Type.String({ description: "Look of the whole piece: an id from stile_vorschlagen. Use the one the teacher picked in stil_waehlen. Default editorial-serif" })),
     tempo: Type.Optional(StringEnum([...TEMPI], { description: "ruhig, mittel (default) or zuegig" })),
-    hintergrund: Type.Optional(StringEnum([...HINTERGRUENDE], { description: "Quiet moving background: wellenlinien or wellenringe (water, nature), formen (friendly, younger classes), flecken (soft, watercolor), punktraster (science, technology), flaechen (business, careers), keiner. Leave it out and the pieces take turns" })),
+    hintergrund: Type.Optional(StringEnum([...HINTERGRUENDE], { description: "Quiet moving pattern behind the slides: wellenlinien or wellenringe (water, nature), formen (friendly, younger classes), flecken (soft), punktraster (science, technology), flaechen (business, careers). Default keiner; most looks are best without" })),
     fach: Type.Optional(Type.String()),
     klasse: Type.Optional(Type.String()),
     szenen: Type.Array(
       Type.Object({
-        titel: Type.Optional(Type.String({ description: "Short title of the scene, up to two lines" })),
-        elemente: Type.Array(
-          Type.Object({
-            art: StringEnum([...ARTEN], { description: "text: a line of text. kasten: text in a colored box. zahl: a big number with a short text. form: a drawn shape. symbol: a simple picture from symbole_suchen on a tile, with an optional caption (text). pfeil: an arrow between two elements" }),
-            id: Type.Optional(Type.String({ description: "Lower case letters and digits, needed for elements that an arrow points to or starts from" })),
-            text: Type.Optional(Type.String({ description: "text up to 140 characters, kasten up to 80, zahl: text under the number up to 60, pfeil: label up to 30" })),
-            zahl: Type.Optional(Type.String({ description: "zahl: the number, e.g. 71 % (up to 12 characters)" })),
-            form: Type.Optional(StringEnum([...FORMEN], { description: "form: sonne, wolke, huegel or wasser" })),
-            symbol: Type.Optional(Type.String({ description: "symbol: the id of a symbol from symbole_suchen. The optional text is the caption under it (up to 40 characters)" })),
-            lage: Type.Optional(StringEnum([...LAGEN], { description: "Place on the 3x3 grid. Not for arrows" })),
-            von: Type.Optional(Type.String({ description: "pfeil: id of the element where it starts" })),
-            nach: Type.Optional(Type.String({ description: "pfeil: id of the element where it ends" })),
-          }),
-          { description: "1 to 8 elements, they appear in this order" },
+        layout: StringEnum([...LAYOUTS], { description: "punkte, schritte, ablauf, kreislauf, zahl, vergleich, zeitstrahl, aussage or merksatz. Pick what the content is, and vary the layouts across the piece" }),
+        kicker: Type.Optional(Type.String({ description: "Small line over the title: the topic of this scene in two or three words (up to 40 characters)" })),
+        titel: Type.Optional(Type.String({ description: "The statement of the scene as a short sentence, not just a keyword (up to 70 characters). Needed for every layout except merksatz" })),
+        text: Type.Optional(Type.String({ description: "aussage: the explanation, two or three sentences (up to 280). merksatz: the sentence itself (up to 170). zahl: what the number means (up to 160). Other layouts: an optional sentence under the title (up to 120)" })),
+        zahl: Type.Optional(Type.String({ description: "zahl: the number with its unit, e.g. 71 % (up to 8 characters)" })),
+        symbol: Type.Optional(Type.String({ description: "aussage: id of a symbol from symbole_suchen, shown large beside the text" })),
+        quelle: Type.Optional(Type.String({ description: "merksatz: where the sentence is from, only if it is a real quote" })),
+        punkte: Type.Optional(
+          Type.Array(
+            Type.Object({
+              titel: Type.String({ description: "Heading of the card, station, side or date: a few words (up to 36)" }),
+              text: Type.Optional(Type.String({ description: "One or two short sentences (up to 110 characters, up to 80 when there are five or more entries or in ablauf, kreislauf, zeitstrahl). Not for vergleich" })),
+              symbol: Type.Optional(Type.String({ description: "punkte, ablauf, kreislauf: id of a symbol from symbole_suchen. Give all entries of a scene a symbol or none" })),
+              zahl: Type.Optional(Type.String({ description: "zeitstrahl: the year or date, e.g. 1949 (up to 12 characters)" })),
+              pfeil: Type.Optional(Type.String({ description: "ablauf, kreislauf: one or two words on the arrow to the next station, e.g. verdunstet (up to 18). In kreislauf the last entry's arrow leads back to the first" })),
+              liste: Type.Optional(Type.Array(Type.String(), { description: "vergleich: 1 to 4 short lines for this side (each up to 70 characters)" })),
+            }),
+            { description: "The entries of punkte, schritte, ablauf, kreislauf, vergleich and zeitstrahl, in the order they appear. Not for zahl, aussage, merksatz" },
+          ),
         ),
       }),
-      { description: "1 to 10 scenes after the title picture" },
+      { description: "1 to 10 scenes after the title slide" },
     ),
     reihe: Type.Optional(Type.String({ description: "Name of the Reihe to file it in" })),
     datum: Type.Optional(Type.String({ description: "e.g. 14.10." })),
@@ -637,8 +638,7 @@ const erklaerstueckErstellen = defineTool({
   }),
   async execute(_id, args) {
     const { reihe, datum, stunde, nr, klasse, fach, ...content } = args;
-    const stueck = parseErklaerstueck(content);
-    stueckSetzen(stueck); // refuses what does not fit before anything is saved
+    const stueck = parseErklaerstueck({ ...content, kopf: kopfzeile(fach, klasse) });
     const where = { klasse, fach, reihe, datum, stunde };
     const file = await saveMaterial(Buffer.from(renderHtml(stueck), "utf8"), { art: "Erklaerstueck", titel: stueck.titel, ...where, ext: "html" });
     const entered = klasse && fach && reihe && (datum || nr)

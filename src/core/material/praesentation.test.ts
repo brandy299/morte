@@ -150,24 +150,23 @@ describe("renderVorschau", () => {
 describe("looks of a presentation", () => {
   const ground = (stil?: string) => planen(parsePraesentation({ ...sample, stil }))[0]!.teile[0] as { fill: string };
 
-  it("keep the classic look without a style and for watercolor", () => {
+  it("keep the classic look without a style", () => {
     expect(ground().fill).toBe("#f4efe6");
-    expect(ground("wasserfarben").fill).toBe("#f4efe6");
   });
 
   it("take the colors of the chosen style on every slide, light or dark", () => {
-    expect(ground("blaupause").fill).toBe("#12306b");
-    expect(ground("zeitung").fill).toBe("#f7f4ee");
-    const alle = planen(parsePraesentation({ ...sample, stil: "kreide" }));
-    for (const plan of alle) expect((plan.teile[0] as { fill: string }).fill).toBe("#26332d");
+    expect(ground("blueprint").fill).toBe("#0b3a6f");
+    expect(ground("editorial-serif").fill).toBe("#faf7f2");
+    const alle = planen(parsePraesentation({ ...sample, stil: "tokyo-night" }));
+    for (const plan of alle) expect((plan.teile[0] as { fill: string }).fill).toBe("#1a1b26");
     const text = alle[0]!.teile.filter((t) => t.k === "text") as { color: string }[];
-    expect(text.some((t) => t.color === "#f2f0e6")).toBe(true);
+    expect(text.some((t) => t.color === "#c0caf5")).toBe(true);
   });
 
   it("draw into the .pptx and the preview with the chosen colors", async () => {
-    const deck = parsePraesentation({ ...sample, stil: "blaupause" });
+    const deck = parsePraesentation({ ...sample, stil: "blueprint" });
     const files = unzipSync(new Uint8Array(await renderPptx(deck)));
-    expect(strFromU8(files["ppt/slides/slide1.xml"]!)).toContain("12306B");
+    expect(strFromU8(files["ppt/slides/slide1.xml"]!)).toContain("0B3A6F");
     expect((await renderVorschau(deck)).seiten).toBeGreaterThan(1);
   });
 

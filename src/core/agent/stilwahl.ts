@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
-import { stilInfo, vorschauSvg } from "../animation/html.ts";
-import { stilName } from "../animation/stile.ts";
+import { vorschauSvg } from "../animation/html.ts";
+import { stilInfo, stilName } from "../animation/stile.ts";
 import { type AskTeacher, type Frage } from "./fragen.ts";
 
 export const STILWAHL_TOOL = "stil_waehlen";

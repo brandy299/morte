@@ -6,10 +6,16 @@
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { PALETTE } from "../animation/html.ts";
 import { MaterialError } from "../material/layout.ts";
 import { mischen } from "../material/mischen.ts";
-import type { Schritt, Uebung } from "./schema.ts";
+import type { Palette, Schritt, Uebung } from "./schema.ts";
+
+/** The colors of each color world. */
+export const PALETTE: Record<Palette, { bg: string; ink: string; soft: string; accent: string; fills: [string, string] }> = {
+  wasser: { bg: "#f4efe6", ink: "#23201b", soft: "#5a5348", accent: "#2f6f8f", fills: ["#bcd5de", "#cfd8e3"] },
+  wiese: { bg: "#f6f1e3", ink: "#23201b", soft: "#5a5348", accent: "#3f6b4a", fills: ["#cfe0b8", "#e8dcb0"] },
+  abend: { bg: "#f3ebe4", ink: "#2a1f1c", soft: "#5f5049", accent: "#8a4a2a", fills: ["#e6c9c0", "#d9cfe6"] },
+};
 
 const FONT_DIR = fileURLToPath(new URL("../../../assets/fonts/", import.meta.url));
 const SCRIPT = fileURLToPath(new URL("../../../assets/uebung/uebung.js", import.meta.url));
