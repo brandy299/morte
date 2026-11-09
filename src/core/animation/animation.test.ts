@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { katalog, stilZeile } from "./stile.ts";
+import { symbole, symbolMitId } from "./symbole.ts";
 import { MaterialError } from "../material/layout.ts";
 import { farbenFuer, PALETTE, renderHtml, STIL, TAKT } from "./html.ts";
 import { H, HINTERGRUENDE, hintergrundFuer, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, STILE, STIL_HINTERGRUND, stueckSetzen, W, type Box } from "./szene.ts";
@@ -338,5 +339,35 @@ describe("catalog of looks", () => {
     const z = stilZeile(katalog().find((s) => s.id === "neobrutalism")!);
     expect(z).toMatch(/^neobrutalism: Neobrutalism/);
     expect(z).toContain("harte Schatten");
+  });
+});
+
+describe("symbols", () => {
+  const mit = (symbol: string, text?: string) => szene([{ art: "symbol", symbol, text, lage: "mitte", id: "a" }]);
+
+  it("come from the set, with the German name to search by", () => {
+    expect(symbole().length).toBeGreaterThanOrEqual(150);
+    expect(symbolMitId("droplet")?.de).toBe("Tropfen");
+    for (const s of symbole()) expect(s.d, s.id).toMatch(/^<(path|circle|line|rect|ellipse|polyline)/);
+  });
+
+  it("are checked: an unknown one is explained, a caption is limited", () => {
+    expect(() => mit("einhorn")).toThrow(/Das Symbol „einhorn“ gibt es nicht\. Such mit symbole_suchen/);
+    expect(() => szene([{ art: "symbol", lage: "mitte" }])).toThrow("Es fehlt: das Symbol (symbol).");
+    expect(() => mit("droplet", "x".repeat(41))).toThrow(/zu lang \(höchstens 40 Zeichen\)/);
+  });
+
+  it("are drawn on a tile with the caption, in every look, and read out by screen readers", () => {
+    for (const stil of ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide", "fachbuch", "neobrutalism"]) {
+      const html = renderHtml(parseErklaerstueck({ titel: "x", stil, szenen: [{ titel: "t", elemente: [{ art: "symbol", symbol: "currency-euro", text: "Geld", lage: "mitte" }] }] }));
+      expect(html, stil).toContain(symbolMitId("currency-euro")!.d);
+      expect(html, stil).toContain(">Geld</text>");
+      expect(html, stil).toContain("<li>Geld</li>");
+    }
+  });
+
+  it("fit three in a row and two stacked with captions", () => {
+    const e = parseErklaerstueck({ titel: "x", szenen: [{ titel: "Titel", elemente: ["links", "mitte", "rechts"].map((lage) => ({ art: "symbol", symbol: "book", text: "Buch", lage })) }] });
+    expect(() => stueckSetzen(e)).not.toThrow();
   });
 });

@@ -6,6 +6,7 @@
 import { MaterialError, SERIF, str, textWidth } from "../material/layout.ts";
 import { umbrechen } from "../material/schaubild.ts";
 import { katalog, katalogStil } from "./stile.ts";
+import { symbolMitId } from "./symbole.ts";
 
 export const W = 1280;
 export const H = 720;
@@ -17,7 +18,7 @@ export const LAGEN = ["oben-links", "oben", "oben-rechts", "links", "mitte", "re
 export type Lage = (typeof LAGEN)[number];
 export const FORMEN = ["sonne", "wolke", "huegel", "wasser"] as const;
 export type Formart = (typeof FORMEN)[number];
-export const ARTEN = ["text", "kasten", "zahl", "form", "pfeil"] as const;
+export const ARTEN = ["text", "kasten", "zahl", "form", "symbol", "pfeil"] as const;
 export type Art = (typeof ARTEN)[number];
 export const PALETTEN = ["wasser", "wiese", "abend"] as const;
 export type Palette = (typeof PALETTEN)[number];
@@ -59,6 +60,7 @@ export interface Element {
   text?: string;
   zahl?: string;
   form?: Formart;
+  symbol?: string;
   lage?: Lage;
   von?: string;
   nach?: string;
@@ -123,6 +125,11 @@ export function parseErklaerstueck(raw: unknown): Erklaerstueck {
         return { art, id, von, nach, text: feld(stelle, el.text, "die Beschriftung des Pfeils", 30) };
       }
       const lage = oneOf(el.lage, LAGEN, `${stelle}: Die Lage`);
+      if (art === "symbol") {
+        const symbol = feld(stelle, el.symbol, "das Symbol (symbol)", 40, true)!;
+        if (!symbolMitId(symbol)) throw new MaterialError(`${stelle}: Das Symbol „${symbol}“ gibt es nicht. Such mit symbole_suchen ein passendes heraus.`);
+        return { art, id, lage, symbol, text: feld(stelle, el.text, "die Beschriftung des Symbols", 40) };
+      }
       if (art === "form") return { art, id, lage, form: oneOf(el.form, FORMEN, `${stelle}: Die Form`) };
       if (art === "zahl") return { art, id, lage, zahl: feld(stelle, el.zahl, "die Zahl", 12, true)!, text: feld(stelle, el.text, "der Text zur Zahl", 60) };
       if (art === "kasten") return { art, id, lage, text: feld(stelle, el.text, "der Text im Kasten", 80, true)! };
@@ -159,6 +166,7 @@ export type Teil =
   | (Box & { k: "kasten"; zeilen: string[]; groesse: number })
   | (Box & { k: "zahl"; zahl: string; zeilen: string[]; groesse: number })
   | (Box & { k: "form"; form: Formart })
+  | (Box & { k: "symbol"; symbol: string; zeilen: string[]; groesse: number })
   | { k: "pfeil"; von: [number, number]; nach: [number, number]; etikett?: Box & { zeilen: string[] } };
 export interface GesetztesElement { id?: string; teil: Teil }
 export interface GesetzteSzene {
@@ -170,6 +178,8 @@ const SIZE = { text: 34, kasten: 28, zahl: 76, zahlText: 26, titel: 44, etikett:
 const LEAD = 1.28;
 const PAD = 18;
 const FORM = { w: 220, h: 147 };
+/** The square tile behind a symbol, and the caption size under it. */
+export const KACHEL = 110;
 
 const lineH = (size: number) => size * LEAD;
 const maxLine = (zeilen: string[], size: number) => Math.max(...zeilen.map((l) => textWidth(l, SERIF, size)));
@@ -216,6 +226,10 @@ export function setzen(s: Szene, nr: number): GesetzteSzene {
   // Measure every element, then stack the ones in the same cell.
   type Mass = { el: Element; w: number; h: number; make: (b: Box) => Teil };
   const masse = s.elemente.filter((e) => e.art !== "pfeil").map((el): Mass => {
+    if (el.art === "symbol") {
+      const zeilen = el.text ? umbrechen(el.text, cw, SIZE.zahlText, SERIF) : [];
+      return { el, w: Math.min(cw, Math.max(KACHEL, zeilen.length ? maxLine(zeilen, SIZE.zahlText) : 0)), h: KACHEL + (zeilen.length ? 10 + zeilen.length * lineH(SIZE.zahlText) : 0), make: (b) => ({ k: "symbol", ...b, symbol: el.symbol!, zeilen, groesse: SIZE.zahlText }) };
+    }
     if (el.art === "form") return { el, ...FORM, make: (b) => ({ k: "form", ...b, form: el.form! }) };
     if (el.art === "text") {
       const zeilen = umbrechen(el.text!, cw, SIZE.text, SERIF);

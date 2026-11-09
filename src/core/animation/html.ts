@@ -7,8 +7,9 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { istDunkel, katalogStil } from "./stile.ts";
+import { symbolMitId } from "./symbole.ts";
 import { fontFile, SANS_BOLD, SERIF } from "../material/layout.ts";
-import { H, stueckSetzen, W, type Box, type EigenStil, type Erklaerstueck, type GesetzteSzene, type Palette, type Stil, type Teil, type Tempo } from "./szene.ts";
+import { H, KACHEL, stueckSetzen, W, type Box, type EigenStil, type Erklaerstueck, type GesetzteSzene, type Palette, type Stil, type Teil, type Tempo } from "./szene.ts";
 
 /** The quiet backgrounds, as plain browser code that goes into the file. */
 const hintergrundCode = () => readFileSync(fileURLToPath(new URL("../../../assets/animation/hintergrund.js", import.meta.url)), "utf8").replace(/<\/script/gi, "<\\/script");
@@ -155,6 +156,16 @@ function teilSvg(t: Teil, nr: number, c: Farben, st: StilDef): string {
   if (t.k === "zahl") {
     const z = `<text x="${n(t.x + t.w / 2)}" y="${n(t.y + t.groesse * 0.98)}" font-size="${t.groesse}" fill="${c.accent}" text-anchor="middle">${esc(t.zahl)}</text>`;
     return z + textSvg(t.zeilen, t.x + t.w / 2, t.y + t.groesse * 1.28, 26, c.ink);
+  }
+  if (t.k === "symbol") {
+    // A tile in the style of the boxes with the outline icon in the middle, and the caption under it.
+    const x = t.x + (t.w - KACHEL) / 2;
+    const schatten = st.schatten ? `<rect x="${n(x + st.schatten)}" y="${n(t.y + st.schatten)}" width="${KACHEL}" height="${KACHEL}" rx="${Math.max(st.rx, 6)}" fill="${c.ink}"/>` : "";
+    const kachel = `<rect x="${n(x)}" y="${n(t.y)}" width="${KACHEL}" height="${KACHEL}" rx="${Math.max(st.rx, 6)}" fill="${c.fills[nr % 3]}"${kanteAttr(st, c)}/>`;
+    const gr = KACHEL * 0.62;
+    const sz = gr / 24;
+    const bild = `<g transform="translate(${n(x + (KACHEL - gr) / 2)} ${n(t.y + (KACHEL - gr) / 2)}) scale(${n(sz)})" fill="none" stroke="${c.ink}" stroke-width="${st.kante >= 4 ? 2 : 1.6}" stroke-linecap="round" stroke-linejoin="round">${symbolMitId(t.symbol)?.d ?? ""}</g>`;
+    return `${schatten}<g${filterAttr(st)}>${kachel}</g>${bild}${t.zeilen.length ? textSvg(t.zeilen, t.x + t.w / 2, t.y + KACHEL + 10, 26, c.ink) : ""}`;
   }
   if (t.k === "form") return formSvg(t.form, t, c, st);
   const [x0, y0] = t.von;
