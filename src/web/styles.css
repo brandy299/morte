@@ -624,6 +624,14 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .ask-option.on { border-color: var(--accent); background: var(--accent-wash); }
 .ask-option:has(input:focus-visible) { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 .ask-option input[type="radio"] { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+.ask-options.with-pictures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ask-options.with-pictures .ask-option { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; position: relative; }
+.ask-options.with-pictures .ask-option:last-child { grid-column: 1 / -1; flex-direction: row; align-items: flex-start; }
+.ask-options.with-pictures .ask-option input[type="radio"] { position: absolute; top: 16px; right: 16px; margin: 0; z-index: 1; }
+.ask-options.with-pictures .ask-option:last-child input[type="radio"] { position: static; margin-top: 4px; }
+.ask-picture { display: block; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); line-height: 0; }
+.ask-picture svg { width: 100%; height: auto; display: block; }
+@media (max-width: 720px) { .ask-options.with-pictures { grid-template-columns: 1fr; } }
 .ask-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .ask-text strong { font-weight: 600; }
 .ask-text small { font-size: 15px; color: var(--ink-soft); }

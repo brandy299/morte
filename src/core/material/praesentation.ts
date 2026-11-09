@@ -5,6 +5,9 @@
  */
 import PDFDocument from "pdfkit";
 import PptxGenJS from "pptxgenjs";
+import { stilInfo } from "../animation/html.ts";
+import { katalog } from "../animation/stile.ts";
+import { STILE } from "../animation/szene.ts";
 import { schulkopf } from "../schule/index.ts";
 import { MaterialError, printable, registerFonts, SANS, SANS_BOLD, SANS_ITALIC, SERIF, str } from "./layout.ts";
 import { parseSchaubild, szeneVon, umbrechen, type Schaubild, type Szene } from "./schaubild.ts";
@@ -28,6 +31,8 @@ export interface Praesentation {
   klasse?: string;
   /** Small print in the footer, e.g. "Ohne hinterlegten Lehrplan erstellt". */
   fuss?: string;
+  /** The look (same names as for explainer pieces). Without one, the classic Pult look. */
+  stil?: string;
   folien: Folie[];
 }
 
@@ -41,6 +46,14 @@ function mitLoesung(notizen: string | undefined, schaubild: Schaubild | undefine
   const loesung = `Lösung zum Beschriften: ${leer.map((k, i) => `${i + 1} = ${k.text}`).join("; ")}.`;
   return notizen ? `${notizen}
 ${loesung}` : loesung;
+}
+
+/** Looks a presentation can have: the same as explainer pieces. */
+export const PRAESENTATION_STILE = [...STILE, ...katalog().map((s) => s.id)] as string[];
+function stilPruefen(v: unknown): string | undefined {
+  if (v === undefined || v === null || v === "") return undefined;
+  if (typeof v !== "string" || !PRAESENTATION_STILE.includes(v)) throw new MaterialError(`Der Stil: „${String(v)}“ gibt es nicht. Such mit stile_vorschlagen einen heraus.`);
+  return v;
 }
 
 export function parsePraesentation(raw: unknown): Praesentation {
@@ -67,6 +80,7 @@ export function parsePraesentation(raw: unknown): Praesentation {
     fach: str(o.fach, "das Fach", 60),
     klasse: str(o.klasse, "die Klasse", 60),
     fuss: str(o.fuss, "der Fußtext", 200),
+    stil: stilPruefen(o.stil),
     folien,
   };
 }
@@ -80,6 +94,14 @@ const PAPER = "#f4efe6";
 const INK = "#23201b";
 const SOFT = "#5f574c";
 const ACCENT = "#b4532a";
+interface Look { paper: string; ink: string; soft: string; accent: string; titel: Font }
+const KLASSISCH: Look = { paper: PAPER, ink: INK, soft: SOFT, accent: ACCENT, titel: "serif" };
+/** The colors and headline font of a presentation: the classic look, or the one of the chosen style. */
+export function look(p: Pick<Praesentation, "stil">): Look {
+  if (!p.stil || p.stil === "wasserfarben") return KLASSISCH;
+  const i = stilInfo(p.stil);
+  return { paper: i.farben.bg, ink: i.farben.ink, soft: i.farben.soft, accent: i.farben.accent, titel: i.serif ? "serif" : "sans-bold" };
+}
 /** Fonts in the .pptx: on every computer with PowerPoint, on Windows and Mac. The preview uses Pult's own fonts. */
 const PPTX_SERIF = "Georgia";
 const PPTX_SANS = "Calibri";
@@ -116,7 +138,8 @@ function passend(absaetze: string[], w: number, h: number, sizes: number[], font
 }
 
 function titelFolie(p: Praesentation): FolienPlan {
-  const teile: Teil[] = [{ k: "rect", x: 0, y: 0, w: W, h: H, fill: PAPER }, { k: "rect", x: 0, y: 0, w: 16, h: H, fill: ACCENT }];
+  const L = look(p);
+  const teile: Teil[] = [{ k: "rect", x: 0, y: 0, w: W, h: H, fill: L.paper }, { k: "rect", x: 0, y: 0, w: 16, h: H, fill: L.accent }];
   const school = schulkopf();
   let top = 44;
   if (school) {
@@ -127,55 +150,58 @@ function titelFolie(p: Praesentation): FolienPlan {
       teile.push({ k: "bild", x, y: top, w, h: (w / school.logo.width) * school.logo.height, png: school.logo.png });
       x += w + 14;
     }
-    if (school.name) teile.push({ k: "text", x, y: top + 10, w: W - x - MX, h: 24, absaetze: [school.name], font: "sans-bold", size: 14, color: SOFT });
+    if (school.name) teile.push({ k: "text", x, y: top + 10, w: W - x - MX, h: 24, absaetze: [school.name], font: "sans-bold", size: 14, color: L.soft });
     top += 56;
   }
   const kicker = [p.fach, p.klasse].filter(Boolean).join(" · ");
   const w = W - 2 * MX - 40;
-  const size = passend([p.titel], w, 180, [46, 42, 38, 34, 30], "serif") ?? 30;
-  const titelH = hoehe([p.titel], w, size, "serif", false);
+  const size = passend([p.titel], w, 180, [46, 42, 38, 34, 30], L.titel) ?? 30;
+  const titelH = hoehe([p.titel], w, size, L.titel, false);
   let y = Math.max(top + 40, 230 - titelH / 2);
-  if (kicker) teile.push({ k: "text", x: MX + 8, y: y - 34, w, h: 20, absaetze: [kicker.toUpperCase()], font: "sans", size: 13, color: SOFT });
-  teile.push({ k: "text", x: MX + 8, y, w, h: titelH, absaetze: [p.titel], font: "serif", size, color: INK });
+  if (kicker) teile.push({ k: "text", x: MX + 8, y: y - 34, w, h: 20, absaetze: [kicker.toUpperCase()], font: "sans", size: 13, color: L.soft });
+  teile.push({ k: "text", x: MX + 8, y, w, h: titelH, absaetze: [p.titel], font: L.titel, size, color: L.ink });
   y += titelH + 18;
   if (p.untertitel) {
     const s = passend([p.untertitel], w, 80, [24, 22, 20, 18], "sans") ?? 18;
-    teile.push({ k: "text", x: MX + 8, y, w, h: hoehe([p.untertitel], w, s, "sans", false), absaetze: [p.untertitel], font: "sans", size: s, color: SOFT });
+    teile.push({ k: "text", x: MX + 8, y, w, h: hoehe([p.untertitel], w, s, "sans", false), absaetze: [p.untertitel], font: "sans", size: s, color: L.soft });
   }
-  if (p.fuss) teile.push({ k: "text", x: MX + 8, y: H - 34, w: W - 2 * MX - 80, h: 16, absaetze: [p.fuss], font: "sans", size: 10, color: SOFT });
+  if (p.fuss) teile.push({ k: "text", x: MX + 8, y: H - 34, w: W - 2 * MX - 80, h: 16, absaetze: [p.fuss], font: "sans", size: 10, color: L.soft });
   return { teile };
 }
 
 function fuss(p: Praesentation, nr: number): Teil[] {
+  const L = look(p);
   const links = [[p.fach, p.klasse].filter(Boolean).join(" · ") || p.titel, p.fuss].filter(Boolean).join(" · ");
   return [
-    { k: "text", x: MX, y: H - 34, w: W - 2 * MX - 80, h: 16, absaetze: [links], font: "sans", size: 10, color: SOFT },
-    { k: "text", x: W - MX - 60, y: H - 34, w: 60, h: 16, absaetze: [String(nr)], font: "sans", size: 10, color: SOFT, align: "right" },
+    { k: "text", x: MX, y: H - 34, w: W - 2 * MX - 80, h: 16, absaetze: [links], font: "sans", size: 10, color: L.soft },
+    { k: "text", x: W - MX - 60, y: H - 34, w: 60, h: 16, absaetze: [String(nr)], font: "sans", size: 10, color: L.soft, align: "right" },
   ];
 }
 
 function abschnittFolie(p: Praesentation, f: Folie, nr: number): FolienPlan {
-  const teile: Teil[] = [{ k: "rect", x: 0, y: 0, w: W, h: H, fill: PAPER }, { k: "rect", x: MX, y: 200, w: 64, h: 5, fill: ACCENT }];
+  const L = look(p);
+  const teile: Teil[] = [{ k: "rect", x: 0, y: 0, w: W, h: H, fill: L.paper }, { k: "rect", x: MX, y: 200, w: 64, h: 5, fill: L.accent }];
   const w = W - 2 * MX;
-  const size = passend([f.titel], w, 130, [40, 36, 32, 28], "serif");
+  const size = passend([f.titel], w, 130, [40, 36, 32, 28], L.titel);
   if (!size) throw new MaterialError(`Folie ${nr}: Der Titel ist zu lang für eine Folie.`);
-  const th = hoehe([f.titel], w, size, "serif", false);
-  teile.push({ k: "text", x: MX, y: 222, w, h: th, absaetze: [f.titel], font: "serif", size, color: INK });
+  const th = hoehe([f.titel], w, size, L.titel, false);
+  teile.push({ k: "text", x: MX, y: 222, w, h: th, absaetze: [f.titel], font: L.titel, size, color: L.ink });
   if (f.text) {
     const s = passend([f.text], w, H - 300 - th, [22, 20, 18], "sans");
     if (!s) throw new MaterialError(`Folie ${nr}: Der Text ist zu lang. Ein Abschnitt hat höchstens zwei, drei Zeilen.`);
-    teile.push({ k: "text", x: MX, y: 240 + th, w, h: hoehe([f.text], w, s, "sans", false), absaetze: [f.text], font: "sans", size: s, color: SOFT });
+    teile.push({ k: "text", x: MX, y: 240 + th, w, h: hoehe([f.text], w, s, "sans", false), absaetze: [f.text], font: "sans", size: s, color: L.soft });
   }
   return { teile: [...teile, ...fuss(p, nr)], notizen: f.notizen };
 }
 
 function inhaltFolie(p: Praesentation, f: Folie, nr: number): FolienPlan {
-  const teile: Teil[] = [{ k: "rect", x: 0, y: 0, w: W, h: H, fill: PAPER }, { k: "rect", x: MX, y: 40, w: 40, h: 4, fill: ACCENT }];
+  const L = look(p);
+  const teile: Teil[] = [{ k: "rect", x: 0, y: 0, w: W, h: H, fill: L.paper }, { k: "rect", x: MX, y: 40, w: 40, h: 4, fill: L.accent }];
   const w = W - 2 * MX;
-  const tSize = passend([f.titel], w, 90, [32, 28, 26], "serif");
+  const tSize = passend([f.titel], w, 90, [32, 28, 26], L.titel);
   if (!tSize) throw new MaterialError(`Folie ${nr}: Der Titel ist zu lang für eine Folie. Kürze ihn auf eine Zeile.`);
-  const th = hoehe([f.titel], w, tSize, "serif", false);
-  teile.push({ k: "text", x: MX, y: 56, w, h: th, absaetze: [f.titel], font: "serif", size: tSize, color: INK });
+  const th = hoehe([f.titel], w, tSize, L.titel, false);
+  teile.push({ k: "text", x: MX, y: 56, w, h: th, absaetze: [f.titel], font: L.titel, size: tSize, color: L.ink });
   const top = 56 + th + 24;
   const bottom = H - 50;
   const textual = [...(f.text ? [f.text] : []), ...f.punkte];
@@ -188,10 +214,10 @@ function inhaltFolie(p: Praesentation, f: Folie, nr: number): FolienPlan {
     if (!size) throw new MaterialError(`Folie ${nr} hat zu viel Text. Kürze die Punkte oder verteile sie auf zwei Folien.`);
     if (f.text) {
       const h = hoehe([f.text], textW, size, "sans", false);
-      teile.push({ k: "text", x: MX, y, w: textW, h, absaetze: [f.text], font: "sans", size, color: INK });
+      teile.push({ k: "text", x: MX, y, w: textW, h, absaetze: [f.text], font: "sans", size, color: L.ink });
       y += h + size;
     }
-    if (f.punkte.length) teile.push({ k: "text", x: MX, y, w: textW, h: hoehe(f.punkte, textW, size, "sans", true), absaetze: f.punkte, font: "sans", size, color: INK, bullets: true });
+    if (f.punkte.length) teile.push({ k: "text", x: MX, y, w: textW, h: hoehe(f.punkte, textW, size, "sans", true), absaetze: f.punkte, font: "sans", size, color: L.ink, bullets: true });
   }
   if (f.schaubild) {
     const boxX = textual.length ? MX + textW + 32 : MX;
@@ -209,7 +235,7 @@ function inhaltFolie(p: Praesentation, f: Folie, nr: number): FolienPlan {
     // A white card under the diagram: in the .pptx it is a picture with a white ground, the preview shows the same.
     teile.push({ k: "rect", x: x - 10, y: y - 10, w: dw + 20, h: dh + 20, fill: "#ffffff" });
     teile.push({ k: "schaubild", x, y, scale, szene });
-    if (caption) teile.push({ k: "text", x: boxX, y: y + dh + 16, w: boxW, h: 16, absaetze: [caption], font: "sans-italic", size: 14, color: SOFT, align: "center" });
+    if (caption) teile.push({ k: "text", x: boxX, y: y + dh + 16, w: boxW, h: 16, absaetze: [caption], font: "sans-italic", size: 14, color: L.soft, align: "center" });
   }
   return { teile: [...teile, ...fuss(p, nr)], notizen: f.notizen };
 }
@@ -236,7 +262,7 @@ export async function renderPptx(p: Praesentation): Promise<Buffer> {
   pres.company = "Pult";
   for (const plan of planen(p)) {
     const slide = pres.addSlide();
-    slide.background = { color: hex(PAPER) };
+    slide.background = { color: hex(look(p).paper) };
     for (const t of plan.teile) {
       if (t.k === "rect") {
         if (t.w >= W && t.h >= H) continue; // the background

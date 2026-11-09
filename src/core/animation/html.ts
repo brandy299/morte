@@ -195,6 +195,12 @@ button:focus-visible{outline:3px solid ${c.accent};outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 `;
 
+const DEFS = `<defs>
+<filter id="wc" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="4" result="warp"/><feDisplacementMap in="SourceGraphic" in2="warp" scale="14" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="1.1" result="soft"/><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="11" result="mott"/><feColorMatrix in="mott" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.5 -0.18" result="mottA"/><feComposite in="soft" in2="mottA" operator="in" result="body"/><feMorphology in="soft" operator="erode" radius="3" result="core"/><feGaussianBlur in="core" stdDeviation="6" result="coreB"/><feComposite in="soft" in2="coreB" operator="out" result="rim"/><feMerge><feMergeNode in="body"/><feMergeNode in="rim"/></feMerge></filter>
+<filter id="line" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="2" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="5" xChannelSelector="R" yChannelSelector="G"/></filter>
+<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0 0.22  0 0 0 0.55 -0.12"/></filter>
+</defs>`;
+
 /** The finished html file. */
 export function renderHtml(e: Erklaerstueck): string {
   const c = farbenFuer(e);
@@ -221,11 +227,7 @@ export function renderHtml(e: Erklaerstueck): string {
     .map((t) => `<li>${esc(t!)}</li>`)
     .join("");
 
-  const defs = `<defs>
-<filter id="wc" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="4" result="warp"/><feDisplacementMap in="SourceGraphic" in2="warp" scale="14" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="1.1" result="soft"/><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="11" result="mott"/><feColorMatrix in="mott" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.5 -0.18" result="mottA"/><feComposite in="soft" in2="mottA" operator="in" result="body"/><feMorphology in="soft" operator="erode" radius="3" result="core"/><feGaussianBlur in="core" stdDeviation="6" result="coreB"/><feComposite in="soft" in2="coreB" operator="out" result="rim"/><feMerge><feMergeNode in="body"/><feMergeNode in="rim"/></feMerge></filter>
-<filter id="line" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="2" result="w"/><feDisplacementMap in="SourceGraphic" in2="w" scale="5" xChannelSelector="R" yChannelSelector="G"/></filter>
-<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0 0.22  0 0 0 0.55 -0.12"/></filter>
-</defs>`;
+  const defs = DEFS;
 
   return `<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -303,4 +305,36 @@ addEventListener("message",e=>{if(!e.data||e.data.pult!=="szene?"||e.source!==pa
 window.ready=document.fonts.ready.then(()=>true);
 </script>
 </body></html>`;
+}
+
+/** What a look is about, for the preview and for slides: its colors, whether the headline is serif, whether the ground is dark. */
+export function stilInfo(id: Stil): { farben: Farben; serif: boolean; dunkel: boolean } {
+  const st = stilFuer(id);
+  const farben = st.farben ?? PALETTE.wasser;
+  return { farben, serif: st.serif, dunkel: istDunkel(farben.bg) };
+}
+
+/** One still picture of a sample scene in a look, as inline svg for the screen (fonts come from the page, no script inside). */
+export function vorschauSvg(stil: Stil, palette: Palette = "wasser"): string {
+  const e: Erklaerstueck = {
+    titel: "Vorschau", stil, palette, tempo: "mittel", hintergrund: "keiner",
+    szenen: [{
+      titel: "Wasser in Bewegung",
+      elemente: [
+        { art: "form", form: "sonne", lage: "oben-links", id: "s" },
+        { art: "form", form: "wolke", lage: "oben-rechts", id: "c" },
+        { art: "form", form: "wasser", lage: "unten-links", id: "w" },
+        { art: "kasten", text: "Wasser verdunstet", lage: "unten-rechts", id: "k" },
+        { art: "pfeil", von: "w", nach: "c", text: "Verdunstung" },
+      ],
+    }],
+  };
+  const c = farbenFuer(e);
+  const st = stilFuer(stil);
+  const [szene] = stueckSetzen(e);
+  const titel = szene!.titel ? textSvg(szene!.titel.zeilen, W / 2, szene!.titel.y, szene!.titel.groesse, c.ink) : "";
+  const teile = szene!.elemente.map((el, j) => teilSvg(el.teil, j, c, st)).join("");
+  const korn = st.korn ? `<rect width="${W}" height="${H}" filter="url(#grain)" style="mix-blend-mode:multiply" opacity="${st.korn}"/>` : "";
+  const schrift = st.serif ? `font-family="Fraunces, Georgia, serif" font-weight="600"` : `font-family="'Source Sans 3', Calibri, sans-serif" font-weight="700"`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-hidden="true" focusable="false">${DEFS}<rect width="${W}" height="${H}" fill="${c.bg}"/>${st.schatten ? `<rect x="10" y="10" width="${W - 20}" height="${H - 20}" fill="none" stroke="${c.ink}" stroke-width="6"/>` : ""}<g ${schrift}>${titel}${teile}</g>${korn}</svg>`;
 }

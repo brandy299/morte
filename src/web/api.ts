@@ -15,7 +15,7 @@ export interface UsageInfo {
 }
 export const getUsage = async (): Promise<UsageInfo> => (await fetch("/api/usage")).json();
 
-export interface Antwort { text: string; erklaerung: string }
+export interface Antwort { text: string; erklaerung: string; bild?: string }
 export interface Frage { frage: string; antworten: Antwort[]; empfohlen: number; grund: string }
 export interface Gegeben { frage: string; antwort: string; empfohlen: boolean; eigene?: boolean }
 

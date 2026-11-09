@@ -146,3 +146,32 @@ describe("renderVorschau", () => {
     expect(execFileSync("pdftotext", ["-f", "3", "-l", "3", file, "-"]).toString()).toContain("Folienbereich");
   });
 });
+
+describe("looks of a presentation", () => {
+  const ground = (stil?: string) => planen(parsePraesentation({ ...sample, stil }))[0]!.teile[0] as { fill: string };
+
+  it("keep the classic look without a style and for watercolor", () => {
+    expect(ground().fill).toBe("#f4efe6");
+    expect(ground("wasserfarben").fill).toBe("#f4efe6");
+  });
+
+  it("take the colors of the chosen style on every slide, light or dark", () => {
+    expect(ground("blaupause").fill).toBe("#12306b");
+    expect(ground("zeitung").fill).toBe("#f7f4ee");
+    const alle = planen(parsePraesentation({ ...sample, stil: "kreide" }));
+    for (const plan of alle) expect((plan.teile[0] as { fill: string }).fill).toBe("#26332d");
+    const text = alle[0]!.teile.filter((t) => t.k === "text") as { color: string }[];
+    expect(text.some((t) => t.color === "#f2f0e6")).toBe(true);
+  });
+
+  it("draw into the .pptx and the preview with the chosen colors", async () => {
+    const deck = parsePraesentation({ ...sample, stil: "blaupause" });
+    const files = unzipSync(new Uint8Array(await renderPptx(deck)));
+    expect(strFromU8(files["ppt/slides/slide1.xml"]!)).toContain("12306B");
+    expect((await renderVorschau(deck)).seiten).toBeGreaterThan(1);
+  });
+
+  it("explain an unknown style", () => {
+    expect(() => parsePraesentation({ ...sample, stil: "neon-flamingo" })).toThrow(/Der Stil: „neon-flamingo“ gibt es nicht/);
+  });
+});

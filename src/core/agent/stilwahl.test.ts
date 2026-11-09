@@ -1,0 +1,76 @@
+import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
+import { describe, expect, it } from "vitest";
+import { createChatSession, type ChatEvent } from "./index.ts";
+
+const args = (art = "erklaerstueck", ids = ["zeitung", "brutalismus", "kreide"]) => ({
+  art,
+  stile: ids.map((id) => ({ id, grund: `Der Stil ${id} passt gut zu diesem Thema.` })),
+  empfohlen: 1,
+});
+
+function session(responses: ReturnType<typeof fauxAssistantMessage>[]) {
+  const faux = fauxProvider({ tokensPerSecond: 1000 });
+  const models = createModels();
+  models.setProvider(faux.provider);
+  faux.setResponses(responses);
+  return createChatSession({ provider: "x" }, { resolve: () => ({ models, model: faux.getModel() }) });
+}
+
+describe("choosing a look from three pictures", () => {
+  it("shows three looks as pictures, with the recommended one marked, and hands the pick back as an id", async () => {
+    const s = session([
+      fauxAssistantMessage([fauxToolCall("stil_waehlen", args())], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Dann nehme ich die Kreide-Tafel.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("Mach ein Erklärstück", (e) => {
+      events.push(e);
+      if (e.type === "fragen") expect(s.answerQuestions(e.id, [{ antwort: "Kreide-Tafel" }])).toBe(true);
+    });
+    const asked = events.find((e) => e.type === "fragen") as Extract<ChatEvent, { type: "fragen" }>;
+    expect(asked.fragen).toHaveLength(1);
+    const f = asked.fragen[0]!;
+    expect(f.antworten.map((a) => a.text)).toEqual(["Zeitung", "Neo-Brutalismus", "Kreide-Tafel"]);
+    expect(f.empfohlen).toBe(1);
+    for (const a of f.antworten) {
+      expect(a.bild, a.text).toMatch(/^<svg [^>]*viewBox="0 0 1280 720"/);
+      expect(a.bild).not.toMatch(/<script|foreignObject|onload/i);
+    }
+    expect(events.find((e) => e.type === "step_start")).toMatchObject({ label: "Stile zeigen" });
+    expect(JSON.stringify(s.history().messages)).toContain("Gewählter Stil: kreide");
+  });
+
+  it("shows sample slides for a presentation", async () => {
+    const s = session([fauxAssistantMessage([fauxToolCall("stil_waehlen", args("praesentation"))], { stopReason: "toolUse" }), fauxAssistantMessage([fauxText("Ok.")])]);
+    const events: ChatEvent[] = [];
+    await s.send("Mach Folien", (e) => {
+      events.push(e);
+      if (e.type === "fragen") s.answerQuestions(e.id, [{ antwort: "Zeitung" }]);
+    });
+    const asked = events.find((e) => e.type === "fragen") as Extract<ChatEvent, { type: "fragen" }>;
+    expect(asked.fragen[0]!.frage).toContain("Präsentation");
+    expect(asked.fragen[0]!.antworten[0]!.bild).toMatch(/viewBox="0 0 960 540"[\s\S]*Titel der Folie/);
+  });
+
+  it("takes the teacher's own wish in words and tells the model to find the nearest look", async () => {
+    const s = session([fauxAssistantMessage([fauxToolCall("stil_waehlen", args())], { stopReason: "toolUse" }), fauxAssistantMessage([fauxText("Ok.")])]);
+    await s.send("x", (e) => {
+      if (e.type === "fragen") s.answerQuestions(e.id, [{ antwort: "etwas mit Comic", eigene: true }]);
+    });
+    expect(JSON.stringify(s.history().messages)).toContain("nächstpassenden");
+  });
+
+  it("refuses an unknown id, two equal looks and a missing reason, so the model corrects the call", async () => {
+    const s = session([
+      fauxAssistantMessage([fauxToolCall("stil_waehlen", args("erklaerstueck", ["zeitung", "gibtesnicht", "kreide"]))], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxToolCall("stil_waehlen", args("erklaerstueck", ["zeitung", "zeitung", "kreide"]))], { stopReason: "toolUse" }),
+      fauxAssistantMessage([fauxText("Ok.")]),
+    ]);
+    const events: ChatEvent[] = [];
+    await s.send("x", (e) => events.push(e));
+    expect(events.some((e) => e.type === "fragen")).toBe(false);
+    const history = JSON.stringify(s.history().messages);
+    expect(history).toContain("does not exist");
+    expect(history).toContain("must be different");
+  });
+});
