@@ -2,9 +2,11 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
+import { katalog, stilZeile } from "./stile.ts";
+import { symbole, symbolMitId } from "./symbole.ts";
 import { MaterialError } from "../material/layout.ts";
-import { PALETTE, renderHtml, TAKT } from "./html.ts";
-import { H, HINTERGRUENDE, hintergrundFuer, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, stueckSetzen, W, type Box } from "./szene.ts";
+import { farbenFuer, PALETTE, renderHtml, STIL, TAKT } from "./html.ts";
+import { H, HINTERGRUENDE, hintergrundFuer, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, STILE, STIL_HINTERGRUND, stueckSetzen, W, type Box } from "./szene.ts";
 
 const gut = {
   titel: "Der Wasserkreislauf",
@@ -140,7 +142,7 @@ describe("renderHtml", () => {
       return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
     };
     const ratio = (a: string, b: string) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
-    for (const c of Object.values(PALETTE)) {
+    for (const c of [...Object.values(PALETTE), ...Object.values(STIL).flatMap((x) => (x.farben ? [x.farben] : []))]) {
       for (const fill of [c.bg, ...c.fills]) expect(ratio(c.ink, fill)).toBeGreaterThanOrEqual(7);
       expect(ratio(c.accent, c.bg)).toBeGreaterThanOrEqual(4.5);
       expect(ratio(c.soft, c.bg)).toBeGreaterThanOrEqual(4.5);
@@ -269,4 +271,103 @@ describe.skipIf(!browser)("in a real browser", () => {
     expect(await bild()).toBe(frueh);
     await page.close();
   }, 60000);
+});
+
+describe("looks (stil)", () => {
+  it("default to watercolor and explain an unknown one", () => {
+    expect(parseErklaerstueck(gut).stil).toBe("wasserfarben");
+    expect(() => parseErklaerstueck({ ...gut, stil: "konfetti" })).toThrow(/Der Stil \(stil\): „konfetti“ gibt es nicht\. Erlaubt: wasserfarben, brutalismus/);
+  });
+
+  it("give each look its own background unless one is chosen", () => {
+    for (const [stil, hg] of Object.entries(STIL_HINTERGRUND)) {
+      expect(parseErklaerstueck({ ...gut, stil }).hintergrund).toBe(hg);
+      expect(parseErklaerstueck({ ...gut, stil, hintergrund: "keiner" }).hintergrund).toBe("keiner");
+    }
+  });
+
+  it("draw every look to a file with its own colors, and only watercolor with the wobbly filter", () => {
+    const html = Object.fromEntries(STILE.map((stil) => [stil, renderHtml(parseErklaerstueck({ ...gut, stil }))]));
+    for (const stil of STILE) {
+      expect(html[stil], stil).toContain(`<rect width="${W}" height="${H}" fill="${farbenFuer({ stil, palette: "wasser" }).bg}"/>`);
+      expect(html[stil], stil).toContain('<button id="zurueck"');
+    }
+    expect(html.wasserfarben).toContain('filter="url(#wc)"');
+    for (const stil of ["brutalismus", "zeitung", "blaupause"] as const) expect(html[stil], stil).not.toContain('<g filter="url(#wc)"');
+    // brutalism: hard shadow plus thick outline on the box
+    expect(html.brutalismus).toContain('stroke-width="6"');
+    // the palette only matters for watercolor
+    expect(renderHtml(parseErklaerstueck({ ...gut, stil: "zeitung", palette: "abend" }))).toBe(html.zeitung);
+  });
+
+  it("keep the sans look smaller than it needs to be: only the font in use goes into the file", () => {
+    expect(renderHtml(parseErklaerstueck({ ...gut, stil: "brutalismus" }))).toContain("font-weight:700");
+    expect(renderHtml(parseErklaerstueck(gut))).toContain("font-weight:600");
+  });
+});
+
+describe("catalog of looks", () => {
+  const lum = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  };
+  const ratio = (a: string, b: string) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+
+  it("holds many looks, none named after a company, each readable", () => {
+    const k = katalog();
+    expect(k.length).toBeGreaterThanOrEqual(30);
+    expect(new Set(k.map((s) => s.id)).size).toBe(k.length);
+    for (const s of k) {
+      for (const f of [s.bg, ...s.fills]) expect(ratio(s.ink, f), `${s.id} text on ${f}`).toBeGreaterThanOrEqual(7);
+      expect(ratio(s.accent, s.bg), `${s.id} accent`).toBeGreaterThanOrEqual(4.5);
+      expect(ratio(s.soft, s.bg), `${s.id} soft`).toBeGreaterThanOrEqual(4.5);
+    }
+    for (const marke of ["ferrari", "binance", "stripe", "spotify", "tesla"]) expect(k.map((s) => s.id)).not.toContain(marke);
+  });
+
+  it("can be chosen by id and draw a whole piece in its own colors", () => {
+    for (const s of katalog()) {
+      const e = parseErklaerstueck({ ...gut, stil: s.id });
+      expect(e.stil).toBe(s.id);
+      const html = renderHtml(e);
+      expect(html, s.id).toContain(`<rect width="${W}" height="${H}" fill="${s.bg}"/>`);
+      expect(html, s.id).not.toContain("url(#wc)\"><rect");
+    }
+  });
+
+  it("describes a look in a line the assistant can use", () => {
+    const z = stilZeile(katalog().find((s) => s.id === "neobrutalism")!);
+    expect(z).toMatch(/^neobrutalism: Neobrutalism/);
+    expect(z).toContain("harte Schatten");
+  });
+});
+
+describe("symbols", () => {
+  const mit = (symbol: string, text?: string) => szene([{ art: "symbol", symbol, text, lage: "mitte", id: "a" }]);
+
+  it("come from the set, with the German name to search by", () => {
+    expect(symbole().length).toBeGreaterThanOrEqual(150);
+    expect(symbolMitId("droplet")?.de).toBe("Tropfen");
+    for (const s of symbole()) expect(s.d, s.id).toMatch(/^<(path|circle|line|rect|ellipse|polyline)/);
+  });
+
+  it("are checked: an unknown one is explained, a caption is limited", () => {
+    expect(() => mit("einhorn")).toThrow(/Das Symbol „einhorn“ gibt es nicht\. Such mit symbole_suchen/);
+    expect(() => szene([{ art: "symbol", lage: "mitte" }])).toThrow("Es fehlt: das Symbol (symbol).");
+    expect(() => mit("droplet", "x".repeat(41))).toThrow(/zu lang \(höchstens 40 Zeichen\)/);
+  });
+
+  it("are drawn on a tile with the caption, in every look, and read out by screen readers", () => {
+    for (const stil of ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide", "fachbuch", "neobrutalism"]) {
+      const html = renderHtml(parseErklaerstueck({ titel: "x", stil, szenen: [{ titel: "t", elemente: [{ art: "symbol", symbol: "currency-euro", text: "Geld", lage: "mitte" }] }] }));
+      expect(html, stil).toContain(symbolMitId("currency-euro")!.d);
+      expect(html, stil).toContain(">Geld</text>");
+      expect(html, stil).toContain("<li>Geld</li>");
+    }
+  });
+
+  it("fit three in a row and two stacked with captions", () => {
+    const e = parseErklaerstueck({ titel: "x", szenen: [{ titel: "Titel", elemente: ["links", "mitte", "rechts"].map((lage) => ({ art: "symbol", symbol: "book", text: "Buch", lage })) }] });
+    expect(() => stueckSetzen(e)).not.toThrow();
+  });
 });

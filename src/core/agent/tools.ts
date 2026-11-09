@@ -9,6 +9,8 @@ import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
 import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
 import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
+import { katalog, stilZeile } from "../animation/stile.ts";
+import { symbole, symbolZeile } from "../animation/symbole.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -556,6 +558,41 @@ const uebungErstellen = defineTool({
   },
 });
 
+const EIGENE_STILE = [
+  "wasserfarben: Wasserfarben (soft watercolor, warm paper, the classic look); heller Hintergrund, weich, Serifenschrift",
+  "brutalismus: Neo-Brutalismus (hand-made); heller Hintergrund, dicke Kanten, harte Schatten, knallige Farben, serifenlose Schrift",
+  "zeitung: Zeitung (hand-made); heller Hintergrund, feine Linien, ruhig und seriös, Serifenschrift",
+  "blaupause: Blaupause (hand-made); dunkler Hintergrund, weiße Linien auf tiefem Blau, serifenlose Schrift",
+  "kreide: Kreide-Tafel (hand-made); dunkler Hintergrund, Kreide-Look, Serifenschrift",
+  "fachbuch: Fachbuch (hand-made); heller Hintergrund, warmes Grau, feine Linien, Eckmarken, Serifenschrift",
+];
+const symboleSuchen = defineTool({
+  name: "symbole_suchen",
+  label: "Symbole heraussuchen",
+  description:
+    "Searches the symbols (simple outline pictures: drop, sun, gear, book, scale, factory, microscope, euro, …) that an explainer piece can show as an element of the art symbol. Each line has the id, the German name and words to find it by. Search with one or two German words (for example 'wasser', 'geld', 'tier'). Without suche it lists everything. Use only ids from this list, never invent one. If nothing fits, leave the symbol out or use a form instead.",
+  parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "One or two German words. Leave out to list all symbols" })) }),
+  async execute(_id, { suche }) {
+    const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = symbole().map(symbolZeile).filter((z) => words.every((w) => z.toLowerCase().includes(w)));
+    return text(hit.length ? hit.join("\n") : "Dazu gibt es kein Symbol. Versuche ein anderes Wort oder lass suche weg.");
+  },
+});
+
+const stileVorschlagen = defineTool({
+  name: "stile_vorschlagen",
+  label: "Stile heraussuchen",
+  description:
+    "Lists looks (stil) for an explainer piece, each with id, name and a short description of how it looks, so you can propose two or three that fit the topic and class to the teacher. Without suche it lists a varied selection (the six hand-made looks and about 40 more). With suche (a word such as 'retro', 'dunkel', 'weich', 'Serifen', a category like 'Editorial') it lists only the matches. Pass the id you and the teacher chose as stil to erklaerstueck_erstellen. Never invent an id.",
+  parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "A word to look for in id, name, category or description. Leave out for a varied selection" })) }),
+  async execute(_id, { suche }) {
+    const alle = [...EIGENE_STILE, ...katalog().map(stilZeile)];
+    const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = alle.filter((z) => words.every((w) => z.toLowerCase().includes(w)));
+    return text(hit.length ? hit.join("\n") : "Dazu gibt es keinen Stil. Versuche ein anderes Wort oder lass suche weg.");
+  },
+});
+
 const erklaerstueckErstellen = defineTool({
   name: "erklaerstueck_erstellen",
   producesMaterial: true,
@@ -565,7 +602,8 @@ const erklaerstueckErstellen = defineTool({
   parameters: Type.Object({
     titel: Type.String({ description: "Title, shown first" }),
     untertitel: Type.Optional(Type.String()),
-    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser" })),
+    stil: Type.Optional(Type.String({ description: "Look of the whole piece. Default wasserfarben. Hand-made: wasserfarben (soft watercolor), brutalismus (thick dark outlines, hard shadows, loud colors), zeitung (newspaper, calm, serif), blaupause (white lines on deep blue, technology), kreide (chalkboard), fachbuch (technical book: warm grey, hairlines, corner marks). Or the id of any style that stile_vorschlagen lists. Use the one the teacher chose, or your recommendation" })),
+    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors, only for stil wasserfarben: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser. The other looks bring their own colors" })),
     tempo: Type.Optional(StringEnum([...TEMPI], { description: "ruhig, mittel (default) or zuegig" })),
     hintergrund: Type.Optional(StringEnum([...HINTERGRUENDE], { description: "Quiet moving background: wellenlinien or wellenringe (water, nature), formen (friendly, younger classes), flecken (soft, watercolor), punktraster (science, technology), flaechen (business, careers), keiner. Leave it out and the pieces take turns" })),
     fach: Type.Optional(Type.String()),
@@ -575,11 +613,12 @@ const erklaerstueckErstellen = defineTool({
         titel: Type.Optional(Type.String({ description: "Short title of the scene, up to two lines" })),
         elemente: Type.Array(
           Type.Object({
-            art: StringEnum([...ARTEN], { description: "text: a line of text. kasten: text in a colored box. zahl: a big number with a short text. form: a drawn shape. pfeil: an arrow between two elements" }),
+            art: StringEnum([...ARTEN], { description: "text: a line of text. kasten: text in a colored box. zahl: a big number with a short text. form: a drawn shape. symbol: a simple picture from symbole_suchen on a tile, with an optional caption (text). pfeil: an arrow between two elements" }),
             id: Type.Optional(Type.String({ description: "Lower case letters and digits, needed for elements that an arrow points to or starts from" })),
             text: Type.Optional(Type.String({ description: "text up to 140 characters, kasten up to 80, zahl: text under the number up to 60, pfeil: label up to 30" })),
             zahl: Type.Optional(Type.String({ description: "zahl: the number, e.g. 71 % (up to 12 characters)" })),
             form: Type.Optional(StringEnum([...FORMEN], { description: "form: sonne, wolke, huegel or wasser" })),
+            symbol: Type.Optional(Type.String({ description: "symbol: the id of a symbol from symbole_suchen. The optional text is the caption under it (up to 40 characters)" })),
             lage: Type.Optional(StringEnum([...LAGEN], { description: "Place on the 3x3 grid. Not for arrows" })),
             von: Type.Optional(Type.String({ description: "pfeil: id of the element where it starts" })),
             nach: Type.Optional(Type.String({ description: "pfeil: id of the element where it ends" })),
@@ -873,7 +912,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, stileVorschlagen, symboleSuchen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

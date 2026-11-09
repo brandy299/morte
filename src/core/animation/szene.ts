@@ -5,6 +5,8 @@
  */
 import { MaterialError, SERIF, str, textWidth } from "../material/layout.ts";
 import { umbrechen } from "../material/schaubild.ts";
+import { katalog, katalogStil } from "./stile.ts";
+import { symbolMitId } from "./symbole.ts";
 
 export const W = 1280;
 export const H = 720;
@@ -16,10 +18,16 @@ export const LAGEN = ["oben-links", "oben", "oben-rechts", "links", "mitte", "re
 export type Lage = (typeof LAGEN)[number];
 export const FORMEN = ["sonne", "wolke", "huegel", "wasser"] as const;
 export type Formart = (typeof FORMEN)[number];
-export const ARTEN = ["text", "kasten", "zahl", "form", "pfeil"] as const;
+export const ARTEN = ["text", "kasten", "zahl", "form", "symbol", "pfeil"] as const;
 export type Art = (typeof ARTEN)[number];
 export const PALETTEN = ["wasser", "wiese", "abend"] as const;
 export type Palette = (typeof PALETTEN)[number];
+/** The look of the whole piece. Wasserfarben is the original; the others bring their own colors and ignore `palette`. */
+export const STILE = ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide", "fachbuch"] as const;
+/** The hand-made looks. */
+export type EigenStil = (typeof STILE)[number];
+/** A hand-made look or the id of a style from the catalog (stile.ts). */
+export type Stil = string;
 export const TEMPI = ["ruhig", "mittel", "zuegig"] as const;
 export type Tempo = (typeof TEMPI)[number];
 /** Quiet moving backgrounds (assets/animation/hintergrund.js), or none. */
@@ -33,6 +41,16 @@ export function hintergrundFuer(titel: string): Hintergrund {
   return HINTERGRUENDE[h % (HINTERGRUENDE.length - 1)]!;
 }
 
+/** The quiet background that suits each look when none is chosen (wasserfarben takes turns, see hintergrundFuer). */
+export const STIL_HINTERGRUND: Record<Exclude<EigenStil, "wasserfarben">, Hintergrund> = { brutalismus: "punktraster", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner", fachbuch: "punktraster" };
+
+/** The quiet background that suits a look when none is chosen. */
+export function hintergrundFuerStil(stil: Stil, titel: string): Hintergrund {
+  if (stil === "wasserfarben") return hintergrundFuer(titel);
+  if (stil in STIL_HINTERGRUND) return STIL_HINTERGRUND[stil as keyof typeof STIL_HINTERGRUND];
+  return katalogStil(stil)?.kategorie === "Retro & Nostalgic" ? "punktraster" : "keiner";
+}
+
 export const MAX_SZENEN = 10;
 export const MAX_ELEMENTE = 8;
 
@@ -42,6 +60,7 @@ export interface Element {
   text?: string;
   zahl?: string;
   form?: Formart;
+  symbol?: string;
   lage?: Lage;
   von?: string;
   nach?: string;
@@ -53,6 +72,7 @@ export interface Szene {
 export interface Erklaerstueck {
   titel: string;
   untertitel?: string;
+  stil: Stil;
   palette: Palette;
   tempo: Tempo;
   hintergrund: Hintergrund;
@@ -105,6 +125,11 @@ export function parseErklaerstueck(raw: unknown): Erklaerstueck {
         return { art, id, von, nach, text: feld(stelle, el.text, "die Beschriftung des Pfeils", 30) };
       }
       const lage = oneOf(el.lage, LAGEN, `${stelle}: Die Lage`);
+      if (art === "symbol") {
+        const symbol = feld(stelle, el.symbol, "das Symbol (symbol)", 40, true)!;
+        if (!symbolMitId(symbol)) throw new MaterialError(`${stelle}: Das Symbol „${symbol}“ gibt es nicht. Such mit symbole_suchen ein passendes heraus.`);
+        return { art, id, lage, symbol, text: feld(stelle, el.text, "die Beschriftung des Symbols", 40) };
+      }
       if (art === "form") return { art, id, lage, form: oneOf(el.form, FORMEN, `${stelle}: Die Form`) };
       if (art === "zahl") return { art, id, lage, zahl: feld(stelle, el.zahl, "die Zahl", 12, true)!, text: feld(stelle, el.text, "der Text zur Zahl", 60) };
       if (art === "kasten") return { art, id, lage, text: feld(stelle, el.text, "der Text im Kasten", 80, true)! };
@@ -121,12 +146,14 @@ export function parseErklaerstueck(raw: unknown): Erklaerstueck {
     return { titel: feld(`Szene ${nr}`, e.titel, "der Titel", 80), elemente };
   });
   const titel = str(o.titel, "der Titel", 80, true)!;
+  const stil = oneOf<string>(o.stil, [...STILE, ...katalog().map((s) => s.id)], "Der Stil (stil)", "wasserfarben");
   return {
     titel,
+    stil,
     untertitel: str(o.untertitel, "der Untertitel", 120),
     palette: oneOf(o.palette, PALETTEN, "Die Farbwelt (palette)", "wasser"),
     tempo: oneOf(o.tempo, TEMPI, "Das Tempo", "mittel"),
-    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", hintergrundFuer(titel)),
+    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", hintergrundFuerStil(stil, titel)),
     szenen,
   };
 }
@@ -139,6 +166,7 @@ export type Teil =
   | (Box & { k: "kasten"; zeilen: string[]; groesse: number })
   | (Box & { k: "zahl"; zahl: string; zeilen: string[]; groesse: number })
   | (Box & { k: "form"; form: Formart })
+  | (Box & { k: "symbol"; symbol: string; zeilen: string[]; groesse: number })
   | { k: "pfeil"; von: [number, number]; nach: [number, number]; etikett?: Box & { zeilen: string[] } };
 export interface GesetztesElement { id?: string; teil: Teil }
 export interface GesetzteSzene {
@@ -150,6 +178,8 @@ const SIZE = { text: 34, kasten: 28, zahl: 76, zahlText: 26, titel: 44, etikett:
 const LEAD = 1.28;
 const PAD = 18;
 const FORM = { w: 220, h: 147 };
+/** The square tile behind a symbol, and the caption size under it. */
+export const KACHEL = 110;
 
 const lineH = (size: number) => size * LEAD;
 const maxLine = (zeilen: string[], size: number) => Math.max(...zeilen.map((l) => textWidth(l, SERIF, size)));
@@ -196,6 +226,10 @@ export function setzen(s: Szene, nr: number): GesetzteSzene {
   // Measure every element, then stack the ones in the same cell.
   type Mass = { el: Element; w: number; h: number; make: (b: Box) => Teil };
   const masse = s.elemente.filter((e) => e.art !== "pfeil").map((el): Mass => {
+    if (el.art === "symbol") {
+      const zeilen = el.text ? umbrechen(el.text, cw, SIZE.zahlText, SERIF) : [];
+      return { el, w: Math.min(cw, Math.max(KACHEL, zeilen.length ? maxLine(zeilen, SIZE.zahlText) : 0)), h: KACHEL + (zeilen.length ? 10 + zeilen.length * lineH(SIZE.zahlText) : 0), make: (b) => ({ k: "symbol", ...b, symbol: el.symbol!, zeilen, groesse: SIZE.zahlText }) };
+    }
     if (el.art === "form") return { el, ...FORM, make: (b) => ({ k: "form", ...b, form: el.form! }) };
     if (el.art === "text") {
       const zeilen = umbrechen(el.text!, cw, SIZE.text, SERIF);

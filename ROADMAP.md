@@ -2,7 +2,7 @@
 
 Ein schlanker KI-Arbeitsplatz für Lehrkräfte. Aufbau und Ruhe wie die Claude-App, aber mit geführter Materialerstellung, Klassenstruktur und Stundenplan-Dashboard. Gedacht für Kolleginnen und Kollegen, die mit freiem Prompting wenig anfangen können.
 
-Stand: 2026-11-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
+Stand: 2026-11-09 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fertig
 
 ## Leitplanken
 
@@ -120,6 +120,7 @@ Stand: 2026-11-08 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
 
 - [ ] E-Mail und iServ im Dashboard
 - [~] Erklärstücke und Motion Graphics: erst als eigenständige HTML-Datei (Szenenbeschreibung vom Modell, Look und Takt vom Programm, #14), danach MP4 aus derselben Animation (Bild für Bild mit `seek(t)`, Kodierer des Browsers, keine Zusatzinstallation). Standard ohne Stimme. Siehe `docs/entscheidungen/017-erklaerstuecke-html-dann-mp4.md`. Fertig (HTML, #14): Werkzeug `erklaerstueck_erstellen` und Anleitung `erklaerstueck`, Katalog v0 (Text, Kasten, Zahl, Pfeil, Sonne, Wolke, Hügel, Wasser) auf einem Raster aus neun Plätzen, Wasserfarben-Look, Steuerung per Knopf und Tastatur, ohne Bewegung bei „weniger Bewegung“, Vorschau im Schutzraum, Datei läuft ohne Internet. Mit DeepSeek v4.1 flash durchgespielt, in Chromium angesehen. Anmerkung an einer Szene: „Hier etwas ändern“ in der Vorschau pausiert, nennt die Szene im Chat (Idee von ReelMimic). Leise bewegte Hintergründe (Wellenlinien, Wellenringe, Formen, Flecken, Punktraster, Flächen oder keiner), vom Modell passend zum Thema gewählt, sonst wechseln sich die Erklärstücke ab; der Hintergrund hängt an der Zeitleiste, `seek` hält das Bild fest. Alle sechs in Chromium angesehen; Vortest mit Jev für die geänderte Anleitung nicht gelaufen (kein Schlüssel in der Umgebung). Offen: Safari, Firefox und Edge, flüssiges Abspielen am Beamer, Kreislauf und Zeitstrahl aus den Schaubildern, Messung mit mehreren Modellen (Vortest mit Jev gelaufen, Zahlen nicht belastbar), MP4
+  - [x] Wählbare Stile für Erklärstücke: Wasserfarben, Neo-Brutalismus, Zeitung, Blaupause, Kreide-Tafel, Fachbuch (`stil`) und rund 40 weitere aus den offenen Designsystemen von Open Design (`assets/stile/katalog.json`). Pult sucht mit `stile_vorschlagen` zwei, drei passende aus und fragt die Lehrkraft. Dazu gut 200 Symbole (Tabler Icons, MIT) als Element `symbol`
   - Offen vorab für MP4: H.264 im Kodierer von Electron auf Mac und Windows (sonst WebM), Rechenzeit der Wasserfarben-Filter
 - [ ] Sitzplan pro Klasse: Foto vom aufgemalten Plan, die App erkennt die Tische, die Lehrkraft korrigiert in einem kleinen Editor. Erst nur das Raumlayout mit Platznummern, ohne Namen (Datenschutz, siehe Offene Fragen)
 - [~] Diktieren im Eingabefeld: Mikrofon-Knopf, Whisper läuft lokal im Browser, Stimme bleibt auf dem Rechner. Siehe `docs/entscheidungen/024-diktieren.md`. Gebaut, in Chromium mit einer deutschen Testaufnahme durchgespielt (Text erscheint im Feld, Satz bis auf das Ende richtig), Tests und Build laufen. Seit 0.2.11: Mikrofon-Auswahl mit Test und Lautstärke-Anzeige unter Einstellungen, klare Meldungen bei Windows-Sperre, belegtem oder stummem Mikrofon. Offen: Genauigkeit und Tempo auf Schul-Laptops, Schulnetze, Paketgröße
