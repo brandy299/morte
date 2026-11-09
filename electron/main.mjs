@@ -163,6 +163,13 @@ else {
 
     // Only Pult's own page may use the microphone (dictation) and notifications.
     session.defaultSession.setPermissionRequestHandler((wc, permission, ok) => ok(wc.getURL().startsWith(origin) && ["media", "notifications", "clipboard-sanitized-write"].includes(permission)));
+    session.defaultSession.setPermissionCheckHandler((wc, permission, requestingOrigin) => requestingOrigin.startsWith(origin) && ["media", "notifications", "clipboard-sanitized-write"].includes(permission));
+    // The system page with the microphone switch (Windows blocks desktop apps there by default on some computers).
+    ipcMain.handle("mikrofon-einstellungen", async (event) => {
+      if (!event.senderFrame?.url.startsWith(origin)) return;
+      const page = process.platform === "win32" ? "ms-settings:privacy-microphone" : process.platform === "darwin" ? "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone" : "";
+      if (page) await shell.openExternal(page);
+    });
     // The folder dialog is opened only for Pult's own page.
     ipcMain.handle("ordner-waehlen", async (event) => {
       if (!event.senderFrame?.url.startsWith(origin)) return null;

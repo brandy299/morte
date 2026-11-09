@@ -123,7 +123,7 @@ Stand: 2026-11-09 · Status der Phasen: `[ ]` offen, `[~]` in Arbeit, `[x]` fert
   - [x] Wählbare Stile für Erklärstücke: Wasserfarben, Neo-Brutalismus, Zeitung, Blaupause, Kreide-Tafel, Fachbuch (`stil`) und rund 40 weitere aus den offenen Designsystemen von Open Design (`assets/stile/katalog.json`). Pult sucht mit `stile_vorschlagen` zwei, drei passende aus und fragt die Lehrkraft
   - Offen vorab für MP4: H.264 im Kodierer von Electron auf Mac und Windows (sonst WebM), Rechenzeit der Wasserfarben-Filter
 - [ ] Sitzplan pro Klasse: Foto vom aufgemalten Plan, die App erkennt die Tische, die Lehrkraft korrigiert in einem kleinen Editor. Erst nur das Raumlayout mit Platznummern, ohne Namen (Datenschutz, siehe Offene Fragen)
-- [~] Diktieren im Eingabefeld: Mikrofon-Knopf, Whisper läuft lokal im Browser, Stimme bleibt auf dem Rechner. Siehe `docs/entscheidungen/024-diktieren.md`. Gebaut, in Chromium mit einer deutschen Testaufnahme durchgespielt (Text erscheint im Feld, Satz bis auf das Ende richtig), Tests und Build laufen. Offen: Genauigkeit und Tempo auf Schul-Laptops, Schulnetze, Paketgröße
+- [~] Diktieren im Eingabefeld: Mikrofon-Knopf, Whisper läuft lokal im Browser, Stimme bleibt auf dem Rechner. Siehe `docs/entscheidungen/024-diktieren.md`. Gebaut, in Chromium mit einer deutschen Testaufnahme durchgespielt (Text erscheint im Feld, Satz bis auf das Ende richtig), Tests und Build laufen. Seit 0.2.11: Mikrofon-Auswahl mit Test und Lautstärke-Anzeige unter Einstellungen, klare Meldungen bei Windows-Sperre, belegtem oder stummem Mikrofon. Offen: Genauigkeit und Tempo auf Schul-Laptops, Schulnetze, Paketgröße
 - [ ] Optional: Sprachausgabe (z. B. Voice Studio), nur auf ausdrücklichen Wunsch
 
 ## Phase 6: Ausrollen für Kollegen

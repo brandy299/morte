@@ -219,7 +219,9 @@ a.file-card { text-decoration: none; color: inherit; }
 .slash li small { grid-column: 1 / -1; color: var(--ink-soft); font-size: 14px; line-height: 1.35; }
 .slash li.on { background: var(--accent-wash); box-shadow: inset 0 0 0 1px var(--accent-deep); }
 .slash-hinweis { margin: 0; padding: 6px 12px 8px; color: var(--ink-soft); font-size: 13px; font-family: var(--sans); border-top: 1px solid var(--line); }
-.composer-bar { display: flex; align-items: center; gap: 6px; position: relative; }
+.composer-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; position: relative; }
+.composer-bar > button, .composer-bar .model-pill { flex: none; white-space: nowrap; }
+.composer-bar .send, .composer-bar .stop { margin-left: auto; }
 .grow { flex: 1; }
 .icon-btn { padding: 7px; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); display: grid; place-items: center; transition: background 0.12s, color 0.12s; }
 .modus-btn { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink-soft); font-size: 14.5px; transition: background 0.12s, color 0.12s, border-color 0.12s; }
@@ -816,5 +818,9 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .lesson-meta { font-size: 12.5px; color: var(--ink-soft); }
 .lesson-open { align-self: flex-start; font-size: 13.5px; }
 .lesson-foot { margin-top: 0; }
-.pruef-schalter { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); font-size: 0.85rem; cursor: pointer; }
+.pruef-schalter { white-space: nowrap; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); font-size: 0.85rem; cursor: pointer; }
 .pruef-schalter.an { border-color: var(--ink-soft); color: var(--ink); }
+.mic-test { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.pegel { flex: 1 1 160px; height: 10px; border-radius: 5px; background: var(--paper-deep); overflow: hidden; }
+.pegel span { display: block; height: 100%; background: var(--ok); transition: width 0.06s linear; }
+@media (prefers-reduced-motion: reduce) { .pegel span { transition: none; } }
