@@ -1,4 +1,4 @@
-import { Type } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
 import { InternetError, MAX_FRAGE, seiteLesen, type Dienst, type Seite } from "../internet/index.ts";
 import type { TeacherTool } from "./tools.ts";
 

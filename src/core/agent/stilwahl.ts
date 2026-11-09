@@ -1,4 +1,4 @@
-import { Type } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { stilInfo, vorschauSvg } from "../animation/html.ts";
 import { stilName } from "../animation/stile.ts";

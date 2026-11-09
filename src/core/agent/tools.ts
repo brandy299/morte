@@ -1,4 +1,5 @@
-import { StringEnum, Type, type Tool } from "@earendil-works/pi-ai";
+import { StringEnum, type Tool } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { hasLoesungen, parseArbeitsblatt, renderArbeitsblatt } from "../material/arbeitsblatt.ts";
 import { parseVerlauf, renderVerlauf } from "../material/verlauf.ts";
