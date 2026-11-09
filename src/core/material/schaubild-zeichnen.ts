@@ -14,6 +14,13 @@ const arrowHead = (from: P, to: P): [P, P, P] => {
 
 /** Draws the scene with its top left corner at (x, y). */
 export function zeichnePdf(doc: PDFKit.PDFDocument, szene: Szene, x0: number, y0: number): void {
+  // A diagram that was laid out wider is drawn smaller.
+  if (szene.k && szene.k !== 1) {
+    doc.save().translate(x0, y0).scale(szene.k);
+    zeichnePdf(doc, { ...szene, k: undefined }, 0, 0);
+    doc.restore();
+    return;
+  }
   for (const f of szene.formen) {
     doc.save();
     if (f.k === "kasten") {
@@ -100,6 +107,7 @@ export function szeneAlsPng(szene: Szene, scale = 3): Buffer {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.scale(scale, scale);
   ctx.translate(8 / scale, 6 / scale);
+  if (szene.k) ctx.scale(szene.k, szene.k);
   ctx.textBaseline = "top";
   const font = (f: Pick<Extract<Form, { k: "text" }>, "fett" | "groesse">) => `${f.groesse}px "${f.fett ? SANS_BOLD : SANS}"`;
   for (const f of szene.formen) {

@@ -56,11 +56,13 @@ describe("layout", () => {
   it.each(Object.entries(specs))("%s: boxes stay on the sheet and never overlap", (_name, raw) => {
     const scene = szeneVon(parseSchaubild(raw, 1), 450, false);
     const boxes = kaesten(scene.formen);
+    // A diagram laid out wider than the sheet is drawn smaller (k), the shapes keep the coordinates of the layout.
+    const k = scene.k ?? 1;
     for (const b of boxes) {
       expect(b.x).toBeGreaterThanOrEqual(-0.5);
-      expect(b.x + b.w).toBeLessThanOrEqual(scene.w + 0.5);
+      expect(b.x + b.w).toBeLessThanOrEqual(scene.w / k + 0.5);
       expect(b.y).toBeGreaterThanOrEqual(-0.5);
-      expect(b.y + b.h).toBeLessThanOrEqual(scene.h + 0.5);
+      expect(b.y + b.h).toBeLessThanOrEqual(scene.h / k + 0.5);
     }
     for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) expect(overlap(a, b), `${a.zeilen.join(" ")} / ${b.zeilen.join(" ")}`).toBe(false);
     expect(scene.h).toBeGreaterThan(20);

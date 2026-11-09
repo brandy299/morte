@@ -17,7 +17,9 @@ export const OBJEKTNAME = "Schaubild";
 type Slide = ReturnType<PptxGenJS["addSlide"]>;
 
 /** `scale` points on the slide per point of the scene, (x0, y0) the top left corner on the slide. */
-export function zeichnePptx(pres: PptxGenJS, slide: Slide, szene: Szene, x0: number, y0: number, scale: number): void {
+export function zeichnePptx(pres: PptxGenJS, slide: Slide, szene: Szene, x0: number, y0: number, scale0: number): void {
+  // A diagram that was laid out wider is drawn smaller.
+  const scale = scale0 * (szene.k ?? 1);
   const px = (v: number) => inch(x0 + v * scale);
   const py = (v: number) => inch(y0 + v * scale);
   const pl = (v: number) => inch(v * scale);
