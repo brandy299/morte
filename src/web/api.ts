@@ -327,3 +327,17 @@ const ordnerJson = async (res: Response): Promise<GewaehlterOrdner> => {
 export const getGewaehlterOrdner = async (): Promise<GewaehlterOrdner> => ordnerJson(await fetch("/api/arbeitsordner"));
 export const setGewaehlterOrdner = async (pfad: string) => ordnerJson(await fetch("/api/arbeitsordner", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ pfad }) }));
 export const clearGewaehlterOrdner = async () => ordnerJson(await fetch("/api/arbeitsordner", { method: "DELETE" }));
+
+export interface InternetInfo { an: boolean; dienst: "DeepSeek" | "OpenRouter" | "Exa" | null }
+
+export async function getInternet(): Promise<InternetInfo> {
+  const res = await fetch("/api/internet");
+  if (!res.ok) throw new Error("Die Einstellung konnte nicht geladen werden.");
+  return res.json();
+}
+
+export async function setInternet(an: boolean): Promise<InternetInfo> {
+  const res = await fetch("/api/internet", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ an }) });
+  if (!res.ok) throw new Error("Die Einstellung konnte nicht gespeichert werden.");
+  return res.json();
+}

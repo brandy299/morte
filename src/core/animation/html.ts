@@ -1,13 +1,18 @@
 /**
  * Draws an explainer piece (see szene.ts) as ONE html file that runs offline in any browser:
  * an svg stage, fonts and anime.js inline. The timeline is planned here once; the page only plays it.
- * `window.seek(ms)` shows any moment, so the same description always gives the same pictures (and a video can be cut from it later).
+ * `window.seek(ms)` stops and shows any moment, so the same description always gives the same pictures (and a video can be cut from it later).
  * No random values and no clock in the picture.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { fontFile, SERIF } from "../material/layout.ts";
 import { H, stueckSetzen, W, type Box, type Erklaerstueck, type GesetzteSzene, type Palette, type Teil, type Tempo } from "./szene.ts";
+
+/** The quiet backgrounds, as plain browser code that goes into the file. */
+const hintergrundCode = () => readFileSync(fileURLToPath(new URL("../../../assets/animation/hintergrund.js", import.meta.url)), "utf8").replace(/<\/script/gi, "<\\/script");
+/** The color each look uses for lines and dots in the background. */
+const TON: Record<Palette, keyof Farben> = { wasser: "wasser", wiese: "huegel", abend: "sonne" };
 
 export interface Farben { bg: string; ink: string; soft: string; accent: string; fills: [string, string, string]; sonne: string; wolke: string; huegel: string; wasser: string }
 export const PALETTE: Record<Palette, Farben> = {
@@ -123,6 +128,11 @@ export function renderHtml(e: Erklaerstueck): string {
     const teile = s.elemente.map((el, j) => `<g id="${id}e${j}" opacity="0">${teilSvg(el.teil, j, c)}</g>`).join("");
     return `<g id="${id}" class="sc" opacity="0">${titel}${teile}</g>`;
   });
+  const mitHintergrund = e.hintergrund !== "keiner";
+  const hintergrund = mitHintergrund
+    ? `<foreignObject width="${W}" height="${H}" opacity=".75" pointer-events="none"><canvas xmlns="http://www.w3.org/1999/xhtml" id="hg" width="${W}" height="${H}" style="width:${W}px;height:${H}px;display:block"></canvas></foreignObject>`
+    : "";
+  const hintergrundFarben = { accent: c.accent, fills: c.fills, ton: c[TON[e.palette]] };
   const lesetext = [e.titel, e.untertitel, ...e.szenen.flatMap((s) => [s.titel, ...s.elemente.map((x) => [x.text, x.zahl].filter(Boolean).join(": ") || undefined)])]
     .filter(Boolean)
     .map((t) => `<li>${esc(t!)}</li>`)
@@ -143,6 +153,7 @@ export function renderHtml(e: Erklaerstueck): string {
 <svg id="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(e.titel)}" preserveAspectRatio="xMidYMid meet">
 ${defs}
 <rect width="${W}" height="${H}" fill="${c.bg}"/>
+${hintergrund}
 ${titelBild}
 ${bilder.join("\n")}
 <rect width="${W}" height="${H}" filter="url(#grain)" style="mix-blend-mode:multiply" opacity=".45" pointer-events="none"/>
@@ -150,6 +161,7 @@ ${bilder.join("\n")}
 <nav aria-label="Steuerung"><button id="zurueck" type="button">Zurück</button><button id="spiel" type="button">Pause</button><button id="weiter" type="button">Weiter</button></nav>
 <ul class="sr">${lesetext}</ul>
 <script>${anime}</script>
+${mitHintergrund ? `<script>${hintergrundCode()}</script>` : ""}
 <script>
 const PLAN=${JSON.stringify(ablauf)};
 const TITEL=${JSON.stringify([e.titel, ...e.szenen.map((s) => s.titel ?? "")]).replace(/</g, "\\u003c")};
@@ -162,12 +174,16 @@ document.querySelectorAll(".ar").forEach(p=>{p.style.strokeDasharray="1";p.style
 document.querySelectorAll(".ah,.al").forEach(p=>sicht(p,0));
 let tl=null,idx=0,aktuell=()=>0;
 const spiel=$("#spiel");
+// The background follows the timeline, not the clock: a paused or sought piece shows the same picture every time.
+const HG=${JSON.stringify(mitHintergrund ? e.hintergrund : null)},HF=${JSON.stringify(hintergrundFarben)};
+const hgc=HG?$("#hg").getContext("2d"):null;let hgT=-1;
+function hgMalen(t){if(!hgc||t===hgT)return;hgT=t;hgc.setTransform(1,0,0,1,0,0);hgc.clearRect(0,0,${W},${H});hgc.globalAlpha=1;hgc.lineCap="butt";PULT_HINTERGRUND[HG](hgc,${W},${H},t,HF);hgc.globalAlpha=1;}
 function zeige(i){
   idx=Math.max(0,Math.min(PLAN.szenen.length-1,i));
   PLAN.szenen.forEach((s,k)=>{const g=$("#"+s.id);g.style.display=k===idx?"":"none";sicht(g,k===idx?1:0);s.schritte.forEach(x=>{const e=$("#"+x.id);sicht(e,1);if(x.art==="pfeil"){const g2=$(".ar",e);g2.style.strokeDashoffset=0;e.querySelectorAll(".ah,.al").forEach(q=>sicht(q,1));}});});
 }
 if(reduced){
-  spiel.hidden=true;zeige(0);
+  spiel.hidden=true;zeige(0);hgMalen(0);
   $("#zurueck").onclick=()=>zeige(idx-1);$("#weiter").onclick=()=>zeige(idx+1);
   addEventListener("keydown",e=>{if(e.key==="ArrowRight")zeige(idx+1);if(e.key==="ArrowLeft")zeige(idx-1);});
   window.seek=()=>{};window.dauer=0;aktuell=()=>idx;
@@ -193,8 +209,9 @@ if(reduced){
   $("#zurueck").onclick=()=>{const k=jetzt();zu(tl.currentTime-starts[k]>1500?k:k-1);};
   $("#weiter").onclick=()=>zu(jetzt()+1);
   addEventListener("keydown",e=>{if(e.key===" "&&e.target.tagName!=="BUTTON"){e.preventDefault();spiel.click();}if(e.key==="ArrowRight")$("#weiter").click();if(e.key==="ArrowLeft")$("#zurueck").click();});
-  window.seek=ms=>{tl.seek(ms);};aktuell=()=>{if(!tl.paused)pause();return jetzt();};window.dauer=PLAN.dauer;
+  window.seek=ms=>{if(!tl.paused)pause();tl.seek(ms);hgMalen(Math.round(tl.currentTime)/1000);};aktuell=()=>{if(!tl.paused)pause();return jetzt();};window.dauer=PLAN.dauer;
   tl.seek(0);
+  if(hgc){const malen=()=>{hgMalen(Math.round(tl.currentTime)/1000);requestAnimationFrame(malen);};malen();}
   document.fonts.ready.then(()=>{if(!new URLSearchParams(location.search).has("still"))spielen();});
 }
 // Pult's preview asks which scene is showing, so a teacher can leave a note on it. Standing alone, nobody asks.

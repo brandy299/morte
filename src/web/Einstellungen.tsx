@@ -6,6 +6,7 @@ import { Setup } from "./Setup.tsx";
 import { LookPicker } from "./LookPicker.tsx";
 import { MitteilungenSchalter } from "./MitteilungenSchalter.tsx";
 import { Mikrofon } from "./Mikrofon.tsx";
+import { InternetSchalter } from "./InternetSchalter.tsx";
 
 type Tab = "aussehen" | "mikrofon" | "ordner" | "schule" | "ki" | "update" | "datenschutz";
 const TABS: { id: Tab; label: string }[] = [
@@ -151,6 +152,8 @@ function Datenschutz() {
       <p className="lead">Klassen, Material, Lehrpläne, Stundenplan, Vorlagen und alle Gespräche. Der Zugangsschlüssel liegt im Schlüsselbund deines Computers oder in einer Datei nur für dich.</p>
       <h2>Was zu deinem KI-Anbieter geht</h2>
       <p className="lead">Deine Fragen, der Text aus angehängten Dateien und Bildern und die Teile deines Arbeitsordners, die ich für eine Aufgabe lese.</p>
+      <h2>Was ins Internet geht</h2>
+      <p className="lead">Wenn die Suche eingeschaltet ist: die Suchwörter an den Suchdienst (ohne eigenen Schlüssel das kostenlose Exa, sonst DeepSeek oder OpenRouter) und die Adresse einer Seite, die ich lese, an diese Seite. Namen von Schülerinnen und Schülern oder Noten kommen in keine Suche. Du kannst das unter „KI-Anbieter“ ausschalten.</p>
       <h2>Rückmeldungen zum Material</h2>
       <p className="lead">Unter jedem fertigen Material kannst du „Passt“ oder „Passt nicht“ wählen. Das bleibt auf diesem Computer. Du kannst alle Rückmeldungen als Datei speichern und weitergeben, damit Pult besser wird. Ohne deine Sätze sind darin nur Art des Materials, Anleitung, Modell und Zahlen. Gespräche und Inhalte sind nie dabei.</p>
       <p>
@@ -193,7 +196,14 @@ export function Einstellungen({ status, onClose, onDone, startTab = "aussehen" }
           {tab === "mikrofon" && <Mikrofon />}
           {tab === "ordner" && <Ordner />}
           {tab === "schule" && <Schule />}
-          {tab === "ki" && <Setup status={status} embedded onDone={onDone} />}
+          {tab === "ki" && (
+            <>
+              <Setup status={status} embedded onDone={onDone} />
+              <div className="settings-panel">
+                <InternetSchalter />
+              </div>
+            </>
+          )}
           {tab === "update" && <Update />}
           {tab === "datenschutz" && <Datenschutz />}
         </div>

@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { MaterialError } from "../material/layout.ts";
 import { PALETTE, renderHtml, TAKT } from "./html.ts";
-import { H, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, stueckSetzen, W, type Box } from "./szene.ts";
+import { H, HINTERGRUENDE, hintergrundFuer, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, stueckSetzen, W, type Box } from "./szene.ts";
 
 const gut = {
   titel: "Der Wasserkreislauf",
@@ -147,6 +149,68 @@ describe("renderHtml", () => {
   });
 });
 
+describe("quiet backgrounds", () => {
+  const muster = HINTERGRUENDE.filter((h) => h !== "keiner");
+
+  it("take turns when none is chosen: the title decides, the same piece keeps its own", () => {
+    expect(muster).toContain(hintergrundFuer("Der Wasserkreislauf"));
+    expect(parseErklaerstueck(gut).hintergrund).toBe(hintergrundFuer(gut.titel));
+    const gesehen = new Set(Array.from({ length: 60 }, (_, i) => hintergrundFuer(`Thema ${i}`)));
+    expect([...gesehen].sort()).toEqual([...muster].sort());
+  });
+
+  it("can be chosen or switched off, and an unknown one is explained", () => {
+    expect(parseErklaerstueck({ ...gut, hintergrund: "flecken" }).hintergrund).toBe("flecken");
+    expect(parseErklaerstueck({ ...gut, hintergrund: "keiner" }).hintergrund).toBe("keiner");
+    expect(() => parseErklaerstueck({ ...gut, hintergrund: "konfetti" })).toThrow(/Der Hintergrund: „konfetti“ gibt es nicht\. Erlaubt: wellenlinien/);
+  });
+
+  it("go into the file only when there is one", () => {
+    expect(renderHtml(parseErklaerstueck({ ...gut, hintergrund: "punktraster" }))).toMatch(/id="hg"[\s\S]*PULT_HINTERGRUND/);
+    const ohne = renderHtml(parseErklaerstueck({ ...gut, hintergrund: "keiner" }));
+    expect(ohne).not.toContain('id="hg"');
+    expect(ohne).not.toContain("var PULT_HINTERGRUND");
+  });
+
+  it("each one draws at any moment with sane numbers, and without chance: the same moment gives the same strokes", () => {
+    const code = readFileSync(new URL("../../../assets/animation/hintergrund.js", import.meta.url), "utf8");
+    const box: Record<string, unknown> = {};
+    runInNewContext(code, box);
+    const alle = box.PULT_HINTERGRUND as Record<string, (c: unknown, w: number, h: number, t: number, f: unknown) => void>;
+    expect(Object.keys(alle).sort()).toEqual([...muster].sort());
+    const aufzeichnen = (name: string, t: number) => {
+      const log: string[] = [];
+      const gradient = { addColorStop: () => {} };
+      const ctx = new Proxy({} as Record<string, unknown>, {
+        get: (s, key: string) =>
+          key in s
+            ? s[key]
+            : (...args: unknown[]) => {
+                for (const a of args) if (typeof a === "number" && !Number.isFinite(a)) throw new Error(`${name}: ${key} got ${a}`);
+                log.push(`${key}(${args.map((a) => (typeof a === "number" ? a.toFixed(2) : String(a))).join(",")})`);
+                return gradient;
+              },
+        set: (s, key: string, v) => {
+          if (key === "globalAlpha" && (typeof v !== "number" || v < 0 || v > 1)) throw new Error(`${name}: globalAlpha ${v}`);
+          s[key] = v;
+          log.push(`${key}=${String(v)}`);
+          return true;
+        },
+      });
+      alle[name]!(ctx, W, H, t, { accent: PALETTE.wiese.accent, fills: PALETTE.wiese.fills, ton: PALETTE.wiese.huegel });
+      return log;
+    };
+    for (const name of muster) {
+      for (const t of [0, 3.7, 42]) {
+        const a = aufzeichnen(name, t);
+        expect(a.some((x) => /^(fill|stroke|fillRect)\(/.test(x)), name).toBe(true);
+        expect(aufzeichnen(name, t), name).toEqual(a);
+      }
+      expect(aufzeichnen(name, 1), name).not.toEqual(aufzeichnen(name, 6));
+    }
+  });
+});
+
 // Real browser checks run only where Playwright and Chromium exist (not a dependency of Pult, nothing is downloaded).
 const browser = await (async () => {
   try {
@@ -190,5 +254,19 @@ describe.skipIf(!browser)("in a real browser", () => {
       await page.close();
     }
     expect(shots[0]!.equals(shots[1]!)).toBe(true);
+  }, 60000);
+
+  it("draws the background and moves it with the timeline, not with the clock", async () => {
+    const { page } = await open();
+    const bild = () => page.evaluate("document.getElementById('hg').toDataURL()") as Promise<string>;
+    await page.evaluate("window.seek(1000)");
+    const frueh = await bild();
+    await page.evaluate("window.seek(6000)");
+    const spaet = await bild();
+    await page.waitForTimeout(400);
+    await page.evaluate("window.seek(1000)");
+    expect(frueh).not.toBe(spaet);
+    expect(await bild()).toBe(frueh);
+    await page.close();
   }, 60000);
 });

@@ -20,9 +20,9 @@
   <img src="docs/bilder/readme/arbeitsblatt.png" alt="Pult mit einem fertigen Arbeitsblatt in der Vorschau" width="900">
 </p>
 
-> **Probelauf.** Pult ist in Erprobung (Version 0.2.6). Es kann Fehler machen oder etwas nicht können. Ob ein Arbeitsblatt fachlich gut ist, beurteilt am Ende nur eine Lehrkraft.
+> **Probelauf.** Pult ist in Erprobung (Version 0.2.8). Es kann Fehler machen oder etwas nicht können. Ob ein Arbeitsblatt fachlich gut ist, beurteilt am Ende nur eine Lehrkraft.
 
-*English in short: Pult is a lean, local AI workspace for teachers (worksheets, exams, lesson plans, interactive exercises). The interface and the material are in German. Apache-2.0, bring your own API key, nothing leaves your computer except the requests to the AI provider you choose.*
+*English in short: Pult is a lean, local AI workspace for teachers (worksheets, exams, lesson plans, interactive exercises). The interface and the material are in German. Apache-2.0, bring your own API key, nothing leaves your computer except the requests to the AI provider you choose and, unless switched off, web searches and the pages Pult reads.*
 
 ## Was Pult kann
 
@@ -36,6 +36,7 @@
 | „Erklärstück zum Wasserkreislauf“ | Eine animierte HTML-Datei, die du am Beamer abspielst |
 | „Präsentation zu …“ | PowerPoint-Datei mit Schaubildern als echten Objekten |
 | „Bau mir so ein Blatt wie auf dem Foto“ | Ein neues Blatt in der Machart des Fotos, mit eigenen Inhalten |
+| „Such mir aktuelle Zahlen zu …“, „Schau dir diesen Link an“ | Sucht im Internet (ohne Schlüssel über das kostenlose Exa, mit Schlüssel über DeepSeek oder OpenRouter) und liest Seiten, mit Quellenangabe. Abschaltbar |
 | „Differenzieren“, „Verständnis-Check“ | Ein Blatt in drei Niveaus (Basis, Standard, Erweiterung); ein kurzer Test zum Stundenende mit Lösungen und typischen Fehlvorstellungen |
 
 Dazu: Klassen mit Stand und Reihen, dein **Stundenplan als Kalender (iCal)** mit Wochenansicht und „Material fehlt“, hinterlegte **Lehrpläne**, eigene **Vorlagen**, **Schulkopf** auf dem Material und unter jedem Material „Passt“ und „Passt nicht“ als Rückmeldung.

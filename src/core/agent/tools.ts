@@ -8,7 +8,7 @@ import { renderHtml } from "../animation/html.ts";
 import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
 import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
-import { ARTEN, FORMEN, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
+import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -567,6 +567,7 @@ const erklaerstueckErstellen = defineTool({
     untertitel: Type.Optional(Type.String()),
     palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser" })),
     tempo: Type.Optional(StringEnum([...TEMPI], { description: "ruhig, mittel (default) or zuegig" })),
+    hintergrund: Type.Optional(StringEnum([...HINTERGRUENDE], { description: "Quiet moving background: wellenlinien or wellenringe (water, nature), formen (friendly, younger classes), flecken (soft, watercolor), punktraster (science, technology), flaechen (business, careers), keiner. Leave it out and the pieces take turns" })),
     fach: Type.Optional(Type.String()),
     klasse: Type.Optional(Type.String()),
     szenen: Type.Array(
