@@ -293,7 +293,7 @@ describe("looks (stil)", () => {
     expect(html.wasserfarben).toContain('filter="url(#wc)"');
     for (const stil of ["brutalismus", "zeitung", "blaupause"] as const) expect(html[stil], stil).not.toContain('<g filter="url(#wc)"');
     // brutalism: hard shadow plus thick outline on the box
-    expect(html.brutalismus).toContain('stroke-width="5"');
+    expect(html.brutalismus).toContain('stroke-width="6"');
     // the palette only matters for watercolor
     expect(renderHtml(parseErklaerstueck({ ...gut, stil: "zeitung", palette: "abend" }))).toBe(html.zeitung);
   });

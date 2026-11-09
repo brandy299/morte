@@ -30,7 +30,7 @@ export interface StilDef { farben?: Farben; filter: "wc" | "kreide" | "keiner"; 
 export const STIL: Record<Stil, StilDef> = {
   wasserfarben: { filter: "wc", kante: 0, schatten: 0, rx: 14, korn: 0.45, serif: true },
   // Cream paper, thick black outlines, hard offset shadows, loud flat colors.
-  brutalismus: { farben: { bg: "#fff6d8", ink: "#111111", soft: "#3a3a3a", accent: "#c1121f", fills: ["#ffd93d", "#ff9ec7", "#8be9fd"], sonne: "#ffd93d", wolke: "#9ad1ff", huegel: "#6ee7a0", wasser: "#4fb0ff" }, filter: "keiner", kante: 5, schatten: 9, rx: 4, korn: 0, serif: false, ton: "ink" },
+  brutalismus: { farben: { bg: "#fff2c6", ink: "#111111", soft: "#3a3a3a", accent: "#c1121f", fills: ["#ffd93d", "#ff8fb8", "#7fe3ff"], sonne: "#ff9f1c", wolke: "#c6b6ff", huegel: "#5fe39a", wasser: "#3fa7ff" }, filter: "keiner", kante: 6, schatten: 10, rx: 4, korn: 0, serif: false, ton: "ink" },
   // Newsprint: warm white, hairlines, quiet grey-beige boxes, one dark red accent.
   zeitung: { farben: { bg: "#f7f4ee", ink: "#1a1a1a", soft: "#505050", accent: "#9b1c1c", fills: ["#e9e4d8", "#dcd6c8", "#efe9dc"], sonne: "#d9a441", wolke: "#c9ccd1", huegel: "#9aa088", wasser: "#8aa3b8" }, filter: "keiner", kante: 2, schatten: 0, rx: 0, korn: 0.18, serif: true },
   // Blueprint: white lines on deep blue.
@@ -93,7 +93,14 @@ function formSvg(form: string, b: Box, c: Farben, st: StilDef): string {
   const sx = b.w / 180;
   const sy = b.h / 120;
   const k = kanteAttr(st, c);
-  const g = (inner: string) => `<g transform="translate(${n(b.x)} ${n(b.y)}) scale(${n(sx)} ${n(sy)})"><g${filterAttr(st)}>${inner}</g></g>`;
+  const dicht = st.filter === "wc" ? "" : ` opacity="1"`; // crisp looks: overlapping parts stay solid
+  const wolkeTeil = (inner: string) => inner.replace(/ opacity="\.85"/g, dicht);
+  const flach = (inner: string, fuell?: string) => (fuell ? inner.replace(/fill="[^"]*"/g, `fill="${fuell}"`) : inner);
+  const g = (inner: string) => {
+    inner = wolkeTeil(inner);
+    const hart = st.schatten ? `<g transform="translate(${n(st.schatten / sx)} ${n(st.schatten / sy)})">${flach(inner, c.ink)}</g>` : "";
+    return `<g transform="translate(${n(b.x)} ${n(b.y)}) scale(${n(sx)} ${n(sy)})">${hart}<g${filterAttr(st)}>${inner}</g></g>`;
+  };
   if (form === "sonne") return g(`<circle cx="90" cy="60" r="46" fill="${c.sonne}"${k}/>`);
   if (form === "wolke") return g(`<ellipse cx="90" cy="58" rx="62" ry="30" fill="${c.wolke}"${k}/><ellipse cx="58" cy="70" rx="44" ry="26" fill="${c.wolke}" opacity=".85"${k}/><ellipse cx="122" cy="72" rx="40" ry="24" fill="${c.wolke}" opacity=".85"${k}/>`);
   if (form === "huegel") return g(`<path d="M0 118 C 30 40 80 20 120 58 C 145 80 165 96 180 118 Z" fill="${c.huegel}"${k}/>`);
@@ -181,6 +188,7 @@ export function renderHtml(e: Erklaerstueck): string {
 ${defs}
 <rect width="${W}" height="${H}" fill="${c.bg}"/>
 ${hintergrund}
+${st.schatten ? `<rect x="10" y="10" width="${W - 20}" height="${H - 20}" fill="none" stroke="${c.ink}" stroke-width="6" pointer-events="none"/>` : ""}
 ${titelBild}
 ${bilder.join("\n")}
 ${st.korn ? `<rect width="${W}" height="${H}" filter="url(#grain)" style="mix-blend-mode:multiply" opacity="${st.korn}" pointer-events="none"/>` : ""}

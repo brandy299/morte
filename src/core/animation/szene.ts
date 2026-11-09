@@ -37,7 +37,7 @@ export function hintergrundFuer(titel: string): Hintergrund {
 }
 
 /** The quiet background that suits each look when none is chosen (wasserfarben takes turns, see hintergrundFuer). */
-export const STIL_HINTERGRUND: Record<Exclude<Stil, "wasserfarben">, Hintergrund> = { brutalismus: "flaechen", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner" };
+export const STIL_HINTERGRUND: Record<Exclude<Stil, "wasserfarben">, Hintergrund> = { brutalismus: "punktraster", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner" };
 
 export const MAX_SZENEN = 10;
 export const MAX_ELEMENTE = 8;
