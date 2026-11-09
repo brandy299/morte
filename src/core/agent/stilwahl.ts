@@ -24,7 +24,7 @@ const parameters = Type.Object({
 });
 
 /** Shows three looks as pictures on screen and returns the one the teacher picks. Needs the session to show them. */
-export const stilWahlTool = (askTeacher: AskTeacher, gueltig: (id: string) => boolean): AgentTool<typeof parameters> => ({
+export const stilWahlTool = (askTeacher: AskTeacher, gueltig: (id: string) => boolean, gewaehlt: (id: string, art: string) => void = () => undefined): AgentTool<typeof parameters> => ({
   name: STILWAHL_TOOL,
   label: "Stile zeigen",
   description:
@@ -47,6 +47,8 @@ export const stilWahlTool = (askTeacher: AskTeacher, gueltig: (id: string) => bo
     };
     const gegeben = await askTeacher([frage], signal);
     const antwort = gegeben?.[0];
+    const id = antwort && !antwort.eigene ? (stile[namen.indexOf(antwort.antwort)]?.id ?? stile[empfohlen - 1]!.id) : undefined;
+    if (id) gewaehlt(id, art);
     const text = !antwort
       ? "Die Lehrkraft hat keinen Stil gewählt. Frag nicht noch einmal, sondern warte auf ihre nächste Nachricht."
       : antwort.eigene
@@ -55,3 +57,11 @@ export const stilWahlTool = (askTeacher: AskTeacher, gueltig: (id: string) => bo
     return { content: [{ type: "text" as const, text }], details: undefined };
   },
 });
+
+/** Fills in the look the teacher picked when a later call of the piece tools leaves `stil` out (e.g. a retry after an error). */
+export function stilMerken<T extends { name: string; execute: (...args: any[]) => any }>(list: readonly T[], gewaehlt: Map<string, string>): T[] {
+  return list.map((t) => {
+    if (t.name !== "erklaerstueck_erstellen" && t.name !== "praesentation_erstellen") return t;
+    return { ...t, execute: (id: string, params: any, ...rest: any[]) => t.execute(id, params && !params.stil && gewaehlt.has(t.name) ? { ...params, stil: gewaehlt.get(t.name) } : params, ...rest) };
+  });
+}

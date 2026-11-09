@@ -6,7 +6,7 @@ import { shortError, validationProblem, type LogEntry } from "./ablauf.ts";
 import { AUTO_RETRY, classifyFailure, MAX_AUTO_RETRIES, retryDelay, type Failure } from "./errors.ts";
 import { keyFor } from "./custom.ts";
 import { ModelNotAllowed, modelProblem, resolveModel } from "./models.ts";
-import { stilWahlTool } from "./stilwahl.ts";
+import { stilMerken, stilWahlTool } from "./stilwahl.ts";
 import { PRAESENTATION_STILE } from "../material/praesentation.ts";
 import { fragenTool, matchGegeben, type Frage, type Gegeben } from "./fragen.ts";
 import { MIN_CHARS_TO_JUDGE, isEnglishThinking, writesEnglish } from "./innere-gedanken.ts";
@@ -92,8 +92,11 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
 
   // Questions need the screen, so this tool is built here and not in the fixed list.
   const questionTool = fragenTool((fragen, signal) => askQuestions(fragen, signal));
-  const styleTool = stilWahlTool((fragen, signal) => askQuestions(fragen, signal), (id) => PRAESENTATION_STILE.includes(id));
-  const tools = [...baseTools, ...ordnerTools(deps.ordner ?? (() => undefined)), ...internetTools(deps.internet ?? { an: async () => false, dienst: async () => undefined }), questionTool as (typeof baseTools)[number], styleTool as (typeof baseTools)[number]];
+  // The look the teacher picked is kept: when the model retries after an error and forgets `stil`, it must not fall back to the default look.
+  const gewaehlt = new Map<string, string>();
+  const styleTool = stilWahlTool((fragen, signal) => askQuestions(fragen, signal), (id) => PRAESENTATION_STILE.includes(id), (id, art) => gewaehlt.set(art === "praesentation" ? "praesentation_erstellen" : "erklaerstueck_erstellen", id));
+  const mitStil = stilMerken(baseTools, gewaehlt);
+  const tools = [...mitStil, ...ordnerTools(deps.ordner ?? (() => undefined)), ...internetTools(deps.internet ?? { an: async () => false, dienst: async () => undefined }), questionTool as (typeof baseTools)[number], styleTool as (typeof baseTools)[number]];
 
   const sessionId = randomUUID();
   const agent = new Agent({

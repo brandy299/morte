@@ -1,6 +1,7 @@
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { createChatSession, type ChatEvent } from "./index.ts";
+import { stilMerken } from "./stilwahl.ts";
 
 const args = (art = "erklaerstueck", ids = ["zeitung", "brutalismus", "kreide"]) => ({
   art,
@@ -72,5 +73,19 @@ describe("choosing a look from three pictures", () => {
     const history = JSON.stringify(s.history().messages);
     expect(history).toContain("does not exist");
     expect(history).toContain("must be different");
+  });
+});
+
+describe("remembering the picked look", () => {
+  it("fills in stil when a retry leaves it out, and never overrides one that is given", async () => {
+    const seen: any[] = [];
+    const fake = (name: string) => ({ name, execute: async (_id: string, p: any) => void seen.push(p) });
+    const gewaehlt = new Map<string, string>([["erklaerstueck_erstellen", "fachbuch"]]);
+    const [e, pr, other] = stilMerken([fake("erklaerstueck_erstellen"), fake("praesentation_erstellen"), fake("arbeitsblatt_erstellen")], gewaehlt);
+    await e!.execute("1", { thema: "a" });
+    await e!.execute("2", { thema: "b", stil: "zeitung" });
+    await pr!.execute("3", { thema: "c" });
+    await other!.execute("4", { thema: "d" });
+    expect(seen).toEqual([{ thema: "a", stil: "fachbuch" }, { thema: "b", stil: "zeitung" }, { thema: "c" }, { thema: "d" }]);
   });
 });
