@@ -115,18 +115,33 @@ function formSvg(form: string, b: Box, c: Farben, st: StilDef): string {
   const sx = b.w / 180;
   const sy = b.h / 120;
   const k = kanteAttr(st, c);
-  const dicht = st.filter === "wc" ? "" : ` opacity="1"`; // crisp looks: overlapping parts stay solid
-  const wolkeTeil = (inner: string) => inner.replace(/ opacity="\.85"/g, dicht);
-  const flach = (inner: string, fuell?: string) => (fuell ? inner.replace(/fill="[^"]*"/g, `fill="${fuell}"`) : inner);
+  const hell = (col: string) => mixHex(col, "#ffffff", 0.5);
+  const dunkler = (col: string) => mixHex(col, c.ink, 0.18);
+  // The hard shadow is the same drawing in the ink color, shifted.
+  const flach = (inner: string, fuell: string) => inner.replace(/(fill|stroke)="(?!none)[^"]*"/g, `$1="${fuell}"`);
   const g = (inner: string) => {
-    inner = wolkeTeil(inner);
     const hart = st.schatten ? `<g transform="translate(${n(st.schatten / sx)} ${n(st.schatten / sy)})">${flach(inner, c.ink)}</g>` : "";
     return `<g transform="translate(${n(b.x)} ${n(b.y)}) scale(${n(sx)} ${n(sy)})">${hart}<g${filterAttr(st)}>${inner}</g></g>`;
   };
-  if (form === "sonne") return g(`<circle cx="90" cy="60" r="46" fill="${c.sonne}"${k}/>`);
-  if (form === "wolke") return g(`<ellipse cx="90" cy="58" rx="62" ry="30" fill="${c.wolke}"${k}/><ellipse cx="58" cy="70" rx="44" ry="26" fill="${c.wolke}" opacity=".85"${k}/><ellipse cx="122" cy="72" rx="40" ry="24" fill="${c.wolke}" opacity=".85"${k}/>`);
-  if (form === "huegel") return g(`<path d="M0 118 C 30 40 80 20 120 58 C 145 80 165 96 180 118 Z" fill="${c.huegel}"${k}/>`);
-  return g(`<ellipse cx="90" cy="70" rx="86" ry="34" fill="${c.wasser}"${k}/>`);
+  if (form === "sonne") {
+    // Round sun with a lighter core and eight rays that do not touch it.
+    const strahlen = Array.from({ length: 8 }, (_, i) => {
+      const w = (i * Math.PI) / 4;
+      const p = (r: number) => `${n(90 + Math.cos(w) * r)} ${n(60 + Math.sin(w) * r)}`;
+      return `M${p(46)} L${p(58)}`;
+    }).join(" ");
+    return g(`<path d="${strahlen}" fill="none" stroke="${c.sonne}" stroke-width="9" stroke-linecap="round"/><circle cx="90" cy="60" r="34" fill="${c.sonne}"${k}/><circle cx="80" cy="50" r="12" fill="${hell(c.sonne)}" opacity=".55"/>`);
+  }
+  if (form === "wolke") {
+    // One outline for the whole cloud, so no lines cross inside it.
+    return g(`<path d="M44 96 C16 96 6 68 30 60 C28 34 58 24 76 40 C88 14 128 18 136 46 C164 42 178 74 150 96 Z" fill="${c.wolke}"${k}/><path d="M52 82 C60 74 74 74 82 80" fill="none" stroke="${hell(c.wolke)}" stroke-width="5" stroke-linecap="round"/>`);
+  }
+  if (form === "huegel") {
+    // A back hill in a lighter tone and a front hill.
+    return g(`<path d="M52 118 C80 36 130 22 160 62 C172 80 178 100 180 118 Z" fill="${hell(c.huegel)}"${k}/><path d="M0 118 C26 52 74 40 106 70 C128 90 152 104 180 118 Z" fill="${c.huegel}"${k}/><path d="M30 104 C44 84 62 78 78 84" fill="none" stroke="${dunkler(c.huegel)}" stroke-width="4" stroke-linecap="round" opacity=".6"/>`);
+  }
+  // water: a wavy surface and a body with light wave lines
+  return g(`<path d="M0 40 Q22 18 45 40 T90 40 T135 40 T180 40 V92 Q180 108 164 108 H16 Q0 108 0 92 Z" fill="${c.wasser}"${k}/><path d="M18 62 Q38 48 58 62 T98 62 M92 84 Q112 70 132 84 T172 84" fill="none" stroke="${hell(c.wasser)}" stroke-width="5" stroke-linecap="round"/>`);
 }
 
 function teilSvg(t: Teil, nr: number, c: Farben, st: StilDef): string {
