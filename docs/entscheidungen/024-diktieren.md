@@ -14,7 +14,7 @@ Lehrkräfte sollen Aufgaben für Pult sprechen können, statt zu tippen.
 - **Das Sprachmodell (ca. 80 MB) wird beim ersten Diktieren einmal geladen** (huggingface.co und dessen Auslieferungsserver `*.hf.co`) und bleibt im Zwischenspeicher des Browsers. Fortschritt steht in einfacher Sprache neben dem Knopf. Beim Sprechen wird schon geladen.
 - Sprache ist fest Deutsch. Aufnahme maximal fünf Minuten.
 
-## Mikrofon-Auswahl (2026-11-07, Version 0.2.6)
+## Mikrofon-Auswahl (2026-11-07, Version 0.2.9)
 
 Auf einem Windows-PC in der Desktop-App ging das Diktieren nicht, und es gab keine Möglichkeit, das Mikrofon zu wählen. Darum:
 
