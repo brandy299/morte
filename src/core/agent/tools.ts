@@ -8,7 +8,7 @@ import { renderHtml } from "../animation/html.ts";
 import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
 import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
-import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
+import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, STILE, stueckSetzen, TEMPI } from "../animation/szene.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -565,7 +565,8 @@ const erklaerstueckErstellen = defineTool({
   parameters: Type.Object({
     titel: Type.String({ description: "Title, shown first" }),
     untertitel: Type.Optional(Type.String()),
-    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser" })),
+    stil: Type.Optional(StringEnum([...STILE], { description: "Look of the whole piece: wasserfarben (soft watercolor, default), brutalismus (neo-brutalism: thick black outlines, hard shadows, loud flat colors), zeitung (newspaper: warm white, hairlines, serif, calm and serious), blaupause (white lines on deep blue, science and technology), kreide (chalkboard). Choose the one that fits the topic and the class, or the one the teacher asks for" })),
+    palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors, only for stil wasserfarben: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser. The other looks bring their own colors" })),
     tempo: Type.Optional(StringEnum([...TEMPI], { description: "ruhig, mittel (default) or zuegig" })),
     hintergrund: Type.Optional(StringEnum([...HINTERGRUENDE], { description: "Quiet moving background: wellenlinien or wellenringe (water, nature), formen (friendly, younger classes), flecken (soft, watercolor), punktraster (science, technology), flaechen (business, careers), keiner. Leave it out and the pieces take turns" })),
     fach: Type.Optional(Type.String()),

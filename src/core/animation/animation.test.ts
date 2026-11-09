@@ -3,8 +3,8 @@ import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { MaterialError } from "../material/layout.ts";
-import { PALETTE, renderHtml, TAKT } from "./html.ts";
-import { H, HINTERGRUENDE, hintergrundFuer, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, stueckSetzen, W, type Box } from "./szene.ts";
+import { farbenFuer, PALETTE, renderHtml, STIL, TAKT } from "./html.ts";
+import { H, HINTERGRUENDE, hintergrundFuer, LAGEN, MAX_ELEMENTE, MAX_SZENEN, parseErklaerstueck, setzen, STILE, STIL_HINTERGRUND, stueckSetzen, W, type Box } from "./szene.ts";
 
 const gut = {
   titel: "Der Wasserkreislauf",
@@ -140,7 +140,7 @@ describe("renderHtml", () => {
       return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
     };
     const ratio = (a: string, b: string) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
-    for (const c of Object.values(PALETTE)) {
+    for (const c of [...Object.values(PALETTE), ...Object.values(STIL).flatMap((x) => (x.farben ? [x.farben] : []))]) {
       for (const fill of [c.bg, ...c.fills]) expect(ratio(c.ink, fill)).toBeGreaterThanOrEqual(7);
       expect(ratio(c.accent, c.bg)).toBeGreaterThanOrEqual(4.5);
       expect(ratio(c.soft, c.bg)).toBeGreaterThanOrEqual(4.5);
@@ -269,4 +269,37 @@ describe.skipIf(!browser)("in a real browser", () => {
     expect(await bild()).toBe(frueh);
     await page.close();
   }, 60000);
+});
+
+describe("looks (stil)", () => {
+  it("default to watercolor and explain an unknown one", () => {
+    expect(parseErklaerstueck(gut).stil).toBe("wasserfarben");
+    expect(() => parseErklaerstueck({ ...gut, stil: "neon" })).toThrow(/Der Stil \(stil\): „neon“ gibt es nicht\. Erlaubt: wasserfarben, brutalismus/);
+  });
+
+  it("give each look its own background unless one is chosen", () => {
+    for (const [stil, hg] of Object.entries(STIL_HINTERGRUND)) {
+      expect(parseErklaerstueck({ ...gut, stil }).hintergrund).toBe(hg);
+      expect(parseErklaerstueck({ ...gut, stil, hintergrund: "keiner" }).hintergrund).toBe("keiner");
+    }
+  });
+
+  it("draw every look to a file with its own colors, and only watercolor with the wobbly filter", () => {
+    const html = Object.fromEntries(STILE.map((stil) => [stil, renderHtml(parseErklaerstueck({ ...gut, stil }))]));
+    for (const stil of STILE) {
+      expect(html[stil], stil).toContain(`<rect width="${W}" height="${H}" fill="${farbenFuer({ stil, palette: "wasser" }).bg}"/>`);
+      expect(html[stil], stil).toContain('<button id="zurueck"');
+    }
+    expect(html.wasserfarben).toContain('filter="url(#wc)"');
+    for (const stil of ["brutalismus", "zeitung", "blaupause"] as const) expect(html[stil], stil).not.toContain('<g filter="url(#wc)"');
+    // brutalism: hard shadow plus thick outline on the box
+    expect(html.brutalismus).toContain('stroke-width="5"');
+    // the palette only matters for watercolor
+    expect(renderHtml(parseErklaerstueck({ ...gut, stil: "zeitung", palette: "abend" }))).toBe(html.zeitung);
+  });
+
+  it("keep the sans look smaller than it needs to be: only the font in use goes into the file", () => {
+    expect(renderHtml(parseErklaerstueck({ ...gut, stil: "brutalismus" }))).toContain("font-weight:700");
+    expect(renderHtml(parseErklaerstueck(gut))).toContain("font-weight:600");
+  });
 });

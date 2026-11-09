@@ -20,6 +20,9 @@ export const ARTEN = ["text", "kasten", "zahl", "form", "pfeil"] as const;
 export type Art = (typeof ARTEN)[number];
 export const PALETTEN = ["wasser", "wiese", "abend"] as const;
 export type Palette = (typeof PALETTEN)[number];
+/** The look of the whole piece. Wasserfarben is the original; the others bring their own colors and ignore `palette`. */
+export const STILE = ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide"] as const;
+export type Stil = (typeof STILE)[number];
 export const TEMPI = ["ruhig", "mittel", "zuegig"] as const;
 export type Tempo = (typeof TEMPI)[number];
 /** Quiet moving backgrounds (assets/animation/hintergrund.js), or none. */
@@ -32,6 +35,9 @@ export function hintergrundFuer(titel: string): Hintergrund {
   for (const ch of titel) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
   return HINTERGRUENDE[h % (HINTERGRUENDE.length - 1)]!;
 }
+
+/** The quiet background that suits each look when none is chosen (wasserfarben takes turns, see hintergrundFuer). */
+export const STIL_HINTERGRUND: Record<Exclude<Stil, "wasserfarben">, Hintergrund> = { brutalismus: "flaechen", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner" };
 
 export const MAX_SZENEN = 10;
 export const MAX_ELEMENTE = 8;
@@ -53,6 +59,7 @@ export interface Szene {
 export interface Erklaerstueck {
   titel: string;
   untertitel?: string;
+  stil: Stil;
   palette: Palette;
   tempo: Tempo;
   hintergrund: Hintergrund;
@@ -121,12 +128,14 @@ export function parseErklaerstueck(raw: unknown): Erklaerstueck {
     return { titel: feld(`Szene ${nr}`, e.titel, "der Titel", 80), elemente };
   });
   const titel = str(o.titel, "der Titel", 80, true)!;
+  const stil = oneOf(o.stil, STILE, "Der Stil (stil)", "wasserfarben");
   return {
     titel,
+    stil,
     untertitel: str(o.untertitel, "der Untertitel", 120),
     palette: oneOf(o.palette, PALETTEN, "Die Farbwelt (palette)", "wasser"),
     tempo: oneOf(o.tempo, TEMPI, "Das Tempo", "mittel"),
-    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", hintergrundFuer(titel)),
+    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", stil === "wasserfarben" ? hintergrundFuer(titel) : STIL_HINTERGRUND[stil]),
     szenen,
   };
 }
