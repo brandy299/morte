@@ -1,4 +1,4 @@
-import { Type } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
 import { ArbeitsordnerError, auflisten, lesen, schreiben } from "../arbeitsordner/index.ts";
 import type { TeacherTool } from "./tools.ts";
 

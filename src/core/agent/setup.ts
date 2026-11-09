@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { deflateSync } from "node:zlib";
-import { Type, type Context } from "@earendil-works/pi-ai";
+import { type Context } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
 import { CUSTOM_ID, CustomProviderError, keyFor } from "./custom.ts";
 import { classifyFailure } from "./errors.ts";
 import { diagnoseNetwork, type NetDiagnosis } from "./netcheck.ts";
