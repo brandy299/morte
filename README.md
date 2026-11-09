@@ -20,7 +20,7 @@
   <img src="docs/bilder/readme/arbeitsblatt.png" alt="Pult mit einem fertigen Arbeitsblatt in der Vorschau" width="900">
 </p>
 
-> **Probelauf.** Pult ist in Erprobung (Version 0.2.11). Es kann Fehler machen oder etwas nicht können. Ob ein Arbeitsblatt fachlich gut ist, beurteilt am Ende nur eine Lehrkraft.
+> **Probelauf.** Pult ist in Erprobung (Version 0.2.12). Es kann Fehler machen oder etwas nicht können. Ob ein Arbeitsblatt fachlich gut ist, beurteilt am Ende nur eine Lehrkraft.
 
 *English in short: Pult is a lean, local AI workspace for teachers (worksheets, exams, lesson plans, interactive exercises). The interface and the material are in German. Apache-2.0, bring your own API key, nothing leaves your computer except the requests to the AI provider you choose and, unless switched off, web searches and the pages Pult reads.*
 
