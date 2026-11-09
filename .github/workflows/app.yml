@@ -53,10 +53,9 @@ jobs:
       - run: npx vite build
       # Der Stand im Programm, damit der Update-Knopf weiß, welche Version installiert ist.
       - run: node -e "require('fs').writeFileSync('.pult-stand', process.env.GITHUB_SHA)"
-      # Ohne Zertifikat: Das Programm ist unsigniert, Mac und Windows zeigen beim ersten Öffnen eine Warnung (siehe docs/programm.md).
+      # Ohne Zertifikat: Der Mac bekommt eine einfache Eigen-Signatur (identity "-" in package.json), sonst meldet er "Pult ist beschädigt".
+      # Mac und Windows zeigen beim ersten Öffnen trotzdem eine Warnung (siehe docs/programm.md).
       - run: npx electron-builder ${{ matrix.args }} --publish never
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
       - uses: actions/upload-artifact@v4
         with:
           name: pult-${{ matrix.os }}
@@ -83,7 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v${{ needs.version.outputs.version }}" dateien/*.dmg dateien/*.exe dateien/SHA256SUMS.txt -R "${{ github.repository }}" --target "${{ github.sha }}" --title "Pult ${{ needs.version.outputs.version }}" --notes "Pult als Programm. Mac: die .dmg-Datei (arm64 = Apple-Chip, x64 = Intel), Windows: die .exe-Datei. Beim ersten Öffnen kommt eine Warnung, die Anleitung steht in docs/programm.md."
+          gh release create "v${{ needs.version.outputs.version }}" dateien/*.dmg dateien/*.exe dateien/SHA256SUMS.txt -R "${{ github.repository }}" --target "${{ github.sha }}" --title "Pult ${{ needs.version.outputs.version }}" --notes "Pult als Programm. Mac: die .dmg-Datei (arm64 = Apple-Chip, x64 = Intel), Windows: die .exe-Datei. Beim ersten Öffnen kommt eine Warnung, die Anleitung steht in docs/programm.md. Mac: Meldet der Mac \"Pult ist beschädigt\", im Programm Terminal diese Zeile eingeben: xattr -cr /Applications/Pult.app"
 
   # Die kleinen Updates für den Update-Knopf im Programm: Pults eigener Code (ohne Bibliotheken und ohne Programmhülle).
   # Liegt immer unter dem Release "code" und wird bei jedem Stand auf main ersetzt.

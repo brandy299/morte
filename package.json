@@ -90,6 +90,7 @@
       ".pult-stand"
     ],
     "mac": {
+      "identity": "-",
       "category": "public.app-category.education",
       "target": [
         "dmg"
