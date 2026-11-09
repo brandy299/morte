@@ -111,4 +111,16 @@ describe("provider says the conversation is too long", () => {
     expect(shown(first)).toBe("");
     expect(shown(second)).toContain("schlichter");
   });
+
+  it("keeps English answers when the teacher writes English", async () => {
+    const faux = fauxProvider({ tokensPerSecond: 0 });
+    const models = createModels();
+    models.setProvider(faux.provider);
+    const model = faux.getModel();
+    faux.setResponses([fauxAssistantMessage([fauxText("The text is about the present perfect and it is a good start. I will make the worksheet for the class now.")])]);
+    const session = createChatSession({ provider: "demo" }, { resolve: () => ({ models, model }) });
+    const events: ChatEvent[] = [];
+    await session.send("Please make a worksheet about the present perfect", (e) => events.push(e));
+    expect(events.flatMap((e) => (e.type === "text" ? [e.delta] : [])).join("")).toContain("present perfect");
+  });
 });

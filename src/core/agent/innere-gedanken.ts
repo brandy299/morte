@@ -8,14 +8,27 @@ const GERMAN = new Set(["der", "die", "das", "und", "ist", "sind", "nicht", "ich
 /** Needs a few words to decide; shorter text is never hidden. */
 export const MIN_CHARS_TO_JUDGE = 80;
 
-export function isEnglishThinking(text: string): boolean {
+const count = (text: string) => {
   const words = text.toLowerCase().match(/[a-zäöüß']+/g) ?? [];
-  if (words.length < 12) return false;
   let en = 0;
   let de = 0;
   for (const w of words) {
     if (ENGLISH.has(w)) en++;
     else if (GERMAN.has(w)) de++;
   }
-  return en >= 4 && en >= de * 3;
+  return { words: words.length, en, de };
+};
+
+export function isEnglishThinking(text: string): boolean {
+  const { words, en, de } = count(text);
+  return words >= 12 && en >= 4 && en >= de * 3;
+}
+
+/**
+ * Whether the teacher writes in English (an English class, say). Then English answers are wanted and nothing is hidden.
+ * Meant to be generous, so short messages count too.
+ */
+export function writesEnglish(text: string): boolean {
+  const { en, de } = count(text);
+  return en >= 2 && en > de;
 }

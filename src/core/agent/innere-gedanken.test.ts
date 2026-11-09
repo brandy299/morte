@@ -1,6 +1,6 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { isEnglishThinking } from "./innere-gedanken.ts";
+import { isEnglishThinking, writesEnglish } from "./innere-gedanken.ts";
 
 test("English thinking is recognised", () => {
   assert.equal(isEnglishThinking("The teacher says it still looks like watercolor. I set hintergrund keiner but the palette still has soft colors, so I cannot remove that."), true);
@@ -14,4 +14,9 @@ test("German answers are kept", () => {
 
 test("short or mixed text is kept", () => {
   assert.equal(isEnglishThinking("Okay, the Business English Klausur ist fertig."), false);
+});
+
+test("a teacher writing English is recognised, German is not", () => {
+  assert.equal(writesEnglish("Please make a worksheet about the present perfect"), true);
+  assert.equal(writesEnglish("Mach mir ein Arbeitsblatt zur Sozialpolitik"), false);
 });

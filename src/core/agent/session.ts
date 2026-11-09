@@ -7,7 +7,7 @@ import { AUTO_RETRY, classifyFailure, MAX_AUTO_RETRIES, retryDelay, type Failure
 import { keyFor } from "./custom.ts";
 import { ModelNotAllowed, modelProblem, resolveModel } from "./models.ts";
 import { fragenTool, matchGegeben, type Frage, type Gegeben } from "./fragen.ts";
-import { MIN_CHARS_TO_JUDGE, isEnglishThinking } from "./innere-gedanken.ts";
+import { MIN_CHARS_TO_JUDGE, isEnglishThinking, writesEnglish } from "./innere-gedanken.ts";
 import { PRUEF_LABEL, pruefAnfrage } from "./pruefen.ts";
 import { tools as baseTools } from "./tools.ts";
 import { ordnerTools } from "./ordner-tools.ts";
@@ -221,6 +221,8 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   let held = "";
   let verdict: "show" | "hide" | undefined;
   let hidTextInMessage = false;
+  // Once the teacher writes English in this conversation, English answers are wanted and nothing is hidden.
+  let englishWanted = false;
   const showText = (text: string) => {
     const delta = (freshMessage && wroteText ? "\n\n" : "") + text;
     shownInMessage += delta.length;
@@ -231,7 +233,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
   const settleHeld = () => {
     if (verdict) return;
     if (held === "") return;
-    verdict = isEnglishThinking(held) ? "hide" : "show";
+    verdict = !englishWanted && isEnglishThinking(held) ? "hide" : "show";
     if (verdict === "hide") hidTextInMessage = true;
     else showText(held);
     held = "";
@@ -395,6 +397,7 @@ export function createChatSession(settings: AgentSettings, deps: SessionDeps = {
     async send(text, onEvent, images = [], options = {}) {
       const turn = { at: stamp(), t0: Date.now() };
       made = [];
+      if (writesEnglish(text)) englishWanted = true;
       let failed = false;
       const original = onEvent;
       onEvent = (event) => {
