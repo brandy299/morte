@@ -6,6 +6,8 @@ export interface Antwort {
   text: string;
   /** One short sentence: what this choice means for the result. */
   erklaerung: string;
+  /** A small picture (svg made by Pult, never from the model) shown with the answer, e.g. a sample of a look. */
+  bild?: string;
 }
 
 /** A question with a recommendation. The recommendation and its reason are required, so the teacher always sees what the assistant would pick and why. */

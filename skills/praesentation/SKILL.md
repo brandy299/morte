@@ -14,6 +14,7 @@ Du schreibst nur den Inhalt der Folien. Aufbau, Schrift und Farben macht das Wer
    - die Lehrkraft im Unterricht (Einstieg, Erklärung, Zusammenfassung),
    - oder die Lernenden als Beispiel oder Vorlage (zum Beispiel eine Musterpräsentation, an der sie sehen, wie gute Folien aussehen).
    Ist das klar oder lässt es sich aus der Anfrage ablesen, frag nicht danach. Den Rest legst du selbst fest: etwa eine Folie pro zwei bis drei Minuten Vortrag.
+   **Der Look:** Hat die Lehrkraft keinen Stil genannt, hol mit `stile_vorschlagen` die Auswahl, such drei passende für Thema und Klasse heraus und zeig sie mit `stil_waehlen` (art `praesentation`, drei verschiedene Stile, deine Empfehlung, je ein Satz Grund). Sie sieht drei Beispielfolien und klickt eine an. Beschreibe die Stile nicht zusätzlich im Text. Die Kennung der Wahl gibst du beim Erstellen als `stil` mit. Nennt die Lehrkraft den Stil schon, frag nicht noch einmal.
 2. **Klasse kennen.** Gibt es die Klasse im Arbeitsordner: `klasse_lesen`, dann `stand_lesen`, bei Bedarf `reihe_lesen`. Sprache und Schwierigkeit passen zur Klasse.
 3. **Folien schreiben.**
    - **Eine Aussage pro Folie.** Der Folientitel sagt sie in einer Zeile, am besten als kurze Aussage („Das Menüband sammelt alle Befehle“) statt nur als Stichwort.
