@@ -820,3 +820,7 @@ kbd { padding: 1px 7px; border: 1px solid var(--line); border-bottom-width: 2px;
 .lesson-foot { margin-top: 0; }
 .pruef-schalter { white-space: nowrap; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); font-size: 0.85rem; cursor: pointer; }
 .pruef-schalter.an { border-color: var(--ink-soft); color: var(--ink); }
+.mic-test { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.pegel { flex: 1 1 160px; height: 10px; border-radius: 5px; background: var(--paper-deep); overflow: hidden; }
+.pegel span { display: block; height: 100%; background: var(--ok); transition: width 0.06s linear; }
+@media (prefers-reduced-motion: reduce) { .pegel span { transition: none; } }
