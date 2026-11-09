@@ -6,8 +6,9 @@
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { istDunkel, katalogStil } from "./stile.ts";
 import { fontFile, SANS_BOLD, SERIF } from "../material/layout.ts";
-import { H, stueckSetzen, W, type Box, type Erklaerstueck, type GesetzteSzene, type Palette, type Stil, type Teil, type Tempo } from "./szene.ts";
+import { H, stueckSetzen, W, type Box, type EigenStil, type Erklaerstueck, type GesetzteSzene, type Palette, type Stil, type Teil, type Tempo } from "./szene.ts";
 
 /** The quiet backgrounds, as plain browser code that goes into the file. */
 const hintergrundCode = () => readFileSync(fileURLToPath(new URL("../../../assets/animation/hintergrund.js", import.meta.url)), "utf8").replace(/<\/script/gi, "<\\/script");
@@ -27,7 +28,7 @@ export const PALETTE: Record<Palette, Farben> = {
  * `serif`: Fraunces (otherwise Source Sans bold), `ton`: color of the background lines and dots.
  */
 export interface StilDef { farben?: Farben; filter: "wc" | "kreide" | "keiner"; kante: number; schatten: number; rx: number; korn: number; serif: boolean; ton?: keyof Farben; ecken?: boolean }
-export const STIL: Record<Stil, StilDef> = {
+export const STIL: Record<EigenStil, StilDef> = {
   wasserfarben: { filter: "wc", kante: 0, schatten: 0, rx: 14, korn: 0.45, serif: true },
   // Cream paper, thick dark outlines, hard offset shadows, loud flat colors (yellow, violet) after the open neobrutalism token set (Apache-2.0, nexu-io/open-design).
   brutalismus: { farben: { bg: "#fbf3d5", ink: "#1c293c", soft: "#3a4658", accent: "#432dd7", fills: ["#fdc800", "#c9c0ff", "#a8ecd0"], sonne: "#fdc800", wolke: "#c9c0ff", huegel: "#7ddba8", wasser: "#7a8cff" }, filter: "keiner", kante: 6, schatten: 10, rx: 4, korn: 0, serif: false, ton: "ink" },
@@ -40,8 +41,27 @@ export const STIL: Record<Stil, StilDef> = {
   // Chalkboard: dark green-grey with chalk-white, slightly wobbly lines.
   kreide: { farben: { bg: "#26332d", ink: "#f2f0e6", soft: "#c9cfc4", accent: "#f6d365", fills: ["#33463d", "#3b4a52", "#463f3a"], sonne: "#f6d365", wolke: "#d6dde2", huegel: "#9fd1a0", wasser: "#8cc4e0", knopf: "#33463d" }, filter: "kreide", kante: 3, schatten: 0, rx: 12, korn: 0, serif: true, ton: "ink" },
 };
+/** Colors of the things drawn (sun, cloud, hill, water): fixed hues pulled toward the style's own background. */
+const FORMFARBEN = { sonne: "#f2b134", wolke: "#c9d3e0", huegel: "#7fb08a", wasser: "#6aa6d6" };
+/** A style of the catalog (stile.ts) as a look. */
+function ausKatalog(id: string): StilDef | undefined {
+  const k = katalogStil(id);
+  if (!k) return undefined;
+  const dunkel = istDunkel(k.bg);
+  const zu = (c: string) => mixHex(c, k.bg, dunkel ? 0.35 : 0.3);
+  return {
+    farben: { bg: k.bg, ink: k.ink, soft: k.soft, accent: k.accent, fills: k.fills, sonne: zu(FORMFARBEN.sonne), wolke: zu(FORMFARBEN.wolke), huegel: zu(FORMFARBEN.huegel), wasser: zu(FORMFARBEN.wasser), knopf: dunkel ? k.fills[0] : undefined },
+    filter: "keiner", kante: k.kante, schatten: k.schatten, rx: k.rx, korn: 0, serif: k.serif, ton: "soft",
+  };
+}
+function mixHex(a: string, b: string, t: number): string {
+  const c = (h: string, i: number) => parseInt(h.slice(1 + 2 * i, 3 + 2 * i), 16);
+  return "#" + [0, 1, 2].map((i) => Math.round(c(a, i) * (1 - t) + c(b, i) * t).toString(16).padStart(2, "0")).join("");
+}
+/** The look to draw with: a hand-made one or one from the catalog. */
+export const stilFuer = (id: Stil): StilDef => (STIL as Record<string, StilDef>)[id] ?? ausKatalog(id) ?? STIL.wasserfarben;
 /** The colors of a piece: the palette for watercolor, the look's own otherwise. */
-export const farbenFuer = (e: Pick<Erklaerstueck, "stil" | "palette">): Farben => STIL[e.stil].farben ?? PALETTE[e.palette];
+export const farbenFuer = (e: Pick<Erklaerstueck, "stil" | "palette">): Farben => stilFuer(e.stil).farben ?? PALETTE[e.palette];
 
 /** Milliseconds: pause between two elements, how long one fades in, how long a finished scene stays. */
 export const TAKT: Record<Tempo, { schritt: number; ein: number; halten: number }> = {
@@ -152,7 +172,7 @@ button:focus-visible{outline:3px solid ${c.accent};outline-offset:2px}
 /** The finished html file. */
 export function renderHtml(e: Erklaerstueck): string {
   const c = farbenFuer(e);
-  const st = STIL[e.stil];
+  const st = stilFuer(e.stil);
   const szenen = stueckSetzen(e);
   const ablauf = planen(szenen, e.tempo);
   const schrift = readFileSync(fontFile(st.serif ? SERIF : SANS_BOLD)).toString("base64");

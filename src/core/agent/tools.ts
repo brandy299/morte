@@ -8,7 +8,8 @@ import { renderHtml } from "../animation/html.ts";
 import { bilderDir, ladeBild, listBilder } from "../bilder/index.ts";
 import { renderUebung } from "../uebung/html.ts";
 import { ARTEN as UEBUNG_ARTEN, parseUebung } from "../uebung/schema.ts";
-import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, STILE, stueckSetzen, TEMPI } from "../animation/szene.ts";
+import { ARTEN, FORMEN, HINTERGRUENDE, LAGEN, PALETTEN, parseErklaerstueck, stueckSetzen, TEMPI } from "../animation/szene.ts";
+import { katalog, stilZeile } from "../animation/stile.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "../material/praesentation.ts";
 import { gesamtpunkte, parseKlausur, renderErwartungshorizont, renderKlausur, verteilung } from "../material/klausur.ts";
 import { checkBewertung, readBewertung, writeBewertung } from "../workspace/bewertung.ts";
@@ -556,6 +557,28 @@ const uebungErstellen = defineTool({
   },
 });
 
+const EIGENE_STILE = [
+  "wasserfarben: Wasserfarben (soft watercolor, warm paper, the classic look); heller Hintergrund, weich, Serifenschrift",
+  "brutalismus: Neo-Brutalismus (hand-made); heller Hintergrund, dicke Kanten, harte Schatten, knallige Farben, serifenlose Schrift",
+  "zeitung: Zeitung (hand-made); heller Hintergrund, feine Linien, ruhig und seriös, Serifenschrift",
+  "blaupause: Blaupause (hand-made); dunkler Hintergrund, weiße Linien auf tiefem Blau, serifenlose Schrift",
+  "kreide: Kreide-Tafel (hand-made); dunkler Hintergrund, Kreide-Look, Serifenschrift",
+  "fachbuch: Fachbuch (hand-made); heller Hintergrund, warmes Grau, feine Linien, Eckmarken, Serifenschrift",
+];
+const stileVorschlagen = defineTool({
+  name: "stile_vorschlagen",
+  label: "Stile heraussuchen",
+  description:
+    "Lists looks (stil) for an explainer piece, each with id, name and a short description of how it looks, so you can propose two or three that fit the topic and class to the teacher. Without suche it lists a varied selection (the six hand-made looks and about 40 more). With suche (a word such as 'retro', 'dunkel', 'weich', 'Serifen', a category like 'Editorial') it lists only the matches. Pass the id you and the teacher chose as stil to erklaerstueck_erstellen. Never invent an id.",
+  parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "A word to look for in id, name, category or description. Leave out for a varied selection" })) }),
+  async execute(_id, { suche }) {
+    const alle = [...EIGENE_STILE, ...katalog().map(stilZeile)];
+    const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+    const hit = alle.filter((z) => words.every((w) => z.toLowerCase().includes(w)));
+    return text(hit.length ? hit.join("\n") : "Dazu gibt es keinen Stil. Versuche ein anderes Wort oder lass suche weg.");
+  },
+});
+
 const erklaerstueckErstellen = defineTool({
   name: "erklaerstueck_erstellen",
   producesMaterial: true,
@@ -565,7 +588,7 @@ const erklaerstueckErstellen = defineTool({
   parameters: Type.Object({
     titel: Type.String({ description: "Title, shown first" }),
     untertitel: Type.Optional(Type.String()),
-    stil: Type.Optional(StringEnum([...STILE], { description: "Look of the whole piece: wasserfarben (soft watercolor, default), brutalismus (neo-brutalism: thick black outlines, hard shadows, loud flat colors), zeitung (newspaper: warm white, hairlines, serif, calm and serious), blaupause (white lines on deep blue, science and technology), kreide (chalkboard), fachbuch (technical book: warm grey, hairlines, corner marks, serif; calm and precise). Choose the one that fits the topic and the class, or the one the teacher asks for" })),
+    stil: Type.Optional(Type.String({ description: "Look of the whole piece. Default wasserfarben. Hand-made: wasserfarben (soft watercolor), brutalismus (thick dark outlines, hard shadows, loud colors), zeitung (newspaper, calm, serif), blaupause (white lines on deep blue, technology), kreide (chalkboard), fachbuch (technical book: warm grey, hairlines, corner marks). Or the id of any style that stile_vorschlagen lists. Use the one the teacher chose, or your recommendation" })),
     palette: Type.Optional(StringEnum([...PALETTEN], { description: "Colors, only for stil wasserfarben: wasser (blue, green), wiese (green, yellow), abend (rose, violet). Default wasser. The other looks bring their own colors" })),
     tempo: Type.Optional(StringEnum([...TEMPI], { description: "ruhig, mittel (default) or zuegig" })),
     hintergrund: Type.Optional(StringEnum([...HINTERGRUENDE], { description: "Quiet moving background: wellenlinien or wellenringe (water, nature), formen (friendly, younger classes), flecken (soft, watercolor), punktraster (science, technology), flaechen (business, careers), keiner. Leave it out and the pieces take turns" })),
@@ -874,7 +897,7 @@ const lehrplanSuchen = defineTool({
 
 export const tools: TeacherTool[] = [
   lehrplanLesen, lehrplanSuchen,
-  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
+  bilderSuchen, arbeitsblattErstellen, praesentationErstellen, stileVorschlagen, erklaerstueckErstellen, uebungErstellen, stundenverlaufErstellen, klausurErstellen, lernsituationErstellen, bewertungLesen, bewertungSpeichern,
   skillLaden, skillDateiLesen, vorlageSpeichern, vorlageLesen, vorlageEntfernen,
   dateTool, klassenUebersicht, klasseLesen, standLesen, reiheLesen, materialLesen, lueckenTool, standSchreiben, reiheAnlegen, stundeEintragen,
 ];

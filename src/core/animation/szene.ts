@@ -5,6 +5,7 @@
  */
 import { MaterialError, SERIF, str, textWidth } from "../material/layout.ts";
 import { umbrechen } from "../material/schaubild.ts";
+import { katalog, katalogStil } from "./stile.ts";
 
 export const W = 1280;
 export const H = 720;
@@ -22,7 +23,10 @@ export const PALETTEN = ["wasser", "wiese", "abend"] as const;
 export type Palette = (typeof PALETTEN)[number];
 /** The look of the whole piece. Wasserfarben is the original; the others bring their own colors and ignore `palette`. */
 export const STILE = ["wasserfarben", "brutalismus", "zeitung", "blaupause", "kreide", "fachbuch"] as const;
-export type Stil = (typeof STILE)[number];
+/** The hand-made looks. */
+export type EigenStil = (typeof STILE)[number];
+/** A hand-made look or the id of a style from the catalog (stile.ts). */
+export type Stil = string;
 export const TEMPI = ["ruhig", "mittel", "zuegig"] as const;
 export type Tempo = (typeof TEMPI)[number];
 /** Quiet moving backgrounds (assets/animation/hintergrund.js), or none. */
@@ -37,7 +41,14 @@ export function hintergrundFuer(titel: string): Hintergrund {
 }
 
 /** The quiet background that suits each look when none is chosen (wasserfarben takes turns, see hintergrundFuer). */
-export const STIL_HINTERGRUND: Record<Exclude<Stil, "wasserfarben">, Hintergrund> = { brutalismus: "punktraster", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner", fachbuch: "punktraster" };
+export const STIL_HINTERGRUND: Record<Exclude<EigenStil, "wasserfarben">, Hintergrund> = { brutalismus: "punktraster", zeitung: "keiner", blaupause: "punktraster", kreide: "keiner", fachbuch: "punktraster" };
+
+/** The quiet background that suits a look when none is chosen. */
+export function hintergrundFuerStil(stil: Stil, titel: string): Hintergrund {
+  if (stil === "wasserfarben") return hintergrundFuer(titel);
+  if (stil in STIL_HINTERGRUND) return STIL_HINTERGRUND[stil as keyof typeof STIL_HINTERGRUND];
+  return katalogStil(stil)?.kategorie === "Retro & Nostalgic" ? "punktraster" : "keiner";
+}
 
 export const MAX_SZENEN = 10;
 export const MAX_ELEMENTE = 8;
@@ -128,14 +139,14 @@ export function parseErklaerstueck(raw: unknown): Erklaerstueck {
     return { titel: feld(`Szene ${nr}`, e.titel, "der Titel", 80), elemente };
   });
   const titel = str(o.titel, "der Titel", 80, true)!;
-  const stil = oneOf(o.stil, STILE, "Der Stil (stil)", "wasserfarben");
+  const stil = oneOf<string>(o.stil, [...STILE, ...katalog().map((s) => s.id)], "Der Stil (stil)", "wasserfarben");
   return {
     titel,
     stil,
     untertitel: str(o.untertitel, "der Untertitel", 120),
     palette: oneOf(o.palette, PALETTEN, "Die Farbwelt (palette)", "wasser"),
     tempo: oneOf(o.tempo, TEMPI, "Das Tempo", "mittel"),
-    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", stil === "wasserfarben" ? hintergrundFuer(titel) : STIL_HINTERGRUND[stil]),
+    hintergrund: oneOf(o.hintergrund, HINTERGRUENDE, "Der Hintergrund", hintergrundFuerStil(stil, titel)),
     szenen,
   };
 }
