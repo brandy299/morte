@@ -1,0 +1,802 @@
+[
+ {
+  "id": "bento",
+  "name": "Bento",
+  "kategorie": "Layout & Structure",
+  "beschreibung": "Modular grid layout with card-like blocks, clear hierarchy, soft spacing, and subtle visual contrast for organized, scannable interfaces.",
+  "bg": "#fff5e6",
+  "ink": "#101828",
+  "soft": "#344054",
+  "accent": "#816c63",
+  "fills": [
+   "#fff2e2",
+   "#feeede",
+   "#dfe0dd"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "bold",
+  "name": "Bold",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "Strong visual presence with heavyweight typography, high-contrast colors, and commanding layouts.",
+  "bg": "#111111",
+  "ink": "#d7d7d7",
+  "soft": "#7c7c7c",
+  "accent": "#1984c2",
+  "fills": [
+   "#292929",
+   "#414141",
+   "#0b402f"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 8,
+  "serif": false,
+  "schrift": "Arial Black"
+ },
+ {
+  "id": "brutalism",
+  "name": "Brutalism",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "Raw, anti-design aesthetic inspired by concrete architecture with unadorned elements, jarring layouts, and functional minimalism.",
+  "bg": "#f5f1e8",
+  "ink": "#000000",
+  "soft": "#222222",
+  "accent": "#ac4b3b",
+  "fills": [
+   "#ffffff",
+   "#f0d4c9",
+   "#eeddbf"
+  ],
+  "kante": 5,
+  "schatten": 8,
+  "rx": 0,
+  "serif": false,
+  "schrift": "Arial Black"
+ },
+ {
+  "id": "cafe",
+  "name": "Cafe",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Cozy cafe-inspired interface with warm tones, soft typography, and clean layouts for a relaxed browsing experience.",
+  "bg": "#f9f7f5",
+  "ink": "#3e2b1e",
+  "soft": "#4c4037",
+  "accent": "#5d4432",
+  "fills": [
+   "#e9e5e2",
+   "#dad3ce",
+   "#f5f2ef"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": true,
+  "schrift": "Georgia"
+ },
+ {
+  "id": "claymorphism",
+  "name": "Claymorphism",
+  "kategorie": "Morphism & Effects",
+  "beschreibung": "Soft, rounded 3D-like shapes mimicking malleable clay with playful, puffy elements and colorful surfaces.",
+  "bg": "#f7eee6",
+  "ink": "#1c398e",
+  "soft": "#5a4b43",
+  "accent": "#9a5b3d",
+  "fills": [
+   "#fff8f1",
+   "#ead4c6",
+   "#f9f2ec"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 22,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "clean",
+  "name": "Clean",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Simplicity-focused design with ample whitespace, legible typography, and a limited color palette to reduce visual clutter.",
+  "bg": "#ffffff",
+  "ink": "#111111",
+  "soft": "#3a3a3a",
+  "accent": "#111111",
+  "fills": [
+   "#f7f7f7",
+   "#cfcfcf",
+   "#e7e7e7"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 8,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "contemporary",
+  "name": "Contemporary",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Current-era minimalist design with bento grids, dark mode support, and high-performance accessible layouts.",
+  "bg": "#f5f8ff",
+  "ink": "#101828",
+  "soft": "#344054",
+  "accent": "#be00d4",
+  "fills": [
+   "#ffffff",
+   "#ecc6f9",
+   "#f1badd"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "cosmic",
+  "name": "Cosmic",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Futuristic sci-fi aesthetic with dark themes, vibrant neon accents, and immersive spatial elements.",
+  "bg": "#070711",
+  "ink": "#f8f7ff",
+  "soft": "#d6ccff",
+  "accent": "#c084fc",
+  "fills": [
+   "#111126",
+   "#393941",
+   "#202029"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "creative",
+  "name": "Creative",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Playful, character-driven design with expressive typography and bold graphics for landing pages and creative projects.",
+  "bg": "#fff8d7",
+  "ink": "#1d1836",
+  "soft": "#4c426c",
+  "accent": "#bc4f00",
+  "fills": [
+   "#ffffff",
+   "#ffdcac",
+   "#e8e2c7"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "doodle",
+  "name": "Doodle",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Hand-drawn, sketch-like style with doodles, handwritten fonts, and imperfect lines for a playful, informal feel.",
+  "bg": "#fff8d7",
+  "ink": "#1d1836",
+  "soft": "#4c426c",
+  "accent": "#307999",
+  "fills": [
+   "#ffffff",
+   "#dbebda",
+   "#c9c9b8"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Comic Sans MS"
+ },
+ {
+  "id": "dramatic",
+  "name": "Dramatic",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "High-contrast, theatrical design with bold layouts, immersive visuals, and unconventional compositions that command attention.",
+  "bg": "#09090b",
+  "ink": "#fafafa",
+  "soft": "#cbd5e1",
+  "accent": "#8b5cf6",
+  "fills": [
+   "#222223",
+   "#3a3a3c",
+   "#5b1c28"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "editorial",
+  "name": "Editorial",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Magazine-inspired editorial layout with refined serif typography, structured grids, and elegant reading experiences.",
+  "bg": "#fbf7f0",
+  "ink": "#1f1a16",
+  "soft": "#4b4038",
+  "accent": "#111111",
+  "fills": [
+   "#fffdf8",
+   "#ccc9c3",
+   "#f9f6f0"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 8,
+  "serif": true,
+  "schrift": "Georgia"
+ },
+ {
+  "id": "energetic",
+  "name": "Energetic",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "Dynamic, vibrant style with thick borders, geometric shapes, high-contrast colors, and expressive typography conveying motion and vitality.",
+  "bg": "#fdba74",
+  "ink": "#4c1d0a",
+  "soft": "#4c426c",
+  "accent": "#8c350a",
+  "fills": [
+   "#fbb06a",
+   "#f9a65f",
+   "#fbb35a"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "enterprise",
+  "name": "Enterprise",
+  "kategorie": "Professional & Corporate",
+  "beschreibung": "Clean, high-contrast enterprise design for data-driven workflows with intuitive drag-and-drop patterns and structured layouts.",
+  "bg": "#edeade",
+  "ink": "#0f172a",
+  "soft": "#334155",
+  "accent": "#072c2c",
+  "fills": [
+   "#d6d7cc",
+   "#bfc4ba",
+   "#f2c7a7"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 10,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "expressive",
+  "name": "Expressive",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "Vibrant, personality-driven design with bold colors, playful graphics, and dynamic layouts that balance creativity with structure.",
+  "bg": "#fbf8ff",
+  "ink": "#1f1730",
+  "soft": "#4d425f",
+  "accent": "#d02571",
+  "fills": [
+   "#ffffff",
+   "#f5cee4",
+   "#c6d3fa"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "fantasy",
+  "name": "Fantasy",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Game-inspired fantasy aesthetic with bold, premium visuals, rich color palettes, and immersive thematic elements.",
+  "bg": "#070711",
+  "ink": "#f8f7ff",
+  "soft": "#d6ccff",
+  "accent": "#3b78d7",
+  "fills": [
+   "#111126",
+   "#393941",
+   "#5d4b0b"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": true,
+  "schrift": "Georgia"
+ },
+ {
+  "id": "flat",
+  "name": "Flat",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Two-dimensional minimalist style with vibrant colors, clean typography, and no 3D effects for fast, user-friendly interfaces.",
+  "bg": "#f5f8ff",
+  "ink": "#101828",
+  "soft": "#344054",
+  "accent": "#bc502e",
+  "fills": [
+   "#ffffff",
+   "#f4dbd8",
+   "#dee2ea"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "friendly",
+  "name": "Friendly",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Approachable, intuitive design with rounded elements, ample whitespace, and soft pastel color palettes.",
+  "bg": "#fff8d7",
+  "ink": "#1d1836",
+  "soft": "#4c426c",
+  "accent": "#776a6b",
+  "fills": [
+   "#ffffff",
+   "#fcf2d8",
+   "#f6f7d7"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "glassmorphism",
+  "name": "Glassmorphism",
+  "kategorie": "Morphism & Effects",
+  "beschreibung": "Frosted glass effect with translucent layers, subtle blur, and luminous borders for depth and modern elegance.",
+  "bg": "#eef6ff",
+  "ink": "#141414",
+  "soft": "#34465f",
+  "accent": "#1856ff",
+  "fills": [
+   "#d9e6ff",
+   "#c3d6ff",
+   "#c1c6d3"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 24,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "gradient",
+  "name": "Gradient",
+  "kategorie": "Morphism & Effects",
+  "beschreibung": "Smooth color transitions and gradient-rich surfaces for modern, playful interfaces with visual depth.",
+  "bg": "#f7f3ff",
+  "ink": "#191225",
+  "soft": "#443856",
+  "accent": "#990ffa",
+  "fills": [
+   "#ffffff",
+   "#e4c5fe",
+   "#f3b6dd"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 20,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "luxury",
+  "name": "Luxury",
+  "kategorie": "Professional & Corporate",
+  "beschreibung": "High-end dark aesthetic with bold headings, monochromatic palette, and premium feel for luxury brand experiences.",
+  "bg": "#000000",
+  "ink": "#ffffff",
+  "soft": "#d8cdb7",
+  "accent": "#fafafa",
+  "fills": [
+   "#1a1a1a",
+   "#333333",
+   "#585858"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 14,
+  "serif": false,
+  "schrift": "Didot"
+ },
+ {
+  "id": "minimal",
+  "name": "Minimal",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Stripped-back design emphasizing whitespace, clean typography, and restrained color for maximum clarity and focus.",
+  "bg": "#f4f4f1",
+  "ink": "#0c0c09",
+  "soft": "#3a3a3a",
+  "accent": "#0c0c09",
+  "fills": [
+   "#ddddda",
+   "#c6c6c3",
+   "#c3c2d6"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 4,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "mono",
+  "name": "Mono",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Monospace-driven, matrix-inspired design with high-contrast elements, compact density, and a hacker-chic aesthetic.",
+  "bg": "#e7e5e4",
+  "ink": "#3e3a37",
+  "soft": "#3a3a3a",
+  "accent": "#1a720a",
+  "fills": [
+   "#d5e7cf",
+   "#c4e9ba",
+   "#add5e8"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 8,
+  "serif": false,
+  "schrift": "IBM Plex Mono"
+ },
+ {
+  "id": "neobrutalism",
+  "name": "Neobrutalism",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "Modern take on brutalism with bold borders, vivid accent colors, and raw, high-contrast layouts on warm surfaces.",
+  "bg": "#fbfbf9",
+  "ink": "#1c293c",
+  "soft": "#593625",
+  "accent": "#896c00",
+  "fills": [
+   "#fbf6e0",
+   "#fbf1c7",
+   "#cdc8f1"
+  ],
+  "kante": 5,
+  "schatten": 6,
+  "rx": 8,
+  "serif": false,
+  "schrift": "Arial Black"
+ },
+ {
+  "id": "neon",
+  "name": "Neon",
+  "kategorie": "Morphism & Effects",
+  "beschreibung": "Electric neon glow effects with high-contrast color pairings for bold, attention-grabbing interfaces.",
+  "bg": "#070711",
+  "ink": "#f8f7ff",
+  "soft": "#d6ccff",
+  "accent": "#bbf351",
+  "fills": [
+   "#111126",
+   "#393941",
+   "#054664"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "neumorphism",
+  "name": "Neumorphism",
+  "kategorie": "Morphism & Effects",
+  "beschreibung": "Soft, extruded UI elements with inner and outer shadows on monochromatic surfaces for a tactile, embedded look.",
+  "bg": "#e7e5e4",
+  "ink": "#1e2938",
+  "soft": "#5a4b43",
+  "accent": "#006666",
+  "fills": [
+   "#d0d8d7",
+   "#b9cccb",
+   "#eae8e8"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 22,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "paper",
+  "name": "Paper",
+  "kategorie": "Retro & Nostalgic",
+  "beschreibung": "Paper-textured, print-inspired design with minimal colors, clean serif/sans typography, and tactile surface qualities.",
+  "bg": "#faf3df",
+  "ink": "#211b12",
+  "soft": "#504737",
+  "accent": "#111111",
+  "fills": [
+   "#fffaf0",
+   "#cbc6b6",
+   "#e4ddcb"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": true,
+  "schrift": "Georgia"
+ },
+ {
+  "id": "perspective",
+  "name": "Perspective",
+  "kategorie": "Layout & Structure",
+  "beschreibung": "Spatial depth design with isometric views, vanishing points, and layered elements that guide attention through 3D-like realism.",
+  "bg": "#f5f8ff",
+  "ink": "#101828",
+  "soft": "#344054",
+  "accent": "#007d53",
+  "fills": [
+   "#ffffff",
+   "#c4ece5",
+   "#b8e9df"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "premium",
+  "name": "Premium",
+  "kategorie": "Professional & Corporate",
+  "beschreibung": "Apple-inspired premium aesthetic with precise spacing, modern typography, and a refined, polished visual language.",
+  "bg": "#faf8f4",
+  "ink": "#1c1b19",
+  "soft": "#4b4740",
+  "accent": "#986538",
+  "fills": [
+   "#ffffff",
+   "#e8dccf",
+   "#e4e2de"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Canela"
+ },
+ {
+  "id": "professional",
+  "name": "Professional",
+  "kategorie": "Professional & Corporate",
+  "beschreibung": "Polished, business-ready design with modern typography, structured layouts, and a trustworthy visual identity.",
+  "bg": "#f5f8ff",
+  "ink": "#101828",
+  "soft": "#344054",
+  "accent": "#836a0a",
+  "fills": [
+   "#ffffff",
+   "#f7f0d0",
+   "#b8babf"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "publication",
+  "name": "Publication",
+  "kategorie": "Creative & Artistic",
+  "beschreibung": "Print-inspired visual language for books, magazines, and reports with editorial grids and expressive typography.",
+  "bg": "#ffffff",
+  "ink": "#0a1829",
+  "soft": "#333333",
+  "accent": "#984ddf",
+  "fills": [
+   "#f6f6f6",
+   "#eeddfd",
+   "#c2c5ca"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 0,
+  "serif": false,
+  "schrift": "Franklin Gothic"
+ },
+ {
+  "id": "retro",
+  "name": "Retro",
+  "kategorie": "Retro & Nostalgic",
+  "beschreibung": "Throwback design with vintage-inspired typography, high-contrast retro palettes, and nostalgic visual elements.",
+  "bg": "#fff4cf",
+  "ink": "#2a1810",
+  "soft": "#593625",
+  "accent": "#be431c",
+  "fills": [
+   "#fffaf0",
+   "#f6d2ac",
+   "#eadebc"
+  ],
+  "kante": 5,
+  "schatten": 6,
+  "rx": 8,
+  "serif": false,
+  "schrift": "Courier New"
+ },
+ {
+  "id": "shadcn",
+  "name": "Shadcn",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Shadcn/ui-inspired design with minimal, clean components, monochrome palette, and utility-first patterns.",
+  "bg": "#ffffff",
+  "ink": "#111827",
+  "soft": "#111827",
+  "accent": "#000000",
+  "fills": [
+   "#e6e6e6",
+   "#cccccc",
+   "#c4c4c4"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 8,
+  "serif": false,
+  "schrift": "Geist"
+ },
+ {
+  "id": "simple",
+  "name": "Simple",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Straightforward, no-frills design with clean typography, neutral colors, and intuitive layouts that stay out of the way.",
+  "bg": "#f5f8ff",
+  "ink": "#101828",
+  "soft": "#344054",
+  "accent": "#2563eb",
+  "fills": [
+   "#ffffff",
+   "#cbdafb",
+   "#dee2ea"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "skeumorphism",
+  "name": "Skeumorphism",
+  "kategorie": "Morphism & Effects",
+  "beschreibung": "Real-world mimicry with textured surfaces, 3D effects, and familiar physical metaphors for intuitive digital interfaces.",
+  "bg": "#f7eee6",
+  "ink": "#2b211c",
+  "soft": "#5a4b43",
+  "accent": "#cc3000",
+  "fills": [
+   "#fff8f1",
+   "#f8cab8",
+   "#f5d3b5"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 22,
+  "serif": true,
+  "schrift": "Georgia"
+ },
+ {
+  "id": "sleek",
+  "name": "Sleek",
+  "kategorie": "Modern & Minimal",
+  "beschreibung": "Modern minimalist aesthetic with clean lines, intentional color palette, subtle interactions, and consistent spacing.",
+  "bg": "#090b12",
+  "ink": "#f8fafc",
+  "soft": "#cbd5e1",
+  "accent": "#60a5fa",
+  "fills": [
+   "#121722",
+   "#3a3c41",
+   "#22232a"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "spacious",
+  "name": "Spacious",
+  "kategorie": "Layout & Structure",
+  "beschreibung": "Generous whitespace, consistent padding, and grid-based layouts for clean, readable, and breathing interfaces.",
+  "bg": "#faf3df",
+  "ink": "#211b12",
+  "soft": "#504737",
+  "accent": "#8f5d24",
+  "fills": [
+   "#fffaf0",
+   "#e5d5ba",
+   "#e4ddcb"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "vibrant",
+  "name": "Vibrant",
+  "kategorie": "Bold & Expressive",
+  "beschreibung": "Lively, colorful design with bold playful typography, warm accents, and dynamic visual energy.",
+  "bg": "#fff8d7",
+  "ink": "#2f281d",
+  "soft": "#4c426c",
+  "accent": "#765cc9",
+  "fills": [
+   "#ffffff",
+   "#e5dad6",
+   "#fae6c3"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": false,
+  "schrift": "Inter"
+ },
+ {
+  "id": "vintage",
+  "name": "Vintage",
+  "kategorie": "Retro & Nostalgic",
+  "beschreibung": "1950s-1990s nostalgia with skeuomorphic touches, grainy textures, retro color palettes, and pixel-style typography.",
+  "bg": "#c0c0c0",
+  "ink": "#000000",
+  "soft": "#504737",
+  "accent": "#005656",
+  "fills": [
+   "#adbaba",
+   "#9ab3b3",
+   "#c0c0c0"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": true,
+  "schrift": "Georgia"
+ },
+ {
+  "id": "warm-editorial",
+  "name": "Warm Editorial",
+  "kategorie": "Starter",
+  "beschreibung": "A serif-led magazine aesthetic. Terracotta accent on warm off-white paper —",
+  "bg": "#fbf6ee",
+  "ink": "#201914",
+  "soft": "#4c4037",
+  "accent": "#9b5b32",
+  "fills": [
+   "#fffdf8",
+   "#e8d7c8",
+   "#e5e0d8"
+  ],
+  "kante": 2,
+  "schatten": 0,
+  "rx": 16,
+  "serif": true,
+  "schrift": "Georgia"
+ }
+]

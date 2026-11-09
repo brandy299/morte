@@ -1,13 +1,13 @@
 {
   "name": "pult",
-  "version": "0.2.5",
+  "version": "0.2.13",
   "private": true,
   "license": "Apache-2.0",
   "description": "Pult: der KI-Arbeitsplatz für Lehrkräfte",
   "author": "Pult",
   "homepage": "https://github.com/brandy299/morte",
   "main": "electron/main.mjs",
-  "pultHuelle": 2,
+  "pultHuelle": 3,
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -91,6 +91,7 @@
       ".pult-stand"
     ],
     "mac": {
+      "identity": "-",
       "category": "public.app-category.education",
       "target": [
         "dmg"

@@ -96,4 +96,31 @@ describe("provider says the conversation is too long", () => {
     expect(events.some((e) => e.type === "error")).toBe(false);
     expect(events.flatMap((e) => (e.type === "text" ? [e.delta] : [])).join("")).toContain("Fertig.");
   });
+  it("never shows English thinking that a model writes into its answer", async () => {
+    const faux = fauxProvider({ tokensPerSecond: 0 });
+    const models = createModels();
+    models.setProvider(faux.provider);
+    const model = faux.getModel();
+    faux.setResponses([fauxAssistantMessage([fauxText("The teacher says it still looks like watercolor. I set the background but the palette still has soft colors, so I cannot remove that.")]), fauxAssistantMessage([fauxText("Hier ist dein Blatt, ich habe es schlichter gemacht.")])]);
+    const session = createChatSession({ provider: "demo" }, { resolve: () => ({ models, model }) });
+    const first: ChatEvent[] = [];
+    await session.send("Eins", (e) => first.push(e));
+    const second: ChatEvent[] = [];
+    await session.send("Zwei", (e) => second.push(e));
+    const shown = (ev: ChatEvent[]) => ev.flatMap((e) => (e.type === "text" ? [e.delta] : [])).join("");
+    expect(shown(first)).toBe("");
+    expect(shown(second)).toContain("schlichter");
+  });
+
+  it("keeps English answers when the teacher writes English", async () => {
+    const faux = fauxProvider({ tokensPerSecond: 0 });
+    const models = createModels();
+    models.setProvider(faux.provider);
+    const model = faux.getModel();
+    faux.setResponses([fauxAssistantMessage([fauxText("The text is about the present perfect and it is a good start. I will make the worksheet for the class now.")])]);
+    const session = createChatSession({ provider: "demo" }, { resolve: () => ({ models, model }) });
+    const events: ChatEvent[] = [];
+    await session.send("Please make a worksheet about the present perfect", (e) => events.push(e));
+    expect(events.flatMap((e) => (e.type === "text" ? [e.delta] : [])).join("")).toContain("present perfect");
+  });
 });

@@ -57,7 +57,7 @@ export function parsePraesentation(raw: unknown): Praesentation {
     if (punkte.length > MAX_PUNKTE) throw new MaterialError(`Folie ${nr} hat ${punkte.length} Punkte. Höchstens ${MAX_PUNKTE}, verteile den Rest auf eine weitere Folie.`);
     const text = str(e.text, `der Text auf Folie ${nr}`, 600);
     if (e.schaubild && (e.schaubild as Record<string, unknown>).wortliste === true) throw new MaterialError(`Folie ${nr}: Eine Wortliste gibt es in einer Präsentation nicht. Schreib die Wörter als Stichpunkte auf eine eigene Folie.`);
-    const schaubild = e.schaubild ? parseSchaubild(e.schaubild, nr, `Folie ${nr}`) : undefined;
+    const schaubild = e.schaubild ? parseSchaubild(e.schaubild, nr, `Folie ${nr}`, [diagrammBreite(punkte.length > 0 || !!text)]) : undefined;
     if (art === "abschnitt" && (punkte.length || schaubild)) throw new MaterialError(`Folie ${nr} ist ein Abschnitt. Sie hat nur einen Titel und höchstens einen kurzen Text.`);
     return { art, titel: str(e.titel, `der Titel von Folie ${nr}`, 100, true)!, text, punkte, schaubild, notizen: mitLoesung(str(e.notizen, `die Notizen zu Folie ${nr}`, 3000), schaubild) };
   });
@@ -85,6 +85,10 @@ const PPTX_SERIF = "Georgia";
 const PPTX_SANS = "Calibri";
 const LEAD = 1.25;
 const ZOOM = 1.9;
+/** Share of the slide width the text takes when a diagram stands beside it. */
+const TEXTANTEIL = 0.44;
+/** The width a diagram is laid out at: narrow when text stands beside it, wide when it has the slide to itself. */
+const diagrammBreite = (mitText: boolean) => (mitText ? (W - 2 * MX) * (1 - TEXTANTEIL) - 32 : W - 2 * MX) / ZOOM;
 
 type Font = "serif" | "sans" | "sans-bold" | "sans-italic";
 const PDF_FONT: Record<Font, string> = { serif: SERIF, sans: SANS, "sans-bold": SANS_BOLD, "sans-italic": SANS_ITALIC };
@@ -175,7 +179,7 @@ function inhaltFolie(p: Praesentation, f: Folie, nr: number): FolienPlan {
   const top = 56 + th + 24;
   const bottom = H - 50;
   const textual = [...(f.text ? [f.text] : []), ...f.punkte];
-  const textW = f.schaubild && textual.length ? w * 0.44 : w;
+  const textW = f.schaubild && textual.length ? w * TEXTANTEIL : w;
   if (textual.length) {
     let y = top;
     const room = bottom - top;
@@ -196,7 +200,7 @@ function inhaltFolie(p: Praesentation, f: Folie, nr: number): FolienPlan {
     const capH = caption ? 22 : 0;
     const boxH = bottom - top - capH - 20;
     // Diagrams are laid out at sheet size and drawn larger, so their text is readable on a projector (about 18 pt).
-    const szene = szeneVon(f.schaubild, boxW / ZOOM, false);
+    const szene = szeneVon(f.schaubild, diagrammBreite(textual.length > 0), false);
     const scale = Math.min(ZOOM, boxW / szene.w, boxH / szene.h);
     const dw = szene.w * scale;
     const dh = szene.h * scale;

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { MAX_SECONDS, MIN_SECONDS, SAMPLE_RATE, istGeraeusch, mikrofonFehler } from "./diktat.ts";
+import { MAX_SECONDS, MIN_SECONDS, SAMPLE_RATE, STILL_UNTER, audioAnfrage, gewaehltesMikrofon, istGeraeusch, merkeMikrofon, mikrofonFehler, spitze, type Umgebung } from "./diktat.ts";
 import type { FromWorker, ToWorker } from "./diktat.worker.ts";
 
 type Phase = "bereit" | "hoert" | "schreibt";
+
+const umgebung = (): Umgebung => ({ app: !!window.pultApp, windows: /Windows/i.test(navigator.userAgent) });
 
 /** Microphone button for the message field. The recognition runs in this browser, the voice never leaves the computer. */
 export function Diktat({ onText, onProblem, disabled }: { onText: (text: string) => void; onProblem: (text: string | null) => void; disabled?: boolean }) {
@@ -42,7 +44,7 @@ export function Diktat({ onText, onProblem, disabled }: { onText: (text: string)
         // A failed load while the teacher is still speaking must not end the recording.
         setPhase((p) => (p === "hoert" ? p : "bereit"));
         setProzent(null);
-        callbacks.current.onProblem("Die Spracherkennung hat nicht geklappt. Prüf die Internetverbindung (beim ersten Mal wird sie einmal geladen) und versuch es noch einmal.");
+        callbacks.current.onProblem(`Die Spracherkennung hat nicht geklappt. Prüf die Internetverbindung (beim ersten Mal wird sie einmal geladen) und versuch es noch einmal. Hilft das nicht, schick Yannik ein Foto dieser Meldung: ${m.message.slice(0, 140)}`);
       }
     };
     worker.current = w;
@@ -54,9 +56,14 @@ export function Diktat({ onText, onProblem, disabled }: { onText: (text: string)
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return onProblem("Dein Browser kann nicht aufnehmen. Probier Chrome, Edge oder Safari.");
     let stream: MediaStream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: audioAnfrage(gewaehltesMikrofon()) });
     } catch (err) {
-      return onProblem(mikrofonFehler(err));
+      // The chosen microphone is gone (unplugged): forget it and take the one the system offers.
+      if (gewaehltesMikrofon() && err instanceof DOMException && (err.name === "OverconstrainedError" || err.name === "NotFoundError")) {
+        merkeMikrofon("");
+        return void start();
+      }
+      return onProblem(mikrofonFehler(err, umgebung()));
     }
     // Start loading the model while the teacher speaks, so the wait after the last word is short.
     const w = ensureWorker();
@@ -87,7 +94,11 @@ export function Diktat({ onText, onProblem, disabled }: { onText: (text: string)
       const audio = await decode(new Blob(r.chunks, { type: r.rec.mimeType }));
       if (audio.length < MIN_SECONDS * SAMPLE_RATE) {
         setPhase("bereit");
-        return onProblem("Das war zu kurz. Halte den Knopf, bis du fertig gesprochen hast.");
+        return onProblem("Das war zu kurz. Sprich, bis du fertig bist, und tippe dann noch einmal aufs Mikrofon.");
+      }
+      if (spitze(audio) < STILL_UNTER) {
+        setPhase("bereit");
+        return onProblem("Das Mikrofon hört nichts. Ist es stumm geschaltet? Wähle in den Einstellungen unter Mikrofon das richtige aus. Dort siehst du, ob Pult dich hört.");
       }
       worker.current?.postMessage({ type: "transcribe", audio } satisfies ToWorker, [audio.buffer]);
     } catch {

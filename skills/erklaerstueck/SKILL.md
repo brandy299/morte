@@ -1,7 +1,7 @@
 ---
 name: erklaerstueck
 title: Erklärstück
-description: Erstellt ein kurzes animiertes Erklärstück als einzelne Datei, die im Browser läuft (Beamer, Schul-PC, ohne Internet), im Wasserfarben-Look, mit Szenen, Texten, Pfeilen, Zahlen und einfachen Formen. Nutze es bei Wünschen wie "Erklärstück", "Animation", "animierte Erklärung", "Erklärvideo", "Motion Graphic", "etwas, das sich bewegt", "zeig mir den Ablauf animiert". Keine Videodatei, kein Ton. Nicht für Folien (dafür Präsentation) und nicht zum Ausdrucken (dafür Arbeitsblatt).
+description: Erstellt ein kurzes animiertes Erklärstück als einzelne Datei, die im Browser läuft (Beamer, Schul-PC, ohne Internet), in wählbaren Stilen (Wasserfarben, Neo-Brutalismus, Zeitung, Blaupause, Kreide-Tafel, Fachbuch), mit Szenen, Texten, Pfeilen, Zahlen und einfachen Formen. Nutze es bei Wünschen wie "Erklärstück", "Animation", "animierte Erklärung", "Erklärvideo", "Motion Graphic", "etwas, das sich bewegt", "zeig mir den Ablauf animiert". Keine Videodatei, kein Ton. Nicht für Folien (dafür Präsentation) und nicht zum Ausdrucken (dafür Arbeitsblatt).
 ---
 
 # Erklärstück
@@ -10,7 +10,7 @@ Du schreibst nur den Inhalt als Szenen. Aussehen, Takt und Platz macht das Werkz
 
 ## Ablauf
 
-1. **Klären, was fehlt, höchstens zwei Rückfragen in einer Runde**, mit `fragen_stellen`, jede mit empfohlener Antwort und Grund. Nötig sind das Thema und für wen es ist (Klasse oder Kurs). Alles andere legst du selbst fest. Wünscht die Lehrkraft ein Video oder eine MP4-Datei, sag ehrlich, dass das noch nicht geht, und biete das Erklärstück an.
+1. **Klären, was fehlt, höchstens zwei Rückfragen in einer Runde**, mit `fragen_stellen`, jede mit empfohlener Antwort und Grund. Nötig sind das Thema und für wen es ist (Klasse oder Kurs). **Der Stil ist eine eigene Frage, wenn die Lehrkraft keinen genannt hat:** Hole mit `stile_vorschlagen` die Auswahl (ohne Suchwort eine bunte Mischung, mit Suchwort nur Treffer), such daraus zwei oder drei passende für Thema und Klasse aus und frage mit der empfohlenen Antwort zuerst, mit einem Grund in einem Satz (zum Beispiel „Zeitung: ruhig und seriös, passt zu Geschichte in der Oberstufe“). Das zählt zu den höchstens zwei Fragen. Nenne die Stile mit ihrem Namen, nicht mit der Kennung. Alles andere legst du selbst fest. Wünscht die Lehrkraft ein Video oder eine MP4-Datei, sag ehrlich, dass das noch nicht geht, und biete das Erklärstück an.
 2. **Klasse kennen.** Gibt es die Klasse im Arbeitsordner: `stand_lesen`, bei Bedarf `reihe_lesen`. Sprache und Tiefe passen zur Klasse.
 3. **Szenen schreiben.**
    - **Eine Idee pro Szene**, sechs bis acht Szenen für etwa eine Minute. Mehr als zehn gehen nicht.
@@ -19,9 +19,11 @@ Du schreibst nur den Inhalt als Szenen. Aussehen, Takt und Platz macht das Werkz
    - **Texte kurz.** Ein Kasten höchstens 80 Zeichen, eine Textzeile höchstens 140. Was länger ist, gehört in zwei Szenen.
    - **Lage:** Das Bild ist ein Raster mit neun Plätzen (oben-links, oben, oben-rechts, links, mitte, rechts, unten-links, unten, unten-rechts). Verteile die Elemente. Zwei Elemente am selben Platz stehen untereinander, drei Kästen passen dort meist nicht.
    - **Pfeile** brauchen zwei Elemente mit einer `id`. Setze die beiden so, dass dazwischen nichts liegt. Beschrifte den Pfeil kurz („Verdunstung“), wenn er einen Vorgang zeigt.
-   - **Formen:** sonne, wolke, huegel, wasser. Mehr gibt es nicht. Fotos, Karten und freie Zeichnungen kannst du nicht erzeugen. Sag das ehrlich, wenn danach gefragt wird.
+   - **Symbole:** Einfache Bilder (Tropfen, Zahnrad, Buch, Waage, Fabrik, Euro, Mikroskop und gut 200 weitere) als Element `symbol`, mit kurzer Beschriftung. Such sie mit `symbole_suchen` (ein oder zwei deutsche Wörter) und nimm nur Kennungen aus der Liste. Symbole sind besser als Formen, wenn das Thema kein Wasser, keine Sonne und keine Hügel hat. Gibt es nichts Passendes, lass das Symbol weg.
+   - **Formen:** sonne, wolke, huegel, wasser. Mehr gibt es nicht an gezeichneten Formen. Fotos, Karten und freie Zeichnungen kannst du nicht erzeugen, nur Formen und Symbole. Sag das ehrlich, wenn danach gefragt wird.
    - **Zahlen** als `zahl` mit kurzem Text darunter („71 %“, „der Erde sind von Wasser bedeckt“). Nichts erfinden: Zahlen nur, wenn sie stimmen.
-   - **Farbwelt und Tempo:** `wasser`, `wiese` oder `abend`; `ruhig` für Erklären, `zuegig` für einen Überblick.
+   - **Stil:** Die Kennung kommt aus `stile_vorschlagen`, erfinde keine. Von Hand gemacht sind `wasserfarben` (weich, Standard), `brutalismus` (dicke schwarze Kanten, harte Schatten, knallige Flächen; für Jugendliche, Wirtschaft, Politik, Medien), `zeitung` (ruhig, seriös, Serifenschrift; für Geschichte, Politik, Deutsch), `blaupause` (weiße Linien auf Blau; für Naturwissenschaft und Technik), `kreide` (Tafel; vertraut, für Erklären Schritt für Schritt), `fachbuch` (warmes Grau, feine Linien, Eckmarken; sachlich und präzise, für Fachkunde, Technik, Wirtschaft). Nimm den Stil, den die Lehrkraft nennt. Nennt sie keinen, hast du in Schritt 1 gefragt; antwortet sie nicht darauf, nimm deine Empfehlung. Wünscht sie einen Stil, den es nicht gibt, nenne die sechs und biete den nächstpassenden an. Dazu kommen rund vierzig weitere Stile aus der Liste (zum Beispiel `editorial`, `doodle`, `retro`, `claymorphism`). Die Farbwelt (unten) gilt nur für `wasserfarben`, alle anderen Stile bringen ihre Farben mit.
+   - **Farbwelt (nur Wasserfarben) und Tempo:** `wasser`, `wiese` oder `abend`; `ruhig` für Erklären, `zuegig` für einen Überblick.
    - **Hintergrund:** ein leises, bewegtes Muster hinter den Szenen. `wellenlinien` oder `wellenringe` für Wasser und Natur, `formen` für jüngere Klassen, `flecken` für weiche Themen, `punktraster` für Naturwissenschaft und Technik, `flaechen` für Wirtschaft und Berufskunde, `keiner`, wenn die Lehrkraft es schlicht will. Lässt du ihn weg, wechseln sich die Erklärstücke ab.
 4. **Erstellen** mit `erklaerstueck_erstellen`. Gib `klasse`, `fach` und `reihe` an, wenn es sie gibt, und `datum`, wenn die Stunde bekannt ist.
 5. **Antworten** in zwei, drei Sätzen: wie viele Szenen, dass rechts die Vorschau läuft und die Datei im Browser ohne Internet funktioniert. Kein Ton, keine Videodatei, das erwähnst du nur, wenn danach gefragt wird. Keine Dateinamen, keine Werkzeugnamen.

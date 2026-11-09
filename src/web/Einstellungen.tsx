@@ -5,11 +5,13 @@ import { Schule } from "./Schule.tsx";
 import { Setup } from "./Setup.tsx";
 import { LookPicker } from "./LookPicker.tsx";
 import { MitteilungenSchalter } from "./MitteilungenSchalter.tsx";
+import { Mikrofon } from "./Mikrofon.tsx";
 import { InternetSchalter } from "./InternetSchalter.tsx";
 
-type Tab = "aussehen" | "ordner" | "schule" | "ki" | "update" | "datenschutz";
+type Tab = "aussehen" | "mikrofon" | "ordner" | "schule" | "ki" | "update" | "datenschutz";
 const TABS: { id: Tab; label: string }[] = [
   { id: "aussehen", label: "Aussehen" },
+  { id: "mikrofon", label: "Mikrofon" },
   { id: "ordner", label: "Ordner" },
   { id: "schule", label: "Schule" },
   { id: "ki", label: "KI-Anbieter" },
@@ -191,6 +193,7 @@ export function Einstellungen({ status, onClose, onDone, startTab = "aussehen" }
               <MitteilungenSchalter />
             </div>
           )}
+          {tab === "mikrofon" && <Mikrofon />}
           {tab === "ordner" && <Ordner />}
           {tab === "schule" && <Schule />}
           {tab === "ki" && (
