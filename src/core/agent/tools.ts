@@ -436,6 +436,7 @@ const praesentationErstellen = defineTool({
   parameters: Type.Object({
     titel: Type.String({ description: "Title of the talk, for the title slide" }),
     untertitel: Type.Optional(Type.String()),
+    stil: Type.Optional(Type.String({ description: "Look of the slides (same ids as for erklaerstueck_erstellen, from stile_vorschlagen or the pick of stil_waehlen). Without one: the classic Pult look" })),
     fach: Type.Optional(Type.String()),
     klasse: Type.Optional(Type.String()),
     folien: Type.Array(

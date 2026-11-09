@@ -46,10 +46,12 @@ export function Fragen({ id, fragen }: { id: string; fragen: Frage[] }) {
       <h2 ref={heading} tabIndex={-1}>
         {f.frage}
       </h2>
-      <div role="radiogroup" aria-label={f.frage} className="ask-options">
+      <div role="radiogroup" aria-label={f.frage} className={f.antworten.some((a) => a.bild) ? "ask-options with-pictures" : "ask-options"}>
         {f.antworten.map((a, i) => (
           <label key={a.text} className={picked[step] === i ? "ask-option on" : "ask-option"}>
             <input type="radio" name={`${id}-${step}`} checked={picked[step] === i} onChange={() => setPicked(picked.map((p, k) => (k === step ? i : p)))} />
+            {/* The picture is made by Pult itself (never by the model), so it is safe to put in the page. */}
+            {a.bild && <span className="ask-picture" aria-hidden="true" dangerouslySetInnerHTML={{ __html: a.bild }} />}
             <span className="ask-text">
               <strong>
                 {a.text}

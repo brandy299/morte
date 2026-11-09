@@ -30,6 +30,10 @@ export function katalog(): KatalogStil[] {
 }
 export const katalogStil = (id: string) => katalog().find((s) => s.id === id);
 
+/** Names of the hand-made looks, for the teacher. */
+const EIGENE_NAMEN: Record<string, string> = { wasserfarben: "Wasserfarben", brutalismus: "Neo-Brutalismus", zeitung: "Zeitung", blaupause: "Blaupause", kreide: "Kreide-Tafel", fachbuch: "Fachbuch" };
+export const stilName = (id: string): string | undefined => EIGENE_NAMEN[id] ?? katalogStil(id)?.name;
+
 /** Plain-words look of a catalog style for the assistant, so it can propose styles to a teacher. */
 export function stilZeile(s: KatalogStil): string {
   const form = s.schatten ? "harte Schatten, dicke Kanten" : s.rx >= 16 ? "weich, stark gerundet" : s.rx <= 4 ? "eckig, klar" : "dezent gerundet";
