@@ -24,7 +24,7 @@ Zweite Runde am 2026-10-05: skills.sh und opencode.ai waren jetzt erreichbar und
 
 ## Skills-Sammlungen
 
-- **anthropics/skills:** Lizenz je Ordner verschieden. `frontend-design` und `canvas-design` stehen unter Apache-2.0 (Lizenzdatei geprüft). `pdf` steht unter einer geschlossenen Anthropic-Lizenz (kein Kopieren, keine abgeleiteten Werke) und braucht Python, Tesseract und poppler. Das passt weder zur Lizenzregel noch zu "Alles in der App".
+- **anthropics/skills** (Stand 2026-11-10, Commit vom 2026-11-06, LICENSE-Dateien geprüft): Inzwischen steht jeder Ordner mit Lizenzdatei unter Apache-2.0, auch `pdf`, `docx`, `pptx`, `xlsx`, `skill-creator`, `frontend-design`, `canvas-design`, `theme-factory`. Nur `doc-coauthoring` hat keine Lizenzdatei. Ganze Skills werden trotzdem nicht kopiert: Sie sind englisch, setzen eine Shell voraus und `pdf`, `docx`, `pptx`, `xlsx` brauchen Python oder Zusatzprogramme (Entscheidung 002). Übernommen sind nur Ideen, in eigenen Worten: Gründe zu Regeln schreiben, Gegenprobe beim Testen einer Vorlage (`skill-creator` → Vorlage bauen), Lese-Probe vor dem Ausgeben (`doc-coauthoring` → Elternbrief), Beispiele aus der Welt des Themas und aussagekräftige Titel (`frontend-design` → Präsentation), ein Schaubild zeigt eine Sache (`canvas-design`, `theme-factory` → Arbeitsblatt). Die Optik der Erklärstücke ist Sache von Entscheidung 028.
 - **awesome-claude-skills (ComposioHQ), awesome-opencode:** Verzeichnisse. Lizenzen der einzelnen Skills sind einzeln zu prüfen.
 
 ## OpenCode, ausgewertet
@@ -85,7 +85,7 @@ Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheit
 **Brauchbar als Vorbild für die Skill-Bauweise:**
 
 - **mattpocock/skills** (MIT, LICENSE geprüft): `writing-great-skills`, `write-a-skill`, `writing-for-agents`. Kernaussage: Ein Skill soll den Ablauf vorhersehbar machen, nicht den Text gleich. Die Beschreibung steht in jedem Gespräch im Kontext und kostet daher Platz. Das deckt sich mit "feste Teile als Skript" und "klare Abgrenzung in der Beschreibung" in `docs/skills.md`. **Übernehmen als Idee** für die Checkliste im Skill-Builder, besonders: wann eine Vorlage nur von Hand gestartet wird und wann der Agent sie selbst wählt.
-- **anthropics/skills:** Siehe oben (`frontend-design` und `canvas-design` Apache-2.0, `pdf` geschlossen). `skill-creator` und `pptx` wurden hier nicht auf ihre Lizenz geprüft.
+- **anthropics/skills:** Siehe oben (`frontend-design` und `canvas-design` Apache-2.0, `pdf` geschlossen). Lizenzen später geprüft, siehe oben.
 
 **Für Phase 5 (Erklärvideos):**
 
@@ -117,4 +117,3 @@ Quelle: skills.sh mit Suche (`/api/search`), Seiten zu Einzel-Skills, Sicherheit
 
 - Wie die Seitenleiste von OpenCode Verbrauch und Kontext genau zeigt (nur aus dem Quelltext zu erfahren, nicht belegt).
 - Lizenz und Kosten von Remotion, Lizenz des Medienkatalogs von HyperFrames.
-- Lizenz von `skill-creator` und `pptx` aus anthropics/skills.
