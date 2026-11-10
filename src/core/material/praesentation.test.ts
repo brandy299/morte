@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { unzipSync, strFromU8 } from "fflate";
 import { describe, expect, it } from "vitest";
 import { MaterialError } from "./layout.ts";
+import { STILE } from "../animation/stile.ts";
+import { LAYOUTS } from "../animation/szene.ts";
 import { parsePraesentation, planen, renderPptx, renderVorschau } from "./praesentation.ts";
 
 const sample = {
@@ -58,13 +60,26 @@ describe("parsePraesentation", () => {
           expect(t.x + t.szene.w * t.scale).toBeLessThanOrEqual(960);
           expect(t.y + t.szene.h * t.scale).toBeLessThanOrEqual(540);
         } else {
-          expect(t.x + t.w).toBeLessThanOrEqual(960);
-          expect(t.y + t.h).toBeLessThanOrEqual(540);
+          const b = box(t);
+          expect(b.x + b.w).toBeLessThanOrEqual(960);
+          expect(b.y + b.h).toBeLessThanOrEqual(540);
         }
       }
     }
   });
 });
+
+/** The rectangle a part covers on the slide. */
+function box(t: Exclude<ReturnType<typeof planen>[number]["teile"][number], { k: "schaubild" }>): { x: number; y: number; w: number; h: number } {
+  if (t.k === "kreis") return { x: t.x, y: t.y, w: t.d, h: t.d };
+  if (t.k === "symbol") return { x: t.x, y: t.y, w: t.s, h: t.s };
+  if (t.k === "pfad") {
+    const xs = t.punkte.map((q) => q[0]);
+    const ys = t.punkte.map((q) => q[1]);
+    return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
+  }
+  return t;
+}
 
 describe("footer note (fuss)", () => {
   const texts = (p: unknown) => planen(parsePraesentation(p)).map((pl) => pl.teile.filter((t) => t.k === "text").flatMap((t) => (t.k === "text" ? t.absaetze : [])).join("|"));
@@ -172,5 +187,86 @@ describe("looks of a presentation", () => {
 
   it("explain an unknown style", () => {
     expect(() => parsePraesentation({ ...sample, stil: "neon-flamingo" })).toThrow(/Der Stil: „neon-flamingo“ gibt es nicht/);
+  });
+});
+
+describe("designed slides (layouts)", () => {
+  const k = (titel: string, text?: string, extra: object = {}) => ({ titel, text, ...extra });
+  const wort = (n: number) => Array.from({ length: n }, () => "Wort").join(" ");
+  /** The longest content each layout allows. */
+  const voll: Record<string, object> = {
+    punkte: { karten: Array.from({ length: 6 }, (_, i) => k(`Überschrift ${i} lang genug hier`, wort(14).slice(0, 80), { symbol: "book" })) },
+    schritte: { karten: Array.from({ length: 5 }, (_, i) => k(`Schritt ${i} mit Überschrift`, wort(14).slice(0, 80))) },
+    ablauf: { karten: Array.from({ length: 4 }, (_, i) => k(`Station ${i} lang genug`, wort(14).slice(0, 90), { symbol: "book", pfeil: i < 3 ? "wird gekürzt" : undefined })) },
+    kreislauf: { karten: Array.from({ length: 4 }, (_, i) => k(`Station ${i} lang genug`, wort(14).slice(0, 90), { pfeil: "wird gekürzt" })) },
+    zahl: { zahl: "71 %", text: wort(30).slice(0, 160) },
+    vergleich: { karten: [0, 1].map((i) => ({ titel: `Seite ${i} Überschrift lang`, liste: Array.from({ length: 4 }, () => wort(14).slice(0, 70)) })) },
+    zeitstrahl: { karten: Array.from({ length: 5 }, (_, i) => k(`Ereignis ${i} Überschrift`, wort(14).slice(0, 80), { zahl: "1933–1945" })) },
+    aussage: { text: wort(70).slice(0, 280), symbol: "scale" },
+    merksatz: { text: wort(40).slice(0, 170), quelle: "Eigene Zusammenfassung der Klasse" },
+  };
+  const deck = (stil?: string) => parsePraesentation({ titel: "T", stil, folien: LAYOUTS.map((layout) => ({ layout, titel: layout === "merksatz" ? undefined : "Eine Überschrift, die in zwei Zeilen laufen kann", kicker: "Beispiel", ...voll[layout] })) });
+
+  it("covers every layout of the explainer pieces", () => {
+    expect(Object.keys(voll).sort()).toEqual([...LAYOUTS].sort());
+  });
+
+  it("checks the entries like the explainer piece does, with the slide number", () => {
+    const folie = (f: object) => parsePraesentation({ titel: "T", folien: [f] });
+    expect(() => folie({ layout: "ablauf", titel: "A", karten: [k("Nur eine")] })).toThrow(/Folie 2: Das Layout „ablauf“ braucht 2 bis 4 Einträge/);
+    expect(() => folie({ layout: "punkte", titel: "A", punkte: ["x"], karten: [k("a"), k("b")] })).toThrow(/Mit einem Layout gibt es keine Stichpunkte/);
+    expect(() => folie({ layout: "kreuz", titel: "A" })).toThrow(/Folie 2: Das Layout \(layout\): „kreuz“ gibt es nicht/);
+    expect(() => folie({ layout: "punkte", titel: "A", karten: [k("a", "x", { symbol: "einhorn" }), k("b", "x", { symbol: "drache" })] })).toThrow(/Diese Symbole gibt es nicht: „einhorn“ \(Folie 2, Eintrag 1\), „drache“ \(Folie 2, Eintrag 2\)/);
+  });
+
+  it("keeps the longest content of every layout inside the slide, in the classic look and in every style", () => {
+    for (const stil of [undefined, ...STILE.map((x) => x.id)]) {
+      for (const plan of planen(deck(stil))) {
+        for (const t of plan.teile) {
+          if (t.k === "schaubild") continue;
+          const b = box(t);
+          expect(b.x, stil).toBeGreaterThanOrEqual(-0.5);
+          expect(b.y, stil).toBeGreaterThanOrEqual(-0.5);
+          expect(b.x + b.w, stil).toBeLessThanOrEqual(960.5);
+          expect(b.y + b.h, stil).toBeLessThanOrEqual(540.5);
+        }
+      }
+    }
+  });
+
+  it("puts nothing on top of the footer", () => {
+    for (const plan of planen(deck("editorial-serif"))) {
+      for (const t of plan.teile) {
+        if (t.k === "schaubild" || (t.k === "rect" && (t.w >= 960 || t.h >= 540))) continue; // background and the bar of the title slide
+        const b = box(t);
+        const fuss = t.k === "text" && t.size === 10 && b.y >= 540 - 40;
+        if (!fuss) expect(b.y + b.h).toBeLessThanOrEqual(540 - 34 + 0.5);
+      }
+    }
+  });
+
+  it("refuses a slide with far too much text and names a very long word", () => {
+    const viel = { layout: "punkte", titel: "A", karten: Array.from({ length: 6 }, (_, i) => k(`Überschrift ${i}`, wort(14).slice(0, 80))) };
+    const lang = parsePraesentation({ titel: "T", folien: [{ ...viel, karten: [k("Beitragsbemessungsgrenzenberechnung", "x"), k("b"), k("c"), k("d"), k("e"), k("f")] }] });
+    expect(() => planen(lang)).not.toThrow(); // a very long word is broken as a last resort
+    const riesig = parsePraesentation({ titel: "T", folien: [{ layout: "aussage", titel: "A", text: "Wort ".repeat(56).trim() }] });
+    expect(() => planen(riesig)).not.toThrow();
+    expect(() => planen(parsePraesentation({ titel: "T", folien: [{ layout: "zahl", titel: "Z", zahl: "1", text: "Kurz" }] }))).not.toThrow();
+    void viel;
+  });
+
+  it("draws every layout into the preview and into real PowerPoint objects, with the notes", async () => {
+    const d = deck("tokyo-night");
+    d.folien[1]!.notizen = "Das sagst du dazu.";
+    const { pdf, seiten } = await renderVorschau(d);
+    expect(seiten).toBe(LAYOUTS.length + 1);
+    expect(pdf.subarray(0, 4).toString()).toBe("%PDF");
+    const zip = unzipSync(await renderPptx(d));
+    const slides = Object.keys(zip).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n));
+    expect(slides).toHaveLength(LAYOUTS.length + 1);
+    const xml = slides.map((n) => strFromU8(zip[n]!)).join("");
+    expect(xml).toContain("roundRect"); // the cards
+    expect(xml).toContain("<p:pic>"); // the symbols
+    expect(Object.keys(zip).some((n) => n.startsWith("ppt/notesSlides/"))).toBe(true);
   });
 });

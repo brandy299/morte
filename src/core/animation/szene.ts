@@ -80,58 +80,67 @@ const feld = (stelle: string, v: unknown, was: string, max: number, required = f
   }
 };
 
+/** Names unknown symbols together, so the model fixes them in one go. */
+export function pruefeSymbole(unbekannt: string[]): void {
+  if (unbekannt.length) throw new MaterialError(`${unbekannt.length === 1 ? "Dieses Symbol gibt es nicht" : "Diese Symbole gibt es nicht"}: ${unbekannt.join(", ")}. Such mit symbole_suchen passende heraus oder lass sie weg.`);
+}
+
+/**
+ * Checks one scene (a slide in a layout) and explains every problem in plain words. `stelle` names the place for the messages.
+ * Unknown symbols are added to `unbekannt` instead of failing at once; the caller passes the list to `pruefeSymbole`.
+ */
+export function parseSzene(s: unknown, stelle: string, unbekannt: string[]): Szene {
+  const symbol = (ort: string, v: unknown): string | undefined => {
+    const id = feld(ort, v, "das Symbol (symbol)", 40);
+    if (id && !symbolMitId(id)) unbekannt.push(`„${id}“ (${ort})`);
+    return id;
+  };
+  const e = (s ?? {}) as Record<string, unknown>;
+  const layout = oneOf(e.layout, LAYOUTS, `${stelle}: Das Layout (layout)`);
+  const regel = REGELN[layout];
+  const roh = Array.isArray(e.punkte) ? e.punkte : [];
+  const [min, max] = regel.punkte;
+  if (max === 0 && roh.length) throw new MaterialError(`${stelle}: Das Layout „${layout}“ hat keine Einträge (punkte). Nimm „punkte“ oder „schritte“, wenn du mehrere Dinge zeigen willst.`);
+  if (roh.length < min || roh.length > max) throw new MaterialError(`${stelle}: Das Layout „${layout}“ braucht ${min === max ? `genau ${min}` : `${min} bis ${max}`} Einträge (punkte), es sind ${roh.length}. ${roh.length > max ? "Verteile sie auf zwei Szenen." : "Ergänze Einträge oder nimm ein anderes Layout."}`);
+  // Many cards side by side are narrow, so their texts must be shorter.
+  const textMax = roh.length >= 5 ? Math.min(regel.text, 80) : regel.text;
+  const punkte = roh.map((x, j): Punkt => {
+    const ort = `${stelle}, Eintrag ${j + 1}`;
+    const p = (x ?? {}) as Record<string, unknown>;
+    const punkt: Punkt = { titel: feld(ort, p.titel, "die Überschrift (titel)", regel.titel, true)! };
+    if (textMax) punkt.text = feld(ort, p.text, "der Text", textMax);
+    if (layout === "punkte" || layout === "ablauf" || layout === "kreislauf") punkt.symbol = symbol(ort, p.symbol);
+    if (layout === "zeitstrahl") punkt.zahl = feld(ort, p.zahl, "das Jahr oder Datum (zahl)", 12, true)!;
+    if ((layout === "ablauf" && j < roh.length - 1) || layout === "kreislauf") punkt.pfeil = feld(ort, p.pfeil, "die Beschriftung des Pfeils (pfeil)", 18);
+    if (layout === "vergleich") {
+      if (!Array.isArray(p.liste) || p.liste.length < 1 || p.liste.length > 4) throw new MaterialError(`${ort}: Jede Seite eines Vergleichs braucht 1 bis 4 kurze Zeilen (liste).`);
+      punkt.liste = p.liste.map((z, k) => feld(ort, z, `Zeile ${k + 1} der Liste`, 70, true)!);
+    }
+    return punkt;
+  });
+  const szene: Szene = { layout, kicker: feld(stelle, e.kicker, "die kleine Zeile über dem Titel (kicker)", 40), titel: feld(stelle, e.titel, "der Titel", 70, layout !== "merksatz"), punkte };
+  if (layout === "zahl") {
+    szene.zahl = feld(stelle, e.zahl, "die Zahl (zahl)", 8, true)!;
+    szene.text = feld(stelle, e.text, "der Text", 160);
+  } else if (layout === "aussage") {
+    szene.text = feld(stelle, e.text, "der Text", 280, true)!;
+    szene.symbol = symbol(stelle, e.symbol);
+  } else if (layout === "merksatz") {
+    szene.text = feld(stelle, e.text, "der Merksatz (text)", 170, true)!;
+    szene.quelle = feld(stelle, e.quelle, "die Quelle", 60);
+  } else szene.text = feld(stelle, e.text, "der Satz unter dem Titel (text)", 120);
+  return szene;
+}
+
 /** Checks the raw scene description from the model and explains every problem in plain words. */
 export function parseErklaerstueck(raw: unknown): Erklaerstueck {
   if (!raw || typeof raw !== "object") throw new MaterialError("Die Szenenbeschreibung fehlt.");
   const o = raw as Record<string, unknown>;
   if (!Array.isArray(o.szenen) || o.szenen.length === 0) throw new MaterialError("Es fehlen die Szenen.");
   if (o.szenen.length > MAX_SZENEN) throw new MaterialError(`Es sind ${o.szenen.length} Szenen. Höchstens ${MAX_SZENEN}, sonst wird es zu lang. Fasse zusammen oder teile das Thema in zwei Erklärstücke.`);
-  // Unknown symbols are collected and named together, so the model fixes them in one go.
   const unbekannt: string[] = [];
-  const symbol = (stelle: string, v: unknown): string | undefined => {
-    const id = feld(stelle, v, "das Symbol (symbol)", 40);
-    if (id && !symbolMitId(id)) unbekannt.push(`„${id}“ (${stelle})`);
-    return id;
-  };
-  const szenen = o.szenen.map((s, i): Szene => {
-    const stelle = `Szene ${i + 1}`;
-    const e = (s ?? {}) as Record<string, unknown>;
-    const layout = oneOf(e.layout, LAYOUTS, `${stelle}: Das Layout (layout)`);
-    const regel = REGELN[layout];
-    const roh = Array.isArray(e.punkte) ? e.punkte : [];
-    const [min, max] = regel.punkte;
-    if (max === 0 && roh.length) throw new MaterialError(`${stelle}: Das Layout „${layout}“ hat keine Einträge (punkte). Nimm „punkte“ oder „schritte“, wenn du mehrere Dinge zeigen willst.`);
-    if (roh.length < min || roh.length > max) throw new MaterialError(`${stelle}: Das Layout „${layout}“ braucht ${min === max ? `genau ${min}` : `${min} bis ${max}`} Einträge (punkte), es sind ${roh.length}. ${roh.length > max ? "Verteile sie auf zwei Szenen." : "Ergänze Einträge oder nimm ein anderes Layout."}`);
-    // Many cards side by side are narrow, so their texts must be shorter.
-    const textMax = roh.length >= 5 ? Math.min(regel.text, 80) : regel.text;
-    const punkte = roh.map((x, j): Punkt => {
-      const ort = `${stelle}, Eintrag ${j + 1}`;
-      const p = (x ?? {}) as Record<string, unknown>;
-      const punkt: Punkt = { titel: feld(ort, p.titel, "die Überschrift (titel)", regel.titel, true)! };
-      if (textMax) punkt.text = feld(ort, p.text, "der Text", textMax);
-      if (layout === "punkte" || layout === "ablauf" || layout === "kreislauf") punkt.symbol = symbol(ort, p.symbol);
-      if (layout === "zeitstrahl") punkt.zahl = feld(ort, p.zahl, "das Jahr oder Datum (zahl)", 12, true)!;
-      if ((layout === "ablauf" && j < roh.length - 1) || layout === "kreislauf") punkt.pfeil = feld(ort, p.pfeil, "die Beschriftung des Pfeils (pfeil)", 18);
-      if (layout === "vergleich") {
-        if (!Array.isArray(p.liste) || p.liste.length < 1 || p.liste.length > 4) throw new MaterialError(`${ort}: Jede Seite eines Vergleichs braucht 1 bis 4 kurze Zeilen (liste).`);
-        punkt.liste = p.liste.map((z, k) => feld(ort, z, `Zeile ${k + 1} der Liste`, 70, true)!);
-      }
-      return punkt;
-    });
-    const szene: Szene = { layout, kicker: feld(stelle, e.kicker, "die kleine Zeile über dem Titel (kicker)", 40), titel: feld(stelle, e.titel, "der Titel", 70, layout !== "merksatz"), punkte };
-    if (layout === "zahl") {
-      szene.zahl = feld(stelle, e.zahl, "die Zahl (zahl)", 8, true)!;
-      szene.text = feld(stelle, e.text, "der Text", 160);
-    } else if (layout === "aussage") {
-      szene.text = feld(stelle, e.text, "der Text", 280, true)!;
-      szene.symbol = symbol(stelle, e.symbol);
-    } else if (layout === "merksatz") {
-      szene.text = feld(stelle, e.text, "der Merksatz (text)", 170, true)!;
-      szene.quelle = feld(stelle, e.quelle, "die Quelle", 60);
-    } else szene.text = feld(stelle, e.text, "der Satz unter dem Titel (text)", 120);
-    return szene;
-  });
-  if (unbekannt.length) throw new MaterialError(`${unbekannt.length === 1 ? "Dieses Symbol gibt es nicht" : "Diese Symbole gibt es nicht"}: ${unbekannt.join(", ")}. Such mit symbole_suchen passende heraus oder lass sie weg.`);
+  const szenen = o.szenen.map((s, i) => parseSzene(s, `Szene ${i + 1}`, unbekannt));
+  pruefeSymbole(unbekannt);
   return {
     titel: str(o.titel, "der Titel", 80, true)!,
     untertitel: str(o.untertitel, "der Untertitel", 120),

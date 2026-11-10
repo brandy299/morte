@@ -432,7 +432,7 @@ const praesentationErstellen = defineTool({
   producesMaterial: true,
   label: "Präsentation erstellen",
   description:
-    "Builds slides as a PowerPoint file (.pptx, 16:9, editable in PowerPoint) plus a PDF of the same slides for the preview. A title slide is made from titel and untertitel, then one slide per entry. You write only the content; the program does the layout and refuses a slide with too much text. A diagram with empty boxes (leer) shows only the empty boxes; its solution (number = text) is put into the speaker notes automatically. A word bank (wortliste) does not exist in presentations. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
+    "Builds slides as a PowerPoint file (.pptx, 16:9, editable in PowerPoint) plus a PDF of the same slides for the preview. A title slide is made from titel and untertitel, then one slide per entry. Prefer designed slides (layout) over bullet lists; mix the layouts. You write only the content; the program does the layout and refuses a slide with too much text. A diagram with empty boxes (leer) shows only the empty boxes; its solution (number = text) is put into the speaker notes automatically. A word bank (wortliste) does not exist in presentations. Give klasse, fach and reihe to file it in that series; add datum (and stunde if known) to also enter it in the lesson table.",
   parameters: Type.Object({
     titel: Type.String({ description: "Title of the talk, for the title slide" }),
     untertitel: Type.Optional(Type.String()),
@@ -441,6 +441,22 @@ const praesentationErstellen = defineTool({
     klasse: Type.Optional(Type.String()),
     folien: Type.Array(
       Type.Object({
+        layout: Type.Optional(StringEnum([...LAYOUTS], { description: "A designed slide instead of plain points: punkte (2 to 6 cards, each with heading, text and an optional symbol), schritte (2 to 5 numbered cards), ablauf (2 to 4 stations with arrows), kreislauf (3 to 4 stations in a loop), zahl (one big number with a statement), vergleich (two sides, each a short list), zeitstrahl (3 to 5 dates), aussage (a title with a few sentences and an optional big symbol), merksatz (one sentence, large). The entries go into karten (not punkte). Use these for most slides; they look much better than a bullet list. Not together with punkte or schaubild. Every slide still gets notizen" })),
+        kicker: Type.Optional(Type.String({ description: "layout only: a few words above the title, e.g. 'Schritt 2' or 'Beispiel' (up to 40 characters)" })),
+        zahl: Type.Optional(Type.String({ description: "layout zahl: the big number or word, up to 8 characters, e.g. '71 %'" })),
+        symbol: Type.Optional(Type.String({ description: "layout aussage: id of a big symbol from symbole_suchen" })),
+        quelle: Type.Optional(Type.String({ description: "layout merksatz: where the sentence comes from (optional)" })),
+        karten: Type.Optional(Type.Array(
+          Type.Object({
+            titel: Type.String({ description: "Heading of the card, station or side (up to 40 characters; 32 for zeitstrahl)" }),
+            text: Type.Optional(Type.String({ description: "Short text (up to 110 characters; 80 with five or more cards; not for vergleich)" })),
+            symbol: Type.Optional(Type.String({ description: "punkte, ablauf, kreislauf: id of a symbol from symbole_suchen" })),
+            zahl: Type.Optional(Type.String({ description: "zeitstrahl: the year or date" })),
+            pfeil: Type.Optional(Type.String({ description: "ablauf, kreislauf: what the arrow to the next station says (up to 18 characters)" })),
+            liste: Type.Optional(Type.Array(Type.String(), { description: "vergleich: 1 to 4 short lines of this side" })),
+          }),
+          { description: "The entries of the layout" },
+        )),
         art: Type.Optional(StringEnum(["inhalt", "abschnitt"], { description: "inhalt (default): title with points, text and/or a diagram. abschnitt: a divider between parts, only a title and an optional short line" })),
         titel: Type.String({ description: "One short line" }),
         text: Type.Optional(Type.String({ description: "One or two sentences above the points, e.g. the key message" })),
@@ -564,7 +580,7 @@ const symboleSuchen = defineTool({
   name: "symbole_suchen",
   label: "Symbole heraussuchen",
   description:
-    "Searches the symbols (simple outline pictures: drop, sun, gear, book, scale, factory, microscope, euro, …) that an explainer piece can show on a card (symbol). Each line has the id, the German name and words to find it by. Search with one or two German words (for example 'wasser', 'geld', 'tier'). Without suche it lists everything. Use only ids from this list, never invent one. If nothing fits, leave the symbol out.",
+    "Searches the symbols (simple outline pictures: drop, sun, gear, book, scale, factory, microscope, euro, …) that an explainer piece or a presentation can show on a card (symbol). Each line has the id, the German name and words to find it by. Search with one or two German words (for example 'wasser', 'geld', 'tier'). Without suche it lists everything. Use only ids from this list, never invent one. If nothing fits, leave the symbol out.",
   parameters: Type.Object({ suche: Type.Optional(Type.String({ description: "One or two German words. Leave out to list all symbols" })) }),
   async execute(_id, { suche }) {
     const words = (suche ?? "").toLowerCase().split(/\s+/).filter(Boolean);

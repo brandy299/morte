@@ -95,7 +95,7 @@ export const PROGRAMM: Record<string, Check> = {
     const deck = decks(t)[0];
     if (!c.erwartet.praesentation || !deck) return na;
     // Title, school line and number do not count as content: a content slide needs points, a picture or text beyond its title.
-    const empty = deck.folien.flatMap((f, i) => (i > 0 && !f.abschnitt && f.punkte === 0 && f.bilder === 0 && f.absaetze.length <= 3 ? [i + 1] : []));
+    const empty = deck.folien.flatMap((f, i) => (i > 0 && !f.abschnitt && !f.layout && f.punkte === 0 && f.bilder === 0 && f.absaetze.length <= 3 ? [i + 1] : []));
     return empty.length ? fail(`Folie ${empty.join(", ")} hat keinen Inhalt außer dem Titel.`) : ok("Keine Folie ist leer.");
   },
   "ER-DATEI": (c, t) => {

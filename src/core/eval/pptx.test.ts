@@ -40,6 +40,14 @@ const run = (id: string, c: EvalCase, files: FileInfo[], fragen: string[] = []) 
   PROGRAMM[id]!(c, { turns: [{ user: "x", assistant: "ok", steps: [], fragen }], files, tabelle: "", kosten: 0 } satisfies Transcript);
 
 describe("reading a produced .pptx", () => {
+  it("knows a designed slide, so a slide with one big sentence does not count as empty", async () => {
+    const files = await file([{ layout: "merksatz", text: "Wer arbeitet, zahlt ein.", notizen: "Zum Schluss langsam vorlesen." }]);
+    const info = files[0]!.pptx!;
+    expect(info.folien[4]).toMatchObject({ layout: true, abschnitt: false, punkte: 0 });
+    expect(info.folien[1]!.layout).toBe(false);
+    expect(run("PR-LEER", kase({ praesentation: true }), files).bestanden).toBe(true);
+  });
+
   it("finds format, points, pictures, notes and divider slides", async () => {
     const info = lesePptx(await renderPptx(deck()));
     expect(info.breit).toBe(true);

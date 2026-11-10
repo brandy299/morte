@@ -1,21 +1,10 @@
 import { Type } from "typebox";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { vorschauSvg } from "../animation/html.ts";
-import { stilInfo, stilName } from "../animation/stile.ts";
+import { stilName } from "../animation/stile.ts";
 import { type AskTeacher, type Frage } from "./fragen.ts";
 
 export const STILWAHL_TOOL = "stil_waehlen";
-
-/** A sample slide in a look: title, a dash in the accent color and three points. */
-export function folienVorschauSvg(stil: string): string {
-  const { farben: c, serif } = stilInfo(stil);
-  const w = 960;
-  const h = 540;
-  const titel = serif ? `font-family="Fraunces, Georgia, serif" font-weight="600"` : `font-family="'Source Sans 3', Calibri, sans-serif" font-weight="700"`;
-  const text = `font-family="'Source Sans 3', Calibri, sans-serif" font-weight="400"`;
-  const punkte = ["Das Wichtigste in einem Satz", "Ein zweiter Punkt dazu", "Und ein dritter"].map((t, i) => `<text x="76" y="${210 + i * 56}" font-size="30" fill="${i === 2 ? c.soft : c.ink}">•  ${t}</text>`).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-hidden="true" focusable="false"><rect width="${w}" height="${h}" fill="${c.bg}"/><rect x="56" y="40" width="40" height="4" fill="${c.accent}"/><text x="56" y="112" font-size="42" fill="${c.ink}" ${titel}>Titel der Folie</text><g ${text}>${punkte}</g><rect x="0" y="${h - 14}" width="${w}" height="14" fill="${c.accent}"/></svg>`;
-}
 
 const parameters = Type.Object({
   art: Type.Union([Type.Literal("erklaerstueck"), Type.Literal("praesentation")], { description: "What the look is for" }),
@@ -41,7 +30,7 @@ export const stilWahlTool = (askTeacher: AskTeacher, gueltig: (id: string) => bo
     if (!Number.isInteger(empfohlen) || empfohlen < 1 || empfohlen > 3) throw new Error('"empfohlen" must be 1, 2 or 3.');
     const frage: Frage = {
       frage: art === "praesentation" ? "Wie soll deine Präsentation aussehen?" : "Wie soll dein Erklärstück aussehen?",
-      antworten: stile.map((s, i) => ({ text: namen[i]!, erklaerung: s.grund.trim(), bild: art === "praesentation" ? folienVorschauSvg(s.id) : vorschauSvg(s.id) })),
+      antworten: stile.map((s, i) => ({ text: namen[i]!, erklaerung: s.grund.trim(), bild: vorschauSvg(s.id) })),
       empfohlen,
       grund: stile[empfohlen - 1]!.grund.trim(),
     };

@@ -60,11 +60,47 @@ export const themeCss = (id: string) => lesen(`themes/${stil(id)?.id ?? STANDARD
 
 export interface Farben { bg: string; ink: string; soft: string; accent: string }
 const variable = (css: string, name: string) => css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\b`))?.[1]?.toLowerCase();
-/** The main colors of a look, whether the headline is serif and whether the ground is dark. */
-export function stilInfo(id: string): { farben: Farben; serif: boolean; dunkel: boolean } {
+const rgbVon = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const hexVon = (c: number[]) => "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+/** A css color of the theme (#rrggbb or rgba) laid over the ground, as #rrggbb. */
+function farbeAuf(css: string, name: string, bg: string): string | undefined {
+  const wert = css.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1]?.trim();
+  const rgba = wert?.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/);
+  if (rgba) {
+    const a = rgba[4] === undefined ? 1 : Number(rgba[4]);
+    const unten = rgbVon(bg);
+    return hexVon([1, 2, 3].map((i) => Number(rgba[i]) * a + unten[i - 1]! * (1 - a)));
+  }
+  return wert && /^#[0-9a-fA-F]{6}$/.test(wert) ? wert.toLowerCase() : undefined;
+}
+export interface StilInfo {
+  farben: Farben;
+  serif: boolean;
+  dunkel: boolean;
+  /** Color of cards, of their edges, and the corner radius in px of the 1280 x 720 stage. */
+  flaeche: string;
+  rand: string;
+  radius: number;
+  /** For arrows, icons and big numbers: the accent color when it stands out enough on the ground, else the text color. */
+  zeichen: string;
+  /** Text on top of the accent color. */
+  aufAkzent: string;
+}
+/** The main colors of a look, whether the headline is serif and whether the ground is dark, plus what cards need. */
+export function stilInfo(id: string): StilInfo {
   const css = themeCss(id);
   const farben = { bg: variable(css, "bg") ?? "#ffffff", ink: variable(css, "text-1") ?? "#111111", soft: variable(css, "text-2") ?? "#555555", accent: variable(css, "accent") ?? "#111111" };
-  return { farben, serif: (stil(id) ?? stil(STANDARD_STIL)!).schrift === "serif", dunkel: istDunkel(farben.bg) };
+  const dunkel = istDunkel(farben.bg);
+  return {
+    farben,
+    serif: (stil(id) ?? stil(STANDARD_STIL)!).schrift === "serif",
+    dunkel,
+    flaeche: farbeAuf(css, "surface", farben.bg) ?? farben.bg,
+    rand: farbeAuf(css, "border", farben.bg) ?? farbeAuf(css, "border-strong", farben.bg) ?? farben.soft,
+    radius: Number(css.match(/--radius:\s*(\d+)px/)?.[1] ?? 8),
+    zeichen: kontrast(farben.accent, farben.bg) >= 3 ? farben.accent : farben.ink,
+    aufAkzent: kontrast("#ffffff", farben.accent) >= kontrast("#111111", farben.accent) ? "#ffffff" : "#111111",
+  };
 }
 
 export const istDunkel = (bg: string) => lum(bg) < 0.3;

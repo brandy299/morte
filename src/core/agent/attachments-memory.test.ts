@@ -33,8 +33,8 @@ const events = async (run: (on: (e: ChatEvent) => void) => Promise<void>) => {
 
 describe("old attachments leave the model's memory", () => {
   it("replaces pictures and file text with notes one round later, once the memory is half full, and keeps the last rounds", async () => {
-    // A memory of 25,000 tokens. The instructions and tool descriptions take about 10,000 (more tools, more tokens: raise the memory here when this grows), one file of 30,000 characters (7,500 tokens) the rest to more than half.
-    const { session, seen } = make(27_000);
+    // A memory of 26,500 tokens. The instructions and tool descriptions take about 10,000 (more tools, more tokens: raise the memory here when this grows), one file of 30,000 characters (7,500 tokens) the rest to more than half.
+    const { session, seen } = make(28_500);
     await session.send(withFiles("Mach daraus ein Blatt.", [file("arbeitsblatt.docx", 30_000)]), () => {}, [{ data: "AAAA", mimeType: "image/png" }]);
     expect(text(firstUser(seen[0]!))).toContain("Inhalt von arbeitsblatt.docx");
 
@@ -72,7 +72,7 @@ describe("old attachments leave the model's memory", () => {
   });
 
   it("goes on after reopening: the notes are saved with the conversation", async () => {
-    const first = make(25_000);
+    const first = make(26_500);
     await first.session.send(withFiles("Mach daraus ein Blatt.", [file("arbeitsblatt.docx", 30_000)]), () => {});
     await first.session.send("Danke, noch eine Frage dazu.", () => {});
     await first.session.send("Und noch eine.", () => {});
@@ -80,7 +80,7 @@ describe("old attachments leave the model's memory", () => {
     expect(JSON.stringify(saved.messages)).toContain(FILE_NOTE("arbeitsblatt.docx"));
     expect(JSON.stringify(saved.messages)).not.toContain("Inhalt von arbeitsblatt");
 
-    const second = make(25_000);
+    const second = make(26_500);
     second.session.restore(saved);
     await second.session.send("Und weiter.", () => {});
     const again = text(firstUser(second.seen[0]!));
@@ -107,7 +107,7 @@ describe("a message that is too big for the model", () => {
     expect(fine.some((e) => e.type === "error")).toBe(false);
     expect(ok.faux.state.callCount).toBe(1);
 
-    const pics = make(16_000);
+    const pics = make(17_500);
     const many = Array.from({ length: 8 }, () => ({ data: "AAAA", mimeType: "image/png" }));
     const list = await events((on) => pics.session.send("Was siehst du?", on, many)); // 8 pictures, about 9,600 tokens
     expect(list.find((e) => e.type === "error")).toMatchObject({ message: expect.stringContaining("zu viel auf einmal") });

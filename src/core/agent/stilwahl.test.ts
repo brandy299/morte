@@ -41,7 +41,7 @@ describe("choosing a look from three pictures", () => {
     expect(JSON.stringify(s.history().messages)).toContain("Gewählter Stil: tokyo-night");
   });
 
-  it("shows sample slides for a presentation", async () => {
+  it("shows the same sample slide for a presentation, and asks about the presentation", async () => {
     const s = session([fauxAssistantMessage([fauxToolCall("stil_waehlen", args("praesentation"))], { stopReason: "toolUse" }), fauxAssistantMessage([fauxText("Ok.")])]);
     const events: ChatEvent[] = [];
     await s.send("Mach Folien", (e) => {
@@ -50,7 +50,7 @@ describe("choosing a look from three pictures", () => {
     });
     const asked = events.find((e) => e.type === "fragen") as Extract<ChatEvent, { type: "fragen" }>;
     expect(asked.fragen[0]!.frage).toContain("Präsentation");
-    expect(asked.fragen[0]!.antworten[0]!.bild).toMatch(/viewBox="0 0 960 540"[\s\S]*Titel der Folie/);
+    expect(asked.fragen[0]!.antworten[0]!.bild).toMatch(/viewBox="0 0 1280 720"/);
   });
 
   it("takes the teacher's own wish in words and tells the model to find the nearest look", async () => {
