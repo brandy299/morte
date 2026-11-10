@@ -2,8 +2,7 @@ import { createRequire } from "node:module";
 import { createCanvas } from "@napi-rs/canvas";
 import { describe, expect, it } from "vitest";
 import type { Bild } from "../bilder/index.ts";
-import { PALETTE } from "../animation/html.ts";
-import { daten, FEEDBACK, renderUebung } from "./html.ts";
+import { daten, FEEDBACK, PALETTE, renderUebung } from "./html.ts";
 import { lueckenTeile, MAX_SCHRITTE, parseUebung } from "./schema.ts";
 
 const gut = {

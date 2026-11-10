@@ -87,8 +87,13 @@ async function collectFiles(): Promise<FileInfo[]> {
           const steps = (JSON.parse(daten) as { schritte: Record<string, unknown>[] }).schritte;
           schritte = steps.length;
           text = steps.map((st, i) => `Schritt ${i + 1} (${st.art}): ${uebungText(st)}`).join("\n");
-        } else text = [...html.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]!.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")).join("\n");
-        if (!daten) szenen = [...html.matchAll(/<g id="s([1-9]\d*)" class="sc"/g)].length;
+        } else {
+          // One line per slide, tags removed.
+          const slides = [...html.matchAll(/<section class="slide sz sz-(\w+)" id="s\d+">([\s\S]*?)<\/section>/g)];
+          const plain = (h: string) => h.replace(/<svg[\s\S]*?<\/svg>/g, "").replace(/<[^>]+>/g, " ").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+          text = slides.map((m, i) => `${i ? `Szene ${i} (${m[1]})` : "Titelbild"}: ${plain(m[2]!.replace(/<div class="deck-footer">[\s\S]*$/, ""))}`).join("\n");
+          szenen = slides.filter((m) => m[1] !== "titel").length;
+        }
       } else text = await readMaterialText(f.path);
       if (art === "pdf") {
         const pdf = await readPdf(await readFile(f.path));

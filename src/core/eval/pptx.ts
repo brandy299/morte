@@ -17,6 +17,8 @@ export interface PptxFolie {
   notizen: string;
   /** A divider slide: its accent bar sits in the middle of the page, not at the top. */
   abschnitt: boolean;
+  /** A designed slide (cards, steps, big number, ...): Pult names its text objects "Layout". It has content even with few paragraphs. */
+  layout: boolean;
 }
 
 const utf8 = (b: Uint8Array) => new TextDecoder().decode(b);
@@ -55,6 +57,7 @@ export function lesePptx(buf: Buffer): PptxInfo {
       notizen: noteFile ? notes(utf8(files[`ppt/notesSlides/${noteFile}`] ?? new Uint8Array())) : "",
       // Pult draws the accent bar of a divider slide at 200 pt (2540000 EMU) from the top, content slides at 40 pt.
       abschnitt: /<a:off x="\d+" y="2540000"\/>/.test(xml),
+      layout: /<p:cNvPr id="\d+" name="Layout"/.test(xml),
     };
   });
   return { breit, folien };
