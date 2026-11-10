@@ -36,3 +36,7 @@ Das Layout (Schrift, Graustufen, Kopfzeile) ist bei allem Material gleich und bl
 - Die Beschreibung entscheidet, wann die Vorlage greift. Sie nennt die Wörter der Lehrkraft und grenzt ab.
 - Heißt eine Vorlage so wie eine mitgelieferte (zum Beispiel "Arbeitsblatt"), ersetzt sie diese. Das ist erlaubt, wenn die Lehrkraft es so will. Sag es dann dazu.
 - Nichts erfinden: Was die Lehrkraft nicht gesagt hat, wird als Rückfrage in die Vorlage geschrieben, nicht als Annahme.
+- Schreib zu jeder Regel den Grund dazu („Aufgabe 3 immer mit Material, weil die Klasse sonst rät“). Wer den Grund kennt, wendet die Regel auch dann richtig an, wenn der Fall etwas anders aussieht. Strenge Wörter wie „immer“ und „nie“ nur dort, wo es wirklich so gemeint ist.
+- Mach aus einer Korrektur keine Regel für genau dieses eine Beispiel. Frag dich: Was war dahinter gemeint, und was gilt für das nächste Thema genauso? Schreib das auf.
+- Mach die Vorlage nicht länger als nötig. Nach dem Probelauf: Streich, was beim Ergebnis nichts verändert hat.
+- Probier jede neue Vorlage an zwei Wünschen aus, die greifen sollen, und an einem, der nicht greifen soll („Mach mir ein Arbeitsblatt“, wenn es eine Vokabeltest-Vorlage ist). Greift sie dort doch, schärfe das „Nicht für ...“ der Beschreibung nach.
