@@ -232,6 +232,19 @@ if(reduced){
 }
 // Pult's preview asks which scene is showing, so a teacher can leave a note on it. Standing alone, nobody asks.
 addEventListener("message",e=>{if(!e.data||e.data.pult!=="szene?"||e.source!==parent)return;const n=aktuell();parent.postMessage({pult:"szene",n,titel:TITEL[n]||""},"*");});
+// Pult's video export asks for single pictures: the page at one moment as a 1280 x 720 picture (SVG), the same at any window size.
+function bildSvg(ms){
+  window.seek(ms);
+  const c=document.documentElement.cloneNode(true);
+  c.querySelectorAll("script,nav").forEach(e=>e.remove());
+  const cv=$("#hg"),cc=c.querySelector("#hg");
+  if(cv&&cc){const im=document.createElement("img");im.setAttribute("style","position:absolute;left:0;top:0;width:1280px;height:720px;opacity:.6");im.setAttribute("src",cv.toDataURL());cc.replaceWith(im);}
+  c.querySelector("#buehne").style.setProperty("--k","1");
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"><foreignObject width="100%" height="100%">'+new XMLSerializer().serializeToString(c)+'</foreignObject></svg>';
+}
+addEventListener("message",e=>{if(!e.data||e.source!==parent)return;
+  if(e.data.pult==="video?")parent.postMessage({pult:"video",ms:reduced?0:PLAN.dauer},"*");
+  if(e.data.pult==="bild?")parent.postMessage({pult:"bild",ms:e.data.ms,svg:bildSvg(e.data.ms)},"*");});
 window.ready=document.fonts.ready.then(()=>{einpassen();if(tl&&!new URLSearchParams(location.search).has("still"))$("#spiel").click();return true;});
 </script>
 </body></html>`;

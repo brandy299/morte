@@ -296,6 +296,30 @@ describe.skipIf(!browser)("in a real browser", () => {
     expect(shots[0]!.equals(shots[1]!)).toBe(true);
   }, 60000);
 
+  it("hands over single pictures for the video export, the same at any window size", async () => {
+    const { page } = await open(html);
+    const frage = (ms: number) =>
+      page.evaluate(
+        (ms: number) => new Promise<{ svg: string }>((ok) => { addEventListener("message", (e) => e.data?.pult === "bild" && e.data.ms === ms && ok(e.data), { once: false }); postMessage({ pult: "bild?", ms }, "*"); }),
+        ms,
+      );
+    const a = (await frage(3000)).svg;
+    const b = (await frage(9000)).svg;
+    expect(a).toMatch(/^<svg [^>]*width="1280" height="720"><foreignObject/);
+    expect(a).not.toMatch(/<script|<nav/);
+    expect(a).toContain("--k: 1");
+    expect(a).not.toBe(b);
+    expect(a).toContain("<img"); // the moving background arrives as a picture
+    await page.close();
+    // A small window gives the very same picture: the page is always drawn at 1280 x 720.
+    const klein = await open(html);
+    await klein.page.setViewportSize({ width: 600, height: 400 });
+    const page2 = klein.page;
+    expect((await page2.evaluate((ms: number) => new Promise<string>((ok) => { addEventListener("message", (e) => e.data?.pult === "bild" && ok(e.data.svg)); postMessage({ pult: "bild?", ms }, "*"); }), 3000))).toBe(a);
+    expect(await page2.evaluate(() => new Promise((ok) => { addEventListener("message", (e) => e.data?.pult === "video" && ok(e.data.ms)); postMessage({ pult: "video?" }, "*"); }))).toBe(await page2.evaluate("window.dauer"));
+    await page2.close();
+  }, 60000);
+
   it("draws the background and moves it with the timeline, not with the clock", async () => {
     const { page } = await open(html);
     const bild = () => page.evaluate("document.getElementById('hg').toDataURL()") as Promise<string>;
