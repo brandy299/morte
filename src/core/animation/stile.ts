@@ -1,47 +1,111 @@
 /**
- * The catalog of looks for explainer pieces beyond the six hand-made ones. It is made by scripts/stile-importieren.mjs
- * from the open design systems of nexu-io/open-design (Apache-2.0, see assets/stile/NOTICE.md): colors, corner radius,
- * hard shadow and the kind of the headline font. Pure data, no code from there. No imports from the rest of animation/.
+ * The looks of explainer pieces: a hand-picked set of themes from the open kit "html-ppt" (MIT, see assets/baukasten/NOTICE.md).
+ * A theme is a small css file of variables (colors, corner radius, shadow) plus a few rules. This file knows their German
+ * names, which font family the headline takes, and reads the main colors out of the css for other uses (slides, previews).
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-export interface KatalogStil {
+/** Headline font: Fraunces (serif), Source Sans 3 (sans) or the monospace font of the computer (mono). */
+export type Schrift = "serif" | "sans" | "mono";
+export interface Stil {
   id: string;
   name: string;
-  kategorie: string;
+  /** How it looks and what it suits, in plain German, for the assistant and the teacher. */
   beschreibung: string;
-  bg: string;
-  ink: string;
-  soft: string;
-  accent: string;
-  fills: [string, string, string];
-  kante: number;
-  schatten: number;
-  rx: number;
+  schrift: Schrift;
+}
+
+export const STILE: readonly Stil[] = [
+  { id: "editorial-serif", name: "Editorial", schrift: "serif", beschreibung: "warmes Papierweiß, elegante Serifenschrift, ein dunkelroter Akzent; ruhig und hochwertig, für Deutsch, Geschichte, Politik, Wirtschaft" },
+  { id: "minimal-white", name: "Klar", schrift: "sans", beschreibung: "reines Weiß, schwarze Schrift, viel Luft; schlicht und modern, passt zu allem" },
+  { id: "swiss-grid", name: "Schweizer Raster", schrift: "sans", beschreibung: "Weiß mit feinem Raster, fette Schrift, Signalrot; streng und klar, für Mathe, Wirtschaft, Technik" },
+  { id: "corporate-clean", name: "Sachlich", schrift: "sans", beschreibung: "Weiß und Dunkelblau; seriös wie ein Geschäftsbericht, für Wirtschaft, Recht, Berufskunde" },
+  { id: "arctic-cool", name: "Kühl", schrift: "sans", beschreibung: "helles Blaugrau mit Blau; frisch und sachlich, für Naturwissenschaft und Technik" },
+  { id: "sunset-warm", name: "Warm", schrift: "sans", beschreibung: "cremeweiß mit Orange; freundlich und einladend, für Sprachen, Gesellschaft, jüngere Klassen" },
+  { id: "soft-pastel", name: "Pastell", schrift: "sans", beschreibung: "zartes Rosa und Flieder; weich und freundlich, für jüngere Klassen und soziale Themen" },
+  { id: "academic-paper", name: "Wissenschaft", schrift: "serif", beschreibung: "Papierweiß, Serifenschrift, Dunkelblau; wie ein Fachaufsatz, für Oberstufe und Fachtheorie" },
+  { id: "japanese-minimal", name: "Still", schrift: "serif", beschreibung: "fast leer, feine Serifenschrift, ein roter Punkt Farbe; sehr ruhig, für Texte, Ethik, Kunst" },
+  { id: "magazine-bold", name: "Magazin", schrift: "serif", beschreibung: "sehr große Serifen-Überschriften auf Creme, Orange als Akzent; plakativ, für Einstiege und starke Aussagen" },
+  { id: "midcentury", name: "Retro", schrift: "serif", beschreibung: "Sandfarben, Senfgelb und Braun wie in den Sechzigern; gemütlich, für Geschichte und Kultur" },
+  { id: "bauhaus", name: "Bauhaus", schrift: "sans", beschreibung: "Creme mit Rot, Blau, Gelb und schwarzen Kanten; geometrisch, für Kunst, Technik, Gestaltung" },
+  { id: "neo-brutalism", name: "Neo-Brutalismus", schrift: "sans", beschreibung: "dicke schwarze Kanten, harte Schatten, Knallgelb; laut und jung, für Jugendliche, Medien, Politik" },
+  { id: "memphis-pop", name: "Pop", schrift: "sans", beschreibung: "bunte Punkte, Pink und Türkis, schwarze Kanten; verspielt, für jüngere Klassen und lockere Themen" },
+  { id: "news-broadcast", name: "Nachrichten", schrift: "sans", beschreibung: "Weiß, Schwarz und Rot wie eine Nachrichtensendung, Überschriften in Großbuchstaben; für Politik und Aktuelles" },
+  { id: "sharp-mono", name: "Schwarz-Weiß", schrift: "sans", beschreibung: "nur Schwarz und Weiß, harte Kanten, Großbuchstaben; streng, druckt überall gut" },
+  { id: "blueprint", name: "Blaupause", schrift: "mono", beschreibung: "weiße Linien auf tiefem Blau mit Raster; wie ein Bauplan, für Technik und Naturwissenschaft" },
+  { id: "engineering-whiteprint", name: "Technische Zeichnung", schrift: "mono", beschreibung: "Weiß mit feinem Raster und dunkelblauen Linien; präzise, für Technik, Physik, Informatik" },
+  { id: "tokyo-night", name: "Nacht", schrift: "sans", beschreibung: "dunkles Blaugrau mit hellblauer Schrift; modern, gut im abgedunkelten Raum" },
+  { id: "nord", name: "Nordisch", schrift: "sans", beschreibung: "dunkles Graublau mit Eisblau; ruhig und dunkel" },
+  { id: "aurora", name: "Polarlicht", schrift: "sans", beschreibung: "Nachtblau mit leuchtenden Farbschleiern in Grün und Violett; stimmungsvoll, für Astronomie, Physik, Erdkunde" },
+  { id: "glassmorphism", name: "Glas", schrift: "sans", beschreibung: "dunkler Grund mit Farbschimmer und durchscheinenden Karten; modern, für Informatik und Medien" },
+  { id: "cyberpunk-neon", name: "Neon", schrift: "mono", beschreibung: "Schwarz mit leuchtendem Pink und Türkis; auffällig, für Jugendliche, Informatik, Medien" },
+  { id: "terminal-green", name: "Terminal", schrift: "mono", beschreibung: "grüne Schrift auf Schwarz wie ein alter Computer; für Informatik" },
+];
+/** The look when none is chosen. */
+export const STANDARD_STIL = "editorial-serif";
+
+export const stil = (id: string): Stil | undefined => STILE.find((s) => s.id === id);
+export const stilName = (id: string): string | undefined => stil(id)?.name;
+/** One line per look for the assistant, so it can propose looks to a teacher. */
+export const stilZeile = (s: Stil): string => `${s.id}: ${s.name}; ${s.beschreibung}`;
+
+const datei = (name: string) => readFileSync(fileURLToPath(new URL(`../../../assets/baukasten/${name}`, import.meta.url)), "utf8");
+const cache = new Map<string, string>();
+const lesen = (name: string) => cache.get(name) ?? (cache.set(name, datei(name)), cache.get(name)!);
+/** The shared rules of the kit (sizes, cards, grid). */
+export const grundCss = () => lesen("base.css");
+/** The css of one look. */
+export const themeCss = (id: string) => lesen(`themes/${stil(id)?.id ?? STANDARD_STIL}.css`);
+
+export interface Farben { bg: string; ink: string; soft: string; accent: string }
+const variable = (css: string, name: string) => css.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})\\b`))?.[1]?.toLowerCase();
+const rgbVon = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const hexVon = (c: number[]) => "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+/** A css color of the theme (#rrggbb or rgba) laid over the ground, as #rrggbb. */
+function farbeAuf(css: string, name: string, bg: string): string | undefined {
+  const wert = css.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1]?.trim();
+  const rgba = wert?.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/);
+  if (rgba) {
+    const a = rgba[4] === undefined ? 1 : Number(rgba[4]);
+    const unten = rgbVon(bg);
+    return hexVon([1, 2, 3].map((i) => Number(rgba[i]) * a + unten[i - 1]! * (1 - a)));
+  }
+  return wert && /^#[0-9a-fA-F]{6}$/.test(wert) ? wert.toLowerCase() : undefined;
+}
+export interface StilInfo {
+  farben: Farben;
   serif: boolean;
-  schrift: string;
+  dunkel: boolean;
+  /** Color of cards, of their edges, and the corner radius in px of the 1280 x 720 stage. */
+  flaeche: string;
+  rand: string;
+  radius: number;
+  /** For arrows, icons and big numbers: the accent color when it stands out enough on the ground, else the text color. */
+  zeichen: string;
+  /** Text on top of the accent color. */
+  aufAkzent: string;
 }
-
-let cache: KatalogStil[] | undefined;
-export function katalog(): KatalogStil[] {
-  cache ??= JSON.parse(readFileSync(fileURLToPath(new URL("../../../assets/stile/katalog.json", import.meta.url)), "utf8")) as KatalogStil[];
-  return cache;
-}
-export const katalogStil = (id: string) => katalog().find((s) => s.id === id);
-
-/** Names of the hand-made looks, for the teacher. */
-const EIGENE_NAMEN: Record<string, string> = { wasserfarben: "Wasserfarben", brutalismus: "Neo-Brutalismus", zeitung: "Zeitung", blaupause: "Blaupause", kreide: "Kreide-Tafel", fachbuch: "Fachbuch" };
-export const stilName = (id: string): string | undefined => EIGENE_NAMEN[id] ?? katalogStil(id)?.name;
-
-/** Plain-words look of a catalog style for the assistant, so it can propose styles to a teacher. */
-export function stilZeile(s: KatalogStil): string {
-  const form = s.schatten ? "harte Schatten, dicke Kanten" : s.rx >= 16 ? "weich, stark gerundet" : s.rx <= 4 ? "eckig, klar" : "dezent gerundet";
-  const grund = istDunkel(s.bg) ? "dunkler Hintergrund" : "heller Hintergrund";
-  return `${s.id}: ${s.name} (${s.kategorie}); ${grund}, ${form}, ${s.serif ? "Serifenschrift" : "serifenlose Schrift"}${s.beschreibung ? `. ${s.beschreibung}` : ""}`;
+/** The main colors of a look, whether the headline is serif and whether the ground is dark, plus what cards need. */
+export function stilInfo(id: string): StilInfo {
+  const css = themeCss(id);
+  const farben = { bg: variable(css, "bg") ?? "#ffffff", ink: variable(css, "text-1") ?? "#111111", soft: variable(css, "text-2") ?? "#555555", accent: variable(css, "accent") ?? "#111111" };
+  const dunkel = istDunkel(farben.bg);
+  return {
+    farben,
+    serif: (stil(id) ?? stil(STANDARD_STIL)!).schrift === "serif",
+    dunkel,
+    flaeche: farbeAuf(css, "surface", farben.bg) ?? farben.bg,
+    rand: farbeAuf(css, "border", farben.bg) ?? farbeAuf(css, "border-strong", farben.bg) ?? farben.soft,
+    radius: Number(css.match(/--radius:\s*(\d+)px/)?.[1] ?? 8),
+    zeichen: kontrast(farben.accent, farben.bg) >= 3 ? farben.accent : farben.ink,
+    aufAkzent: kontrast("#ffffff", farben.accent) >= kontrast("#111111", farben.accent) ? "#ffffff" : "#111111",
+  };
 }
 
 export const istDunkel = (bg: string) => lum(bg) < 0.3;
+/** Contrast ratio of two colors (WCAG). */
+export const kontrast = (a: string, b: string) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
 
 function lum(h: string): number {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));

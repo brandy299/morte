@@ -1,0 +1,106 @@
+/* Pult: the stage and the scene layouts of an explainer piece. Sits between the kit's base.css and the chosen theme,
+   so a theme can still restyle headlines, cards and the kicker. Sizes are for a fixed 1280 x 720 stage that is scaled to the window. */
+html,body{height:100%}
+body{display:flex;flex-direction:column;overflow:hidden}
+#rahmen{flex:1;min-height:0;position:relative;overflow:hidden}
+.buehne{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%) scale(var(--k,1));overflow:hidden}
+.buehne canvas{position:absolute;inset:0;width:1280px;height:720px;opacity:.6;pointer-events:none}
+.buehne .slide{transition:none;transform:none}
+.inhalt{display:flex;flex-direction:column;width:100%;align-self:center;flex:none;transform-origin:center}
+.sz p{margin:0}
+.sz{hyphens:auto;overflow-wrap:break-word}
+.kopf{margin-bottom:36px}
+.kopf .kicker{margin-bottom:10px}
+:where(.sz) .h2{font-size:52px;max-width:22em;margin-bottom:0}
+:where(.sz) .lede{font-size:26px;line-height:1.45;margin-top:14px;font-weight:400}
+:where(.sz) .kicker{font-size:16px}
+:where(.sz) .deck-footer{font-size:14px}
+:where(.sz) h4{font-size:28px;line-height:1.2;margin:0 0 10px}
+.sz .card p,.zeit p{font-size:22px;line-height:1.4;color:var(--text-2)}
+.sym{width:52px;height:52px;color:var(--zeichen);margin-bottom:16px}
+
+/* cover */
+.sz-titel .h1{max-width:15em}
+.lang:where(.h1){font-size:56px}
+.sz-titel .divider-accent{margin:26px 0 0}
+.sz-titel .lede{font-size:26px;margin-top:22px;max-width:36em}
+
+/* punkte, schritte */
+.karten{display:grid;gap:24px;grid-template-columns:repeat(var(--sp),minmax(0,1fr))}
+.karten .card{padding:30px 28px}
+.karten.zwei .card{padding:24px 26px}
+.karten.zwei h4{font-size:25px}
+.karten.zwei .card p{font-size:20px}
+.karten.zwei .sym{width:44px;height:44px;margin-bottom:10px}
+.sz-schritte .karten{margin-top:24px}
+.sz-schritte .karten .card{overflow:visible;padding-top:44px}
+.sz-schritte .karten.zwei{row-gap:44px}
+.num{position:absolute;top:-24px;left:22px;width:48px;height:48px;border-radius:50%;background:var(--accent);color:var(--auf-akzent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;font-family:var(--font-sans)}
+
+/* ablauf, kreislauf */
+.fluss{display:grid;gap:var(--g);align-items:stretch;--g:18px;--a:104px}
+.fluss h4{font-size:25px}
+.fluss .card p{font-size:20px}
+.fluss.n4{--g:10px;--a:64px}
+.fluss.n4 h4{font-size:22px}
+.fluss.n4 .card{padding:22px 20px}
+.fluss.n4 .card p{font-size:18.5px}
+.pfeil{align-self:center;width:var(--a);text-align:center;font-size:14px;line-height:1.25;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);font-weight:600}
+.pfeil svg{width:100%;height:24px;color:var(--zeichen);margin-bottom:4px;overflow:visible}
+.zurueck{grid-column:1/-1;position:relative;height:46px;margin:0 calc((100% - (var(--n) - 1) * (var(--a) + 2 * var(--g))) / var(--n) / 2);border:3px solid var(--zeichen);border-top:none;border-radius:0 0 22px 22px;display:flex;align-items:flex-end;justify-content:center}
+.zurueck span{transform:translateY(calc(50% + 14px));font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);font-weight:600}
+.zurueck svg{position:absolute;left:-10.5px;top:-8px;width:18px;height:14px;color:var(--zeichen)}
+.sz-kreislauf .fluss{row-gap:6px;padding-bottom:20px}
+
+/* zahl */
+.sz-zahl .inhalt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:72px;align-items:center}
+.gross{font-family:var(--font-display);font-weight:800;line-height:.9;color:var(--zeichen);font-size:230px;letter-spacing:var(--letter-tight);white-space:nowrap}
+.gross.m{font-size:170px}
+.gross.l{font-size:120px}
+.sz-zahl .kopf{margin-bottom:0}
+
+/* vergleich */
+.seiten{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.seiten .card{padding:30px 34px}
+.seiten h3{font-size:34px;margin:0 0 16px}
+.seiten ul{margin:0;padding:0;list-style:none}
+.seiten li{font-size:25px;line-height:1.35;padding:13px 0 13px 30px;position:relative;border-top:1px solid var(--border)}
+.seiten li::before{content:"";position:absolute;left:2px;top:25px;width:10px;height:10px;background:var(--zeichen);border-radius:2px}
+
+/* zeitstrahl */
+.zeit{display:grid;grid-template-columns:repeat(var(--sp),minmax(0,1fr));gap:22px;position:relative;margin-top:8px}
+.zeit::before{content:"";position:absolute;left:0;right:0;top:66px;height:3px;background:var(--border-strong)}
+.zeit .jahr{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1;height:44px;color:var(--text-1);letter-spacing:var(--letter-tight);white-space:nowrap}
+.zeit .knoten{width:19px;height:19px;border-radius:50%;background:var(--zeichen);margin:14px 0 22px;position:relative;box-shadow:0 0 0 5px var(--bg)}
+.zeit h4{font-size:24px}
+.zeit p{font-size:20px}
+
+/* aussage */
+.sz-aussage .inhalt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:64px;align-items:center}
+.sz-aussage .lede{font-size:30px;line-height:1.45;margin-top:22px;color:var(--text-1);max-width:30em}
+.sz-aussage .kopf{margin-bottom:0}
+.bild{width:240px;height:240px;display:flex;align-items:center;justify-content:center;padding:0}
+.bild .sym{width:128px;height:128px;margin:0;stroke-width:1.2}
+
+/* merksatz */
+.sz-merksatz .inhalt{max-width:960px;align-self:flex-start}
+.sz-merksatz .divider-accent{margin:18px 0 30px}
+.satz{font-family:var(--font-display);font-size:54px;line-height:1.16;font-weight:700;letter-spacing:var(--letter-tight);color:var(--text-1)}
+.satz.lang{font-size:42px}
+.quelle{margin-top:26px;font-size:20px;color:var(--text-2)}
+
+/* arrows are drawn by the timeline */
+.ar{stroke-dasharray:1;stroke-dashoffset:1}
+
+/* controls */
+nav{display:flex;gap:10px;justify-content:center;padding:10px 16px}
+nav button{font:600 17px var(--font-sans);color:var(--text-1);background:var(--knopf);border:1.5px solid var(--border-strong);border-radius:10px;padding:8px 18px;cursor:pointer;min-height:44px}
+nav button:hover{border-color:var(--text-1)}
+nav button:focus-visible{outline:3px solid var(--zeichen);outline-offset:2px}
+@media print{nav{display:none}}
+
+/* headlines break at words and in even lines; only the narrow card headings may hyphenate */
+.sz .h1,.sz .h2,.sz h3,.satz{hyphens:manual;text-wrap:balance}
+.zeit.eng h4{font-size:19px}
+.zeit.eng p{font-size:17.5px}
+.zeit.eng .jahr{font-size:30px}
