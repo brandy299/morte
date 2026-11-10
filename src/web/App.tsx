@@ -500,6 +500,32 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
   const suggestions = tree.length === 0 ? FIRST_SUGGESTIONS : SUGGESTIONS;
   const abortRef = useRef<AbortController | null>(null);
   const previewFrame = useRef<HTMLIFrameElement>(null);
+  // Video export of an explainer: share done (0 to 1) while it runs, otherwise null.
+  const [videoAnteil, setVideoAnteil] = useState<number | null>(null);
+  const [videoFehler, setVideoFehler] = useState("");
+  const videoAbbruch = useRef<AbortController | null>(null);
+  const videoMachen = async (name: string) => {
+    const rahmen = previewFrame.current;
+    if (!rahmen || videoAbbruch.current) return;
+    const abbruch = new AbortController();
+    videoAbbruch.current = abbruch;
+    setVideoFehler("");
+    setVideoAnteil(0);
+    try {
+      const { videoErzeugen } = await import("./video.ts");
+      const datei = await videoErzeugen(rahmen, setVideoAnteil, abbruch.signal);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(datei);
+      a.download = name.replace(/\.html?$/i, "") + ".mp4";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
+    } catch (e) {
+      if (!abbruch.signal.aborted) setVideoFehler((e as Error).message || "Das Video konnte nicht gemacht werden.");
+    } finally {
+      videoAbbruch.current = null;
+      setVideoAnteil(null);
+    }
+  };
 
   useEffect(() => {
     getUsage().then((u) => setUsage(u.session)).catch(() => {});
@@ -1201,11 +1227,22 @@ function Chat({ initialMessages, initialView, planVersion, onStundenplan, histor
                 Hier etwas ändern
               </button>
             )}
+            {/Erklaerstueck/i.test(preview.name) && isHtml(preview) &&
+              (videoAnteil === null ? (
+                <button type="button" className="ghost" onClick={() => void videoMachen(preview.name)}>
+                  Als Video
+                </button>
+              ) : (
+                <button type="button" className="ghost" onClick={() => videoAbbruch.current?.abort()}>
+                  Video {Math.round(videoAnteil * 100)} % · Abbrechen
+                </button>
+              ))}
             <button type="button" className="ghost" onClick={() => setPreview(null)}>
               Schließen
             </button>
           </div>
-          <iframe ref={previewFrame} title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
+          {videoFehler && <p role="alert" className="video-fehler">{videoFehler}</p>}
+          <iframe style={videoAnteil !== null ? { pointerEvents: "none" } : undefined} ref={previewFrame} title={preview.title} src={isHtml(preview) ? materialUrl(preview) : `${materialUrl(preview)}#toolbar=0&navpanes=0&view=FitH`} sandbox={isHtml(preview) ? "allow-scripts" : undefined} />
         </aside>
       )}
     </div>
